@@ -1,0 +1,36 @@
+---
+BasedOnStyle: Microsoft
+Language: Cpp
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveDeclarations: 'true'
+AlignTrailingComments: 'true'
+# AllowShortEnumsOnASingleLine : 'true'
+AllowShortFunctionsOnASingleLine: InlineOnly
+# AllowShortLambdasOnASingleLine: SLS_Inline
+AlwaysBreakBeforeMultilineStrings: 'true'
+AlwaysBreakTemplateDeclarations: 'Yes'
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+# BreakBeforeConceptDeclarations: 'true'
+# IndentRequires: 'true'
+SpaceAfterTemplateKeyword: 'true'
+SpacesInAngles: 'false'
+# BreakBeforeBraces: Allman
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterClass: false
+  AfterStruct: false
+  #BeforeLambdaBody: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+
+BreakBeforeTernaryOperators: 'true'
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+Cpp11BracedListStyle: 'true'
+NamespaceIndentation: All
+FixNamespaceComments: 'false'
+PointerAlignment: "Left"
+IndentWidth: 4
+TabWidth: 4
