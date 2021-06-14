@@ -1,2 +1,3 @@
-# CppShelf
-Collection of - C++ Single-Header Libraries Files
+# C++ Shelf
+
+Collection of - Single-Header, header-only, C++ libraries files
