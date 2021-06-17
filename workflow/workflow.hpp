@@ -164,38 +164,40 @@ constexpr auto operator|(F1 && lhs, F2 && rhs) {
 auto main() -> int {
 
     // operator>>=
-    {
-        auto node = [](){
+    
+        auto route = [](){
             std::cout << "node 1\n";
             return std::make_unique<std::string>("toto titi tata tutu qwe qwe qwe");
         } >>= [](auto value){
             std::cout << "node 2 (value : " << *value << ")\n";
+            return std::integral_constant<int, 42>{};
         };
-        node();
+        static_assert(std::is_invocable_r_v<std::integral_constant<int, 42>, decltype(route)>);
     }
     {
         char filler = 'X';
-        auto node = [&filler](int value){
+        auto route = [&filler](int value){
             std::cout << "node 1\n";
             return std::make_unique<std::string>(value, filler);
         } >>= [](auto value){
             std::cout << "node 2 (value : " << *value << ")\n";
         };
-        node(42);
+        static_assert(std::is_invocable_v<decltype(route), int>);
     }
     {
-        auto node = [](){
+        auto route = [](){
             std::cout << "node 1\n";
             return std::make_unique<std::string>("toto titi tata tutu qwe qwe qwe");
         } >>= [](auto value){
             std::cout << "node 2 (value : " << *value << ")\n";
         }  >>= [](){
             std::cout << "node 3\n";
+            return std::integral_constant<int, 42>{};
         };
-        node();
+        static_assert(std::is_invocable_r_v<std::integral_constant<int, 42>, decltype(route)>);
     }
     {
-        auto node = [](){
+        auto route = [](){
             std::cout << "node 1\n";
             return std::make_unique<std::string>("toto titi tata tutu qwe qwe qwe");
         } >>= [](auto && value){
@@ -203,61 +205,92 @@ auto main() -> int {
             return std::forward<decltype(value)>(value);
         }  >>= [](auto && value){
             std::cout << "node 3 (value : " << *value << ")\n";
+            return value;
         };
-        node();
+        static_assert(std::is_invocable_r_v<std::unique_ptr<std::string>&&, decltype(route)>);
+    }
+    {   // todo TTP, NTTP
+        auto route_ttp_parameter = []<typename>(){} >>= [](){ return std::true_type{};};
+        auto route_nttp_parameter = []<bool>(){} >>= [](){ return std::true_type{};};
     }
 
     // operator|
     {
-        auto toto =
+        auto node_1 =
             [](int){} |
             [](char){} |
             [](std::string){}
             ;
-        static_assert(std::is_invocable_v<decltype(toto), int>);
-        static_assert(std::is_invocable_v<decltype(toto), char>);
-        static_assert(std::is_invocable_v<decltype(toto), std::string>);
+        static_assert(std::is_invocable_v<decltype(node_1), int>);
+        static_assert(std::is_invocable_v<decltype(node_1), char>);
+        static_assert(std::is_invocable_v<decltype(node_1), std::string>);
 
-        auto titi =
+        auto node_2 =
             [](double){} |
             [](float){}
             ;
 
-        static_assert(std::is_invocable_v<decltype(titi), double>);
-        static_assert(std::is_invocable_v<decltype(titi), float>);
+        static_assert(std::is_invocable_v<decltype(node_2), double>);
+        static_assert(std::is_invocable_v<decltype(node_2), float>);
 
-        auto result = toto | titi;
+        auto route = node_1 | node_2;
 
-        static_assert(std::is_invocable_v<decltype(result), int>);
-        static_assert(std::is_invocable_v<decltype(result), char>);
-        static_assert(std::is_invocable_v<decltype(result), std::string>);
-        static_assert(std::is_invocable_v<decltype(result), double>);
-        static_assert(std::is_invocable_v<decltype(result), float>);
+        static_assert(std::is_invocable_v<decltype(route), int>);
+        static_assert(std::is_invocable_v<decltype(route), char>);
+        static_assert(std::is_invocable_v<decltype(route), std::string>);
+        static_assert(std::is_invocable_v<decltype(route), double>);
+        static_assert(std::is_invocable_v<decltype(route), float>);
     }
     {
         auto route =
-            []<typename T>() { std::cout << "node - T\n"; } |
-            [](char){ std::cout << "node - char\n";}
+            []<typename T>() {
+                std::cout << "node - T\n";
+                return std::true_type{};
+            } |
+            [](char){
+                std::cout << "node - char\n";
+                return std::false_type{};
+            }
             ;
-        //static_assert(std::is_invocable_v<decltype(route)>)
-        route.template operator()<char>();
+        static_assert(std::is_same_v<
+            std::true_type,
+            decltype(route.template operator()<char>())
+        >);
+        static_assert(std::is_invocable_r_v<
+            std::false_type,
+            decltype(route),
+            char
+        >);
     }
     {
-        //auto route = []<auto switch_value>(){
         auto route = [](auto switch_value){
             std::cout << "node 1\n";
             using return_type = std::conditional_t<decltype(switch_value)::value, int, char>;
             return return_type{};
         } >>= (
-            [](int) { std::cout << "node2 - int\n"; } |
-            [](char){ std::cout << "node2 - char\n";}
+            [](int) { std::cout << "node2 - int\n"; return std::true_type{}; } |
+            [](char){ std::cout << "node2 - char\n"; return std::false_type{}; }
+        );
+        static_assert(std::is_invocable_r_v<std::true_type, decltype(route), std::true_type>);
+        static_assert(std::is_invocable_r_v<std::false_type, decltype(route), std::false_type>);
+    }
+    {   // todo TTP, NTTP
+        auto route = []<auto switch_value>(){
+            std::cout << "node 1\n";
+            using return_type = std::conditional_t<switch_value, int, char>;
+            return return_type{};
+        } >>= (
+            [](int) { std::cout << "node2 - int\n"; return std::true_type{}; } |
+            [](char){ std::cout << "node2 - char\n"; return std::false_type{}; }
         );
 
-        route(std::true_type{});
-        route(std::false_type{});
+        // route.operator()<true>();
 
-        // route.template operator()<true>();
-        // route.template operator()<false>();
+        // static_assert(std::is_same_v<
+        //     std::true_type,
+        //     decltype(route.template operator()<true>())
+        // >);
+        // static_assert(std::is_invocable_r_v<std::false_type, decltype(route), std::false_type>);
     }
 
 }
