@@ -156,10 +156,14 @@ namespace workflow {
 }
 namespace workflow::operators {
 
-    // todo : +operator,
-    // todo : *operator
+    // todo : operator / operator&
     // todo : tuple interface -> tuple, pair, array
     //        destructured bindings
+    //  special node to wrap such thing ?
+    //  [](){ return std::tuple{'a', 42};} >>= workflow::unfold >>= ([](char){} & [](int){})
+    //  that internally call std::apply based on overload resolution
+    //
+    // ([](){ return 'a';} + [](){ return 42;}) >>= workflow::unfold >>= ([](char){} & [](int){})
 
     template <
         typename F1, typename F2,
@@ -202,11 +206,11 @@ namespace workflow::operators {
         typename F1,
         typename std::enable_if_t<not type_traits::have_plus_operator_v<F1, std::size_t>> * = nullptr
     >   // should add more requirements, that detects template operator()
-    constexpr auto operator*(F1 && f1_value, std::size_t times) noexcept {
+    constexpr auto operator*(F1 && f1_value, std::size_t call_count) noexcept {
 
         return [
             _f1 = std::move(f1_value),
-            times
+            call_count
         ](auto &&... f1_args) mutable {
 
             static_assert(std::is_invocable_v<decltype(_f1), decltype(f1_args)...>);
@@ -214,59 +218,62 @@ namespace workflow::operators {
 
             if constexpr (std::is_same_v<void, f1_invoke_result_t>)
             {
-                //for (auto count : std::ranges::iota_view<std::size_t>{0, times}) // Clang 12.0 issue
-                for (auto count = 0; count < times; ++count)
+                //for (auto count : std::ranges::iota_view<std::size_t>{0, call_count}) // Clang 12.0 issue
+                for (auto count = 0; count < call_count; ++count)
                     std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...);
                 ;
             }
             else return [&](){
                 static_assert(std::semiregular<f1_invoke_result_t>);
                 using return_type = std::vector<f1_invoke_result_t>;
-                return_type return_value(times);
+                return_type return_value(call_count);
                 std::generate(std::begin(return_value), std::end(return_value), [&](){
                     return std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...);
                 });
+                return return_value;
             }();
         };
     }
     template <
         typename F1,
-        std::size_t times,
+        auto call_count,
         typename std::enable_if_t<
             not type_traits::have_plus_operator_v<
                 F1,
-                std::integral_constant<std::size_t, times>
+                std::integral_constant<std::size_t, call_count>
             >
         > * = nullptr
     >   // should add more requirements, that detects template operator()
-    constexpr auto operator*(F1 && f1_value, std::integral_constant<std::size_t, times>) noexcept {
+    constexpr auto operator*(F1 && f1_value, std::integral_constant<decltype(call_count), call_count>) noexcept {
 
         return [
             _f1 = std::move(f1_value)
-        ](auto &&... f1_args) mutable {
+        ](auto &&... f1_args) constexpr mutable {
 
             static_assert(std::is_invocable_v<decltype(_f1), decltype(f1_args)...>);
             using f1_invoke_result_t = std::invoke_result_t<decltype(_f1), decltype(f1_args)...>;
 
             if constexpr (std::is_same_v<void, f1_invoke_result_t>)
-                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
-                    ((indexes, std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...)), ...);
-                }(std::make_index_sequence<times>{});
+                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+                    (((void)indexes, std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...)), ...);
+                }(std::make_index_sequence<call_count>{});
             else
-                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
-                    using return_type = std::array<f1_invoke_result_t, times>;
+                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+                    using return_type = std::array<f1_invoke_result_t, call_count>;
                     return return_type {
-                        ((indexes, std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...)), ...)
+                        typename return_type::value_type{
+                            ((void)indexes,
+                            std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...))
+                        }...
                     };
-                }(std::make_index_sequence<times>{});
+                }(std::make_index_sequence<call_count>{});
         };
     }
 }
 
-#include <string_view>
 #include <memory>
-typename std::enable_if_t<std::string_view{__FILE__}.ends_with(".cpp"), int>
-main() {
+#include <typeinfo>
+auto main() -> int {
 
     using namespace workflow::operators;
 
@@ -402,6 +409,31 @@ main() {
 
     // operator*
     {
-
+        auto route =
+            [call_counter = 0]() mutable { return ++call_counter; } *
+            3
+        ;
+        static_assert(std::is_invocable_r_v<std::vector<int>, decltype(route)>);
+        if (route() not_eq std::vector{1,2,3})
+            throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
+    }
+    {
+        using call_count_t = std::integral_constant<int, 3>;
+        auto route =
+            [call_counter = 0]() mutable {  return ++call_counter; } *
+            call_count_t{}
+        ;
+        static_assert(std::is_invocable_r_v<std::array<int, call_count_t::value>, decltype(route)>);
+        if (route() not_eq std::array{1,2,3})
+            throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
+    }
+    {   // F * integral_constant => compile-time value
+        using call_count_t = std::integral_constant<int, 3>;
+        auto route =
+            []() constexpr {  return 42; } *
+            call_count_t{}
+        ;
+        static_assert(std::is_invocable_r_v<std::array<int, call_count_t::value>, decltype(route)>);
+        static_assert(route() == std::array{42,42,42});
     }
 }
