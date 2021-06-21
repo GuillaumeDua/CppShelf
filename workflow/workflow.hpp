@@ -303,6 +303,7 @@ namespace workflow::operators {
     }
 }
 
+#ifdef CPP_SHELVE_STANDALONE_EDIT__
 #include <memory>
 #include <typeinfo>
 auto main() -> int {
@@ -562,3 +563,4 @@ auto main() -> int {
         using result_t_3 = std::invoke_result_t<decltype(qwe), int>;
     }
 }
+#endif
