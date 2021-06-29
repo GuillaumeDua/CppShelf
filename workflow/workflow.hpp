@@ -1,6 +1,9 @@
+#ifndef CPP_SHELVE_STANDALONE_EDIT__
 #pragma once
-
+#else
 #include <iostream>
+#endif
+
 #include <utility>
 #include <type_traits>
 #include <variant>
@@ -11,6 +14,7 @@
 #include <array>
 #include <string_view>
 
+#ifndef CPP_SHELVE_STANDALONE_EDIT__
 namespace workflow::cx { // gcl::cx
     template <typename T>
     static constexpr /*consteval*/ std::string_view type_name(/*no parameters allowed*/)
@@ -63,6 +67,7 @@ namespace workflow::cx { // gcl::cx
     template <auto value>
     constexpr inline auto value_name_v = value_name<value>();
 }
+#endif
 namespace workflow::mp {
     template <typename T, typename ... Ts>
     constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
@@ -182,6 +187,11 @@ namespace workflow::concepts {
 // - conditional operator() const-qualifier
 namespace workflow {
     template <typename F1, typename F2>
+    requires
+        std::move_constructible<F1> and
+        std::move_constructible<F2> and
+        (not std::is_const_v<std::remove_reference_t<F1>>) and
+        (not std::is_const_v<std::remove_reference_t<F2>>)
     struct then {
 
         using _F1 = std::remove_cvref_t<F1>;
@@ -248,23 +258,26 @@ namespace workflow {
     then(F1 &&, F2 &&) -> then<std::remove_cvref_t<F1>, std::remove_cvref_t<F2>>;
 
     template <typename F>
-    struct repeater {
-        using _F = std::remove_reference_t<F>; //std::remove_cvref_t<F>;
-
-        repeater() = delete;
-        constexpr repeater(_F && arg, std::size_t count)
-        : _f{std::forward<_F>(arg)}
+    requires (
+        std::move_constructible<F> and
+        not std::is_reference_v<F> and
+        not std::is_const_v<F>
+    )
+    struct rt_repeater {
+        rt_repeater() = delete;
+        constexpr rt_repeater(F && arg, std::size_t count)
+        : _f{std::forward<F>(arg)}
         , call_count{count}
         {}
-        repeater(repeater&&) = default;
-        repeater(const repeater&) = delete;
+        constexpr rt_repeater(rt_repeater&&) = default;
+        rt_repeater(const rt_repeater&) = delete;
 
-        repeater& operator=(repeater&&) = default;
-        repeater& operator=(const repeater&) = delete;
+        constexpr rt_repeater& operator=(rt_repeater&&) = default;
+        rt_repeater& operator=(const rt_repeater&) = delete;
 
         template <typename ... f_ts, typename ... f_args_t>
-        requires requires (_F &&f){
-            functional::invoke<_F, f_ts...>(std::forward<_F>(f), std::declval<f_args_t&&>()...);
+        requires requires (F &&f){
+            functional::invoke<F, f_ts...>(std::forward<F>(f), std::declval<f_args_t&&>()...);
         }
         constexpr decltype(auto) operator()(f_args_t&&... f_args) const {
 
@@ -272,14 +285,14 @@ namespace workflow {
             static_assert(not std::is_reference_v<decltype(_f)>);
 
             using f_invoke_result_t = std::remove_cvref_t<
-                decltype(functional::invoke<_F, f_ts...>(std::declval<_F>(), std::declval<f_args_t>()...))
+                decltype(functional::invoke<F, f_ts...>(std::declval<F>(), std::declval<f_args_t>()...))
             >;
 
             if constexpr (std::is_same_v<void, f_invoke_result_t>)
             {
                 //for (auto count : std::ranges::iota_view<std::size_t>{0, call_count}) // Clang 2.0 issue
                 for (auto count = 0; count < call_count; ++count)
-                    functional::invoke<_F, f_ts...>(static_cast<_F&&>(_f), std::forward<f_args_t>(f_args)...);
+                    functional::invoke<F, f_ts...>(static_cast<F&&>(_f), std::forward<f_args_t>(f_args)...);
                 ;
             }
             else return [&]() constexpr {
@@ -287,19 +300,18 @@ namespace workflow {
                 using return_type = std::vector<f_invoke_result_t>;
                 return_type return_value(call_count);
                 std::generate(std::begin(return_value), std::end(return_value), [&](){
-                    //return std::invoke(_f, std::forward<f_args_t>(f_args)...);
-                    return functional::invoke<_F, f_ts...>(static_cast<_F&&>(_f), std::forward<f_args_t>(f_args)...);
+                    return functional::invoke<F, f_ts...>(static_cast<F&&>(_f), std::forward<f_args_t>(f_args)...);
                 });
                 return return_value;
             }();
         }
 
-        mutable _F _f;
         const std::size_t call_count;
+    private:
+        mutable F _f;
     };
     template <typename F>
-    repeater(F&&, std::size_t) -> repeater<std::remove_reference_t<F>>;
-    // repeater(F&&, std::size_t) -> repeater<std::remove_cvref_t<F>>;
+    rt_repeater(F&&, std::size_t) -> rt_repeater<std::remove_cvref_t<F>>;
 }
 namespace workflow::operators {
 
@@ -316,34 +328,26 @@ namespace workflow::operators {
         typename F1, typename F2,
         typename std::enable_if_t<not type_traits::have_shift_equal_operator_v<F1, F2>> * = nullptr
     >   // should add more requirements, that detects template operator()
+    requires
+        std::move_constructible<F1> and
+        std::move_constructible<F2> and
+        (not std::is_const_v<std::remove_reference_t<F1>>) and
+        (not std::is_const_v<std::remove_reference_t<F2>>)
     constexpr decltype(auto) operator>>=(F1 && f1_value, F2&& f2_value) noexcept {
 
         using _F1 = std::remove_cvref_t<F1>;
         using _F2 = std::remove_cvref_t<F2>;
         return then<_F1,_F2>{static_cast<_F1&&>(f1_value), static_cast<_F2&&>(f2_value)};
-
-        // return [
-        //     _f1 = std::move(f1_value),
-        //     _f2 = std::move(f2_value)
-        // ](auto &&... f1_args) mutable {
-        //     static_assert(std::is_invocable_v<F1, decltype(f1_args)...>);
-
-        //     using F1_invoke_result_t = std::invoke_result_t<F1, decltype(std::forward<decltype(f1_args)>(f1_args))...>;
-        //     if  constexpr (std::is_same_v<void, F1_invoke_result_t>) {
-        //         // std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...);
-        //         // static_assert(std::is_invocable_v<F2>);
-        //         // std::invoke(_f2);
-        //     }
-        //     else {
-        //         static_assert(std::is_invocable_v<F2, F1_invoke_result_t>);
-        //         std::invoke(_f2, std::invoke(_f1, std::forward<decltype(f1_args)>(f1_args)...));
-        //     }
-        // };
     }
     template <
         typename F1, typename F2,
         typename std::enable_if_t<not type_traits::have_pipe_operator_v<F1, F2>> * = nullptr
     >   // should add more requirements, that detects template operator()
+    requires
+        std::move_constructible<F1> and
+        std::move_constructible<F2> and
+        (not std::is_const_v<std::remove_reference_t<F1>>) and
+        (not std::is_const_v<std::remove_reference_t<F2>>)
     constexpr decltype(auto) operator|(F1 && lhs, F2 && rhs) {
         
         using _F1 = std::remove_cvref_t<F1>;
@@ -357,12 +361,15 @@ namespace workflow::operators {
         typename F,
         typename std::enable_if_t<not type_traits::have_plus_operator_v<F, std::size_t>> * = nullptr
     >   // should add more requirements, that detects template operator()
+    requires
+        std::move_constructible<F> and
+        (not std::is_const_v<std::remove_reference_t<F>>)
     constexpr decltype(auto) operator*(F && f_value, std::size_t call_count) noexcept {
 
         // static_assert(not std::is_const_v<F>);
         // static_assert(not std::is_reference_v<F>);
 
-        return repeater{ std::move(f_value), call_count };
+        return rt_repeater{ std::move(f_value), call_count };
 
         // return [
         //     _f = std::move(f_value),
@@ -406,13 +413,16 @@ namespace workflow::operators {
             >
         > * = nullptr
     >   // should add more requirements, that detects template operator()
+    requires
+        std::move_constructible<F> and
+        (not std::is_const_v<std::remove_reference_t<F>>)
     constexpr decltype(auto) operator*(F && f_value, std::integral_constant<decltype(call_count), call_count>) noexcept {
 
         // TODO : strong type instead of lambda
-        using _F = std::remove_cvref_t<F>;
+        using _F = F;
         return [
-            _f = std::move(f_value)
-        ]<typename ... f_ts>(auto &&... f_args) constexpr mutable -> decltype(auto)
+            _f = std::forward<_F>(f_value)
+        ]<typename ... f_ts>(auto &&... f_args) constexpr mutable  -> decltype(auto)
         requires requires (_F && f){
             functional::invoke<_F, f_ts...>(std::forward<_F>(f), std::declval<decltype(f_args)&&>()...);
         }
@@ -637,6 +647,17 @@ auto main() -> int {
             if (route() not_eq std::array{1,2,3})
                 throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
         }
+        {   // constexpr
+            // using call_count_t = std::integral_constant<int, 3>;
+            // constexpr auto route =
+            //     [call_counter = 0]() mutable {  return ++call_counter; } *
+            //     call_count_t{}
+            // ;
+            // static_assert(std::is_invocable_v<decltype(route)>);
+            // static_assert(std::is_invocable_r_v<std::array<int, call_count_t::value>, decltype(route)>);
+            // if (route() not_eq std::array{1,2,3})
+            //     throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
+        }
         {   // F * integral_constant => compile-time value
             using call_count_t = std::integral_constant<int, 3>;
             auto route =
@@ -676,86 +697,52 @@ auto main() -> int {
                 throw std::runtime_error{"(F1 >>= F2) * int : bad call_count"};
         }
         {   // constexpr nodes
-            auto lhs = (
-                    [](std::string_view && value) constexpr -> std::string_view { return value; }
-                |   [](auto && value) constexpr -> std::string_view
-                    requires requires {
-                        std::begin(value); 
-                        std::end(value);
-                    }
-                    { return std::string_view { std::begin(value), std::end(value) };}
-            );
-            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string>);
-            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::vector<char>>);
-            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string_view>);
+            // constexpr auto lhs = (
+            //         [](std::string_view && value) constexpr -> std::string_view { return value; }
+            //     |   [](auto && value) constexpr -> std::string_view
+            //         requires requires {
+            //             std::begin(value); 
+            //             std::end(value);
+            //         }
+            //         { return std::string_view { std::begin(value), std::end(value) };}
+            // );
+            // static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string>);
+            // static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::vector<char>>);
+            // static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string_view>);
 
-            auto rhs = (
-                [](auto && value) constexpr noexcept
-                requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
-                {
-                    if (not value.empty())
-                        value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
-                    return value;
-                } * 3
-            );
-            static_assert(std::is_invocable_r_v<std::vector<std::string_view>, decltype(rhs), std::string_view&&>);
+            // auto rhs = (
+            //     [](auto && value) constexpr noexcept
+            //     requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
+            //     {
+            //         if (not value.empty())
+            //             value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
+            //         return value;
+            //     } * 3
+            // );
+            // static_assert(std::is_invocable_r_v<std::vector<std::string_view>, decltype(rhs), std::string_view&&>);
             
-            auto route = (lhs >>= rhs);
-            using namespace std::string_view_literals;
+            // auto route = (lhs >>= rhs);
+            // using namespace std::string_view_literals;
             
-            if (route("a b c d"sv) not_eq std::vector<std::string_view>{
-                "b c d"sv,
-                "c d"sv,
-                "d"sv
-            })
-                throw std::runtime_error{"(F1 >>= F2) * int : unexpected values"};
-        }
-        {   // constexpr route
-            auto lhs = (
-                    [](std::string_view && value) constexpr -> std::string_view { return value; }
-                |   [](auto && value) constexpr -> std::string_view
-                    requires requires {
-                        std::begin(value); 
-                        std::end(value);
-                    }
-                    { return std::string_view { std::begin(value), std::end(value) };}
-            );
-            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string>);
-            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::vector<char>>);
-            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string_view>);
-
-            auto rhs = (
-                [](auto && value) constexpr noexcept
-                requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
-                {
-                    if (not value.empty())
-                        value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
-                    return value;
-                } * std::integral_constant<int, 3>{}
-            );
-            static_assert(std::is_invocable_r_v<std::array<std::string_view, 3>, decltype(rhs), std::string_view&&>);
-            
-            auto route = (lhs >>= rhs);
-            using namespace std::string_view_literals;
-            
-            static_assert(route("a b c d"sv) == std::array<std::string_view, 3>{
-                "b c d"sv,
-                "c d"sv,
-                "d"sv
-            });
+            // if (route("a b c d"sv) not_eq std::vector<std::string_view>{
+            //     "b c d"sv,
+            //     "c d"sv,
+            //     "d"sv
+            // })
+            //    throw std::runtime_error{"(F1 >>= F2) * int : unexpected values"};
         }
         {   // constexpr nodes : TODO, dont violate constness
-            const auto rhs = (
-                [](auto && value) constexpr noexcept
-                requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
-                {
-                    if (not value.empty())
-                        value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
-                    return value;
-                } * std::integral_constant<int, 3>{}
-            );
-            //static_assert(std::is_invocable_r_v<std::array<std::string_view, 3>, decltype(rhs), std::string_view&&>);
-
+            // constexpr auto rhs = (
+            //     [](auto && value) constexpr noexcept
+            //     requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
+            //     {
+            //         if (not value.empty())
+            //             value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
+            //         return value;
+            //     } * std::integral_constant<int, 3>{}
+            // );
+            // static_assert(std::is_invocable_v<decltype(rhs), std::string_view&&>);
+            // static_assert(std::is_invocable_r_v<std::array<std::string_view, 3>, decltype(rhs), std::string_view&&>);
 
             // constexpr auto node_1 = [](){};
             // constexpr auto node_2 = [](){};
@@ -769,25 +756,27 @@ auto main() -> int {
             // route();  
         }
         {
-            auto lhs = [](){};
-            auto route = lhs * 3;
-        }
-        {
             struct functor {
                 functor() = default;
                 functor(functor&&) = default;
                 functor(const functor&) = delete;
                 auto operator()() const {
-                    
+                    return 42;
                 }
             };
-            // WIP :
-            // const functor f;
-            // auto route = f * 3;
+            {
+                auto route = functor{} * 3;
+                static_assert(std::is_invocable_v<decltype(route)>);
+            }
+            {
+                const auto route = functor{} * 3;
+                static_assert(std::is_invocable_v<decltype(route)>);
+            }
         }
         {
             auto lhs = [](){};
             auto route = std::move(lhs) * 3;
+            static_assert(std::is_invocable_v<decltype(route)>);
         }
     }
 
