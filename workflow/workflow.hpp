@@ -647,16 +647,30 @@ auto main() -> int {
             if (route() not_eq std::array{1,2,3})
                 throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
         }
-        {   // constexpr
+        {   // constexpr mutable F
+            using call_count_t = std::integral_constant<int, 3>;
+            auto route =
+                [call_counter = 0]() constexpr mutable {  return ++call_counter; } *
+                call_count_t{}
+            ;
+            static_assert(std::is_invocable_v<decltype(route)>);
+            static_assert(std::is_invocable_r_v<std::array<int, call_count_t::value>, decltype(route)>);
+
+            if (route() not_eq std::array{1,2,3})
+                throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
+        }
+        {   // constexpr route
+
+            // todo : inherit from lambdas instead of passing it as args ?
+
             // using call_count_t = std::integral_constant<int, 3>;
             // constexpr auto route =
-            //     [call_counter = 0]() mutable {  return ++call_counter; } *
+            //     []() constexpr {  return 42; } *
             //     call_count_t{}
             // ;
             // static_assert(std::is_invocable_v<decltype(route)>);
             // static_assert(std::is_invocable_r_v<std::array<int, call_count_t::value>, decltype(route)>);
-            // if (route() not_eq std::array{1,2,3})
-            //     throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
+            // static_assert(route() == std::array{42, 42, 42});
         }
         {   // F * integral_constant => compile-time value
             using call_count_t = std::integral_constant<int, 3>;
@@ -666,6 +680,28 @@ auto main() -> int {
             ;
             static_assert(std::is_invocable_r_v<std::array<int, call_count_t::value>, decltype(route)>);
             static_assert(route() == std::array{42,42,42});
+        }
+        {   // custom functor type
+            struct functor {
+                functor() = default;
+                functor(functor&&) = default;
+                functor(const functor&) = delete;
+                auto operator()() const {
+                    return 42;
+                }
+            };
+            {
+                auto route = functor{} * 3;
+                static_assert(std::is_invocable_v<decltype(route)>);
+            }
+            {
+                const auto route = functor{} * 3;
+                static_assert(std::is_invocable_v<decltype(route)>);
+            }
+            {
+                constexpr auto route = functor{} * 3;
+                static_assert(std::is_invocable_v<decltype(route)>);
+            }
         }
         {   // TTP
             using call_count_t = std::integral_constant<int, 3>;
@@ -697,86 +733,52 @@ auto main() -> int {
                 throw std::runtime_error{"(F1 >>= F2) * int : bad call_count"};
         }
         {   // constexpr nodes
-            // constexpr auto lhs = (
-            //         [](std::string_view && value) constexpr -> std::string_view { return value; }
-            //     |   [](auto && value) constexpr -> std::string_view
-            //         requires requires {
-            //             std::begin(value); 
-            //             std::end(value);
-            //         }
-            //         { return std::string_view { std::begin(value), std::end(value) };}
-            // );
-            // static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string>);
-            // static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::vector<char>>);
-            // static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string_view>);
+            // TODO : remove, or dont violate constness
+            // operator() of constexpr mutable lambdas result closure-type violate *this constness
+        }
+        {   // constexpr route
+            auto lhs = (
+                    [](std::string_view && value) constexpr -> std::string_view { return value; }
+                |   [](auto && value) constexpr -> std::string_view
+                    requires requires {
+                        std::begin(value); 
+                        std::end(value);
+                    }
+                    { return std::string_view { std::begin(value), std::end(value) };}
+            );
+            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string>);
+            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::vector<char>>);
+            static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string_view>);
+            static_assert(std::is_invocable_v<decltype((lhs >>= lhs)), std::string_view&&>);
 
-            // auto rhs = (
-            //     [](auto && value) constexpr noexcept
-            //     requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
-            //     {
-            //         if (not value.empty())
-            //             value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
-            //         return value;
-            //     } * 3
-            // );
-            // static_assert(std::is_invocable_r_v<std::vector<std::string_view>, decltype(rhs), std::string_view&&>);
+            auto rhs = (
+                [](auto && value) constexpr mutable noexcept
+                requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
+                {
+                    if (not value.empty())
+                        value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
+                    return value;
+                } * 3
+            );
+            static_assert(std::is_invocable_v<decltype(rhs), std::string_view&&>);
+            static_assert(std::is_invocable_r_v<std::vector<std::string_view>, decltype(rhs), std::string_view&&>);
             
-            // auto route = (lhs >>= rhs);
-            // using namespace std::string_view_literals;
-            
-            // if (route("a b c d"sv) not_eq std::vector<std::string_view>{
-            //     "b c d"sv,
-            //     "c d"sv,
-            //     "d"sv
-            // })
-            //    throw std::runtime_error{"(F1 >>= F2) * int : unexpected values"};
-        }
-        {   // constexpr nodes : TODO, dont violate constness
-            // constexpr auto rhs = (
-            //     [](auto && value) constexpr noexcept
-            //     requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
-            //     {
-            //         if (not value.empty())
-            //             value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
-            //         return value;
-            //     } * std::integral_constant<int, 3>{}
-            // );
-            // static_assert(std::is_invocable_v<decltype(rhs), std::string_view&&>);
-            // static_assert(std::is_invocable_r_v<std::array<std::string_view, 3>, decltype(rhs), std::string_view&&>);
+            constexpr auto route = (lhs >>= ([](auto && value) constexpr noexcept
+                requires (std::same_as<std::decay_t<decltype(value)>, std::string_view>)
+                {
+                    if (not value.empty())
+                        value.remove_prefix(std::min(value.find_first_of(" ") + 1, value.size()));
+                    return value;
+                } * 3));
+            static_assert(std::is_invocable_v<decltype(route), std::string_view&&>);
 
-            // constexpr auto node_1 = [](){};
-            // constexpr auto node_2 = [](){};
-            // constexpr auto route = [
-            //         f1 = std::move(node_1),
-            //         f2 = std::move(node_2)
-            // ]() constexpr  {
-            //     f1();
-            //     f2();
-            // };
-            // route();  
-        }
-        {
-            struct functor {
-                functor() = default;
-                functor(functor&&) = default;
-                functor(const functor&) = delete;
-                auto operator()() const {
-                    return 42;
-                }
-            };
-            {
-                auto route = functor{} * 3;
-                static_assert(std::is_invocable_v<decltype(route)>);
-            }
-            {
-                const auto route = functor{} * 3;
-                static_assert(std::is_invocable_v<decltype(route)>);
-            }
-        }
-        {
-            auto lhs = [](){};
-            auto route = std::move(lhs) * 3;
-            static_assert(std::is_invocable_v<decltype(route)>);
+            using namespace std::string_view_literals;
+            if (route("a b c d"sv) not_eq std::vector<std::string_view>{
+                "b c d"sv,
+                "c d"sv,
+                "d"sv
+            })
+               throw std::runtime_error{"(F1 >>= F2) * int : unexpected values"};
         }
     }
 
@@ -786,6 +788,18 @@ auto main() -> int {
         using result_t   = std::invoke_result_t<decltype(&decltype(qwe):: template operator()<bool>), decltype(qwe), int>;
         using result_t_2 = std::invoke_result_t<decltype(&decltype(qwe):: template operator()<>), decltype(qwe), int>;
         using result_t_3 = std::invoke_result_t<decltype(qwe), int>;
+    }
+    {
+        constexpr auto node_1 = [](){};
+            constexpr auto node_2 = [](){};
+            constexpr auto route = [
+                    f1 = std::move(node_1),
+                    f2 = std::move(node_2)
+            ]() constexpr {
+                f1();
+                f2();
+            };
+            route();  
     }
 }
 #endif
