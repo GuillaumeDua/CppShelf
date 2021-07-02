@@ -93,24 +93,16 @@ namespace workflow::functional {
     // todo : NTTP, mix TTP/NTTP ...
     template <typename F, typename ... f_ts, typename ... f_args_t>
     requires
-        (not std::invocable<F&&, f_args_t&&...>)
-        and requires (F&& f, f_args_t&& ... args){
-            std::forward<F>(f).template operator()<f_ts...>(std::forward<f_args_t>(args)...);
-        }
+        (not std::invocable<F, f_args_t...>) and
+        std::invocable<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>
     constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
-    // TODO : noexcept(noexcept(expr))
-    // #if not __clang__
-    // noexcept (std::is_nothrow_invocable_v<
-    //     decltype(&(std::decay_t<F>::template operator()<f_ts..., f_args_t&&...>)), F&&, f_args_t&&...
-    // >)
-    // #endif
+    noexcept(std::is_nothrow_invocable_v<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>)
     {
-        return std::forward<F>(f).template operator()<f_ts...>(std::forward<f_args_t>(args)...);
+        return std::invoke(&std::remove_reference_t<F>::template operator()<f_ts...>, std::forward<F>(f), std::forward<f_args_t>(args)...);
     }
 
     template <typename F, typename ... f_args_t>
-    requires
-        std::invocable<F, f_args_t&&...>
+    requires std::invocable<F, f_args_t...>
     constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
     noexcept (std::is_nothrow_invocable_v<F&&, f_args_t&&...>)
     {
