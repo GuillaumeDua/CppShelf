@@ -14,7 +14,7 @@
 #include <array>
 #include <string_view>
 
-#ifndef CPP_SHELVE_STANDALONE_EDIT__
+#ifdef CPP_SHELVE_STANDALONE_EDIT__
 namespace workflow::cx { // gcl::cx
     template <typename T>
     static constexpr /*consteval*/ std::string_view type_name(/*no parameters allowed*/)
@@ -173,81 +173,114 @@ namespace workflow::concepts {
         ;
     ;
 }
-// todo : storage should be conditional mutable ?
-// - inject mutable (no ref / const)
-// or
-// - conditional operator() const-qualifier
 namespace workflow {
+
+    // is_a vs. has_a for lambda's closure-types
+    // Irrelevant :
+    // - https://build-bench.com/b/qYzj51Kk-Ejs99R8tqupLEWiMgY
+    // - https://quick-bench.com/q/H1RSYkflLWdm1MRmq5vRzUunxwU
+
     template <typename F1, typename F2>
     requires
-        std::move_constructible<F1> and
-        std::move_constructible<F2> and
-        (not std::is_const_v<std::remove_reference_t<F1>>) and
-        (not std::is_const_v<std::remove_reference_t<F2>>)
-    struct then {
-
-        using _F1 = std::remove_cvref_t<F1>;
-        using _F2 = std::remove_cvref_t<F2>;
+        (not std::is_const_v<F1>) and
+        (not std::is_const_v<F2>) and
+        (not std::is_reference_v<F1>) and
+        (not std::is_reference_v<F2>)
+    struct then : private F1, F2 {
+        // poc : https://godbolt.org/z/ex1sMMcE9
 
         then() = delete;
         then(const then&) = delete;
-        constexpr then(then&&) = default;
-
+        constexpr then(then&&) = default; // conditionaly delete (see storage)
         then& operator=(const then&) = delete;
-        then& operator=(then&&) = delete;
+        constexpr then& operator=(then&&) = default;
 
-        constexpr then(_F1 && f1_value, _F2 && f2_value)
-        : f1(std::forward<_F1>(f1_value))
-        , f2(std::forward<_F2>(f2_value))
+        constexpr then(auto && f1_value, auto && f2_value)
+        : F1(std::forward<decltype(f1_value)>(f1_value))
+        , F2(std::forward<decltype(f2_value)>(f2_value))
         {}
 
-        //explicit template arguments, forwardable
-        // TODO : noexcept
+        // const `F2(F1());` : arguments fwd
+        // TODO : noexcept(), mix TTP/NTTP
         template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
         requires 
         requires {
-            functional::invoke<_F2>(
-                std::declval<_F2&&>(),
-                functional::invoke<_F1, f1_ts...>(std::declval<_F1&&>(), std::declval<f1_args_t&&>()...)
+            functional::invoke(
+                std::declval<const F2&>(),
+                functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...)
             );
         }
         constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const
-        // noexcept(
-        //     std::is_nothrow_invocable_v<decltype(&F1::template operator()<f1_ts..., f1_args_t&&...>), F1, f1_args_t&&...> and
-        //     std::is_nothrow_invocable_v<F2, std::invoke_result_t<F1, decltype(std::forward<decltype(f1_args_v)>(f1_args_v))...>>
-        // )
         {
-            return functional::invoke<_F2>(
-                static_cast<_F2&&>(f2), 
-                functional::invoke<_F1, f1_ts..., f1_args_t...>(static_cast<_F1&&>(f1), std::forward<f1_args_t>(f1_args_v)...));
+            return functional::invoke(
+                static_cast<const F2&>(*this), 
+                functional::invoke<const F1&, f1_ts...>(static_cast<const F1&>(*this), std::forward<f1_args_t>(f1_args_v)...));
         }
         
-        // explicit template, not forwardable
-        // TODO : noexcept, warning on discard
+        // const `F1(); F2();` : 
+        // TODO : noexcept, mix TTP/NTTP, warning on F1() return value discard
         template <typename ... f1_ts, typename ... f1_args_t>
         requires
         requires {
-            functional::invoke<_F1, f1_ts...>(std::declval<_F1&&>(), std::declval<f1_args_t&&>()...);
-            functional::invoke<_F2>(std::declval<_F2&&>());
+            functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...);
+            functional::invoke(std::declval<const F2&>());
         }
-        and (not requires (_F2 && arg2, _F1 && arg1){
-            functional::invoke<_F2>(
-                std::forward<_F2>(arg2),
-                42
+        and (not requires {
+            functional::invoke(
+                std::declval<const F2&>(),
+                functional::invoke<const F1 &, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...)
             );
         })
         constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const
-        {   // discard _F1 invocation return value (TODO : warning)
-            functional::invoke<_F1, f1_ts..., f1_args_t...>(static_cast<_F1&&>(f1), std::forward<f1_args_t>(f1_args_v)...);
-            return functional::invoke(f2);
+        {
+            functional::invoke<const F1&, f1_ts...>(static_cast<const F1&>(*this), std::forward<f1_args_t>(f1_args_v)...);
+            return functional::invoke(static_cast<const F2&>(*this));
         }
 
-    private:
-        mutable _F1 f1;
-        mutable _F2 f2;
+        // `F2(F1());` : arguments fwd
+        // TODO : noexcept(), mix TTP/NTTP
+        template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
+        requires 
+        requires {
+            functional::invoke(
+                std::declval<F2&>(),
+                functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...)
+            );
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v)
+        {
+            return functional::invoke(
+                static_cast<F2&>(*this), 
+                functional::invoke<F1&, f1_ts..., f1_args_t...>(static_cast<F1&>(*this), std::forward<f1_args_t>(f1_args_v)...));
+        }
+
+        // `F1(); F2();` : 
+        // TODO : noexcept, mix TTP/NTTP, warning on F1() return value discard
+        template <typename ... f1_ts, typename ... f1_args_t>
+        requires
+        requires {
+            functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...);
+            functional::invoke(std::declval<F2&>());
+        }
+        and (not requires {
+            functional::invoke(
+                std::declval<F2&>(),
+                functional::invoke<F1 &, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...)
+            );
+        })
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v)
+        {
+            functional::invoke<F1&, f1_ts...>(static_cast<F1&>(*this), std::forward<f1_args_t>(f1_args_v)...);
+            return functional::invoke(static_cast<F2&>(*this));
+        }
     };
     template <typename F1, typename F2>
-    then(F1 &&, F2 &&) -> then<std::remove_cvref_t<F1>, std::remove_cvref_t<F2>>;
+    then(F1, F2) -> then<std::remove_cvref_t<F1>, std::remove_cvref_t<F2>>;
+
+    // todo :
+    // template <typename F>
+    // requires not std::derived_from / std::is_base_of_v
+    // struct then<F, F> : private F{};
 
     template <typename F>
     requires (
@@ -442,13 +475,191 @@ namespace workflow::operators {
 }
 
 #ifdef CPP_SHELVE_STANDALONE_EDIT__
-#include <memory>
-auto main() -> int {
 
-    using namespace workflow::operators;
+#include <memory> // `std::unique_ptr` as move-only type
+
+namespace test {
+    // workflow::then
+    constexpr void then() {
+        {   // F1(), F2()
+            {   // pr_pr_value
+                auto pr_pr_value = workflow::then {
+                    [](){},
+                    [](){}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // l_pr_value
+                const auto lvalue = [](){};
+                auto l_pr_value = workflow::then {
+                    lvalue,
+                    [](){}
+                };
+                static_assert(std::is_invocable_v<decltype(l_pr_value)>);
+            }
+            {   // wiring mismatch
+                auto pr_pr_value = workflow::then {
+                    [](){ return 42; },
+                    [](){}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // mutable F1
+                auto pr_pr_value = workflow::then {
+                    [i = 0]() mutable { return ++i; },
+                    [](){}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // mutable F1, const route
+                const auto pr_pr_value = workflow::then {
+                    [i = 0]() mutable { return ++i; },
+                    [](){}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // mutable F1, mutable F2
+                auto pr_pr_value = workflow::then {
+                    [i = 0]() mutable { return ++i; },
+                    []() mutable {}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // TTP const lhs
+                const auto lhs = []<typename T>(){ return T{}; };
+                const auto & lhs_ref = lhs;
+                auto value = workflow::then {
+                    lhs,
+                    [](){}
+                };
+                value.template operator()<int>();
+
+                using lhs_type = std::remove_reference_t<decltype(lhs_ref)>;
+                std::invoke(&lhs_type::template operator()<int>, lhs);
+                workflow::functional::invoke(&lhs_type::template operator()<int>, lhs);
+            }
+        }
+        {   // F2(F1())
+            { // pr_pr_value
+                auto pr_pr_value = workflow::then {
+                    [](){ return 42; },
+                    [](int i){}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // l_pr_value
+                const auto lvalue = [](){ return 42;};
+                auto l_pr_value = workflow::then {
+                    lvalue,
+                    [](int i){}
+                };
+                static_assert(std::is_invocable_v<decltype(l_pr_value)>);
+            }
+            {   // implicit cast
+                auto pr_pr_value = workflow::then {
+                    [](){ return 42; },
+                    [](char){}
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // mutable F1, mutable route
+                auto pr_pr_value = workflow::then {
+                    [i = 0]() mutable { return ++i; },
+                    [](int i){ std::cout << i << '\n'; }
+                };
+                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // mutable F1, const route
+                const auto pr_pr_value = workflow::then {
+                    [i = 0]() mutable { return ++i; },
+                    [](int i){ std::cout << i << '\n'; }
+                };
+                static_assert(not std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // mutable F1, const F2, const route
+                const auto rhs = [](int i) constexpr { std::cout << i << '\n'; };
+                const auto pr_pr_value = workflow::then {
+                    [i = 0]() mutable { return ++i; },
+                    rhs
+                };
+                static_assert(not std::is_invocable_v<decltype(pr_pr_value)>);
+            }
+            {   // F1 -> overload
+                const auto value = workflow::then {
+                    [](){ return 42; },
+                    workflow::functional::overload {
+                        [](int){},
+                        [](char){}
+                    }
+                };
+                static_assert(std::is_invocable_v<decltype(value)>);
+            }
+            {   // TTP : overloaded member-function
+                const auto value = workflow::then {
+                    []<typename switch_type>(){
+                        using return_type = std::conditional_t<switch_type::value, int, char>;
+                        return return_type{};
+                    },
+                    [](auto && value){
+                        return value;
+                    }
+                };
+                // cannot decltype overloaded member function, std::is_invocable_r_v -> std::is_same<call, return_type>
+                static_assert(std::is_same_v<
+                    decltype(value.template operator()<std::true_type>()),
+                    int
+                >);
+                static_assert(std::is_same_v<
+                    decltype(value.template operator()<std::false_type>()),
+                    char
+                >);
+            }
+            {   // TTP : overload member-function -> overload
+                auto route = workflow::then {
+                    []<typename switch_type>(){
+                        using return_type = std::conditional_t<switch_type::value, int, char>;
+                        return return_type{};
+                    },
+                    workflow::functional::overload{
+                        [](int) { return std::true_type{}; },
+                        [](char){ return std::false_type{}; }
+                    }
+                };
+                static_assert(std::is_same_v<
+                    decltype(route.template operator()<std::true_type>()),
+                    std::true_type
+                >);
+                static_assert(std::is_same_v<
+                    decltype(route.template operator()<std::false_type>()),
+                    std::false_type
+                >);
+            }
+            {   // TTP : overload member-function -> overload with auto&& fallback
+                auto route = workflow::then {
+                    []<typename switch_type>(){
+                        using return_type = std::conditional_t<switch_type::value, int, char>;
+                        return return_type{};
+                    },
+                    workflow::functional::overload{
+                        [](int) { return std::true_type{}; },
+                        [](auto&&){ return std::false_type{}; }
+                    }
+                };
+                static_assert(std::is_same_v<
+                    decltype(route.template operator()<std::true_type>()),
+                    std::true_type
+                >);
+                static_assert(std::is_same_v<
+                    decltype(route.template operator()<std::false_type>()),
+                    std::false_type
+                >);
+            }
+        }
+    }
 
     // operator>>=
-    {
+    constexpr void right_shift_equal_operator() {
+        using namespace workflow::operators;
         {
             auto route = [](){
                 std::cout << "then 1\n";
@@ -510,7 +721,8 @@ auto main() -> int {
         }
     }
     // operator|
-    {
+    constexpr void pipe_operator() {
+        using namespace workflow::operators;
         {
             auto node_1 =
                 [](int){} |
@@ -579,11 +791,7 @@ auto main() -> int {
                 [](char){ return std::false_type{}; }
             );
 
-            static_assert(std::is_invocable_r_v<
-                std::true_type,
-                decltype(&decltype(route):: template operator()<std::true_type>),
-                decltype(route)
-            >);
+            using route_type = std::remove_reference_t<decltype(route)>;
             static_assert(std::is_same_v<
                 decltype(route. template operator()<std::true_type>()),
                 std::true_type
@@ -619,7 +827,8 @@ auto main() -> int {
         }
     }
     // operator*
-    {
+    void star_operator_runtime() {
+        using namespace workflow::operators;
         {
             auto route =
                 [call_counter = 0]() mutable { return ++call_counter; } *
@@ -629,6 +838,9 @@ auto main() -> int {
             if (route() not_eq std::vector{1,2,3})
                 throw std::runtime_error{"operator*<F, std::size_t> : unexpected return values"};
         }
+    }
+    constexpr void star_operator() {
+        using namespace workflow::operators;
         {
             using call_count_t = std::integral_constant<int, 3>;
             auto route =
@@ -710,8 +922,10 @@ auto main() -> int {
 
         }
     }
-    // (F1 >>= F2) * int
-    {
+   
+    // scenario : (F1 >>= F2) * int
+    void scenario__then_into_repeat_runtime() {
+        using namespace workflow::operators;
         {   // runtime test
             auto call_count = 0;
             const auto requested_call_count = 3;
@@ -723,10 +937,6 @@ auto main() -> int {
             route();
             if (call_count not_eq requested_call_count)
                 throw std::runtime_error{"(F1 >>= F2) * int : bad call_count"};
-        }
-        {   // constexpr nodes
-            // TODO : remove, or dont violate constness
-            // operator() of constexpr mutable lambdas result closure-type violate *this constness
         }
         {   // constexpr route
             auto lhs = (
@@ -741,7 +951,7 @@ auto main() -> int {
             static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string>);
             static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::vector<char>>);
             static_assert(std::is_invocable_r_v<std::string_view, decltype(lhs), std::string_view>);
-            static_assert(std::is_invocable_v<decltype((lhs >>= lhs)), std::string_view&&>);
+            // static_assert(std::is_invocable_v<decltype((lhs >>= lhs)), std::string_view&&>);
 
             auto rhs = (
                 [](auto && value) constexpr mutable noexcept
@@ -773,6 +983,41 @@ auto main() -> int {
                throw std::runtime_error{"(F1 >>= F2) * int : unexpected values"};
         }
     }
+    constexpr void scenario__then_into_repeat() {
+        using namespace workflow::operators;
+        {   // constexpr nodes
+            // TODO : remove, or dont violate constness
+            // operator() of constexpr mutable lambdas result closure-type violate *this constness
+        }
+    }
+}
+
+// todo : tests for const repeat => dedicated strong-type wrapper
+
+auto main() -> int {
+
+    // compile-time tests :
+    {
+        test::then();
+
+        test::right_shift_equal_operator();
+        test::pipe_operator();
+        test::star_operator();
+
+        test::scenario__then_into_repeat();
+    }
+
+    // runtime tests :
+    try {
+        test::star_operator_runtime();
+        test::scenario__then_into_repeat_runtime();
+    }
+    catch (const std::exception & error) {
+        std::cerr << "test failed : " << error.what() << '\n';
+    }
+    catch (...) {
+        std::cerr << "test failed\n";
+    }
 
     {   // invoke synthaxes ...
         auto qwe = []<typename T = char>(int){};
@@ -783,15 +1028,15 @@ auto main() -> int {
     }
     {
         constexpr auto node_1 = [](){};
-            constexpr auto node_2 = [](){};
-            constexpr auto route = [
-                    f1 = std::move(node_1),
-                    f2 = std::move(node_2)
-            ]() constexpr {
-                f1();
-                f2();
-            };
-            route();  
+        constexpr auto node_2 = [](){};
+        constexpr auto route = [
+                f1 = std::move(node_1),
+                f2 = std::move(node_2)
+        ]() constexpr {
+            f1();
+            f2();
+        };
+        route();  
     }
 }
 #endif
