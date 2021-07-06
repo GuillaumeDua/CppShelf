@@ -304,7 +304,9 @@ namespace workflow {
         requires requires (F &&f){
             functional::invoke<F, f_ts...>(std::forward<F>(f), std::declval<f_args_t&&>()...);
         }
-        constexpr decltype(auto) operator()(f_args_t&&... f_args) const {
+        constexpr decltype(auto) operator()(f_args_t&&... f_args) const
+        noexcept(noexcept(functional::invoke<F>(std::declval<F>(), std::declval<f_args_t&&>()...)))
+        {
 
             static_assert(not std::is_const_v<decltype(_f)>);
             static_assert(not std::is_reference_v<decltype(_f)>);
@@ -656,6 +658,40 @@ namespace test {
             }
         }
     }
+    // workflow::rt_repeater
+    constexpr void rt_repeater() {
+        {   // rt, not mutable
+            auto value = workflow::rt_repeater{[](){}, 3};
+            static_assert(std::is_invocable_v<decltype(value)>);
+            static_assert(std::is_invocable_v<const decltype(value)>);
+        }
+        {   // rt, mutable
+            auto value = workflow::rt_repeater{[]() mutable {}, 3};
+            static_assert(std::is_invocable_v<decltype(value)>);
+            static_assert(std::is_invocable_v<const decltype(value)>);
+        }
+        {   // rt, mutable, storage
+            auto value = workflow::rt_repeater{[i = 0]() mutable {++i;}, 3};
+            static_assert(std::is_invocable_v<decltype(value)>);
+            static_assert(std::is_invocable_v<const decltype(value)>);
+        }
+        {   // rt, constexpr
+            auto value = workflow::rt_repeater{[]() constexpr {}, 3};
+            static_assert(std::is_invocable_v<decltype(value)>);
+            static_assert(std::is_invocable_v<const decltype(value)>);
+        }
+        {   // noexcept
+            auto noexcept_value = workflow::rt_repeater{[]() constexpr noexcept {}, 3};
+            static_assert(std::is_nothrow_invocable_v<decltype(noexcept_value)>);
+            static_assert(std::is_nothrow_invocable_v<const decltype(noexcept_value)>);
+
+            auto except_value = workflow::rt_repeater{[]() constexpr {}, 3};
+            static_assert(std::is_invocable_v<decltype(noexcept_value)>);
+            static_assert(std::is_invocable_v<const decltype(noexcept_value)>);
+            static_assert(not std::is_nothrow_invocable_v<decltype(except_value)>);
+            static_assert(not std::is_nothrow_invocable_v<const decltype(except_value)>);
+        }
+    }
 
     // operator>>=
     constexpr void right_shift_equal_operator() {
@@ -992,18 +1028,20 @@ namespace test {
     }
 }
 
-// todo : tests for const repeat => dedicated strong-type wrapper
-
 auto main() -> int {
 
-    // compile-time tests :
-    {
-        test::then();
+    {   // compile-time tests :
 
+        // components
+        test::then();
+        test::rt_repeater();
+
+        // operators
         test::right_shift_equal_operator();
         test::pipe_operator();
         test::star_operator();
 
+        // scenarios
         test::scenario__then_into_repeat();
     }
 
