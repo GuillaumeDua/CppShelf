@@ -185,9 +185,10 @@ namespace workflow {
         (not std::is_const_v<F1>) and
         (not std::is_const_v<F2>) and
         (not std::is_reference_v<F1>) and
-        (not std::is_reference_v<F2>)
+        (not std::is_reference_v<F2>) and 
+        (not std::derived_from<F1,F2>) // not supported for now
     struct then : private F1, F2 {
-        // poc : https://godbolt.org/z/ex1sMMcE9
+        // PoC : https://godbolt.org/z/ex1sMMcE9
 
         then() = delete;
         then(const then&) = delete;
@@ -201,7 +202,7 @@ namespace workflow {
         {}
 
         // const `F2(F1());` : arguments fwd
-        // TODO : noexcept(), mix TTP/NTTP
+        // TODO : mix TTP/NTTP
         template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
         requires 
         requires {
@@ -211,6 +212,10 @@ namespace workflow {
             );
         }
         constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const
+        noexcept(noexcept(functional::invoke(
+                std::declval<const F2&>(),
+                functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...)
+            )))
         {
             return functional::invoke(
                 static_cast<const F2&>(*this), 
@@ -218,7 +223,7 @@ namespace workflow {
         }
         
         // const `F1(); F2();` : 
-        // TODO : noexcept, mix TTP/NTTP, warning on F1() return value discard
+        // TODO : mix TTP/NTTP, warning on F1() return value discard
         template <typename ... f1_ts, typename ... f1_args_t>
         requires
         requires {
@@ -232,13 +237,16 @@ namespace workflow {
             );
         })
         constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const
+        noexcept(noexcept(
+            functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...),
+            functional::invoke(std::declval<const F2&>())))
         {
             functional::invoke<const F1&, f1_ts...>(static_cast<const F1&>(*this), std::forward<f1_args_t>(f1_args_v)...);
             return functional::invoke(static_cast<const F2&>(*this));
         }
 
         // `F2(F1());` : arguments fwd
-        // TODO : noexcept(), mix TTP/NTTP
+        // TODO : mix TTP/NTTP
         template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
         requires 
         requires {
@@ -248,6 +256,10 @@ namespace workflow {
             );
         }
         constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v)
+        noexcept(noexcept(functional::invoke(
+            std::declval<F2&>(),
+            functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...)
+        )))
         {
             return functional::invoke(
                 static_cast<F2&>(*this), 
@@ -255,7 +267,7 @@ namespace workflow {
         }
 
         // `F1(); F2();` : 
-        // TODO : noexcept, mix TTP/NTTP, warning on F1() return value discard
+        // TODO : mix TTP/NTTP, warning on F1() return value discard
         template <typename ... f1_ts, typename ... f1_args_t>
         requires
         requires {
@@ -269,6 +281,10 @@ namespace workflow {
             );
         })
         constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v)
+        noexcept(noexcept(
+            functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...),
+            functional::invoke(std::declval<F2&>())
+        ))
         {
             functional::invoke<F1&, f1_ts...>(static_cast<F1&>(*this), std::forward<f1_args_t>(f1_args_v)...);
             return functional::invoke(static_cast<F2&>(*this));
@@ -1027,6 +1043,8 @@ namespace test {
         }
     }
 }
+
+// todo : check for cx_repeater => need dedicated strong-type wrapper ?
 
 auto main() -> int {
 
