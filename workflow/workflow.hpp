@@ -187,7 +187,7 @@ namespace workflow {
         (not std::is_reference_v<F1>) and
         (not std::is_reference_v<F2>) and 
         (not std::derived_from<F1,F2>) // not supported for now
-    struct then : private F1, F2 {
+    struct then : private F1, private F2 {
         // PoC : https://godbolt.org/z/ex1sMMcE9
 
         then() = delete;
@@ -534,7 +534,7 @@ namespace test {
                     [i = 0]() mutable { return ++i; },
                     [](){}
                 };
-                static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+                static_assert(not std::is_invocable_v<decltype(pr_pr_value)>);
             }
             {   // mutable F1, mutable F2
                 auto pr_pr_value = workflow::then {
