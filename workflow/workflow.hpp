@@ -73,6 +73,89 @@ namespace workflow::mp {
     constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
     template <typename T>
     constexpr bool are_unique_v<T> = true;
+
+    template <template <typename> typename first_trait, template <typename> typename... traits>
+    struct merge_traits_t {
+        template <typename T>
+        using type = typename merge_traits_t<traits...>::template type<first_trait<T>>;
+    };
+    template <template <typename> typename first_trait>
+    struct merge_traits_t<first_trait> {
+        template <typename T>
+        using type = first_trait<T>;
+    };
+
+    template <template <typename...> class base_type, typename... Ts>
+    class partial {
+        // differs type instanciation with partial template-type parameters
+        template <typename ... Us>
+        struct impl {
+            // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59498
+            using type = base_type<Ts..., Us...>;
+        };
+        template <typename U>
+        struct impl<U> {
+            using type = base_type<Ts..., U>;
+        };
+
+    public:
+        template <typename... Us>
+        requires (sizeof...(Us) >= 1)
+        using type = impl<Us...>::type;
+    };
+    template <template <typename...> class base_type, typename... Ts>
+    struct partial_t {
+        template <typename... Us>
+        using type = typename partial<base_type, Ts...>::type<Us...>::type;
+    };
+}
+namespace workflow::mp::transpose_qualifier {
+    template <typename from_type, typename to_type>
+    using const_t = std::conditional_t<
+        std::is_const_v<std::remove_reference_t<from_type>>,
+        std::add_const_t<to_type>,
+        std::type_identity_t<to_type>
+    >;
+    template <typename from_type, typename to_type>
+    using volatile_t = std::conditional_t<
+        std::is_volatile_v<std::remove_reference_t<from_type>>,
+        std::add_volatile_t<to_type>,
+        std::type_identity_t<to_type>
+    >;
+    template <typename from_type, typename to_type>
+    using lvalue_ref_t = std::conditional_t<
+        std::is_lvalue_reference_v<from_type>,
+        std::add_lvalue_reference_t<to_type>,
+        std::type_identity_t<to_type>
+    >;
+    template <typename from_type, typename to_type>
+    using rvalue_ref_t = std::conditional_t<
+        std::is_rvalue_reference_v<from_type>,
+        std::add_rvalue_reference_t<to_type>,
+        std::type_identity_t<to_type>
+    >;
+    template <typename from_type, typename to_type>
+    using cvref_t = typename workflow::mp::merge_traits_t<
+        workflow::mp::partial<const_t, from_type>::template type,
+        workflow::mp::partial<volatile_t, from_type>::template type,
+        workflow::mp::partial<lvalue_ref_t, from_type>::template type,
+        workflow::mp::partial<rvalue_ref_t, from_type>::template type
+    >::type<to_type>;
+
+    static_assert(std::is_same_v<
+        const int &,
+        cvref_t<const char &, int>
+    >);
+}
+namespace workflow::mp::cast {
+    // does not work :
+    // - inaccessible bases
+    // - 
+    template <typename to_type>
+    decltype(auto) static_cast_preserving_cvref(auto && value) {
+        using transpose_cv_ref_t = workflow::mp::transpose_qualifier::cvref_t<decltype(value), to_type>;
+        return static_cast<transpose_cv_ref_t>(value);
+    }
 }
 namespace workflow::functional {
 
@@ -187,9 +270,91 @@ namespace workflow {
         (not std::is_reference_v<F1>) and
         (not std::is_reference_v<F2>) and 
         (not std::derived_from<F1,F2>) // not supported for now
-    struct then : private F1, private F2 {
+    class then : private F1, private F2 {
         // PoC : https://godbolt.org/z/ex1sMMcE9
 
+        using type = then<F1,F2>;
+
+        template <typename T>
+        requires
+            std::is_reference_v<T> and
+            std::same_as<type, std::remove_cvref_t<T>> 
+        using as_F1_t = workflow::mp::transpose_qualifier::cvref_t<T, F1>;
+
+        template <typename T>
+        requires
+            std::is_reference_v<T> and
+            std::same_as<type, std::remove_cvref_t<T>> 
+        using as_F2_t = workflow::mp::transpose_qualifier::cvref_t<T, F2>;
+
+        template <typename instance_type, typename ... f1_ts, typename ... f1_args_t>
+        requires
+            std::is_reference_v<instance_type> and
+            std::same_as<type, std::remove_cvref_t<instance_type>> and
+            requires {
+                functional::invoke(
+                    std::declval<as_F2_t<instance_type&&>>(),
+                    functional::invoke<as_F1_t<instance_type&&>, f1_ts...>(
+                        std::declval<as_F1_t<instance_type&&>>(),
+                        std::declval<f1_args_t&&>()...
+                    )
+                );
+            }
+        static constexpr decltype(auto) F1_then_F2_fwd(instance_type && instance_value, f1_args_t && ... f1_args_v)
+        noexcept(noexcept(
+            functional::invoke(
+                std::declval<as_F2_t<instance_type&&>>(),
+                functional::invoke<as_F1_t<instance_type&&>, f1_ts...>(
+                    std::declval<as_F1_t<instance_type&&>>(),
+                    std::declval<f1_args_t&&>()...
+            )
+        )))
+        {
+            return functional::invoke(
+                static_cast<as_F2_t<decltype(instance_value)>>(instance_value), 
+                functional::invoke<as_F1_t<instance_type>, f1_ts...>(
+                    static_cast<as_F1_t<decltype(instance_value)>>(instance_value), 
+                    std::forward<f1_args_t>(f1_args_v)...
+                )
+            );
+        }
+
+        template <typename instance_type, typename ... f1_ts, typename ... f1_args_t>
+        requires
+            std::is_reference_v<instance_type> and
+            std::same_as<type, std::remove_cvref_t<instance_type>> and
+            (not requires {
+                // substitution to F1_then_F2_fwd
+                // todo : same functions name ?
+                F1_then_F2_fwd<instance_type&&, f1_ts...>(std::declval<as_F1_t<instance_type&&>>(), std::declval<f1_args_t&&>()...);
+            }) and
+            requires {
+                functional::invoke(std::declval<as_F2_t<instance_type&&>>());
+                functional::invoke<as_F1_t<instance_type&&>, f1_ts...>(
+                    std::declval<as_F1_t<instance_type&&>>(),
+                    std::declval<f1_args_t&&>()...
+                );
+            }
+        static constexpr decltype(auto) F1_then_F2_no_fwd(instance_type && instance_value, f1_args_t && ... f1_args_v)
+        noexcept(noexcept(
+            functional::invoke(std::declval<as_F2_t<instance_type&&>>()),
+            functional::invoke<as_F1_t<instance_type&&>, f1_ts...>(
+                std::declval<as_F1_t<instance_type&&>>(),
+                std::declval<f1_args_t&&>()...
+            )
+        ))
+        {
+            functional::invoke<as_F1_t<instance_type>, f1_ts...>(
+                static_cast<as_F1_t<decltype(instance_value)>>(instance_value), 
+                std::forward<f1_args_t>(f1_args_v)...
+            );
+            return functional::invoke(
+                static_cast<as_F2_t<decltype(instance_value)>>(instance_value)
+            );
+        }
+
+    public:
+        
         then() = delete;
         then(const then&) = delete;
         constexpr then(then&&) = default; // conditionaly delete (see storage)
@@ -201,94 +366,126 @@ namespace workflow {
         , F2(std::forward<decltype(f2_value)>(f2_value))
         {}
 
-        // const `F2(F1());` : arguments fwd
         // TODO : mix TTP/NTTP
+        // `F2(F1());`
+        #pragma region F1_then_F2_fwd
+        // `F2(F1());` : arguments fwd, lvalue-reference
         template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
         requires 
         requires {
-            functional::invoke(
-                std::declval<const F2&>(),
-                functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...)
-            );
+            F1_then_F2_fwd<type&, f1_ts...>(std::declval<type&>(), std::declval<f1_args_t&&>()...);
         }
-        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const
-        noexcept(noexcept(functional::invoke(
-                std::declval<const F2&>(),
-                functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...)
-            )))
-        {
-            return functional::invoke(
-                static_cast<const F2&>(*this), 
-                functional::invoke<const F1&, f1_ts...>(static_cast<const F1&>(*this), std::forward<f1_args_t>(f1_args_v)...));
-        }
-        
-        // const `F1(); F2();` : 
-        // TODO : mix TTP/NTTP, warning on F1() return value discard
-        template <typename ... f1_ts, typename ... f1_args_t>
-        requires
-        requires {
-            functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...);
-            functional::invoke(std::declval<const F2&>());
-        }
-        and (not requires {
-            functional::invoke(
-                std::declval<const F2&>(),
-                functional::invoke<const F1 &, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...)
-            );
-        })
-        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) &
         noexcept(noexcept(
-            functional::invoke<const F1&, f1_ts...>(std::declval<const F1&>(), std::declval<f1_args_t&&>()...),
-            functional::invoke(std::declval<const F2&>())))
-        {
-            functional::invoke<const F1&, f1_ts...>(static_cast<const F1&>(*this), std::forward<f1_args_t>(f1_args_v)...);
-            return functional::invoke(static_cast<const F2&>(*this));
-        }
-
-        // `F2(F1());` : arguments fwd
-        // TODO : mix TTP/NTTP
-        template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
-        requires 
-        requires {
-            functional::invoke(
-                std::declval<F2&>(),
-                functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...)
-            );
-        }
-        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v)
-        noexcept(noexcept(functional::invoke(
-            std::declval<F2&>(),
-            functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...)
-        )))
-        {
-            return functional::invoke(
-                static_cast<F2&>(*this), 
-                functional::invoke<F1&, f1_ts..., f1_args_t...>(static_cast<F1&>(*this), std::forward<f1_args_t>(f1_args_v)...));
-        }
-
-        // `F1(); F2();` : 
-        // TODO : mix TTP/NTTP, warning on F1() return value discard
-        template <typename ... f1_ts, typename ... f1_args_t>
-        requires
-        requires {
-            functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...);
-            functional::invoke(std::declval<F2&>());
-        }
-        and (not requires {
-            functional::invoke(
-                std::declval<F2&>(),
-                functional::invoke<F1 &, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...)
-            );
-        })
-        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v)
-        noexcept(noexcept(
-            functional::invoke<F1&, f1_ts...>(std::declval<F1&>(), std::declval<f1_args_t&&>()...),
-            functional::invoke(std::declval<F2&>())
+            F1_then_F2_fwd<type&, f1_ts...>(std::declval<type&>(), std::declval<f1_args_t&&>()...)
         ))
         {
-            functional::invoke<F1&, f1_ts...>(static_cast<F1&>(*this), std::forward<f1_args_t>(f1_args_v)...);
-            return functional::invoke(static_cast<F2&>(*this));
+            return F1_then_F2_fwd<type&, f1_ts...>(*this, std::forward<f1_args_t>(f1_args_v)...);
         }
+
+        // `F2(F1());` : arguments fwd, rvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
+        requires 
+        requires {
+            F1_then_F2_fwd<type&&, f1_ts...>(std::declval<type&&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) &&
+        noexcept(noexcept(
+            F1_then_F2_fwd<type&&, f1_ts...>(std::declval<type&&>(), std::declval<f1_args_t&&>()...)
+        ))
+        {
+            return F1_then_F2_fwd<type&&, f1_ts...>(std::move(*this), std::forward<f1_args_t>(f1_args_v)...);
+        }
+
+        // `F2(F1());` : arguments fwd, const lvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
+        requires 
+        requires {
+            F1_then_F2_fwd<const type&, f1_ts...>(std::declval<const  type&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const &
+        noexcept(noexcept(
+            F1_then_F2_fwd<const type&, f1_ts...>(std::declval<const type&>(), std::declval<f1_args_t&&>()...)
+        ))
+        {
+            return F1_then_F2_fwd<const type&, f1_ts...>(*this, std::forward<f1_args_t>(f1_args_v)...);
+        }
+
+        // `F2(F1());` : arguments fwd, const rvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t> // auto ... f1_vs, 
+        requires 
+        requires {
+            F1_then_F2_fwd<const type&&, f1_ts...>(std::declval<const type&&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const &&
+        noexcept(noexcept(
+            F1_then_F2_fwd<const type&&, f1_ts...>(std::declval<const type&&>(), std::declval<f1_args_t&&>()...)
+        ))
+        {
+            return F1_then_F2_fwd<const type&&, f1_ts...>(std::move(*this), std::forward<f1_args_t>(f1_args_v)...);
+        }
+        #pragma endregion
+
+        // TODO : mix TTP/NTTP
+        // TODO : warning on F1() return value discard
+        // `F1(); F2();`
+        #pragma region F1_then_F2_no_fwd
+        // `F1(); F2();` : no argument fwd, lvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t>
+        requires
+        requires {
+            F1_then_F2_no_fwd<type&, f1_ts...>(std::declval<type&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) &
+        noexcept(noexcept(
+            F1_then_F2_no_fwd<type&, f1_ts...>(*this, std::forward<f1_args_t>(f1_args_v)...)
+        ))
+        {
+            return F1_then_F2_no_fwd<type&, f1_ts...>(*this, std::forward<f1_args_t>(f1_args_v)...);
+        }
+
+        // `F1(); F2();` : no argument fwd, const lvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t>
+        requires
+        requires {
+            F1_then_F2_no_fwd<const type&, f1_ts...>(std::declval<const type&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const &
+        noexcept(noexcept(
+            F1_then_F2_no_fwd<const type&, f1_ts...>(*this, std::forward<f1_args_t>(f1_args_v)...)
+        ))
+        {
+            return F1_then_F2_no_fwd<const type&, f1_ts...>(*this, std::forward<f1_args_t>(f1_args_v)...);
+        }
+
+        // `F1(); F2();` : no argument fwd, rvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t>
+        requires
+        requires {
+            F1_then_F2_no_fwd<type&&, f1_ts...>(std::declval<type&&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) &&
+        noexcept(noexcept(
+            F1_then_F2_no_fwd<type&&, f1_ts...>(std::move(*this), std::forward<f1_args_t>(f1_args_v)...)
+        ))
+        {
+            return F1_then_F2_no_fwd<type&&, f1_ts...>(std::move(*this), std::forward<f1_args_t>(f1_args_v)...);
+        }
+
+        // `F1(); F2();` : no argument fwd, const rvalue-reference
+        template <typename ... f1_ts, typename ... f1_args_t>
+        requires
+        requires {
+            F1_then_F2_no_fwd<const type&&, f1_ts...>(std::declval<const type&&>(), std::declval<f1_args_t&&>()...);
+        }
+        constexpr decltype(auto) operator()(f1_args_t && ... f1_args_v) const &&
+        noexcept(noexcept(
+            F1_then_F2_no_fwd<const type&&, f1_ts...>(std::move(*this), std::forward<f1_args_t>(f1_args_v)...)
+        ))
+        {
+            return F1_then_F2_no_fwd<const type&&, f1_ts...>(std::move(*this), std::forward<f1_args_t>(f1_args_v)...);
+        }
+        #pragma endregion
     };
     template <typename F1, typename F2>
     then(F1, F2) -> then<std::remove_cvref_t<F1>, std::remove_cvref_t<F2>>;
@@ -333,7 +530,7 @@ namespace workflow {
 
             if constexpr (std::is_same_v<void, f_invoke_result_t>)
             {
-                //for (auto count : std::ranges::iota_view<std::size_t>{0, call_count}) // Clang 2.0 issue
+                //for (auto count : std::ranges::iota_view<std::size_t>{0, call_count}) // Clang 12.0.0 issue
                 for (auto count = 0; count < call_count; ++count)
                     functional::invoke<F, f_ts...>(static_cast<F&&>(_f), std::forward<f_args_t>(f_args)...);
                 ;
@@ -581,11 +778,20 @@ namespace test {
                 static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
             }
             {   // mutable F1, mutable route
+                // lvalue-reference *this :
                 auto pr_pr_value = workflow::then {
                     [i = 0]() mutable { return ++i; },
                     [](int i){ std::cout << i << '\n'; }
                 };
                 static_assert(std::is_invocable_v<decltype(pr_pr_value)>);
+
+                // rvalue-reference *this :
+                static_assert(std::is_invocable_v<decltype(
+                        workflow::then {
+                        [i = 0]() mutable { return ++i; },
+                        [](int i){ std::cout << i << '\n'; }
+                    }
+                )>);
             }
             {   // mutable F1, const route
                 const auto pr_pr_value = workflow::then {
