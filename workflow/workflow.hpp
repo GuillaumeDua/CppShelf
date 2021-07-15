@@ -238,23 +238,12 @@ namespace workflow::type_traits {
     inline constexpr auto is_template_v = is_template<T>::value;
 }
 namespace workflow::concepts {
-
-    template <typename F1, typename F2, typename ... F1_args>
-    concept is_invoke_result_forwardable = 
-        std::invocable<F1, F1_args...> and
-        std::invocable<F2, std::invoke_result_t<F1, F1_args...>>
-    ; // is_invocable_r ?
-    template <typename F1, typename F2, typename ... F1_args>
-    concept are_independently_invocable = 
-        std::invocable<F1, F1_args...> and
-        std::invocable<F2>
-    ;
-    template <typename F1, typename F2, typename ... F1_args>
-    concept are_only_independently_invocable =
-        not is_invoke_result_forwardable<F1, F2, F1_args...>
-        and are_independently_invocable<F1, F2, F1_args...>
+    template <typename T>
+    concept no_cvref =
+        (not std::is_const_v<T>) and
+        (not std::is_reference_v<T>) and
+        (not std::is_pointer_v<T>)
         ;
-    ;
 }
 namespace workflow {
 
@@ -263,17 +252,43 @@ namespace workflow {
     // - https://build-bench.com/b/qYzj51Kk-Ejs99R8tqupLEWiMgY
     // - https://quick-bench.com/q/H1RSYkflLWdm1MRmq5vRzUunxwU
 
+    // todo :   specialize then<F1, F2>(then<T, U>&&, X&&)
+    //          or just find a (clean) way to do then<Fs...>
+
+    // functor_aggregator : avoid specialization of then<T, T>
     template <typename F1, typename F2>
     requires
-        (not std::is_const_v<F1>) and
-        (not std::is_const_v<F2>) and
-        (not std::is_reference_v<F1>) and
-        (not std::is_reference_v<F2>) and 
-        (not std::derived_from<F1,F2>) // not supported for now
-    class then : private F1, private F2 {
+        concepts::no_cvref<F1> and
+        concepts::no_cvref<F2>
+    struct functor_aggregator : F1, F2 {
+         
+        static_assert (not std::same_as<F1, F2> and not std::derived_from<F1,F2>);
+
+        constexpr functor_aggregator(auto && f1_value, auto && f2_value)
+        : F1{ std::forward<decltype(f1_value)>(f1_value) }
+        , F2{ std::forward<decltype(f2_value)>(f2_value) }
+        {}
+    };
+    template <typename F>
+    requires concepts::no_cvref<F>
+    struct functor_aggregator<F, F> : F {
+        constexpr functor_aggregator(auto && value, auto && duplicate)
+        : F{std::forward<F>(value)}
+        {
+            if (std::addressof(value) not_eq std::addressof(duplicate))
+                throw std::runtime_error{"functor_aggregator<F, F> : impl limitation"};
+        }
+    };
+
+    template <typename F1, typename F2>
+    requires
+        concepts::no_cvref<F1> and
+        concepts::no_cvref<F2>
+    class then : functor_aggregator<F1, F2> {
         // PoC : https://godbolt.org/z/ex1sMMcE9
 
         using type = then<F1,F2>;
+        using functor_aggregator_type = functor_aggregator<F1, F2>;
 
         template <typename T>
         requires
@@ -303,12 +318,13 @@ namespace workflow {
         static constexpr decltype(auto) F1_then_F2_fwd(instance_type && instance_value, f1_args_t && ... f1_args_v)
         noexcept(noexcept(
             functional::invoke(
-                std::declval<as_F2_t<instance_type&&>>(),
-                functional::invoke<as_F1_t<instance_type&&>, f1_ts...>(
-                    std::declval<as_F1_t<instance_type&&>>(),
-                    std::declval<f1_args_t&&>()...
+                static_cast<as_F2_t<decltype(instance_value)>>(instance_value), 
+                functional::invoke<as_F1_t<instance_type>, f1_ts...>(
+                    static_cast<as_F1_t<decltype(instance_value)>>(instance_value), 
+                    std::forward<f1_args_t>(f1_args_v)...
+                )
             )
-        )))
+        ))
         {
             return functional::invoke(
                 static_cast<as_F2_t<decltype(instance_value)>>(instance_value), 
@@ -337,10 +353,12 @@ namespace workflow {
             }
         static constexpr decltype(auto) F1_then_F2_no_fwd(instance_type && instance_value, f1_args_t && ... f1_args_v)
         noexcept(noexcept(
-            functional::invoke(std::declval<as_F2_t<instance_type&&>>()),
-            functional::invoke<as_F1_t<instance_type&&>, f1_ts...>(
-                std::declval<as_F1_t<instance_type&&>>(),
-                std::declval<f1_args_t&&>()...
+            functional::invoke<as_F1_t<instance_type>, f1_ts...>(
+                static_cast<as_F1_t<decltype(instance_value)>>(instance_value), 
+                std::forward<f1_args_t>(f1_args_v)...
+            ),
+            functional::invoke(
+                static_cast<as_F2_t<decltype(instance_value)>>(instance_value)
             )
         ))
         {
@@ -356,17 +374,16 @@ namespace workflow {
     public:
         
         then() = delete;
-        then(const then&) = delete;
-        constexpr then(then&&) = default; // conditionaly delete (see storage)
-        then& operator=(const then&) = delete;
+        then(const then&) = default;                // conditionaly delete (see storage)
+        constexpr then(then&&) = default;           // conditionaly delete (see storage)
+        then& operator=(const then&) = default;     // conditionaly delete (see storage)
         constexpr then& operator=(then&&) = default;
 
         constexpr then(auto && f1_value, auto && f2_value)
-        : F1(std::forward<decltype(f1_value)>(f1_value))
-        , F2(std::forward<decltype(f2_value)>(f2_value))
+        : functor_aggregator_type(std::forward<decltype(f1_value)>(f1_value), std::forward<decltype(f2_value)>(f2_value))
         {}
 
-        // TODO : mix TTP/NTTP
+        // TODO : mix TTP/NTTP : p1985
         // `F2(F1());`
         #pragma region F1_then_F2_fwd
         // `F2(F1());` : arguments fwd, lvalue-reference
@@ -426,7 +443,7 @@ namespace workflow {
         }
         #pragma endregion
 
-        // TODO : mix TTP/NTTP
+        // TODO : mix TTP/NTTP : p1985
         // TODO : warning on F1() return value discard
         // `F1(); F2();`
         #pragma region F1_then_F2_no_fwd
@@ -490,11 +507,6 @@ namespace workflow {
     template <typename F1, typename F2>
     then(F1, F2) -> then<std::remove_cvref_t<F1>, std::remove_cvref_t<F2>>;
 
-    // todo :
-    // template <typename F>
-    // requires not std::derived_from / std::is_base_of_v
-    // struct then<F, F> : private F{};
-
     template <typename F>
     requires (
         std::move_constructible<F> and
@@ -552,6 +564,8 @@ namespace workflow {
     };
     template <typename F>
     rt_repeater(F&&, std::size_t) -> rt_repeater<std::remove_cvref_t<F>>;
+
+    // todo : check for cx_repeater => need dedicated strong-type wrapper ?
 }
 namespace workflow::operators {
 
@@ -695,7 +709,7 @@ namespace workflow::operators {
 
 namespace test {
     // workflow::then
-    constexpr void then() {
+    constexpr void F1_then_F2() {
         {   // F1(), F2()
             {   // pr_pr_value
                 auto pr_pr_value = workflow::then {
@@ -880,6 +894,19 @@ namespace test {
             }
         }
     }
+    constexpr void F_then_F() {
+        auto plus_one = [](int i) constexpr { return i+1; };
+        auto route = workflow::then {
+            plus_one,
+            plus_one
+        };
+        static_assert(std::is_invocable_r_v<int, decltype(route), int>);
+    }
+    constexpr void then() {
+        F1_then_F2();
+        F_then_F();
+    }
+    
     // workflow::rt_repeater
     constexpr void rt_repeater() {
         {   // rt, not mutable
@@ -1180,7 +1207,34 @@ namespace test {
 
         }
     }
-   
+
+    // scenario : F >>= F >>= F >>= F
+    void scenario__then_F_four_times() {
+        auto plus_one = [](int i) constexpr { return i+1; };
+        {   // four times the same functor
+            auto twice = workflow::then {
+                plus_one,
+                plus_one
+            };
+            auto four_times = workflow::then {
+                twice,
+                twice
+            };
+            if (four_times(0) not_eq 4)
+                throw std::runtime_error{"workflow::then<F,F> : unexpected result / call count"};
+        }
+        {
+            using namespace workflow::operators;
+            // auto four_times = 
+            //     plus_one >>=
+            //     plus_one >>=
+            //     plus_one >>=
+            //     plus_one
+            // ;
+            // if (four_times(0) not_eq 4)
+            //     throw std::runtime_error{"workflow::then<F,F> : unexpected result / call count"};
+        }
+    }
     // scenario : (F1 >>= F2) * int
     void scenario__then_into_repeat_runtime() {
         using namespace workflow::operators;
@@ -1250,8 +1304,6 @@ namespace test {
     }
 }
 
-// todo : check for cx_repeater => need dedicated strong-type wrapper ?
-
 auto main() -> int {
 
     {   // compile-time tests :
@@ -1271,6 +1323,7 @@ auto main() -> int {
 
     // runtime tests :
     try {
+        test::scenario__then_F_four_times();
         test::star_operator_runtime();
         test::scenario__then_into_repeat_runtime();
     }
