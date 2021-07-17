@@ -191,6 +191,35 @@ namespace workflow::functional {
     {
         return std::invoke(std::forward<F>(f), std::forward<f_args_t>(args)...);
     }
+
+    template <typename ... ttps, typename F>
+    constexpr decltype(auto) resolve_overload(F&& f) {
+        if constexpr (sizeof...(ttps) not_eq 0) {
+            static_assert(requires {
+                std::bind_front(&std::remove_reference_t<F>::template operator()<ttps...>, std::declval<F>());
+            }, "cannot resolve F::template operator()<ttps...>");
+            return std::bind_front(&std::remove_reference_t<F>::template operator()<ttps...>, std::forward<F>(f));
+        }
+        else {
+            return std::forward<F>(f);
+        }
+    }
+    template <typename F, typename ... ttps>
+    using overload_solver_t = decltype(resolve_overload<ttps...>(std::declval<F>()));
+
+    template <typename F1, typename F2, typename ... f_ts, typename ... f_args_t>
+    requires requires {
+        resolve_overload<f_ts...>(std::declval<F1>())(std::declval<f_args_t>()...);
+    }
+    constexpr decltype(auto) are_calls_chainable_f(f_args_t&& ...)
+    {
+        using f1_invoke_result_t = decltype(invoke<F1, f_ts...>(std::declval<F1>(), std::declval<f_args_t>()...));
+        return not
+            std::is_same_v<void, f1_invoke_result_t> and
+            requires { 
+                invoke<F2>(std::declval<F2>(), std::declval<f1_invoke_result_t>());
+            };
+    }
 }
 namespace workflow::type_traits {
     // avoid recursive concepts
