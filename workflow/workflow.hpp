@@ -239,7 +239,45 @@ namespace workflow::functional {
         return std::invoke(std::forward<F>(f), std::forward<f_args_t>(args)...);
     }
 
+    template <typename ... fs>
+    constexpr decltype(auto) merge(auto && first, fs && ... functors) {
+        static_assert(sizeof...(fs) not_eq 0);
 
+        return
+        [_f = std::forward<decltype(first)>(first), ..._fs = std::forward<decltype(functors)>(functors)]
+        <typename ... ttps>
+        (auto && ... args) mutable -> decltype(auto) {
+            using namespace workflow::functional;
+
+            auto lhs = bind_front<ttps...>(std::forward<decltype(_f)>(_f), std::forward<decltype(args)>(args)...);
+            static_assert(std::invocable<decltype(lhs)>, "overload resolution failed (lhs)");
+            auto rhs = merge(std::forward<fs>(_fs)...);
+
+            constexpr bool is_chainable_v = []<typename T, typename ... rest> {
+                return std::invocable<T, std::invoke_result_t<decltype(lhs)>>;
+            }.template operator()<fs&&...>();
+
+            if constexpr (is_chainable_v) {
+                return std::invoke(rhs, std::invoke(lhs));
+            }
+            else
+            {
+                static_assert(std::invocable<decltype(rhs)>, "overload resolution failed (rhs)");
+                std::invoke(lhs);
+                return std::invoke(rhs);
+            }
+        };
+    }
+    constexpr decltype(auto) merge(auto && first) {
+        return [_f = std::forward<decltype(first)>(first)]
+        <typename ... ttps>
+        (auto && ... args) mutable -> decltype(auto) {
+            using namespace workflow::functional;
+            auto f_caller = bind_front<ttps...>(std::forward<decltype(_f)>(_f), std::forward<decltype(args)>(args)...);
+            static_assert(std::invocable<decltype(f_caller)>);
+            return f_caller();
+        };
+    }
 }
 namespace workflow::type_traits {
     // avoid recursive concepts
