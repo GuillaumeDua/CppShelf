@@ -172,16 +172,16 @@ namespace workflow::functional {
     template <typename ... Ts, typename U>
     overload(overload<Ts...>&&, U &&) -> overload<Ts..., U>;
 
-    // same as std::bind_front, but also bound/allow ttps (waiting for proposal p1985...)
+    // same as std::bind_front, but also bound/allow ttps (waiting for proposal p1985 to extend this to nttps ...)
     template <typename ... _bounded_ttps, typename F, typename ... args_t>
-    auto bind_front(F && f, args_t && ... args) {
+    constexpr decltype(auto) bind_front(F && f, args_t && ... args) {
         return
         [
             _f = std::forward<F>(f),
             ..._bounded_args = std::forward<args_t>(args)
         ]
         <typename ... ttps>
-        (auto && ... parameters) -> decltype(auto) {
+        (auto && ... parameters) constexpr mutable -> decltype(auto) {
             if constexpr (sizeof...(_bounded_ttps) not_eq 0 or
                           sizeof...(ttps)  not_eq 0)
                 return _f.template operator()<_bounded_ttps..., ttps...>(_bounded_args..., std::forward<decltype(parameters)>(parameters)...);
@@ -216,46 +216,22 @@ namespace workflow::functional {
         std::is_same_v<void, std::invoke_result_t<F1, f_args_t&&...>> and
         std::invocable<F2, std::invoke_result_t<F1, f_args_t&&...>>;
 
-    // todo : remove invoke ?
-    //  replace by workflow::functional::bind_front
-
-    // poc : https://godbolt.org/z/4sqEY8P57
-    // todo : NTTP, mix TTP/NTTP ...
-    template <typename F, typename ... f_ts, typename ... f_args_t>
-    requires
-        (not std::invocable<F, f_args_t...>) and
-        std::invocable<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>
-    constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
-    noexcept(std::is_nothrow_invocable_v<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>)
-    {
-        return std::invoke(&std::remove_reference_t<F>::template operator()<f_ts...>, std::forward<F>(f), std::forward<f_args_t>(args)...);
-    }
-
-    template <typename F, typename ... f_args_t>
-    requires std::invocable<F, f_args_t...>
-    constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
-    noexcept (std::is_nothrow_invocable_v<F&&, f_args_t&&...>)
-    {
-        return std::invoke(std::forward<F>(f), std::forward<f_args_t>(args)...);
-    }
-
-    template <typename ... fs>
-    constexpr decltype(auto) merge(auto && first, fs && ... functors) {
-        static_assert(sizeof...(fs) not_eq 0);
+    constexpr decltype(auto) merge(auto && first, auto && ... functors) {
+        static_assert(sizeof...(functors) not_eq 0);
 
         return
         [_f = std::forward<decltype(first)>(first), ..._fs = std::forward<decltype(functors)>(functors)]
         <typename ... ttps>
-        (auto && ... args) mutable -> decltype(auto) {
+        (auto && ... args) constexpr mutable -> decltype(auto) {
             using namespace workflow::functional;
 
             auto lhs = bind_front<ttps...>(std::forward<decltype(_f)>(_f), std::forward<decltype(args)>(args)...);
             static_assert(std::invocable<decltype(lhs)>, "overload resolution failed (lhs)");
-            auto rhs = merge(std::forward<fs>(_fs)...);
+            auto rhs = merge(std::forward<decltype(_fs)>(_fs)...);
 
             constexpr bool is_chainable_v = []<typename T, typename ... rest> {
                 return std::invocable<T, std::invoke_result_t<decltype(lhs)>>;
-            }.template operator()<fs&&...>();
+            }.template operator()<decltype(_fs)&&...>();
 
             if constexpr (is_chainable_v) {
                 return std::invoke(rhs, std::invoke(lhs));
@@ -271,7 +247,7 @@ namespace workflow::functional {
     constexpr decltype(auto) merge(auto && first) {
         return [_f = std::forward<decltype(first)>(first)]
         <typename ... ttps>
-        (auto && ... args) mutable -> decltype(auto) {
+        (auto && ... args) constexpr mutable -> decltype(auto) {
             using namespace workflow::functional;
             auto f_caller = bind_front<ttps...>(std::forward<decltype(_f)>(_f), std::forward<decltype(args)>(args)...);
             static_assert(std::invocable<decltype(f_caller)>);
