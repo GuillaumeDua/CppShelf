@@ -172,21 +172,91 @@ namespace workflow::functional {
     template <typename ... Ts, typename U>
     overload(overload<Ts...>&&, U &&) -> overload<Ts..., U>;
 
+    // bind_front : https://godbolt.org/z/6dY9ox7dG
+    template <typename ... ttps>
+    struct ttps_pack {};
+
+    template <typename F, typename ... args_t>
+    using std_bind_front_result_t = decltype(std::bind_front(std::declval<F>(), std::declval<args_t>()...));
+
+    template <typename F, typename ttps_pack_type, typename ... bounded_args_t>
+    class front_binder;
+    template <typename F, typename ... bounded_args_t>
+    class front_binder<F, ttps_pack<>, bounded_args_t...> : public std_bind_front_result_t<F, bounded_args_t...> {
+        using base_type = std_bind_front_result_t<F, bounded_args_t...>;
+    public:
+
+        constexpr front_binder(auto && f, bounded_args_t && ... args)
+        : base_type{std::bind_front(std::forward<decltype(f)>(f), std::forward<decltype(args)>(args)...)}
+        {}
+        constexpr front_binder(auto && f, ttps_pack<>, bounded_args_t && ... args)
+        : base_type{std::bind_front(std::forward<decltype(f)>(f), std::forward<decltype(args)>(args)...)}
+        {}
+    };
+    template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
+    class front_binder<F, ttps_pack<ttps_bounded_args_t...>, bounded_args_t...> {
+        using bounded_args_storage_type = std::tuple<bounded_args_t...>;
+        bounded_args_storage_type bounded_arguments;
+        F f;
+
+    public:
+        constexpr front_binder(auto && f_arg, ttps_pack<ttps_bounded_args_t...>, auto && ... args)
+        : f{std::forward<decltype(f_arg)>(f_arg)}
+        , bounded_arguments{std::forward<decltype(args)>(args)...}
+        {}
+
+        template <typename ... ttps>
+        constexpr decltype(auto) operator()(auto && ... parameters) & {
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                f.template operator()<ttps_bounded_args_t..., ttps...>(
+                    std::get<indexes>(bounded_arguments)...,
+                    std::forward<decltype(parameters)>(parameters)...
+                );
+            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+        }
+        template <typename ... ttps>
+        constexpr decltype(auto) operator()(auto && ... parameters) const & {
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                f.template operator()<ttps_bounded_args_t..., ttps...>(
+                    std::get<indexes>(bounded_arguments)...,
+                    std::forward<decltype(parameters)>(parameters)...
+                );
+            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+        }
+        template <typename ... ttps>
+        constexpr decltype(auto) operator()(auto && ... parameters) && {
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
+                    std::get<indexes>(std::move(bounded_arguments))...,
+                    std::forward<decltype(parameters)>(parameters)...
+                );
+            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+        }
+        template <typename ... ttps>
+        constexpr decltype(auto) operator()(auto && ... parameters) const && {
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
+                    std::get<indexes>(std::move(bounded_arguments))...,
+                    std::forward<decltype(parameters)>(parameters)...
+                );
+            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+        }
+    };
+    template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
+    front_binder(F&&, ttps_pack<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<F, ttps_pack<ttps_bounded_args_t...>, bounded_args_t...>;
+    template <typename F, typename ... bounded_args_t>
+    front_binder(F&&, bounded_args_t&&...) -> front_binder<F, ttps_pack<>, bounded_args_t...>;
+
     // same as std::bind_front, but also bound/allow ttps (waiting for proposal p1985 to extend this to nttps ...)
-    template <typename ... _bounded_ttps, typename F, typename ... args_t>
-    constexpr decltype(auto) bind_front(F && f, args_t && ... args) {
-        return
-        [
-            _f = std::forward<F>(f),
-            ..._bounded_args = std::forward<args_t>(args)
-        ]
-        <typename ... ttps>
-        (auto && ... parameters) constexpr mutable -> decltype(auto) {
-            if constexpr (sizeof...(_bounded_ttps) not_eq 0 or
-                          sizeof...(ttps)  not_eq 0)
-                return _f.template operator()<_bounded_ttps..., ttps...>(_bounded_args..., std::forward<decltype(parameters)>(parameters)...);
-            else
-                return _f(_bounded_args..., std::forward<decltype(parameters)>(parameters)...);
+    template <typename ... ttps, typename F, typename ... args_t>
+    constexpr auto bind_front(F&& f, args_t && ... args) {
+        // front_binder factory.
+        // produces the same behavior as std::bind_front (cvref-qualifiers correctness)
+        using bind_front_t = front_binder<std::remove_cvref_t<F>, ttps_pack<ttps...>, std::remove_cvref_t<args_t>...>;
+        return bind_front_t{
+            std::forward<F>(f),
+            ttps_pack<ttps...>{},
+            std::forward<args_t>(args)...
         };
     }
 
