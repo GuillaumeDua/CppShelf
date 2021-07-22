@@ -207,8 +207,8 @@ namespace workflow::functional {
 
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) & {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                f.template operator()<ttps_bounded_args_t..., ttps...>(
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
+                return f.template operator()<ttps_bounded_args_t..., ttps...>(
                     std::get<indexes>(bounded_arguments)...,
                     std::forward<decltype(parameters)>(parameters)...
                 );
@@ -216,8 +216,8 @@ namespace workflow::functional {
         }
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) const & {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                f.template operator()<ttps_bounded_args_t..., ttps...>(
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
+                return f.template operator()<ttps_bounded_args_t..., ttps...>(
                     std::get<indexes>(bounded_arguments)...,
                     std::forward<decltype(parameters)>(parameters)...
                 );
@@ -225,8 +225,8 @@ namespace workflow::functional {
         }
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) && {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
+                return std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
                     std::get<indexes>(std::move(bounded_arguments))...,
                     std::forward<decltype(parameters)>(parameters)...
                 );
@@ -234,8 +234,8 @@ namespace workflow::functional {
         }
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) const && {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
+                return std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
                     std::get<indexes>(std::move(bounded_arguments))...,
                     std::forward<decltype(parameters)>(parameters)...
                 );
