@@ -838,9 +838,140 @@ namespace workflow::operators {
 
 #ifdef CPP_SHELVE_STANDALONE_EDIT__
 
+namespace test::details::cvref_tags {
+    struct rvalue{};
+    struct lvalue{};
+    struct const_qualifier{};
+    struct volatile_qualifier{};
+
+    template <typename ... Ts>
+    struct tags {};
+}
+namespace test::functional::bind {
+    
+    using namespace test::details;
+
+    struct user_defined_functor {
+        auto operator()() &&        -> tags<cvref_tags::rvalue> { return {}; }
+        auto operator()() const &&  -> tags<cvref_tags::const_qualifier, cvref_tags::rvalue> { return {}; }
+        auto operator()() &         -> tags<cvref_tags::lvalue> { return {}; }
+        auto operator()() const &   -> tags<cvref_tags::const_qualifier, cvref_tags::lvalue> { return {}; }
+    };
+    struct user_defined_template_functor {
+        template <typename, typename>
+        auto operator()() &&        -> tags<cvref_tags::rvalue> { return {}; }
+        template <typename, typename>
+        auto operator()() const &&  -> tags<cvref_tags::const_qualifier, cvref_tags::rvalue> { return {}; }
+        template <typename, typename>
+        auto operator()() &         -> tags<cvref_tags::lvalue> { return {}; }
+        template <typename, typename>
+        auto operator()() const &   -> tags<cvref_tags::const_qualifier, cvref_tags::lvalue> { return {}; }
+    };
+
+    consteval void front_binder_t() {
+        using namespace workflow::functional;
+
+        auto lambda_value = [](int, const char &){};
+        static_assert(requires{
+            front_binder{std::move(lambda_value), std::declval<int>()}(std::declval<const char&>());    
+        });
+        static_assert(requires{
+            front_binder{lambda_value, std::declval<int>()}(std::declval<const char&>());    
+        });
+
+        auto template_lambda_value = [storage = 0]<typename, typename>(int, const char &) mutable { ++storage; };
+        static_assert(requires{
+            front_binder{
+                template_lambda_value,
+                ttps_pack<short>{},
+                std::declval<int>()
+            }.template operator()<bool>(std::declval<const char&>());    
+        });
+    }
+    consteval void ud_functor() {
+        using namespace workflow::functional;
+
+        static_assert(std::is_invocable_r_v<
+            tags<cvref_tags::rvalue>,
+            user_defined_functor
+        >);
+        static_assert(std::is_invocable_r_v<
+            tags<cvref_tags::lvalue>,
+            user_defined_functor&
+        >);
+        static_assert(std::is_invocable_r_v<
+            tags<cvref_tags::rvalue>,
+            user_defined_functor&&
+        >);
+        static_assert(std::is_invocable_r_v<
+            tags<cvref_tags::const_qualifier, cvref_tags::lvalue>,
+            const user_defined_functor&
+        >);
+        static_assert(std::is_invocable_r_v<
+            tags<cvref_tags::const_qualifier, cvref_tags::rvalue>,
+            const user_defined_functor&&
+        >);
+    }
+    consteval void std_bind_front_ud_functor() {
+        using namespace workflow::functional;
+
+        using type = std::remove_cvref_t<decltype(std::bind_front(std::declval<user_defined_functor>()))>;
+
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::lvalue>, type &>);
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::rvalue>, type &&>);
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::const_qualifier, cvref_tags::lvalue>, const type &>);
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::const_qualifier, cvref_tags::rvalue>, const type &&>);
+    }
+    consteval void bind_front_ud_functor() {
+        using namespace workflow::functional;
+
+        using type = std::remove_cvref_t<decltype(bind_front(std::declval<user_defined_functor>()))>;
+
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::lvalue>, type &>);
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::rvalue>, type &&>);
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::const_qualifier, cvref_tags::lvalue>, const type &>);
+        static_assert(std::is_invocable_r_v<tags<cvref_tags::const_qualifier, cvref_tags::rvalue>, const type &&>);
+    }
+    consteval void bind_front_tud_functor() {
+        using namespace workflow::functional;
+
+        using type = std::remove_cvref_t<decltype(
+            bind_front<char>(std::declval<user_defined_template_functor>())
+        )>;
+
+        static_assert(std::is_same_v<
+            decltype(std::declval<type&&>().template operator()<int>()),
+            tags<cvref_tags::rvalue>
+        >);
+        static_assert(std::is_same_v<
+            decltype(std::declval<type&>().template operator()<int>()),
+            tags<cvref_tags::lvalue>
+        >);
+        static_assert(std::is_same_v<
+            decltype(std::declval<const type&&>().template operator()<int>()),
+            tags<cvref_tags::const_qualifier, cvref_tags::rvalue>
+        >);
+        static_assert(std::is_same_v<
+            decltype(std::declval<const type&>().template operator()<int>()),
+            tags<cvref_tags::const_qualifier, cvref_tags::lvalue>
+        >);
+    }
+    consteval void partially_resolved_ttps() {
+        using namespace workflow::functional;
+        auto func = []<typename, typename, typename arg_t>(arg_t){};
+        static_assert(requires {
+            bind_front<int>(func).operator()<char>(42);
+        });
+        static_assert(requires {
+            bind_front<int, char>(func)(42);
+        });
+    }
+}
+
 #include <memory> // `std::unique_ptr` as move-only type
 
 namespace test {
+
     // workflow::then
     constexpr void F1_then_F2() {
         {   // F1(), F2()
