@@ -160,6 +160,91 @@ namespace workflow::mp::cast {
         return static_cast<transpose_cv_ref_t>(value);
     }
 }
+namespace workflow::type_traits {
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    constexpr bool is_invocable_v = false;
+    template <typename F, typename ... ttps_args_t, typename ... args_t>
+    constexpr bool is_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...> =
+        requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
+    ;
+    template <typename F, typename ... args_t>
+    constexpr bool is_invocable_v<F, ttps_pack<>, args_t...> = 
+        std::is_invocable_v<F, args_t...>
+    ;
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v = false;
+    template <typename F, typename ... ttps_args_t, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...> =
+            requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
+        and noexcept(std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...))
+    ;
+    template <typename F, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v<F, ttps_pack<>, args_t...> = 
+        std::is_nothrow_invocable_v<F, args_t...>
+    ;
+
+
+    // detection : using type_traits to avoid recursive concepts
+    // could use std::detected_t (library fundamentals TS v2)
+
+    template <typename T, typename U, typename = void>
+    struct have_pipe_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_pipe_operator<T, U, std::void_t<decltype(std::declval<T>() | std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
+
+    template <typename T, typename U, typename = void>
+    struct have_shift_equal_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_shift_equal_operator<T, U, std::void_t<decltype(std::declval<T>() >>= std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
+
+    template <typename T, typename U, typename = void>
+    struct have_plus_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_plus_operator<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_plus_operator_v = have_plus_operator<T, U>::value;
+
+    template <typename T, typename U, typename = void>
+    struct have_multiply_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_multiply_operator<T, U, std::void_t<decltype(std::declval<T>() * std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
+
+    template <class T>
+    struct is_template : std::false_type {};
+    template <class... T_args, template <class...> class T>
+    struct is_template<T<T_args...>> : std::true_type {};
+    template <auto... values, template <auto...> class T>
+    struct is_template<T<values...>> : std::true_type {};
+    template <class T>
+    inline constexpr auto is_template_v = is_template<T>::value;
+}
+namespace workflow::concepts {
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    concept invocable = type_traits::is_invocable_v<F, ttps_pack_t, args_t...>;
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    concept nothrow_invocable = type_traits::is_nothrow_invocable_v<F, ttps_pack_t, args_t...>;
+
+    template <typename T>
+    concept no_cvref =
+        (not std::is_const_v<T>) and
+        (not std::is_reference_v<T>) and
+        (not std::is_pointer_v<T>)
+        ;
+}
 namespace workflow::functional {
 
     template <typename ... Ts>
@@ -175,16 +260,15 @@ namespace workflow::functional {
     template <typename ... Ts, typename U>
     overload(overload<Ts...>&&, U &&) -> overload<Ts..., U>;
 
-    // poc : https://godbolt.org/z/4sqEY8P57
     // todo : mix TTP/NTTP ... (p1985)
-    template <typename F, typename ... f_ts, typename ... f_args_t>
+    template <typename ... f_ts, typename F, typename ... f_args_t>
     requires
-        (not std::invocable<F, f_args_t...>) and
-        std::invocable<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>
+        (not std::invocable<F, f_args_t...>)
+        and mp::invocable<F, mp::ttps_pack<f_ts...>, f_args_t...>
     constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
-    noexcept(std::is_nothrow_invocable_v<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>)
+    noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, f_args_t&&...>)
     {
-        return std::invoke(&std::remove_reference_t<F>::template operator()<f_ts...>, std::forward<F>(f), std::forward<f_args_t>(args)...);
+        return std::forward<F>(f).template operator()<f_ts...>(std::forward<f_args_t>(args)...);
     }
     template <typename F, typename ... f_args_t>
     requires std::invocable<F, f_args_t...>
@@ -194,8 +278,24 @@ namespace workflow::functional {
         return std::invoke(std::forward<F>(f), std::forward<f_args_t>(args)...);
     }
 
-    // bind_front : https://godbolt.org/z/6dY9ox7dG
+    template <typename ... f_ts, typename F, typename args_as_tuple_t>
+    constexpr decltype(auto) apply(F && f, args_as_tuple_t&& args)
+    noexcept(
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
+        {
+            return mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(args))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{})
+    )
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(args))...>)
+        -> decltype(auto)
+        {
+            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(args)...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
 
+    // bind_front : https://godbolt.org/z/6dY9ox7dG
     template <typename F, typename ... args_t>
     using std_bind_front_result_t = decltype(std::bind_front(std::declval<F>(), std::declval<args_t>()...));
 
@@ -344,91 +444,6 @@ namespace workflow::functional {
             return f_caller();
         };
     }
-}
-namespace workflow::type_traits {
-
-    template <typename F, typename ttps_pack_t, typename ... args_t>
-    constexpr bool is_invocable_v = false;
-    template <typename F, typename ... ttps_args_t, typename ... args_t>
-    constexpr bool is_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...> =
-        requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
-    ;
-    template <typename F, typename ... args_t>
-    constexpr bool is_invocable_v<F, ttps_pack<>, args_t...> = 
-        std::is_invocable_v<F, args_t...>
-    ;
-
-    template <typename F, typename ttps_pack_t, typename ... args_t>
-    constexpr bool is_nothrow_invocable_v = false;
-    template <typename F, typename ... ttps_args_t, typename ... args_t>
-    constexpr bool is_nothrow_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...> =
-            requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
-        and noexcept(std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...))
-    ;
-    template <typename F, typename ... args_t>
-    constexpr bool is_nothrow_invocable_v<F, ttps_pack<>, args_t...> = 
-        std::is_nothrow_invocable_v<F, args_t...>
-    ;
-
-
-    // detection : using type_traits to avoid recursive concepts
-    // could use std::detected_t (library fundamentals TS v2)
-
-    template <typename T, typename U, typename = void>
-    struct have_pipe_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_pipe_operator<T, U, std::void_t<decltype(std::declval<T>() | std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
-
-    template <typename T, typename U, typename = void>
-    struct have_shift_equal_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_shift_equal_operator<T, U, std::void_t<decltype(std::declval<T>() >>= std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
-
-    template <typename T, typename U, typename = void>
-    struct have_plus_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_plus_operator<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_plus_operator_v = have_plus_operator<T, U>::value;
-
-    template <typename T, typename U, typename = void>
-    struct have_multiply_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_multiply_operator<T, U, std::void_t<decltype(std::declval<T>() * std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
-
-    template <class T>
-    struct is_template : std::false_type {};
-    template <class... T_args, template <class...> class T>
-    struct is_template<T<T_args...>> : std::true_type {};
-    template <auto... values, template <auto...> class T>
-    struct is_template<T<values...>> : std::true_type {};
-    template <class T>
-    inline constexpr auto is_template_v = is_template<T>::value;
-}
-namespace workflow::concepts {
-
-    template <typename F, typename ttps_pack_t, typename ... args_t>
-    concept invocable = type_traits::is_invocable_v<F, ttps_pack_t, args_t...>;
-
-    template <typename F, typename ttps_pack_t, typename ... args_t>
-    concept nothrow_invocable = type_traits::is_nothrow_invocable_v<F, ttps_pack_t, args_t...>;
-
-    template <typename T>
-    concept no_cvref =
-        (not std::is_const_v<T>) and
-        (not std::is_reference_v<T>) and
-        (not std::is_pointer_v<T>)
-        ;
 }
 namespace workflow {
 
