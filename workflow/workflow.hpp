@@ -108,6 +108,9 @@ namespace workflow::mp {
         template <typename... Us>
         using type = typename partial<base_type, Ts...>::type<Us...>::type;
     };
+
+    template <typename ... ttps>
+    struct ttps_pack {};
 }
 namespace workflow::mp::transpose_qualifier {
     template <typename from_type, typename to_type>
@@ -192,8 +195,6 @@ namespace workflow::functional {
     }
 
     // bind_front : https://godbolt.org/z/6dY9ox7dG
-    template <typename ... ttps>
-    struct ttps_pack {};
 
     template <typename F, typename ... args_t>
     using std_bind_front_result_t = decltype(std::bind_front(std::declval<F>(), std::declval<args_t>()...));
@@ -345,7 +346,32 @@ namespace workflow::functional {
     }
 }
 namespace workflow::type_traits {
-    // avoid recursive concepts
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    constexpr bool is_invocable_v = false;
+    template <typename F, typename ... ttps_args_t, typename ... args_t>
+    constexpr bool is_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...> =
+        requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
+    ;
+    template <typename F, typename ... args_t>
+    constexpr bool is_invocable_v<F, ttps_pack<>, args_t...> = 
+        std::is_invocable_v<F, args_t...>
+    ;
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v = false;
+    template <typename F, typename ... ttps_args_t, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...> =
+            requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
+        and noexcept(std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...))
+    ;
+    template <typename F, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v<F, ttps_pack<>, args_t...> = 
+        std::is_nothrow_invocable_v<F, args_t...>
+    ;
+
+
+    // detection : using type_traits to avoid recursive concepts
     // could use std::detected_t (library fundamentals TS v2)
 
     template <typename T, typename U, typename = void>
@@ -390,6 +416,13 @@ namespace workflow::type_traits {
     inline constexpr auto is_template_v = is_template<T>::value;
 }
 namespace workflow::concepts {
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    concept invocable = type_traits::is_invocable_v<F, ttps_pack_t, args_t...>;
+
+    template <typename F, typename ttps_pack_t, typename ... args_t>
+    concept nothrow_invocable = type_traits::is_nothrow_invocable_v<F, ttps_pack_t, args_t...>;
+
     template <typename T>
     concept no_cvref =
         (not std::is_const_v<T>) and
