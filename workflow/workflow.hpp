@@ -172,6 +172,25 @@ namespace workflow::functional {
     template <typename ... Ts, typename U>
     overload(overload<Ts...>&&, U &&) -> overload<Ts..., U>;
 
+    // poc : https://godbolt.org/z/4sqEY8P57
+    // todo : mix TTP/NTTP ... (p1985)
+    template <typename F, typename ... f_ts, typename ... f_args_t>
+    requires
+        (not std::invocable<F, f_args_t...>) and
+        std::invocable<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>
+    constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
+    noexcept(std::is_nothrow_invocable_v<decltype(&std::remove_reference_t<F>::template operator()<f_ts...>), F, f_args_t...>)
+    {
+        return std::invoke(&std::remove_reference_t<F>::template operator()<f_ts...>, std::forward<F>(f), std::forward<f_args_t>(args)...);
+    }
+    template <typename F, typename ... f_args_t>
+    requires std::invocable<F, f_args_t...>
+    constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
+    noexcept (std::is_nothrow_invocable_v<F&&, f_args_t&&...>)
+    {
+        return std::invoke(std::forward<F>(f), std::forward<f_args_t>(args)...);
+    }
+
     // bind_front : https://godbolt.org/z/6dY9ox7dG
     template <typename ... ttps>
     struct ttps_pack {};
