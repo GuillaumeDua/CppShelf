@@ -294,6 +294,38 @@ namespace workflow::functional {
             return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<args_as_tuple_t>(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
+    template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
+    constexpr decltype(auto) apply_before(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
+    noexcept(
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
+        {
+            return mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))..., func_args_t&&...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{})
+    )
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))..., func_args_t&&...>)
+        -> decltype(auto)
+        {
+            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<decltype(args)>(args))..., std::forward<func_args_t>(func_args)...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
+    template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
+    constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
+    noexcept(
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
+        {
+            return mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::forward<decltype(args)>(args)))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{})
+    )
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, func_args_t&&..., decltype(std::get<indexes>(std::forward<decltype(args)>(args)))...>)
+        -> decltype(auto)
+        {
+            return invoke<f_ts...>(std::forward<F>(f), std::forward<func_args_t>(func_args)..., std::get<indexes>(std::forward<decltype(args)>(args))...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
 
     // bind_front : https://godbolt.org/z/6dY9ox7dG
     template <typename F, typename ... args_t>
