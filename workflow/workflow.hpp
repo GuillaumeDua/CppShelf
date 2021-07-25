@@ -283,15 +283,15 @@ namespace workflow::functional {
     noexcept(
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
         {
-            return mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(args))...>;
+            return mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{})
     )
     {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
-        noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(args))...>)
+        noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>)
         -> decltype(auto)
         {
-            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(args)...);
+            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<args_as_tuple_t>(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 
