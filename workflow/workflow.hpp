@@ -327,77 +327,54 @@ namespace workflow::functional {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 
-    // bind_front : https://godbolt.org/z/6dY9ox7dG
-    template <typename F, typename ... args_t>
-    using std_bind_front_result_t = decltype(std::bind_front(std::declval<F>(), std::declval<args_t>()...));
-
     template <typename F, typename ttps_pack_type, typename ... bounded_args_t>
+    requires
+            std::is_constructible_v<std::decay_t<F>, F>
+        and std::is_move_constructible_v<std::decay_t<F>>
+        and (std::is_constructible_v<std::decay_t<bounded_args_t>, bounded_args_t> && ...)
+        and (std::is_move_constructible_v<std::decay_t<bounded_args_t>> && ...)
     class front_binder;
-    template <typename F, typename ... bounded_args_t>
-    class front_binder<F, ttps_pack<>, bounded_args_t...> : public std_bind_front_result_t<F, bounded_args_t...> {
-        using base_type = std_bind_front_result_t<F, bounded_args_t...>;
-    public:
-
-        constexpr front_binder(auto && f, bounded_args_t && ... args)
-        : base_type{std::bind_front(std::forward<decltype(f)>(f), std::forward<decltype(args)>(args)...)}
-        {}
-        constexpr front_binder(auto && f, ttps_pack<>, bounded_args_t && ... args)
-        : base_type{std::bind_front(std::forward<decltype(f)>(f), std::forward<decltype(args)>(args)...)}
-        {}
-    };
     template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
-    class front_binder<F, ttps_pack<ttps_bounded_args_t...>, bounded_args_t...> {
+    class front_binder<F, mp::ttps_pack<ttps_bounded_args_t...>, bounded_args_t...> {
         using bounded_args_storage_type = std::tuple<bounded_args_t...>;
         bounded_args_storage_type bounded_arguments;
         F f;
 
+        using type = front_binder<F, mp::ttps_pack<ttps_bounded_args_t...>, bounded_args_t...>;
+
     public:
-        constexpr front_binder(auto && f_arg, ttps_pack<ttps_bounded_args_t...>, auto && ... args)
+        constexpr front_binder(auto && f_arg, mp::ttps_pack<ttps_bounded_args_t...>, auto && ... args)
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
+        constexpr front_binder(auto && f_arg, auto && ... args)
+        : f{std::forward<decltype(f_arg)>(f_arg)}
+        , bounded_arguments{std::forward<decltype(args)>(args)...}
+        {
+            static_assert(sizeof...(ttps_bounded_args_t) == 0);
+        }
 
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) & {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
-                return f.template operator()<ttps_bounded_args_t..., ttps...>(
-                    std::get<indexes>(bounded_arguments)...,
-                    std::forward<decltype(parameters)>(parameters)...
-                );
-            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+            return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) const & {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
-                return f.template operator()<ttps_bounded_args_t..., ttps...>(
-                    std::get<indexes>(bounded_arguments)...,
-                    std::forward<decltype(parameters)>(parameters)...
-                );
-            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+            return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) && {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
-                return std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
-                    std::get<indexes>(std::move(bounded_arguments))...,
-                    std::forward<decltype(parameters)>(parameters)...
-                );
-            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
         template <typename ... ttps>
         constexpr decltype(auto) operator()(auto && ... parameters) const && {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> decltype(auto) {
-                return std::move(f).template operator()<ttps_bounded_args_t..., ttps...>(
-                    std::get<indexes>(std::move(bounded_arguments))...,
-                    std::forward<decltype(parameters)>(parameters)...
-                );
-            }(std::make_index_sequence<std::tuple_size_v<bounded_args_storage_type>>{});
+            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
     };
     template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
-    front_binder(F&&, ttps_pack<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<F, ttps_pack<ttps_bounded_args_t...>, bounded_args_t...>;
+    front_binder(F&&, mp::ttps_pack<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<F, mp::ttps_pack<ttps_bounded_args_t...>, bounded_args_t...>;
     template <typename F, typename ... bounded_args_t>
-    front_binder(F&&, bounded_args_t&&...) -> front_binder<F, ttps_pack<>, bounded_args_t...>;
+    front_binder(F&&, bounded_args_t&&...) -> front_binder<F, mp::ttps_pack<>, bounded_args_t...>;
 
     // same as std::bind_front, but also bound/allow ttps (waiting for proposal p1985 to extend this to nttps ...)
     template <typename ... ttps, typename F, typename ... args_t>
@@ -937,6 +914,55 @@ namespace workflow::operators {
 
 #ifdef CPP_SHELVE_STANDALONE_EDIT__
 
+namespace test::functional::invoke_apply {
+    consteval void invocable() {
+
+        namespace mp = workflow::functional::mp;
+
+        auto ttps_func = []<typename ...>(){};
+        ttps_func();
+        ttps_func.template operator()<int, char>();
+
+        static_assert(std::invocable<decltype(ttps_func)>);
+        static_assert(mp::invocable<decltype(ttps_func), mp::ttps_pack<>>);
+        static_assert(mp::invocable<decltype(ttps_func), mp::ttps_pack<int, char>>);
+
+        static_assert(not std::is_nothrow_invocable_v<decltype(ttps_func)>);
+        static_assert(not mp::nothrow_invocable<decltype(ttps_func), mp::ttps_pack<>>);
+        static_assert(not mp::nothrow_invocable<decltype(ttps_func), mp::ttps_pack<int, char>>);
+    }
+    consteval void nothrow_invocable() {
+
+        using namespace workflow::functional;
+
+        auto func = []<typename T>(auto) noexcept {};
+
+        static_assert(requires{ func.template operator()<int>('a'); });
+        static_assert(mp::nothrow_invocable<decltype(func), mp::ttps_pack<int>, char>);
+        static_assert(requires{  invoke<int>(func, 42);});
+        static_assert(requires{  invoke([](){});});
+        static_assert(requires{  apply<int>(func, std::tuple{'a'});});
+
+        static_assert(noexcept(invoke<int>(func, 42)));
+        static_assert(noexcept(apply<int>(func, std::tuple{'a'})));
+    }
+    consteval void apply() {
+
+        namespace f = workflow::functional;
+
+        auto func = []<typename>(int, std::string&&){};
+
+        static_assert(requires{
+            f::apply<int>(func, std::tuple{42, std::string{""}});
+        });
+        static_assert(requires{
+            f::apply_after<int>(func, std::tuple{std::string{""}}, 42);
+        });
+        static_assert(requires{
+            f::apply_before<int>(func, std::tuple{42}, std::string{""});
+        });
+    }
+}
 namespace test::details::cvref_tags {
     struct rvalue{};
     struct lvalue{};
