@@ -916,18 +916,34 @@ namespace test::functional::invoke_apply {
     consteval void invocable() {
 
         namespace mp = workflow::functional::mp;
+        {
+            auto ttps_func = []<typename ...>(){};
 
-        auto ttps_func = []<typename ...>(){};
-        ttps_func();
-        ttps_func.template operator()<int, char>();
+            static_assert(requires{ ttps_func(); });
+            static_assert(requires{ ttps_func.template operator()<int, char>(); });
 
-        static_assert(std::invocable<decltype(ttps_func)>);
-        static_assert(mp::invocable<decltype(ttps_func), mp::ttps_pack<>>);
-        static_assert(mp::invocable<decltype(ttps_func), mp::ttps_pack<int, char>>);
+            static_assert(std::invocable<decltype(ttps_func)>);
+            static_assert(mp::invocable<decltype(ttps_func), mp::ttps_pack<>>);
+            static_assert(mp::invocable<decltype(ttps_func), mp::ttps_pack<int, char>>);
 
-        static_assert(not std::is_nothrow_invocable_v<decltype(ttps_func)>);
-        static_assert(not mp::nothrow_invocable<decltype(ttps_func), mp::ttps_pack<>>);
-        static_assert(not mp::nothrow_invocable<decltype(ttps_func), mp::ttps_pack<int, char>>);
+            static_assert(not std::is_nothrow_invocable_v<decltype(ttps_func)>);
+            static_assert(not mp::nothrow_invocable<decltype(ttps_func), mp::ttps_pack<>>);
+            static_assert(not mp::nothrow_invocable<decltype(ttps_func), mp::ttps_pack<int, char>>);
+        }
+        {
+            auto func = []<typename ...>() noexcept {};
+
+            static_assert(mp::invocable<decltype(func)>);
+            static_assert(mp::invocable<decltype(func), mp::ttps_pack<>>);
+            static_assert(mp::invocable<decltype(func), mp::ttps_pack<int>>);
+            static_assert(mp::nothrow_invocable<decltype(func)>);
+            static_assert(mp::nothrow_invocable<decltype(func), mp::ttps_pack<>>);
+            static_assert(mp::nothrow_invocable<decltype(func), mp::ttps_pack<int>>);
+
+            static_assert(requires{ func.template operator()<int>(); });
+            static_assert(requires{ invoke(func); });
+            static_assert(requires{ invoke<int>(func); });
+        }
     }
     consteval void nothrow_invocable() {
 
