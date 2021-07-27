@@ -162,6 +162,11 @@ namespace workflow::mp::cast {
 }
 namespace workflow::type_traits {
 
+    template <typename T>
+    constexpr bool is_ttps_pack_v = false;
+    template <typename ... Ts>
+    constexpr bool is_ttps_pack_v<ttps_pack<Ts...>> = true;
+
     template <typename F, typename ... args_t>
     constexpr bool is_invocable_v = std::is_invocable_v<F, args_t...>;
     template <typename F, typename ... ttps_args_t, typename ... args_t>
@@ -225,11 +230,11 @@ namespace workflow::type_traits {
 }
 namespace workflow::concepts {
 
-    template <typename F, typename ttps_pack_t, typename ... args_t>
-    concept invocable = type_traits::is_invocable_v<F, ttps_pack_t, args_t...>;
+    template <typename F, typename ... args_t>
+    concept invocable = is_invocable_v<F,  args_t...>;
 
-    template <typename F, typename ttps_pack_t, typename ... args_t>
-    concept nothrow_invocable = type_traits::is_nothrow_invocable_v<F, ttps_pack_t, args_t...>;
+    template <typename F, typename ... args_t>
+    concept nothrow_invocable = is_nothrow_invocable_v<F, args_t...>;
 
     template <typename T>
     concept no_cvref =
