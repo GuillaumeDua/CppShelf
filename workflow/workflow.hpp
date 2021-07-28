@@ -1011,6 +1011,32 @@ namespace test::functional::invoke_apply {
         static_assert(noexcept(invoke<int>(func, 42)));
         static_assert(noexcept(apply<int>(func, std::tuple{'a'})));
     }
+    consteval void invoke_result() {
+        auto func = []<typename ... Ts>() noexcept { return std::tuple<Ts...>{}; };
+
+        static_assert(mp::invocable<decltype(func)>);
+        static_assert(mp::invocable<decltype(func), mp::ttps_pack<>>);
+        static_assert(mp::invocable<decltype(func), mp::ttps_pack<int>>);
+        static_assert(mp::nothrow_invocable<decltype(func)>);
+        static_assert(mp::nothrow_invocable<decltype(func), mp::ttps_pack<>>);
+        static_assert(mp::nothrow_invocable<decltype(func), mp::ttps_pack<int>>);
+
+        static_assert(requires{ func.template operator()<int>(); });
+        static_assert(requires{ invoke(func); });
+        static_assert(requires{ invoke<int>(func); });
+
+        static_assert(std::is_same_v<decltype(bind_front(func)()), std::tuple<>>);
+        static_assert(std::is_same_v<decltype(bind_front<int>(func)()), std::tuple<int>>);
+        static_assert(std::is_same_v<decltype(bind_front<int, char>(func)()), std::tuple<int, char>>);
+        static_assert(std::is_same_v<decltype(bind_front<int>(func).template operator()<char>()), std::tuple<int, char>>);
+        static_assert(std::is_same_v<decltype(bind_front(func).template operator()<int, char>()), std::tuple<int, char>>);
+
+        static_assert(mp::invocable_r<std::tuple<>,             decltype(bind_front(func))>);
+        static_assert(mp::invocable_r<std::tuple<int>,          decltype(bind_front<int>(func))>);
+        static_assert(mp::invocable_r<std::tuple<int, char>,    decltype(bind_front<int, char>(func))>);
+        static_assert(mp::invocable_r<std::tuple<int, char>,    decltype(bind_front<int>(func)), mp::ttps_pack<char>>);
+        static_assert(mp::invocable_r<std::tuple<int, char>,    decltype(bind_front(func)), mp::ttps_pack<int, char>>);
+    }
     consteval void apply() {
 
         namespace f = workflow::functional;
