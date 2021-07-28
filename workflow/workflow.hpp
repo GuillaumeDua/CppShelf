@@ -316,6 +316,10 @@ namespace workflow::functional {
     }
 
     template <typename ... f_ts, typename F, typename args_as_tuple_t>
+    requires ([]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
+        {
+            return mp::invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{}))
     constexpr decltype(auto) apply(F && f, args_as_tuple_t&& args)
     noexcept(
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
@@ -332,6 +336,10 @@ namespace workflow::functional {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
     template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
+    requires ([]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
+        {
+            return mp::invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))..., func_args_t&&...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{}))
     constexpr decltype(auto) apply_before(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
     noexcept(
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
@@ -348,6 +356,10 @@ namespace workflow::functional {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
     template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
+    requires ([]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
+        {
+            return mp::invocable<F&&, mp::ttps_pack<f_ts...>, func_args_t&&..., decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{}))
     constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
     noexcept(
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool
