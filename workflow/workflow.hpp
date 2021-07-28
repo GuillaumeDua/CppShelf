@@ -180,6 +180,10 @@ namespace workflow::type_traits {
 
     template <typename F, typename ... args_t>
     constexpr bool is_nothrow_invocable_v = std::is_nothrow_invocable_v<F, args_t...>;
+    template <typename F, typename ... args_t>
+    constexpr bool is_nothrow_invocable_v<F, ttps_pack<>, args_t...> =
+        std::is_nothrow_invocable_v<F, args_t...>;
+    ;
     template <typename F, typename ... ttps_args_t, typename ... args_t>
     requires
         requires{ std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...); }
