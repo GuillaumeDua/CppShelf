@@ -213,6 +213,12 @@ namespace workflow::type_traits {
             return false;
         else return std::convertible_to<invoke_result_t<F, args_t...>, R>;
     }();
+    template <typename R, typename F, typename ... args_t>
+    constexpr bool is_nothrow_invocable_r_v = [](){
+        if constexpr (not is_nothrow_invocable_v<F, args_t...>)
+            return false;
+        else return std::convertible_to<invoke_result_t<F, args_t...>, R>;
+    }();
 
     // detection : using type_traits to avoid recursive concepts
     // could use std::detected_t (library fundamentals TS v2)
