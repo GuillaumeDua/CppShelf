@@ -297,15 +297,18 @@ namespace workflow::functional {
     // todo : mix TTP/NTTP ... (p1985)
     template <typename ... f_ts, typename F, typename ... f_args_t>
     requires
-        (not std::invocable<F, f_args_t...>)
-        and mp::invocable<F, mp::ttps_pack<f_ts...>, f_args_t...>
+        mp::invocable<F&&, mp::ttps_pack<f_ts...>, f_args_t&&...>
     constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
     noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, f_args_t&&...>)
     {
-        return std::forward<F>(f).template operator()<f_ts...>(std::forward<f_args_t>(args)...);
+        if constexpr (sizeof...(f_ts) == 0)
+            return std::invoke(std::forward<F>(f), std::forward<f_args_t>(args)...);
+        else return std::forward<F>(f).template operator()<f_ts...>(std::forward<f_args_t>(args)...);
     }
     template <typename F, typename ... f_args_t>
-    requires std::invocable<F, f_args_t...>
+    requires
+        (not mp::invocable<F&&, mp::ttps_pack<>, f_args_t&&...>)
+        and std::invocable<F, f_args_t...>
     constexpr decltype(auto) invoke(F && f, f_args_t&& ... args)
     noexcept (std::is_nothrow_invocable_v<F&&, f_args_t&&...>)
     {
