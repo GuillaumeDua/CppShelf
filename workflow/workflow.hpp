@@ -14,6 +14,9 @@
 #include <array>
 #include <string_view>
 
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
+// #define noexcept_if(expression)  noexcept(noexcept(expression))
+
 #ifdef CPP_SHELVE_STANDALONE_EDIT__
 namespace workflow::cx { // gcl::cx
     template <typename T>
@@ -279,7 +282,9 @@ namespace workflow::concepts {
         (not std::is_pointer_v<T>)
         ;
 }
+namespace workflow::functional{} // declaration, allow self namespace alias
 namespace workflow::functional {
+    namespace ns = workflow::functional;
 
     template <typename ... Ts>
     requires (mp::are_unique_v<Ts...>)
@@ -332,7 +337,7 @@ namespace workflow::functional {
         noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>)
         -> decltype(auto)
         {
-            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<args_as_tuple_t>(args))...);
+            return ns::invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<args_as_tuple_t>(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
     template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
@@ -352,7 +357,7 @@ namespace workflow::functional {
         noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))..., func_args_t&&...>)
         -> decltype(auto)
         {
-            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<decltype(args)>(args))..., std::forward<func_args_t>(func_args)...);
+            return ns::invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<decltype(args)>(args))..., std::forward<func_args_t>(func_args)...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
     template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
@@ -372,7 +377,7 @@ namespace workflow::functional {
         noexcept(mp::nothrow_invocable<F&&, mp::ttps_pack<f_ts...>, func_args_t&&..., decltype(std::get<indexes>(std::forward<decltype(args)>(args)))...>)
         -> decltype(auto)
         {
-            return invoke<f_ts...>(std::forward<F>(f), std::forward<func_args_t>(func_args)..., std::get<indexes>(std::forward<decltype(args)>(args))...);
+            return ns::invoke<f_ts...>(std::forward<F>(f), std::forward<func_args_t>(func_args)..., std::get<indexes>(std::forward<decltype(args)>(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 
@@ -960,6 +965,8 @@ namespace workflow::operators {
         };
     }
 }
+
+#undef fwd;
 
 #ifdef CPP_SHELVE_STANDALONE_EDIT__
 
