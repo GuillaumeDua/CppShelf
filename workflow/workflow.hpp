@@ -408,21 +408,49 @@ namespace workflow::functional {
             static_assert(sizeof...(ttps_bounded_args_t) == 0);
         }
 
-        template <typename ... ttps>
-        constexpr decltype(auto) operator()(auto && ... parameters) & {
+        template <typename ... ttps, typename ... parameters_t>
+        requires requires {
+            apply_before<ttps_bounded_args_t..., ttps...>(
+                std::declval<F &>(),
+                std::declval<bounded_args_storage_type &>(),
+                std::declval<parameters_t&&>()...
+            );
+        }
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) & {
             return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
-        template <typename ... ttps>
-        constexpr decltype(auto) operator()(auto && ... parameters) const & {
+        template <typename ... ttps, typename ... parameters_t>
+        requires requires {
+            apply_before<ttps_bounded_args_t..., ttps...>(
+                std::declval<F const &>(),
+                std::declval<bounded_args_storage_type const &>(),
+                std::declval<parameters_t&&>()...
+            );
+        }
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) const & {
             return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
-        template <typename ... ttps>
-        constexpr decltype(auto) operator()(auto && ... parameters) && {
-            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
+        template <typename ... ttps, typename ... parameters_t>
+        requires requires {
+            apply_before<ttps_bounded_args_t..., ttps...>(
+                std::declval<F &&>(),
+                std::declval<bounded_args_storage_type &&>(),
+                std::declval<parameters_t&&>()...
+            );
         }
-        template <typename ... ttps>
-        constexpr decltype(auto) operator()(auto && ... parameters) const && {
-            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) && {
+            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
+        }
+        template <typename ... ttps, typename ... parameters_t>
+        requires requires {
+            apply_before<ttps_bounded_args_t..., ttps...>(
+                std::declval<F const &&>(),
+                std::declval<bounded_args_storage_type const &&>(),
+                std::declval<parameters_t&&>()...
+            );
+        }
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) const && {
+            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
     };
     template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
