@@ -503,41 +503,36 @@ namespace workflow::functional {
         std::invocable<F2, std::invoke_result_t<F1, f_args_t&&...>>;
 
     constexpr decltype(auto) merge(auto && first, auto && ... functors) {
-        static_assert(sizeof...(functors) not_eq 0);
+        using namespace workflow::functional;
 
         return
-        [_f = std::forward<decltype(first)>(first), ..._fs = std::forward<decltype(functors)>(functors)]
+        [node = bind_front(std::forward<decltype(first)>(first)), continuation = merge(std::forward<decltype(functors)>(functors)...)]
         <typename ... ttps>
         (auto && ... args) constexpr mutable -> decltype(auto) {
-            using namespace workflow::functional;
 
-            auto lhs = bind_front<ttps...>(std::forward<decltype(_f)>(_f), std::forward<decltype(args)>(args)...);
-            static_assert(std::invocable<decltype(lhs)>, "overload resolution failed (lhs)");
-            auto rhs = merge(std::forward<decltype(_fs)>(_fs)...);
+            static_assert(mp::invocable<decltype(node)&&, mp::ttps_pack<ttps...>, decltype(args)...>, "must be a valid invocation");
+            using f_invoke_result_t = mp::invoke_result_t<decltype(node)&&, mp::ttps_pack<ttps...>, decltype(args)...>;
 
-            constexpr bool is_chainable_v = []<typename T, typename ... rest> {
-                return std::invocable<T, std::invoke_result_t<decltype(lhs)>>;
-            }.template operator()<decltype(_fs)&&...>();
-
-            if constexpr (is_chainable_v) {
-                return std::invoke(rhs, std::invoke(lhs));
+            if constexpr (std::invocable<decltype(continuation), f_invoke_result_t>) {
+                return std::invoke(
+                    continuation,
+                    invoke<ttps...>(fwd(node), fwd(args)...)
+                );
             }
             else
             {
-                static_assert(std::invocable<decltype(rhs)>, "overload resolution failed (rhs)");
-                std::invoke(lhs);
-                return std::invoke(rhs);
+                invoke<ttps...>(fwd(node), fwd(args)...);
+                return std::invoke(continuation);
             }
         };
     }
     constexpr decltype(auto) merge(auto && first) {
-        return [_f = std::forward<decltype(first)>(first)]
+        return [node = std::forward<decltype(first)>(first)]
         <typename ... ttps>
         (auto && ... args) constexpr mutable -> decltype(auto) {
             using namespace workflow::functional;
-            auto f_caller = bind_front<ttps...>(std::forward<decltype(_f)>(_f), std::forward<decltype(args)>(args)...);
-            static_assert(std::invocable<decltype(f_caller)>);
-            return f_caller();
+            static_assert(mp::invocable<decltype(node)&&, mp::ttps_pack<ttps...>, decltype(args)...>, "must be a valid invocation");
+            invoke<ttps...>(fwd(node), fwd(args)...);
         };
     }
 }
