@@ -452,6 +452,11 @@ namespace workflow::functional {
         constexpr decltype(auto) operator()(parameters_t && ... parameters) const && {
             return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
+
+        template <typename ... ttps, typename ... parameters_t>
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) {
+            static_assert([](){ return false; }(), "front_binder::operator() : no overload candidates matched");
+        }
     };
     template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
     front_binder(F&&, mp::ttps_pack<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<F, mp::ttps_pack<ttps_bounded_args_t...>, bounded_args_t...>;
