@@ -196,19 +196,20 @@ namespace workflow::type_traits {
 
     template <typename F, typename ... args_t>
     struct invoke_result {
-        static_assert(std::invocable<F, args_t...>); // constraint result in wrong specialization deduction
+        using type = std::invoke_result_t<F, args_t...>;
+    };
+    template <typename F, typename ... args_t>
+    struct invoke_result<F, ttps_pack<>, args_t...> {
         using type = std::invoke_result_t<F, args_t...>;
     };
     template <typename F, typename ... ttps_args_t, typename ... args_t>
-    requires
-        is_invocable_v<F, ttps_pack<ttps_args_t...>, args_t...>
     struct invoke_result<F, ttps_pack<ttps_args_t...>, args_t...> {
         using type = decltype(
             std::declval<F>().template operator()<ttps_args_t...>(std::declval<args_t>()...)
         );
     };
     template <typename F, typename ... args_t>
-    using invoke_result_t = invoke_result<F, args_t...>::type;
+    using invoke_result_t = typename mp::invoke_result<F, args_t...>::type;
 
     template <typename R, typename F, typename ... args_t>
     constexpr bool is_invocable_r_v = [](){
