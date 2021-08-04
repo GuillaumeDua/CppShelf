@@ -493,15 +493,20 @@ namespace workflow::functional {
     using overload_solver_t = decltype(resolve_overload<ttps...>(std::declval<F>()));
 
     template <typename F1, typename F2, typename ... f_args_t>
-    requires
-        std::invocable<F1, f_args_t&&...> and
+    concept valid_chain_nodes = std::invocable<F1, f_args_t&&...> and
         (
             (std::same_as<void, std::invoke_result_t<F1, f_args_t&&...>> and std::invocable<F2>) or
             std::invocable<F2, std::invoke_result_t<F1, f_args_t&&...>>
-        )
+        );
+
+    template <typename F1, typename F2, typename ... f_args_t>
+    requires valid_chain_nodes<F1, F2, f_args_t...>
     constexpr bool are_calls_chainable_v = not
         std::is_same_v<void, std::invoke_result_t<F1, f_args_t&&...>> and
-        std::invocable<F2, std::invoke_result_t<F1, f_args_t&&...>>;
+        std::invocable<F2, std::invoke_result_t<F1, f_args_t&&...>>
+        ;
+
+    // WIP / POC / crappy designs
 
     constexpr decltype(auto) merge(auto && first, auto && ... functors) {
         using namespace workflow::functional;
@@ -536,6 +541,42 @@ namespace workflow::functional {
             invoke<ttps...>(fwd(node), fwd(args)...);
         };
     }
+
+    template <bool value>
+    using boolean_constant = std::integral_constant<bool, value>;
+
+    template <typename ... Fs>
+    requires (sizeof...(Fs) >= 1)
+    struct call_chain_strategy {
+
+        template <typename ... args_t>
+        using type = decltype([](){
+
+            return []<typename node, typename next, typename ... rest>() constexpr {
+                static_assert(workflow::functional::valid_chain_nodes<node, next, args_t...>);
+                using node_return_type = std::invoke_result_t<node, args_t...>;
+
+                using result_t = boolean_constant<workflow::functional::are_calls_chainable_v<node, next, args_t...>>;
+                if constexpr (std::is_void_v<node_return_type>) {
+                    constexpr auto continuation = typename call_chain_strategy<next, rest...>::type<>{};
+                    return std::tuple_cat(std::tuple<result_t>{}, continuation);
+                }
+                else {
+                    constexpr auto continuation = typename call_chain_strategy<next, rest...>::type<node_return_type>{};
+                    return std::tuple_cat(std::tuple<result_t>{}, continuation);
+                }
+            }.template operator()<Fs...>();
+        }());
+    };
+
+    template <typename node>
+    struct call_chain_strategy<node>{
+        template <typename ... args_t>
+        using type = decltype([](){
+            static_assert(std::invocable<node, args_t...>);
+            return std::tuple<>{};
+        }());
+    };
 }
 namespace workflow {
 
