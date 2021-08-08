@@ -586,6 +586,91 @@ namespace workflow::functional {
                 return boolean_sequence<>{ };
             }());
         };
+
+        // todo : [x] ttps
+        // todo : [ ] nothrow
+        // todo : [ ] cvref overloads
+
+        template <typename ... ttps_args_t, typename F, typename ... args_t>
+        requires
+            workflow::functional::mp::invocable<F, workflow::functional::mp::ttps_pack<ttps_args_t...>, args_t&&...> or
+            workflow::functional::mp::invocable<F, workflow::functional::mp::ttps_pack<ttps_args_t...>>
+        decltype(auto) invoke_with_or_discard(F && functor, args_t && ... args) {
+            using namespace workflow::functional;
+            if constexpr (mp::invocable<F, workflow::functional::mp::ttps_pack<ttps_args_t...>, args_t&&...>) {
+                return invoke<ttps_args_t...>(fwd(functor), fwd(args)...);
+            }
+            else
+                return invoke<ttps_args_t...>(fwd(functor));
+        }
+        template <typename ..., typename F, typename ... args_t>
+        decltype(auto) invoke_with_or_discard(F &&, args_t && ...) {
+            static_assert([](){ return false; }(), "invoke_with_or_discard : no overload candidate");
+        }
+
+        template <typename ... Fs>
+        requires (sizeof...(Fs) not_eq 0)
+        struct chain_invoker {
+            using storage_type = std::tuple<Fs...>;
+            
+            chain_invoker(Fs&&... fs)
+            : storage{ fwd(fs)... }
+            {}
+
+            template <typename ... ttps_args_t, typename ... args_t>
+            decltype(auto) operator()(args_t && ... args) {
+                return call_impl<0, ttps_args_t...>(fwd(args)...);
+            }
+
+        private:
+
+            template <std::size_t index, typename ... ttps_args_t>
+            requires (index == (std::tuple_size_v<storage_type> - 1))
+            decltype(auto) call_impl(auto && ... args) {
+                auto & node = std::get<index>(storage);
+                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+            }
+            template <std::size_t index, typename ... ttps_args_t>
+            decltype(auto) call_impl(auto && ... args) {
+                auto & node = std::get<index>(storage);
+
+                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+                if constexpr (std::is_void_v<return_type>) {
+                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+                    return call_impl<index + 1>();
+                }
+                else
+                    return call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+            }
+
+            storage_type storage;
+        };
+        template <typename ... Fs>
+        chain_invoker(Fs&&...) -> chain_invoker<Fs...>;
+    }
+    namespace wip::test {
+        consteval void chain_invoker_ttps() {
+
+            struct toto {
+                toto(){}
+                toto(const toto &) = delete;
+                toto(toto&&) = default;
+                void operator()() {
+                }
+            };
+
+            const auto const_ref_lambda_value = [](){};
+            auto route = wip::chain_invoker(
+                []<typename T, typename U>(){ static_assert(std::is_same_v<T, U>); },
+                toto{},
+                const_ref_lambda_value,
+                [](auto&& arg)     {  },
+                []()               { return 42; },
+                [](int)            { return ""; },
+                [](std::string &&) { return 42; }
+            );
+            static_assert(requires{ route.operator()<int, int>(); });
+        }
     }
 }
 namespace workflow {
