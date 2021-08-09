@@ -616,22 +616,71 @@ namespace workflow::functional {
             chain_invoker(Fs&&... fs)
             : storage{ fwd(fs)... }
             {}
+            template <typename ... lhs_ts, typename ... rhs_ts>
+            chain_invoker(chain_invoker<lhs_ts...>&& lhs, chain_invoker<lhs_ts...>&& rhs)
+            : storage{ std::tuple_cat(std::move(lhs.storage), std::move(rhs.storage)) }
+            {}
 
             template <typename ... ttps_args_t, typename ... args_t>
-            decltype(auto) operator()(args_t && ... args) {
+            decltype(auto) operator()(args_t && ... args) & {
                 return call_impl<0, ttps_args_t...>(fwd(args)...);
+            }
+            template <typename ... ttps_args_t, typename ... args_t>
+            decltype(auto) operator()(args_t && ... args) && {
+                return std::move(*this). template call_impl<0, ttps_args_t...>(fwd(args)...);
+            }
+            template <typename ... ttps_args_t, typename ... args_t>
+            decltype(auto) operator()(args_t && ... args) const & {
+                return call_impl<0, ttps_args_t...>(fwd(args)...);
+            }
+            template <typename ... ttps_args_t, typename ... args_t>
+            decltype(auto) operator()(args_t && ... args) const && {
+                return std::move(*this). template call_impl<0, ttps_args_t...>(fwd(args)...);
             }
 
         private:
 
             template <std::size_t index, typename ... ttps_args_t>
             requires (index == (std::tuple_size_v<storage_type> - 1))
-            decltype(auto) call_impl(auto && ... args) {
+            decltype(auto) call_impl(auto && ... args) & {
                 auto & node = std::get<index>(storage);
                 return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
             }
             template <std::size_t index, typename ... ttps_args_t>
-            decltype(auto) call_impl(auto && ... args) {
+            requires (index == (std::tuple_size_v<storage_type> - 1))
+            decltype(auto) call_impl(auto && ... args) && {
+                auto && node = std::get<index>(std::move(storage));
+                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+            }
+            template <std::size_t index, typename ... ttps_args_t>
+            requires (index == (std::tuple_size_v<storage_type> - 1))
+            decltype(auto) call_impl(auto && ... args) const & {
+                const auto & node = std::get<index>(storage);
+                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+            }
+            template <std::size_t index, typename ... ttps_args_t>
+            requires (index == (std::tuple_size_v<storage_type> - 1))
+            decltype(auto) call_impl(auto && ... args) const && {
+                const auto && node = std::get<index>(std::move(storage));
+                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+            }
+
+            template <std::size_t index, typename ... ttps_args_t>
+            decltype(auto) call_impl(auto && ... args) const &
+            {
+                const auto & node = std::get<index>(storage);
+
+                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+                if constexpr (std::is_void_v<return_type>) {
+                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+                    return call_impl<index + 1>();
+                }
+                else
+                    return call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+            }
+            template <std::size_t index, typename ... ttps_args_t>
+            decltype(auto) call_impl(auto && ... args) &
+            {
                 auto & node = std::get<index>(storage);
 
                 using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
@@ -642,9 +691,37 @@ namespace workflow::functional {
                 else
                     return call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
             }
+            template <std::size_t index, typename ... ttps_args_t>
+            decltype(auto) call_impl(auto && ... args) const &&
+            {
+                const auto && node = std::get<index>(std::move(storage));
+
+                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+                if constexpr (std::is_void_v<return_type>) {
+                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+                    return std::move(*this).template call_impl<index + 1>();
+                }
+                else
+                    return std::move(*this).template call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+            }
+            template <std::size_t index, typename ... ttps_args_t>
+            decltype(auto) call_impl(auto && ... args) &&
+            {
+                auto && node = std::get<index>(std::move(storage));
+
+                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+                if constexpr (std::is_void_v<return_type>) {
+                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
+                    return std::move(*this).template call_impl<index + 1>();
+                }
+                else
+                    return std::move(*this).template call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
+            }
 
             storage_type storage;
         };
+        template <typename ... lhs_ts, typename ... rhs_ts>
+        chain_invoker(chain_invoker<lhs_ts...>&&, chain_invoker<lhs_ts...>&&) -> chain_invoker<lhs_ts..., rhs_ts...>;
         template <typename ... Fs>
         chain_invoker(Fs&&...) -> chain_invoker<Fs...>;
     }
