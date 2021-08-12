@@ -509,221 +509,77 @@ namespace workflow::functional {
     // WIP / POC / crappy designs
     namespace wip {
 
-        constexpr decltype(auto) merge(auto && first, auto && ... functors) {
-            using namespace workflow::functional;
+        template <typename tuple_type>
+        decltype(auto) apply_with_or_discard(auto && functor, tuple_type && args_as_tuple)
+        {
+            constexpr bool is_invocable_with_args = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+                return std::is_invocable_v<decltype(functor), std::tuple_element_t<indexes, tuple_type>...>;
+            }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
 
-            return
-            [node = bind_front(std::forward<decltype(first)>(first)), continuation = merge(std::forward<decltype(functors)>(functors)...)]
-            <typename ... ttps>
-            (auto && ... args) constexpr mutable -> decltype(auto) {
-
-                static_assert(mp::invocable<decltype(node)&&, mp::ttps_pack<ttps...>, decltype(args)...>, "must be a valid invocation");
-                using f_invoke_result_t = mp::invoke_result_t<decltype(node)&&, mp::ttps_pack<ttps...>, decltype(args)...>;
-
-                if constexpr (std::invocable<decltype(continuation), f_invoke_result_t>) {
-                    return std::invoke(
-                        continuation,
-                        invoke<ttps...>(fwd(node), fwd(args)...)
-                    );
-                }
-                else
-                {
-                    invoke<ttps...>(fwd(node), fwd(args)...);
-                    return std::invoke(continuation);
-                }
-            };
+            if constexpr (is_invocable_with_args)
+                return std::apply(fwd(functor), fwd(args_as_tuple));
+            else
+                return std::invoke(fwd(functor));
         }
-        constexpr decltype(auto) merge(auto && first) {
-            return [node = std::forward<decltype(first)>(first)]
-            <typename ... ttps>
-            (auto && ... args) constexpr mutable -> decltype(auto) {
-                using namespace workflow::functional;
-                static_assert(mp::invocable<decltype(node)&&, mp::ttps_pack<ttps...>, decltype(args)...>, "must be a valid invocation");
-                invoke<ttps...>(fwd(node), fwd(args)...);
-            };
-        }
-
-        template <bool value>
-        using boolean_constant = std::integral_constant<bool, value>;
-
-        template <bool value>
-        using boolean_constant = std::integral_constant<bool, value>;
-        template <bool ... values>
-        using boolean_sequence = std::integer_sequence<bool, values...>;
-        
-        template <typename lhs_t, lhs_t ... lhs_args, typename rhs_t, rhs_t ... rhs_args>
-        requires requires{ std::common_type<lhs_t, rhs_t>{}; }
-        auto sequence_cat(std::integer_sequence<lhs_t, lhs_args...>, std::integer_sequence<rhs_t, rhs_args...>) {
-            using T = std::common_type_t<lhs_t, rhs_t>;
-            return std::integer_sequence<T, lhs_args..., rhs_args...>{};
-        }
-
-        template <typename ... Fs>
-        requires (sizeof...(Fs) >= 1)
-        struct call_chain_strategy {
-            template <typename ... args_t>
-            using type = decltype([](){
-
-                using namespace workflow::functional;
-
-                return []<typename node, typename next, typename ... rest>() constexpr {
-                    static_assert(valid_chain_nodes<node, next, args_t...>);
-                    using node_return_type = mp::invoke_result_t<node, args_t...>;
-
-                    return []<typename ... Ts>(std::tuple<Ts...>) constexpr {
-                        constexpr auto continuation = typename call_chain_strategy<next, rest...>::type<Ts...>{};
-                        return sequence_cat(boolean_sequence<workflow::functional::are_calls_chainable_v<node, next, args_t...>>{ }, continuation);
-                    }(std::conditional_t<std::is_void_v<node_return_type>, std::tuple<>, std::tuple<node_return_type>>{});
-                }.template operator()<Fs...>();
-            }());
-        };
-        template <typename node>
-        struct call_chain_strategy<node>{
-            template <typename ... args_t>
-            using type = decltype([](){
-                using namespace workflow::functional;
-                static_assert(mp::invocable<node, args_t...>);
-                return boolean_sequence<>{ };
-            }());
-        };
-
-        // todo : [x] ttps
-        // todo : [ ] nothrow
-        // todo : [ ] cvref overloads
-
-        template <typename ... ttps_args_t, typename F, typename ... args_t>
-        requires
-            workflow::functional::mp::invocable<F, workflow::functional::mp::ttps_pack<ttps_args_t...>, args_t&&...> or
-            workflow::functional::mp::invocable<F, workflow::functional::mp::ttps_pack<ttps_args_t...>>
-        decltype(auto) invoke_with_or_discard(F && functor, args_t && ... args) {
-            using namespace workflow::functional;
-            if constexpr (mp::invocable<F, workflow::functional::mp::ttps_pack<ttps_args_t...>, args_t&&...>) {
-                return invoke<ttps_args_t...>(fwd(functor), fwd(args)...);
+        decltype(auto) invoke_into_tuple(auto && functor, auto && ... args) {
+            // not really tuple, but something that match TupleInterface
+            using invoke_result_t = std::invoke_result_t<decltype(functor), decltype(args)...>;
+            if constexpr (std::is_void_v<invoke_result_t>) {
+                std::invoke(fwd(functor), fwd(args)...);
+                return std::array<bool, 0>{};
             }
             else
-                return invoke<ttps_args_t...>(fwd(functor));
+                return std::array{std::invoke(fwd(functor), fwd(args)...)};
         }
-        template <typename ..., typename F, typename ... args_t>
-        decltype(auto) invoke_with_or_discard(F &&, args_t && ...) {
-            static_assert([](){ return false; }(), "invoke_with_or_discard : no overload candidate");
+
+        template <typename node, typename ... rest, typename args_as_tuple_t>
+        decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
+            using node_invoke_result_t = decltype(apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args)));
+
+            auto result = invoke_into_tuple([](auto && ... args){
+                    return apply_with_or_discard(fwd(args)...);
+                },
+                std::get<0>(fwd(functors)), fwd(args)
+            );
+
+            return chain_invoke(
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                    return std::forward_as_tuple(std::get<1 + indexes>(fwd(functors))...);
+                }(std::make_index_sequence<sizeof...(rest)>{}),
+                std::move(result)
+            );
+        }
+        template <typename node>
+        decltype(auto) chain_invoke(std::tuple<node> && functors, auto && args_as_tuple) {
+            return apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
         }
 
         template <typename ... Fs>
-        requires (sizeof...(Fs) not_eq 0)
-        struct chain_invoker {
+        requires (sizeof...(Fs) > 0)
+        struct binder {
             using storage_type = std::tuple<Fs...>;
-            
-            chain_invoker(Fs&&... fs)
-            : storage{ fwd(fs)... }
-            {}
-            template <typename ... lhs_ts, typename ... rhs_ts>
-            chain_invoker(chain_invoker<lhs_ts...>&& lhs, chain_invoker<lhs_ts...>&& rhs)
-            : storage{ std::tuple_cat(std::move(lhs.storage), std::move(rhs.storage)) }
+
+            binder(Fs && ... args)
+            : storage()
             {}
 
-            template <typename ... ttps_args_t, typename ... args_t>
-            decltype(auto) operator()(args_t && ... args) & {
-                return call_impl<0, ttps_args_t...>(fwd(args)...);
-            }
-            template <typename ... ttps_args_t, typename ... args_t>
-            decltype(auto) operator()(args_t && ... args) && {
-                return std::move(*this). template call_impl<0, ttps_args_t...>(fwd(args)...);
-            }
-            template <typename ... ttps_args_t, typename ... args_t>
-            decltype(auto) operator()(args_t && ... args) const & {
-                return call_impl<0, ttps_args_t...>(fwd(args)...);
-            }
-            template <typename ... ttps_args_t, typename ... args_t>
-            decltype(auto) operator()(args_t && ... args) const && {
-                return std::move(*this). template call_impl<0, ttps_args_t...>(fwd(args)...);
+
+            decltype(auto) operator()(auto && ... args) {
+                return chain_invoke(
+                    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                        return std::forward_as_tuple(std::get<indexes>(storage)...);
+                    }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                    //storage,
+                    std::forward_as_tuple(fwd(args)...)
+                );
             }
 
         private:
 
-            template <std::size_t index, typename ... ttps_args_t>
-            requires (index == (std::tuple_size_v<storage_type> - 1))
-            decltype(auto) call_impl(auto && ... args) & {
-                auto & node = std::get<index>(storage);
-                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-            }
-            template <std::size_t index, typename ... ttps_args_t>
-            requires (index == (std::tuple_size_v<storage_type> - 1))
-            decltype(auto) call_impl(auto && ... args) && {
-                auto && node = std::get<index>(std::move(storage));
-                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-            }
-            template <std::size_t index, typename ... ttps_args_t>
-            requires (index == (std::tuple_size_v<storage_type> - 1))
-            decltype(auto) call_impl(auto && ... args) const & {
-                const auto & node = std::get<index>(storage);
-                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-            }
-            template <std::size_t index, typename ... ttps_args_t>
-            requires (index == (std::tuple_size_v<storage_type> - 1))
-            decltype(auto) call_impl(auto && ... args) const && {
-                const auto && node = std::get<index>(std::move(storage));
-                return invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-            }
-
-            template <std::size_t index, typename ... ttps_args_t>
-            decltype(auto) call_impl(auto && ... args) const &
-            {
-                const auto & node = std::get<index>(storage);
-
-                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-                if constexpr (std::is_void_v<return_type>) {
-                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-                    return call_impl<index + 1>();
-                }
-                else
-                    return call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-            }
-            template <std::size_t index, typename ... ttps_args_t>
-            decltype(auto) call_impl(auto && ... args) &
-            {
-                auto & node = std::get<index>(storage);
-
-                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-                if constexpr (std::is_void_v<return_type>) {
-                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-                    return call_impl<index + 1>();
-                }
-                else
-                    return call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-            }
-            template <std::size_t index, typename ... ttps_args_t>
-            decltype(auto) call_impl(auto && ... args) const &&
-            {
-                const auto && node = std::get<index>(std::move(storage));
-
-                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-                if constexpr (std::is_void_v<return_type>) {
-                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-                    return std::move(*this).template call_impl<index + 1>();
-                }
-                else
-                    return std::move(*this).template call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-            }
-            template <std::size_t index, typename ... ttps_args_t>
-            decltype(auto) call_impl(auto && ... args) &&
-            {
-                auto && node = std::get<index>(std::move(storage));
-
-                using return_type = decltype(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-                if constexpr (std::is_void_v<return_type>) {
-                    invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...);
-                    return std::move(*this).template call_impl<index + 1>();
-                }
-                else
-                    return std::move(*this).template call_impl<index + 1>(invoke_with_or_discard<ttps_args_t...>(fwd(node), fwd(args)...));
-            }
-
             storage_type storage;
         };
-        template <typename ... lhs_ts, typename ... rhs_ts>
-        chain_invoker(chain_invoker<lhs_ts...>&&, chain_invoker<lhs_ts...>&&) -> chain_invoker<lhs_ts..., rhs_ts...>;
-        template <typename ... Fs>
-        chain_invoker(Fs&&...) -> chain_invoker<Fs...>;
+        template <typename ... Ts>
+        binder(Ts &&...) -> binder<Ts...>;
     }
     namespace wip::test {
         consteval void chain_invoker_ttps() {
