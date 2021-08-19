@@ -224,6 +224,38 @@ namespace workflow::type_traits {
         else return std::convertible_to<invoke_result_t<F, args_t...>, R>;
     }();
 
+    template <typename T>
+    concept tuple_interface = requires { std::tuple_size_v<T>; };
+
+    template <typename F, typename ...>
+    constexpr bool is_applyable_v = [](){
+        static_assert([](){ return false; }(), "invalid arguments resolution");
+    };
+
+    template <typename F, tuple_interface tuple_type>
+    constexpr bool is_applyable_v<F, tuple_type> = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+        return invocable<F, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
+    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+
+    template <typename F, typename ... ttps_args_t, tuple_interface tuple_type>
+    constexpr bool is_applyable_v<F, ttps_pack<ttps_args_t...>, tuple_type> = []<std::size_t ... indexes, typename ... Ts>(std::index_sequence<indexes...>) constexpr {
+        return invocable<F, ttps_pack<ttps_args_t...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
+    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+
+    template <typename F, typename ...>
+    constexpr bool is_nothrow_applyable_v = [](){
+        static_assert([](){ return false; }(), "invalid arguments resolution");
+    };
+    template <typename F, tuple_interface tuple_type>
+    constexpr bool is_nothrow_applyable_v<F, tuple_type> = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+        return nothrow_invocable<F, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
+    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+
+    template <typename F, typename ... ttps_args_t, tuple_interface tuple_type>
+    constexpr bool is_nothrow_applyable_v<F, ttps_pack<ttps_args_t...>, tuple_type> = []<std::size_t ... indexes, typename ... Ts>(std::index_sequence<indexes...>) constexpr {
+        return nothrow_invocable<F, ttps_pack<ttps_args_t...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
+    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+
     // detection : using type_traits to avoid recursive concepts
     // could use std::detected_t (library fundamentals TS v2)
 
@@ -272,9 +304,13 @@ namespace workflow::concepts {
 
     template <typename F, typename ... args_t>
     concept invocable = is_invocable_v<F,  args_t...>;
-
     template <typename F, typename ... args_t>
     concept nothrow_invocable = is_nothrow_invocable_v<F, args_t...>;
+
+    template <typename ... args_t>
+    concept applyable = is_applyable_v<args_t...>;
+    template <typename ... args_t>
+    concept nothrow_applyable = is_applyable_v<args_t...>;
 
     template <typename T>
     concept no_cvref =
@@ -1115,6 +1151,19 @@ namespace test::functional::invoke_apply {
 
         static_assert(noexcept(invoke<int>(func, 42)));
         static_assert(noexcept(apply<int>(func, std::tuple{'a'})));
+    }
+    consteval void applyable() {
+        auto ttps_func = []<typename ...>(auto, auto){};
+        static_assert(not mp::applyable<decltype(ttps_func), std::tuple<>>);
+        static_assert(mp::applyable<decltype(ttps_func), std::tuple<int, char>>);
+        static_assert(mp::applyable<decltype(ttps_func), mp::ttps_pack<>, std::tuple<int, char>>);
+        static_assert(mp::applyable<decltype(ttps_func), mp::ttps_pack<double, std::string>, std::tuple<int, char>>);
+
+        auto ttps_func_one_mandatory = []<typename, typename ...>(auto, auto){};
+        static_assert(not mp::applyable<decltype(ttps_func_one_mandatory), std::tuple<>>);
+        static_assert(not mp::applyable<decltype(ttps_func_one_mandatory), std::tuple<int, char>>);
+        static_assert(not mp::applyable<decltype(ttps_func_one_mandatory), mp::ttps_pack<>, std::tuple<int, char>>);
+        static_assert(mp::applyable<decltype(ttps_func_one_mandatory), mp::ttps_pack<double>, std::tuple<int, char>>);
     }
     consteval void invoke_result() {
         auto func = []<typename ... Ts>() noexcept { return std::tuple<Ts...>{}; };
