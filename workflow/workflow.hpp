@@ -12,6 +12,10 @@
 
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
 
+// todo : concepts (not from invoke like the STL does, but from traits instead)
+//  - invocable
+//  - nothrow_invocable
+
 namespace workflow::functional::mp {
 
     template <typename ...>
@@ -190,4 +194,30 @@ namespace workflow::details::mp {
     };
     template <typename T>
     using empty_if_void_t = empty_if_void<T>::type;
+}
+namespace workflow::functional {
+    // todo : mix TTP/NTTP ... (p1985)
+
+    // invoke
+    template <typename ... ttps_args, typename F, typename ... args_types>
+    requires
+        mp::is_invocable_v<F&&, mp::ttps<ttps_args...>, args_types&&...>
+    constexpr decltype(auto) invoke(F && f, args_types&& ... args)
+    noexcept(mp::is_nothrow_invocable_v<F&&, mp::ttps<ttps_args...>, args_types&&...>)
+    {
+        if constexpr (sizeof...(ttps_args) == 0)
+            return std::invoke(std::forward<F>(f), std::forward<args_types>(args)...);
+        else return std::forward<F>(f).template operator()<ttps_args...>(std::forward<args_types>(args)...);
+    }
+    template <typename F, typename ... args_types>
+    requires
+        (not mp::is_invocable_v<F&&, args_types&&...>)
+        and std::invocable<F, args_types...>
+    constexpr decltype(auto) invoke(F && f, args_types&& ... args)
+    noexcept (std::is_nothrow_invocable_v<F&&, args_types&&...>)
+    {
+        return std::invoke(std::forward<F>(f), std::forward<args_types>(args)...);
+    }
+
+    // apply
 }
