@@ -196,7 +196,7 @@ namespace workflow::details::mp {
     using empty_if_void_t = empty_if_void<T>::type;
 }
 namespace workflow::functional {
-    // todo : mix TTP/NTTP ... (p1985)
+    // todo : Universal template declaration ... (p1985)
 
     // invoke
     template <typename ... ttps_args, typename F, typename ... args_types>
@@ -220,4 +220,16 @@ namespace workflow::functional {
     }
 
     // apply
+    template <typename ... f_ts, typename F, typename args_as_tuple_t>
+    requires mp::is_applyable_v<F, mp::ttps<f_ts...>, args_as_tuple_t>
+    constexpr decltype(auto) apply(F && f, args_as_tuple_t&& args)
+    noexcept(mp::is_nothrow_applyable_v<F, mp::ttps<f_ts...>, args_as_tuple_t>)
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::is_nothrow_invocable_v<F&&, mp::ttps<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>)
+        -> decltype(auto)
+        {
+            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<args_as_tuple_t>(args))...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
 }
