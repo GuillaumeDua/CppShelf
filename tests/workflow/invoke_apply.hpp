@@ -174,9 +174,9 @@ namespace test::functional::invocation {
             static_assert(noexcept(ns::apply<int, char>(f, std::tuple{'a'})));
         }
     }
-
-    struct A{};
-    struct B{};
+}
+namespace tests::functional::mp_apply_ {
+    struct A{}; struct B{};
 
     consteval void applyable_before() {
         using namespace workflow::functional::mp;
@@ -420,6 +420,144 @@ namespace test::functional::invocation {
             static_assert(is_nothrow_applyable_after_v<F, ttps<int>, std::tuple<>, A, B>);
             static_assert(is_nothrow_applyable_after_v<F, ttps<int>, std::tuple<B>, A>);
             static_assert(is_nothrow_applyable_after_v<F, ttps<int>, std::tuple<A, B>>);
+        }
+    }
+
+    consteval void applyable_trait_cvref_qualifiers_noargs() {
+        auto func = []() noexcept { };
+
+        using namespace workflow::functional;
+
+        {   // - is_applyable
+            static_assert(mp::is_applyable_v<decltype(func), std::tuple<>>);
+            static_assert(mp::is_applyable_v<decltype(func), std::tuple<>&>);
+            static_assert(mp::is_applyable_v<decltype(func), std::tuple<>&&>);
+            static_assert(mp::is_applyable_v<decltype(func), const std::tuple<>>);
+            static_assert(mp::is_applyable_v<decltype(func), const std::tuple<>&>);
+            static_assert(mp::is_applyable_v<decltype(func), const std::tuple<>&&>);
+
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, std::tuple<>>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, std::tuple<>&>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, std::tuple<>&&>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, const std::tuple<>>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, const std::tuple<>&>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, const std::tuple<>&&>);
+        }
+        {   // - is_nothrow_applyable
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), std::tuple<>&&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), const std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), const std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), const std::tuple<>&&>);
+
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, std::tuple<>&&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, const std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, const std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, const std::tuple<>&&>);
+        }
+        {   // - is_applyable_before
+            static_assert(mp::is_applyable_before_v<decltype(func), std::tuple<>>);
+            static_assert(mp::is_applyable_before_v<decltype(func), std::tuple<>&>);
+            static_assert(mp::is_applyable_before_v<decltype(func), std::tuple<>&&>);
+            static_assert(mp::is_applyable_before_v<decltype(func), const std::tuple<>>);
+            static_assert(mp::is_applyable_before_v<decltype(func), const std::tuple<>&>);
+            static_assert(mp::is_applyable_before_v<decltype(func), const std::tuple<>&&>);
+        }
+        {   // - is_nothrow_applyable_before
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), std::tuple<>&&>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), const std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), const std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), const std::tuple<>&&>);
+        }
+        {   // - is_applyable_after
+            static_assert(mp::is_applyable_after_v<decltype(func), std::tuple<>>);
+            static_assert(mp::is_applyable_after_v<decltype(func), std::tuple<>&>);
+            static_assert(mp::is_applyable_after_v<decltype(func), std::tuple<>&&>);
+            static_assert(mp::is_applyable_after_v<decltype(func), const std::tuple<>>);
+            static_assert(mp::is_applyable_after_v<decltype(func), const std::tuple<>&>);
+            static_assert(mp::is_applyable_after_v<decltype(func), const std::tuple<>&&>);
+        }
+        {   // - is_nothrow_applyable_after
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), std::tuple<>&&>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<>>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<>&>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<>&&>);
+        }
+    }
+    consteval void applyable_trait_cvref_qualifiers_args() {
+        struct A{}; struct B{};
+        auto func = [](A, B) noexcept { };
+
+        using namespace workflow::functional;
+
+        {   // - is_applyable
+            static_assert(mp::is_applyable_v<decltype(func), std::tuple<A, B>>);
+            static_assert(mp::is_applyable_v<decltype(func), std::tuple<A, B>&>);
+            static_assert(mp::is_applyable_v<decltype(func), std::tuple<A, B>&&>);
+            static_assert(mp::is_applyable_v<decltype(func), const std::tuple<A, B>>);
+            static_assert(mp::is_applyable_v<decltype(func), const std::tuple<A, B>&>);
+            static_assert(mp::is_applyable_v<decltype(func), const std::tuple<A, B>&&>);
+
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, std::tuple<A, B>>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, std::tuple<A, B>&>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, std::tuple<A, B>&&>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, const std::tuple<A, B>>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, const std::tuple<A, B>&>);
+            static_assert(mp::is_applyable_v<decltype(func), mp::ttps<>, const std::tuple<A, B>&&>);
+        }
+        {   // - is_nothrow_applyable
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), std::tuple<A, B>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), std::tuple<A, B>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), std::tuple<A, B>&&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), const std::tuple<A, B>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), const std::tuple<A, B>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), const std::tuple<A, B>&&>);
+
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, std::tuple<A, B>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, std::tuple<A, B>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, std::tuple<A, B>&&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, const std::tuple<A, B>>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, const std::tuple<A, B>&>);
+            static_assert(mp::is_nothrow_applyable_v<decltype(func), mp::ttps<>, const std::tuple<A, B>&&>);
+        }
+        {   // - is_applyable_before
+            static_assert(mp::is_applyable_before_v<decltype(func), std::tuple<A, B>>);
+            static_assert(mp::is_applyable_before_v<decltype(func), std::tuple<A, B>&>);
+            static_assert(mp::is_applyable_before_v<decltype(func), std::tuple<A, B>&&>);
+            static_assert(mp::is_applyable_before_v<decltype(func), const std::tuple<A, B>>);
+            static_assert(mp::is_applyable_before_v<decltype(func), const std::tuple<A, B>&>);
+            static_assert(mp::is_applyable_before_v<decltype(func), const std::tuple<A, B>&&>);
+        }
+        {   // - is_nothrow_applyable_before
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), std::tuple<A>, B>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), std::tuple<A>&, B>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), std::tuple<A>&&, B>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), const std::tuple<A>, B>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), const std::tuple<A>&, B>);
+            static_assert(mp::is_nothrow_applyable_before_v<decltype(func), const std::tuple<A>&&, B>);
+        }
+        {   // - is_applyable_after
+            static_assert(mp::is_applyable_after_v<decltype(func), std::tuple<B>, A>);
+            static_assert(mp::is_applyable_after_v<decltype(func), std::tuple<B>&, A>);
+            static_assert(mp::is_applyable_after_v<decltype(func), std::tuple<B>&&, A>);
+            static_assert(mp::is_applyable_after_v<decltype(func), const std::tuple<B>, A>);
+            static_assert(mp::is_applyable_after_v<decltype(func), const std::tuple<B>&, A>);
+            static_assert(mp::is_applyable_after_v<decltype(func), const std::tuple<B>&&, A>);
+        }
+        {   // - is_nothrow_applyable_after
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), std::tuple<B>, A>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), std::tuple<B>&, A>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), std::tuple<B>&&, A>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<B>, A>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<B>&, A>);
+            static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<B>&&, A>);
         }
     }
 }
