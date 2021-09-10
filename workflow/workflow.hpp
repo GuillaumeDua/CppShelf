@@ -110,12 +110,13 @@ namespace workflow::functional::mp {
 
     // is_applyable
     template <typename F, typename...>
-    struct is_applyable {
+    struct is_applyable //: std::false_type{};
+    {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
     template <typename F, typename ... ttps_args, tuple_interface tuple_type>
     struct is_applyable<F, ttps<ttps_args...>, tuple_type> {
-        constexpr static bool value = []<std::size_t ... indexes, typename ... Ts>(std::index_sequence<indexes...>) constexpr {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_invocable_v<F, ttps<ttps_args...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
@@ -131,7 +132,7 @@ namespace workflow::functional::mp {
     };
     template <typename F, typename ... ttps_args, tuple_interface tuple_type>
     struct is_nothrow_applyable<F, ttps<ttps_args...>, tuple_type> {
-        constexpr static bool value = []<std::size_t ... indexes, typename ... Ts>(std::index_sequence<indexes...>) constexpr {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_nothrow_invocable_v<F, ttps<ttps_args...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
@@ -142,16 +143,19 @@ namespace workflow::functional::mp {
 
     // is_applyable_before
     template <typename F, typename...>
-    struct is_applyable_before {
+    struct is_applyable_before //: std::false_type{};
+    {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_applyable_before<F, ttps<f_ts...>, TupleType<tuple_args_t...>, func_args_t...>
-    : is_applyable<F, ttps<f_ts...>, TupleType<tuple_args_t..., func_args_t...>>
-    {};
-    template <typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_applyable_before<F, TupleType<tuple_args_t...>, func_args_t...>
-    : is_applyable<F, TupleType<tuple_args_t..., func_args_t...>>
+    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...> {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return is_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+    };
+    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_applyable_before<F, tuple_type, func_args_t...>
+    : is_applyable_before<F, ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_applyable_before_v = is_applyable_before<F, Ts...>::value;
@@ -161,12 +165,15 @@ namespace workflow::functional::mp {
     struct is_nothrow_applyable_before {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename... f_ts, typename F, template <typename...> typename TupleType, typename... tuple_args_t, typename... func_args_t>
-    struct is_nothrow_applyable_before<F, ttps<f_ts...>, TupleType<tuple_args_t...>, func_args_t...>
-    : is_nothrow_applyable<F, ttps<f_ts...>, TupleType<tuple_args_t..., func_args_t...>> {};
-    template <typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_nothrow_applyable_before<F, TupleType<tuple_args_t...>, func_args_t...>
-    : is_nothrow_applyable<F, TupleType<tuple_args_t..., func_args_t...>>
+    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_nothrow_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...> {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return is_nothrow_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+    };
+    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_nothrow_applyable_before<F, tuple_type, func_args_t...>
+    : is_nothrow_applyable_before<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_before_v = is_nothrow_applyable_before<F, Ts...>::value;
@@ -176,13 +183,15 @@ namespace workflow::functional::mp {
     struct is_applyable_after {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_applyable_after<F, ttps<f_ts...>, TupleType<tuple_args_t...>, func_args_t...>
-    : is_applyable<F, ttps<f_ts...>, TupleType<func_args_t..., tuple_args_t...>>
-    {};
-    template <typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_applyable_after<F, TupleType<tuple_args_t...>, func_args_t...>
-    : is_applyable<F, TupleType<func_args_t..., tuple_args_t...>>
+    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_applyable_after<F, ttps<f_ts...>, tuple_type, func_args_t...> {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return is_invocable_v<F, ttps<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+    };
+    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_applyable_after<F, tuple_type, func_args_t...>
+    : is_applyable_after<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_applyable_after_v = is_applyable_after<F, Ts...>::value;
@@ -192,13 +201,15 @@ namespace workflow::functional::mp {
     struct is_nothrow_applyable_after {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_nothrow_applyable_after<F, ttps<f_ts...>, TupleType<tuple_args_t...>, func_args_t...>
-    : is_nothrow_applyable<F, ttps<f_ts...>, TupleType<func_args_t..., tuple_args_t...>>
-    {};
-    template <typename F, template<typename...> typename TupleType, typename ... tuple_args_t, typename ... func_args_t>
-    struct is_nothrow_applyable_after<F, TupleType<tuple_args_t...>, func_args_t...>
-    : is_nothrow_applyable<F, TupleType<func_args_t..., tuple_args_t...>>
+    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_nothrow_applyable_after<F, ttps<f_ts...>, tuple_type, func_args_t...> {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return is_nothrow_invocable_v<F, ttps<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+    };
+    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    struct is_nothrow_applyable_after<F, tuple_type, func_args_t...>
+    : is_nothrow_applyable_after<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
