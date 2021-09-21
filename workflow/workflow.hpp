@@ -1,5 +1,8 @@
 #pragma once
 
+// Evolutions :
+//  Consider P2347 "Argument type deduction for non-trailing parameter packs" to deduce a single non-trailing parameters pack for function arguments
+
 #include <utility>
 #include <type_traits>
 #include <variant>
@@ -18,8 +21,14 @@
 
 namespace workflow::functional::mp {
 
+    // ttps -> pack of ttps
     template <typename ...>
     struct ttps{};
+
+    template <typename T>
+    constexpr bool is_ttps_v = false;
+    template <typename ... Ts>
+    constexpr bool is_ttps_v<ttps<Ts...>> = true;
 
     // is_invocable<F, [ttps<...>,] args_types...>
     template <typename F, typename... args_types>
@@ -269,6 +278,7 @@ namespace workflow::details::mp {
     template <typename T>
     using empty_if_void_t = empty_if_void<T>::type;
 }
+// apply, invoke
 namespace workflow::functional {
     // todo : Universal template declaration ... (p1985)
 
@@ -424,4 +434,126 @@ namespace workflow::functional {
             std::forward<args_t>(args)...
         };
     }
+}
+// chain
+namespace workflow::functional {
+    template <typename ...>
+    struct chain_trait;
+    template <typename node, typename next, typename ...rest>
+    requires (sizeof...(rest) not_eq 0)
+    struct chain_trait<node, next, rest...> {
+
+        template <typename ... args_type>
+        constexpr static bool is_invocable = [](){
+            if constexpr (not chain_trait<node, next>::template is_invocable<args_type...>)
+                return false;
+            else return chain_trait<rest...>::template is_invocable<
+                typename chain_trait<node, next>::template invoke_result_t<args_type...>
+            >;
+        }();
+        template <typename ... args_type>
+        constexpr static bool is_nodiscard_invocable = [](){
+            if constexpr (not chain_trait<node, next>::template is_nodiscard_invocable<args_type...>)
+                return false;
+            else return chain_trait<rest...>::template is_nodiscard_invocable<
+                typename chain_trait<node, next>::template invoke_result_t<args_type...>
+            >;
+        }();
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_invocable = [](){
+            if constexpr (not chain_trait<node, next>::template is_nothrow_invocable<args_type...>)
+                return false;
+            else return chain_trait<rest...>::template is_nothrow_invocable<
+                typename chain_trait<node, next>::template invoke_result_t<args_type...>
+            >;
+        }();
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_nodiscard_invocable = [](){
+            if constexpr (not chain_trait<node, next>::template is_nothrow_nodiscard_invocable<args_type...>)
+                return false;
+            else return chain_trait<rest...>::template is_nothrow_nodiscard_invocable<
+                typename chain_trait<node, next>::template invoke_result_t<args_type...>
+            >;
+        }();
+
+        template <typename ... args_type>
+        requires is_invocable<args_type...>
+        using invoke_result_t = chain_trait<rest...>::template invoke_result_t<
+            typename chain_trait<node, next>::template invoke_result_t<args_type...>
+        >;
+    };
+    template <typename node, typename next>
+    struct chain_trait<node, next> {
+
+        template <typename ... args_type>
+        constexpr static bool is_invocable = [](){
+            if constexpr (not std::invocable<node, args_type...>)
+                return false;
+            else return
+                std::invocable<next, std::invoke_result_t<node, args_type...>> or
+                std::invocable<next>
+            ;
+        }();
+        template <typename ... args_type>
+        constexpr static bool is_nodiscard_invocable = [](){
+            if constexpr (not chain_trait<node>::template is_invocable<args_type...>)
+                return false;
+            else return chain_trait<next>::template is_nodiscard_invocable<
+                typename chain_trait<node>::template invoke_result_t<args_type...>
+            >;
+        }();
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_invocable = [](){
+            if constexpr (not chain_trait<node>::template is_nothrow_invocable<args_type...>)
+                return false;
+            else return
+                // warning : potential error here : first case might be valid but can throw
+                chain_trait<next>::template is_nothrow_invocable<std::invoke_result_t<node, args_type...>> or
+                chain_trait<next>::template is_nothrow_invocable<>
+            ;
+        }();
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_nodiscard_invocable = [](){
+
+            if constexpr (not chain_trait<node>::template is_nothrow_nodiscard_invocable<args_type...>)
+                return false;
+            else return chain_trait<next>::template is_nothrow_nodiscard_invocable<
+                std::invoke_result_t<node, args_type...>
+            >;
+        }();
+
+        template <typename ... args_type>
+        requires is_invocable<args_type...>
+        using invoke_result_t = chain_trait<next>::template invoke_result_t<
+            mp::invoke_result_t<node, args_type...>
+        >;
+    };
+    template <typename node>
+    struct chain_trait<node> {
+
+        template <typename ... args_type>
+        constexpr static bool is_invocable =
+            mp::is_invocable_v<node, args_type...> or
+            mp::is_invocable_v<node>
+        ;
+        template <typename ... args_type>
+        constexpr static bool is_nodiscard_invocable =
+            mp::is_invocable_v<node, args_type...>;
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_invocable =
+            mp::is_nothrow_invocable_v<node, args_type...> or
+            mp::is_nothrow_invocable_v<node>
+        ;
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_nodiscard_invocable =
+            mp::is_nothrow_invocable_v<node, args_type...>;
+
+        template <typename ... args_type>
+        requires is_invocable<args_type...>
+        using invoke_result_t = std::conditional_t<
+            mp::is_invocable_v<node, args_type...>,
+            mp::invoke_result<node, args_type...>,
+            mp::invoke_result<node>
+        >::type;
+    };
 }
