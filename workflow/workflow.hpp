@@ -477,7 +477,9 @@ namespace workflow::functional {
         }();
 
         template <typename ... args_type>
-        requires is_invocable<args_type...>
+        requires
+            is_invocable<args_type...> or
+            is_invocable<>
         using invoke_result_t = chain_trait<rest...>::template invoke_result_t<
             typename chain_trait<node, next>::template invoke_result_t<args_type...>
         >;
@@ -487,16 +489,17 @@ namespace workflow::functional {
 
         template <typename ... args_type>
         constexpr static bool is_invocable = [](){
-            if constexpr (not std::invocable<node, args_type...>)
+            if constexpr (not chain_trait<node>::template is_invocable<args_type...>)
                 return false;
-            else return
-                std::invocable<next, std::invoke_result_t<node, args_type...>> or
-                std::invocable<next>
+            else return chain_trait<next>::template is_invocable<
+                    typename chain_trait<node>::template invoke_result_t<args_type...>
+                > or
+                chain_trait<next>::template is_invocable<>
             ;
         }();
         template <typename ... args_type>
         constexpr static bool is_nodiscard_invocable = [](){
-            if constexpr (not chain_trait<node>::template is_invocable<args_type...>)
+            if constexpr (not chain_trait<node>::template is_nodiscard_invocable<args_type...>)
                 return false;
             else return chain_trait<next>::template is_nodiscard_invocable<
                 typename chain_trait<node>::template invoke_result_t<args_type...>
@@ -508,7 +511,9 @@ namespace workflow::functional {
                 return false;
             else return
                 // warning : potential error here : first case might be valid but can throw
-                chain_trait<next>::template is_nothrow_invocable<std::invoke_result_t<node, args_type...>> or
+                chain_trait<next>::template is_nothrow_invocable<
+                    typename chain_trait<node>::template invoke_result_t<args_type...>
+                > or
                 chain_trait<next>::template is_nothrow_invocable<>
             ;
         }();
@@ -518,14 +523,16 @@ namespace workflow::functional {
             if constexpr (not chain_trait<node>::template is_nothrow_nodiscard_invocable<args_type...>)
                 return false;
             else return chain_trait<next>::template is_nothrow_nodiscard_invocable<
-                std::invoke_result_t<node, args_type...>
+                typename chain_trait<node>::template invoke_result_t<args_type...>
             >;
         }();
 
         template <typename ... args_type>
-        requires is_invocable<args_type...>
-        using invoke_result_t = chain_trait<next>::template invoke_result_t<
-            mp::invoke_result_t<node, args_type...>
+        requires
+            is_invocable<args_type...> or
+            is_invocable<>
+        using invoke_result_t = typename chain_trait<next>::template invoke_result_t<
+            typename chain_trait<node>::template invoke_result_t<args_type...>
         >;
     };
     template <typename node>
