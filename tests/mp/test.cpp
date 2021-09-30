@@ -1,3 +1,3 @@
-
+#include "../../mp/mp.hpp" // temporary, create real test later ...
 
 auto main() -> int {}
