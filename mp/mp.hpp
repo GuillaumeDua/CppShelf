@@ -98,6 +98,30 @@ namespace csl::mp::details {
 // abstraction on (ttps...|pack<ttps...>)
 namespace csl::mp {
 
+    // filters
+    // todo : remove dependency to std::tuple
+    //  using csl::mp::push_back instead
+    template <template <typename> typename, typename>
+    struct filters;
+    template <template <typename> typename filter_type, template <typename...> typename pack, typename ... Ts>
+    requires requires { ((filter_type<Ts>::value) and ...); }
+    struct filters<filter_type, pack<Ts...>>
+        : std::type_identity<decltype(std::tuple_cat(std::conditional_t< // todo : append instead
+            filter_type<Ts>::value,
+            std::tuple<Ts>,
+            std::tuple<>
+        >{}...))>{}; // todo : repack tuple into pack
+
+    template <template <typename> typename filter_type, typename pack>
+    using filters_t = filters<filter_type, pack>::type;
+
+    template <typename>
+    struct first_of;
+    template <template <typename ...> typename pack, typename T, typename ... Ts>
+    struct first_of<pack<T, Ts...>> : std::type_identity<T>{};
+    template <typename T>
+    using first_of_t = first_of<T>::type;
+
     template <typename T>
     concept TupleType = requires { std::tuple_size_v<T>; };
 
@@ -114,13 +138,6 @@ namespace csl::mp {
     constexpr decltype(auto) get(std::integer_sequence<T, values...> && value) noexcept {
         return mp::seq::get<index>(fwd(value));
     }
-
-    template <typename>
-    struct first_of;
-    template <template <typename ...> typename pack, typename T, typename ... Ts>
-    struct first_of<pack<T, Ts...>> : std::type_identity<T>{};
-    template <typename T>
-    using first_of_t = first_of<T>::type;
 
     template <std::size_t index, typename... Ts>
     struct type_at : std::tuple_element<index, std::tuple<Ts...>>{};
