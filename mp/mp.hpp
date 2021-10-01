@@ -68,6 +68,9 @@ namespace csl::mp::seq {
 // abstraction on (ttps...|pack<ttps...>)
 namespace csl::mp {
 
+    template <typename ... Ts>
+    struct pack{};
+
     template <typename T>
     concept TupleType = requires { std::tuple_size_v<T>; };
 
