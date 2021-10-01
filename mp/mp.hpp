@@ -85,6 +85,13 @@ namespace csl::mp {
         return mp::seq::get<index>(fwd(value));
     }
 
+    template <typename>
+    struct first_of;
+    template <template <typename ...> typename pack, typename T, typename ... Ts>
+    struct first_of<pack<T, Ts...>> : std::type_identity<T>{};
+    template <typename T>
+    using first_of_t = first_of<T>::type;
+
     template <std::size_t index, typename... Ts>
     struct type_at : std::tuple_element<index, std::tuple<Ts...>>{};
     template <std::size_t index, template <typename...> typename pack, typename ...Ts>
@@ -287,3 +294,5 @@ namespace csl::mp {
 
 #undef fwd
 #undef static_dependent_error
+
+// wip : https://godbolt.org/z/TfMqM5TaG
