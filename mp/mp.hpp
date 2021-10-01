@@ -2,7 +2,7 @@
 
 #include <type_traits>
 #include <utility>
-#include <tuple>
+#include <tuple> // todo : remove
 #include <algorithm>
 #include <iterator>
 
@@ -65,11 +65,38 @@ namespace csl::mp::seq {
     }
 }
 
-// abstraction on (ttps...|pack<ttps...>)
 namespace csl::mp {
-
     template <typename ... Ts>
     struct pack{};
+}
+namespace csl::mp::details {
+
+    template <std::size_t I, typename T>
+    struct element {
+        constexpr static std::size_t index = I;
+        using type = T;
+    };
+
+    // todo : remove std::make_index_sequence, replace with smthg more efficient
+    template <typename ... Ts>
+    struct make_element_pack {
+        using type = decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return pack<element<indexes, Ts>...>{};
+        }(std::make_index_sequence<sizeof...(Ts)>{}));
+    };
+    template <typename ... Ts>
+    using make_element_pack_t = make_element_pack<Ts...>::type;
+
+    template <std::size_t I>
+    struct is_element_match {
+        template <typename>
+        struct type : std::false_type{};
+        template <typename T>
+        struct type<element<I, T>> : std::true_type{};
+    };
+}
+// abstraction on (ttps...|pack<ttps...>)
+namespace csl::mp {
 
     template <typename T>
     concept TupleType = requires { std::tuple_size_v<T>; };
