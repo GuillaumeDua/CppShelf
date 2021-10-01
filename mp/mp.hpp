@@ -122,6 +122,21 @@ namespace csl::mp {
     template <typename T>
     using first_of_t = first_of<T>::type;
 
+    template <std::size_t index, typename>
+    struct nth_element;
+    template <std::size_t index, template <typename ...> typename pack, typename ... Ts>
+    requires (index < sizeof...(Ts))
+    class nth_element<index, pack<Ts...>> {
+        using indexed_types = details::make_element_pack_t<Ts...>;
+
+    public:
+        using type = first_of_t<
+            filters_t<details::is_element_match<index>::template type, indexed_types>
+        >;
+    };
+    template <std::size_t index, typename pack>
+    using nth_element_t = nth_element<index, pack>::type;
+
     template <typename T>
     concept TupleType = requires { std::tuple_size_v<T>; };
 
