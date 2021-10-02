@@ -126,14 +126,12 @@ namespace csl::mp {
     struct nth_element;
     template <std::size_t index, template <typename ...> typename pack, typename ... Ts>
     requires (index < sizeof...(Ts))
-    class nth_element<index, pack<Ts...>> {
-        using indexed_types = details::make_element_pack_t<Ts...>;
-
-    public:
-        using type = front_t<
-            filters_t<details::is_element_match<index>::template type, indexed_types>
-        >;
-    };
+    struct nth_element<index, pack<Ts...>> : front<
+        filters_t<
+            details::is_element_match<index>::template type,
+            details::make_element_pack_t<Ts...>
+        >
+    >{};
     template <std::size_t index, typename pack>
     using nth_element_t = nth_element<index, pack>::type;
     template <std::size_t index, typename pack>
