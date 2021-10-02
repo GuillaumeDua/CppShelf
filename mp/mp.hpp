@@ -208,12 +208,12 @@ namespace csl::mp {
 
     #pragma endregion
 
-    template <typename T, typename ... ttps>
+    template <typename ... ttps>
     struct size : std::integral_constant<std::size_t, sizeof...(ttps)>{};
-    template <typename T, template <typename...> typename pack, typename ... ttps>
-    struct size<T, pack<ttps...>> : size<T, ttps...>{};
-    template <typename T, typename ... ttps>
-    constexpr bool size_v = size<T, ttps...>::value;
+    template <template <typename...> typename pack, typename ... ttps>
+    struct size<pack<ttps...>> : size<ttps...>{};
+    template <typename ... ttps>
+    constexpr std::size_t size_v = size<ttps...>::value;
 
     // contains
     template <typename T, typename ... ttps>
