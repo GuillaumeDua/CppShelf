@@ -2,29 +2,46 @@
 
 #include <iostream> // debug only
 
+namespace test::nth {
+    using pack_type = csl::mp::pack<int, char, double, bool, float>;
+    static_assert(std::is_same_v<
+        csl::mp::nth_element_t<1, pack_type>,
+        csl::mp::details::element<1, char>
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::nth_t<1, pack_type>,
+        char
+    >);
+}
+// namespace test::index {
+//     using namespace csl::mp;
+
+//     static_assert(4 == index_of_v<bool,
+//         char, char, int, char, bool, int, bool>);
+//     static_assert(1 == last_index_of_v<int,
+//         char, char, int, bool>);
+
+//     static_assert(2 == index_of_v<int,
+//         char, char, int, int, bool>);
+//     static_assert(1 == last_index_of_v<int,
+//         char, char, int, int, bool>);
+
+//     static_assert(2 == index_of_v<int,
+//         pack<char, char, int, bool>>);
+//     static_assert(1 == last_index_of_v<int,
+//         pack<char, char, int, bool>>);
+
+//     static_assert(2 == index_of_v<int,
+//         pack<char, char, int, int, bool>>);
+//     static_assert(1 == last_index_of_v<int,
+//         pack<char, char, int, int, bool>>);
+// }
+
 auto main() -> int {
 
     using namespace csl::mp;
-
-    std::cout << "4 == " << index_of_v<bool,
-        char, char, int, char, bool, int, bool> << '\n';
-    std::cout << "1 == " << rindex_of_v<int,
+    std::cout << "1 == " << last_index_of_v<int,
         char, char, int, bool> << '\n';
 
-    std::cout << "2 == " << index_of_v<int,
-        char, char, int, int, bool> << '\n';
-    std::cout << "1 == " << rindex_of_v<int,
-        char, char, int, int, bool> << '\n';
-
-    std::cout << "-------\n";
-
-    std::cout << "2 == " << index_of_v<int,
-        std::tuple<char, char, int, bool>> << '\n';
-    std::cout << "1 == " << rindex_of_v<int,
-        std::tuple<char, char, int, bool>> << '\n';
-
-    std::cout << "2 == " << index_of_v<int,
-        std::tuple<char, char, int, int, bool>> << '\n';
-    std::cout << "1 == " << rindex_of_v<int,
-        std::tuple<char, char, int, int, bool>> << '\n';
+    
 }

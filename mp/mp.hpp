@@ -116,11 +116,11 @@ namespace csl::mp {
     using filters_t = filters<filter_type, pack>::type;
 
     template <typename>
-    struct first_of;
+    struct front;
     template <template <typename ...> typename pack, typename T, typename ... Ts>
-    struct first_of<pack<T, Ts...>> : std::type_identity<T>{};
+    struct front<pack<T, Ts...>> : std::type_identity<T>{};
     template <typename T>
-    using first_of_t = first_of<T>::type;
+    using front_t = front<T>::type;
 
     template <std::size_t index, typename>
     struct nth_element;
@@ -130,12 +130,18 @@ namespace csl::mp {
         using indexed_types = details::make_element_pack_t<Ts...>;
 
     public:
-        using type = first_of_t<
+        using type = front_t<
             filters_t<details::is_element_match<index>::template type, indexed_types>
         >;
     };
     template <std::size_t index, typename pack>
     using nth_element_t = nth_element<index, pack>::type;
+    template <std::size_t index, typename pack>
+    using nth_t = nth_element_t<index, pack>::type;
+
+    // other impl for nth : https://godbolt.org/z/KKnefYKz7
+
+    // todo : index_of
 
     template <typename T>
     concept TupleType = requires { std::tuple_size_v<T>; };
@@ -154,6 +160,7 @@ namespace csl::mp {
         return mp::seq::get<index>(fwd(value));
     }
 
+    // todo : we do not wanna use tuple_element here
     template <std::size_t index, typename... Ts>
     struct type_at : std::tuple_element<index, std::tuple<Ts...>>{};
     template <std::size_t index, template <typename...> typename pack, typename ...Ts>
@@ -203,6 +210,13 @@ namespace csl::mp {
 
     #pragma endregion
 
+    template <typename T, typename ... ttps>
+    struct size : std::integral_constant<std::size_t, sizeof...(ttps)>{};
+    template <typename T, template <typename...> typename pack, typename ... ttps>
+    struct size<T, pack<ttps...>> : size<T, ttps...>{};
+    template <typename T, typename ... ttps>
+    constexpr bool size_v = size<T, ttps...>::value;
+
     // contains
     template <typename T, typename ... ttps>
     struct contains : std::bool_constant<(std::is_same_v<T, ttps> or ...)>{};
@@ -211,7 +225,7 @@ namespace csl::mp {
     template <typename T, typename ... ttps>
     constexpr bool contains_v = contains<T, ttps...>::value;
 
-    // count
+    // count | size
     template <typename T, typename ... ttps>
     struct count : std::integral_constant<std::size_t, (std::size_t{std::is_same_v<T, ttps>} + ...)>{};
     template <typename T, template <typename...> typename pack, typename ... ttps>
@@ -265,27 +279,16 @@ namespace csl::mp {
     // rindex_of
     template <typename T, typename ... Ts>
     struct rindex_of {
-        constexpr static std::size_t value = rindex_of<T, unfold_to_t<std::tuple, Ts...>>::value;
+        constexpr static std::size_t value = rindex_of<T, unfold_to_t<pack, Ts...>>::value;
     };
-    template <typename T, template <typename ...> typename pack, typename ... Ts>
-    class rindex_of<T, pack<Ts...>> {
-        constexpr static auto impl() noexcept {
-            constexpr auto matches = std::array{
-                std::is_same_v<T, Ts>...
-            };
-            constexpr auto result = std::distance(
-                std::reverse_iterator{std::cend(matches)},
-                std::find(
-                    std::reverse_iterator{std::cend(matches)},
-                    std::reverse_iterator{std::cbegin(matches)},
-                    true)
-            );
-            if constexpr (result == std::size(matches))
-                static_dependent_error("rindex_of : not found");
-            else return result;
-        }
-    public:
-        constexpr static std::size_t value = impl();
+    template <typename T, template <typename...> typename pack, typename ... Ts>
+    struct rindex_of<T, pack<Ts...>> {
+        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            std::size_t pos = std::string::npos;
+            ((indexes, pos = (std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            return pos;
+        }(std::make_index_sequence<sizeof...(Ts)>{});
+        static_assert(value not_eq std::string::npos, "rindex_of : not found");
     };
     template <typename T, typename ... Ts>
     constexpr std::size_t rindex_of_v = rindex_of<T, Ts...>::value;
@@ -293,30 +296,32 @@ namespace csl::mp {
     // index_of
     template <typename T, typename ... Ts>
     struct index_of {
-        constexpr static std::size_t value = index_of<T, unfold_to_t<std::tuple, Ts...>>::value;
+        constexpr static std::size_t value = index_of<T, unfold_to_t<pack, Ts...>>::value;
     };
     template <typename T, template <typename ...> typename pack, typename ... Ts>
-    class index_of<T, pack<Ts...>> {
-        constexpr static auto impl() noexcept {
-            constexpr auto matches = std::array{
-                std::is_same_v<T, Ts>...
-            };
-            constexpr auto result = std::distance(
-                std::cbegin(matches),
-                std::find(
-                    std::cbegin(matches),
-                    std::cend(matches), 
-                    true)
-            );
-            if constexpr (result == std::size(matches))
-                static_dependent_error("index_of : not found");
-            else return result;
-        }
-    public:
-        constexpr static std::size_t value = impl();
+    struct index_of<T, pack<Ts...>> {
+        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            std::size_t pos = std::string::npos;
+            ((indexes, pos = (pos == std::string::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            return pos;
+        }(std::make_index_sequence<sizeof...(Ts)>{});
+        static_assert(value not_eq std::string::npos, "index_of : not found");
     };
     template <typename T, typename ... Ts>
     constexpr std::size_t index_of_v = index_of<T, Ts...>::value;
+
+    template <typename T, typename ... Ts>
+    using first_index_of = index_of<T, Ts...>;
+    template <typename T, typename ... Ts>
+    constexpr std::size_t  first_index_of_v = first_index_of<T, Ts...>::value;
+
+    template <typename T, typename ... Ts>
+    using last_index_of = std::integral_constant<
+        std::size_t,
+        size_v<Ts...> //- 1 - rindex_of_v<T, Ts...>
+    >;
+    template <typename T, typename ... Ts>
+    constexpr std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
 
     // at
 
