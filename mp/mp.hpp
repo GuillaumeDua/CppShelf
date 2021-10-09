@@ -2,7 +2,9 @@
 
 #include <type_traits>
 #include <utility>
-#include <tuple> // todo : remove
+#include <tuple>
+// todo : remove dependency on std::tuple and std::integer_sequence
+//  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
 #include <iterator>
 
@@ -71,6 +73,7 @@ namespace csl::mp {
 }
 namespace csl::mp::details {
 
+    #pragma region pack element
     template <std::size_t I, typename T>
     struct element {
         constexpr static std::size_t index = I;
@@ -94,13 +97,46 @@ namespace csl::mp::details {
         template <typename T>
         struct type<element<I, T>> : std::true_type{};
     };
+    #pragma endregion
+
+    #pragma region pack indexation details
+    // todo : merge with `element`, hide `indice_` + friend
+    template <std::size_t I, typename T>
+    struct indexed_element {
+        constexpr static csl::mp::details::element<I, T> indice_(std::integral_constant<std::size_t, I>);
+    };
+
+    template <typename ... Ts>
+    struct indexed_elements : Ts... {
+        using Ts::indice_...;
+
+        template <std::size_t I>
+        using nth_ = decltype(indice_(std::integral_constant<std::size_t, I>{}));
+    };
+
+    template <typename ... Ts>
+    struct make_indexed_elements {
+        using type = decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return indexed_elements<indexed_element<indexes, Ts>...>{};
+        }(std::make_index_sequence<sizeof...(Ts)>{}));
+    };
+    #pragma endregion
 }
 // abstraction on (ttps...|pack<ttps...>)
 namespace csl::mp {
 
+    // front / head / first_of
+    template <typename>
+    struct front;
+    template <template <typename ...> typename pack, typename T, typename ... Ts>
+    struct front<pack<T, Ts...>> : std::type_identity<T>{};
+    template <typename T>
+    using front_t = front<T>::type;
+
     // filters
     // todo : remove dependency to std::tuple
     //  using csl::mp::push_back instead
+    //  or Ts... -> pack<pack<T0>, pack<>, pack<T2> ...> => flatten
     template <template <typename> typename, typename>
     struct filters;
     template <template <typename> typename filter_type, template <typename...> typename pack, typename ... Ts>
@@ -115,15 +151,10 @@ namespace csl::mp {
     template <template <typename> typename filter_type, typename pack>
     using filters_t = filters<filter_type, pack>::type;
 
-    template <typename>
-    struct front;
-    template <template <typename ...> typename pack, typename T, typename ... Ts>
-    struct front<pack<T, Ts...>> : std::type_identity<T>{};
-    template <typename T>
-    using front_t = front<T>::type;
-
     // nth element
     //  wip benchmarks : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg
+    #if false
+    // disabled, as csl::mp::filters_t relies on tuple for now
     template <std::size_t index, typename>
     struct nth_element;
     template <std::size_t index, template <typename ...> typename pack, typename ... Ts>
@@ -140,11 +171,28 @@ namespace csl::mp {
     using nth_t = nth_element_t<index, pack>::type;
     template <std::size_t index, typename pack>
     constexpr std::size_t nth_v = nth_element_t<index, pack>::value;
+    #else
+    // overload index table
+    template <std::size_t, typename>
+    struct pack_element;
+    template <std::size_t I, template <typename ...> typename pack_type, typename ... Ts>
+    struct pack_element<I, pack_type<Ts...>> : details::make_indexed_elements<Ts...>::type::nth_<I>{};
 
-    // other impl for nth : https://godbolt.org/z/KKnefYKz7
+    template <std::size_t I, typename T>
+    using pack_element_t = pack_element<I, T>::type;
+    template <std::size_t I, typename T>
+    constexpr std::size_t pack_element_v = I /*pack_element<I, T>::value;*/;
 
-    // todo : index_of
+    template <std::size_t I, typename T>
+    using nth_t = pack_element_t<I, T>;
+    template <std::size_t I, typename T>
+    constexpr std::size_t nth_v = pack_element_v<I, T>;
+    #endif
 
+    // todo : index_of<T, pack_t>
+
+    // todo : no, use csl::mp instead
+    //  need to define csl::Pack concept
     template <typename T>
     concept TupleType = requires { std::tuple_size_v<T>; };
 
@@ -162,19 +210,14 @@ namespace csl::mp {
         return mp::seq::get<index>(fwd(value));
     }
 
-    // todo : we do not wanna use tuple_element here
-    template <std::size_t index, typename... Ts>
-    struct type_at : std::tuple_element<index, std::tuple<Ts...>>{};
-    template <std::size_t index, template <typename...> typename pack, typename ...Ts>
-    struct type_at<index, pack<Ts...>> : std::tuple_element<index, std::tuple<Ts...>>{};
-    template <std::size_t index, typename... Ts>
-    using type_at_t = type_at<index, Ts...>::type;
-
-    // static_assert(std::is_same_v<int, type_at_t<1, char, int, bool>>);
-    // static_assert(std::is_same_v<int, type_at_t<1, std::tuple<char, int, bool>>>);
-    // template <typename ...>
-    // struct qwe{};
-    // static_assert(std::is_same_v<int, type_at_t<1, qwe<char, int, bool>>>);
+    // todo : remove
+    // deprecated, use `nth_t` instead
+    // template <std::size_t index, typename... Ts>
+    // struct type_at : std::tuple_element<index, std::tuple<Ts...>>{};
+    // template <std::size_t index, template <typename...> typename pack, typename ...Ts>
+    // struct type_at<index, pack<Ts...>> : std::tuple_element<index, std::tuple<Ts...>>{};
+    // template <std::size_t index, typename... Ts>
+    // using type_at_t = type_at<index, Ts...>::type;
 
     #pragma region is_template
     // is_template : ttps
@@ -228,7 +271,7 @@ namespace csl::mp {
     template <typename T, typename ... ttps>
     constexpr bool contains_v = contains<T, ttps...>::value;
 
-    // count
+    // count - occurences of T in ttps...
     template <typename T, typename ... ttps>
     struct count : std::integral_constant<std::size_t, (std::size_t{std::is_same_v<T, ttps>} + ...)>{};
     template <typename T, template <typename...> typename pack, typename ... ttps>

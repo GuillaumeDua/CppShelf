@@ -5,10 +5,6 @@
 namespace test::nth {
     using pack_type = csl::mp::pack<int, char, double, bool, float>;
     static_assert(std::is_same_v<
-        csl::mp::nth_element_t<1, pack_type>,
-        csl::mp::details::element<1, char>
-    >);
-    static_assert(std::is_same_v<
         csl::mp::nth_t<1, pack_type>,
         char
     >);
