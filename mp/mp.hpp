@@ -122,6 +122,8 @@ namespace csl::mp {
     template <typename T>
     using front_t = front<T>::type;
 
+    // nth element
+    //  wip benchmarks : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg
     template <std::size_t index, typename>
     struct nth_element;
     template <std::size_t index, template <typename ...> typename pack, typename ... Ts>
@@ -136,6 +138,8 @@ namespace csl::mp {
     using nth_element_t = nth_element<index, pack>::type;
     template <std::size_t index, typename pack>
     using nth_t = nth_element_t<index, pack>::type;
+    template <std::size_t index, typename pack>
+    constexpr std::size_t nth_v = nth_element_t<index, pack>::value;
 
     // other impl for nth : https://godbolt.org/z/KKnefYKz7
 
@@ -208,6 +212,7 @@ namespace csl::mp {
 
     #pragma endregion
 
+    // size
     template <typename ... ttps>
     struct size : std::integral_constant<std::size_t, sizeof...(ttps)>{};
     template <template <typename...> typename pack, typename ... ttps>
@@ -223,7 +228,7 @@ namespace csl::mp {
     template <typename T, typename ... ttps>
     constexpr bool contains_v = contains<T, ttps...>::value;
 
-    // count | size
+    // count
     template <typename T, typename ... ttps>
     struct count : std::integral_constant<std::size_t, (std::size_t{std::is_same_v<T, ttps>} + ...)>{};
     template <typename T, template <typename...> typename pack, typename ... ttps>
@@ -361,3 +366,5 @@ namespace csl::mp {
 #undef static_dependent_error
 
 // wip : https://godbolt.org/z/TfMqM5TaG
+// wip, benchemarked : https://godbolt.org/z/fj4z8sjzh
+// wip bench : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg
