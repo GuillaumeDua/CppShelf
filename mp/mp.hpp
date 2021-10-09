@@ -73,23 +73,31 @@ namespace csl::mp {
 }
 namespace csl::mp::details {
 
-    #pragma region pack element
+    template <typename ... Ts>
+    struct indexed_elements;
+
     template <std::size_t I, typename T>
-    struct element {
+    class element {
+        // hidden details for indexation
+        constexpr static element<I, T> indice_(std::integral_constant<std::size_t, I>);
+        template <typename ... Ts>
+        friend class indexed_elements;
+    public:
         constexpr static std::size_t index = I;
         using type = T;
     };
-
     // todo : remove std::make_index_sequence, replace with smthg more efficient
     template <typename ... Ts>
-    struct make_element_pack {
+    struct make_elements_pack {
         using type = decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return pack<element<indexes, Ts>...>{};
         }(std::make_index_sequence<sizeof...(Ts)>{}));
     };
     template <typename ... Ts>
-    using make_element_pack_t = make_element_pack<Ts...>::type;
+    using make_elements_pack_t = make_elements_pack<Ts...>::type;
 
+    #if false
+    // required for previous `nth_t` implementation
     template <std::size_t I>
     struct is_element_match {
         template <typename>
@@ -97,15 +105,9 @@ namespace csl::mp::details {
         template <typename T>
         struct type<element<I, T>> : std::true_type{};
     };
-    #pragma endregion
+    #endif
 
     #pragma region pack indexation details
-    // todo : merge with `element`, hide `indice_` + friend
-    template <std::size_t I, typename T>
-    struct indexed_element {
-        constexpr static csl::mp::details::element<I, T> indice_(std::integral_constant<std::size_t, I>);
-    };
-
     template <typename ... Ts>
     struct indexed_elements : Ts... {
         using Ts::indice_...;
@@ -117,7 +119,7 @@ namespace csl::mp::details {
     template <typename ... Ts>
     struct make_indexed_elements {
         using type = decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return indexed_elements<indexed_element<indexes, Ts>...>{};
+            return indexed_elements<element<indexes, Ts>...>{};
         }(std::make_index_sequence<sizeof...(Ts)>{}));
     };
     #pragma endregion
@@ -152,7 +154,7 @@ namespace csl::mp {
     using filters_t = filters<filter_type, pack>::type;
 
     // nth element
-    //  wip benchmarks : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg
+    //  wip benchmarks : https://www.build-bench.com/b/gysn2DDajc38cdeUbNHnjmtKKvA
     #if false
     // disabled, as csl::mp::filters_t relies on tuple for now
     template <std::size_t index, typename>
