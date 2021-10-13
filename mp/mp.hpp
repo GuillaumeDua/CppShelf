@@ -70,6 +70,13 @@ namespace csl::mp::seq {
 namespace csl::mp {
     template <typename ... Ts>
     struct pack{};
+
+    template <typename T>
+    struct is_pack : std::false_type{};
+    template <typename ... Ts>
+    struct is_pack<pack<Ts...>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_pack_v = is_pack<T>::value;
 }
 namespace csl::mp::details {
 
