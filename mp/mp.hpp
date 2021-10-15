@@ -379,6 +379,16 @@ namespace csl::mp {
     constexpr std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
 
     // at
+    // todo
+
+    // transform
+    template <typename T, template <typename> typename trait>
+    struct transform;
+    template <typename ... Ts, template <typename> typename trait>
+    struct transform<pack<Ts...>, trait> : std::type_identity<pack<trait<Ts>...>>
+    {};
+    template <typename T, template <typename> typename trait>
+    using transform_t = typename transform<T, trait>::type;
 
     // deduplicate
     //  todo : refactor :
