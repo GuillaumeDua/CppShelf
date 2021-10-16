@@ -80,18 +80,12 @@ namespace csl::mp {
 }
 namespace csl::mp::details {
 
-    template <typename ... Ts>
-    struct indexed_elements;
-
     template <std::size_t I, typename T>
-    class element {
-        // hidden details for indexation
-        constexpr static element<I, T> indice_(std::integral_constant<std::size_t, I>);
-        template <typename ... Ts>
-        friend class indexed_elements;
-    public:
+    struct element {
         constexpr static std::size_t index = I;
         using type = T;
+
+        constexpr static element<I, T> deduce(std::integral_constant<std::size_t, I>);
     };
     // todo : remove std::make_index_sequence, replace with smthg more efficient
     template <typename ... Ts>
@@ -117,10 +111,10 @@ namespace csl::mp::details {
     #pragma region pack indexation details
     template <typename ... Ts>
     struct indexed_elements : Ts... {
-        using Ts::indice_...;
+        using Ts::deduce...;
 
         template <std::size_t I>
-        using nth_ = decltype(indice_(std::integral_constant<std::size_t, I>{}));
+        using nth_ = decltype(deduce(std::integral_constant<std::size_t, I>{}));
     };
 
     template <typename ... Ts>
