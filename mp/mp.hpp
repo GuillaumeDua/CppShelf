@@ -78,6 +78,10 @@ namespace csl::mp {
     template <typename T>
     constexpr bool is_pack_v = is_pack<T>::value;
 }
+// todo :
+//  check `std::make_index_sequence` performances
+//  if not acceptable
+//      poc, remove & replace with smthg more efficient
 namespace csl::mp::details {
 
     template <std::size_t I, typename T>
@@ -87,15 +91,23 @@ namespace csl::mp::details {
 
         constexpr static element<I, T> deduce(std::integral_constant<std::size_t, I>);
     };
-    // todo : remove std::make_index_sequence, replace with smthg more efficient
+
+    template <typename ... Ts>
+    struct elements_pack : Ts... {
+        using Ts::deduce...;
+
+        template <std::size_t I>
+        using nth_ = decltype(deduce(std::integral_constant<std::size_t, I>{}));
+    };
+
     template <typename ... Ts>
     struct make_elements_pack {
         using type = decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return pack<element<indexes, Ts>...>{};
+            return elements_pack<element<indexes, Ts>...>{};
         }(std::make_index_sequence<sizeof...(Ts)>{}));
     };
     template <typename ... Ts>
-    using make_elements_pack_t = make_elements_pack<Ts...>::type;
+    using make_elements_pack_t = typename make_elements_pack<Ts...>::type;
 
     #if false
     // required for previous `nth_t` implementation
@@ -107,23 +119,6 @@ namespace csl::mp::details {
         struct type<element<I, T>> : std::true_type{};
     };
     #endif
-
-    #pragma region pack indexation details
-    template <typename ... Ts>
-    struct indexed_elements : Ts... {
-        using Ts::deduce...;
-
-        template <std::size_t I>
-        using nth_ = decltype(deduce(std::integral_constant<std::size_t, I>{}));
-    };
-
-    template <typename ... Ts>
-    struct make_indexed_elements {
-        using type = decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return indexed_elements<element<indexes, Ts>...>{};
-        }(std::make_index_sequence<sizeof...(Ts)>{}));
-    };
-    #pragma endregion
 }
 // abstraction on (ttps...|pack<ttps...>)
 namespace csl::mp {
@@ -179,7 +174,7 @@ namespace csl::mp {
     template <std::size_t, typename>
     struct pack_element;
     template <std::size_t I, template <typename ...> typename pack_type, typename ... Ts>
-    struct pack_element<I, pack_type<Ts...>> : details::make_indexed_elements<Ts...>::type::nth_<I>{};
+    struct pack_element<I, pack_type<Ts...>> : details::make_elements_pack_t<Ts...>::nth_<I>{};
 
     template <std::size_t I, typename T>
     using pack_element_t = pack_element<I, T>::type;
