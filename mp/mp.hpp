@@ -89,15 +89,21 @@ namespace csl::mp::details {
         constexpr static std::size_t index = I;
         using type = T;
 
-        constexpr static element<I, T> deduce(std::integral_constant<std::size_t, I>);
+        // index-to-type mapping
+        constexpr static element<I, T> deduce_type(std::integral_constant<std::size_t, I>);
+        // type-to-index mapping
+        constexpr static element<I, T> deduce_index(std::type_identity<T>);
     };
 
     template <typename ... Ts>
     struct elements_pack : Ts... {
-        using Ts::deduce...;
+        using Ts::deduce_type...;
+        using Ts::deduce_index...;
 
         template <std::size_t I>
-        using nth_ = decltype(deduce(std::integral_constant<std::size_t, I>{}));
+        using nth_ = decltype(deduce_type(std::integral_constant<std::size_t, I>{}));
+        template <typename T>
+        using index_of_ = decltype(deduce_index(std::type_identity<T>{}));
     };
 
     template <typename ... Ts>
@@ -170,21 +176,25 @@ namespace csl::mp {
     template <std::size_t index, typename pack>
     constexpr std::size_t nth_v = nth_element_t<index, pack>::value;
     #else
-    // overload index table
-    template <std::size_t, typename>
+    // Indexed pack
+    template <typename>
     struct pack_element;
-    template <std::size_t I, template <typename ...> typename pack_type, typename ... Ts>
-    struct pack_element<I, pack_type<Ts...>> : details::make_elements_pack_t<Ts...>::nth_<I>{};
+    template <template <typename ...> typename pack_type, typename ... Ts>
+    struct pack_element<pack_type<Ts...>> : details::make_elements_pack_t<Ts...>{};
 
     template <std::size_t I, typename T>
-    using pack_element_t = pack_element<I, T>::type;
+    using pack_element_t = typename  pack_element<T>::template nth_<I>::type;
     template <std::size_t I, typename T>
-    constexpr std::size_t pack_element_v = I /*pack_element<I, T>::value;*/;
+    constexpr std::size_t pack_element_v = I /*Note : equivalent to pack_element<I, T>::value;*/;
 
     template <std::size_t I, typename T>
     using nth_t = pack_element_t<I, T>;
     template <std::size_t I, typename T>
     constexpr std::size_t nth_v = pack_element_v<I, T>;
+
+    template <typename T, typename pack_type>
+    constexpr std::size_t index_of_v = pack_element<pack_type>::template index_of_<T>::index;
+    // rindex_of -> index_of_v<T, reverse<pack_type>>
     #endif
 
     // todo : index_of<T, pack_t>
@@ -320,6 +330,7 @@ namespace csl::mp {
     template <typename T>
     using reverse_t = reverse<T>::type;
 
+    #ifdef false
     // rindex_of
     template <typename T, typename ... Ts>
     struct rindex_of {
@@ -366,6 +377,7 @@ namespace csl::mp {
     >;
     template <typename T, typename ... Ts>
     constexpr std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
+    #endif
 
     // at
     // todo

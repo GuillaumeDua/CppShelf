@@ -8,6 +8,9 @@ namespace test::nth {
         csl::mp::nth_t<1, pack_type>,
         char
     >);
+    static_assert(
+        csl::mp::index_of_v<char, pack_type> == 1
+    );
 }
 // namespace test::index {
 //     using namespace csl::mp;
@@ -35,9 +38,9 @@ namespace test::nth {
 
 auto main() -> int {
 
-    using namespace csl::mp;
-    std::cout << "1 == " << last_index_of_v<int,
-        char, char, int, bool> << '\n';
+    // using namespace csl::mp;
+    // std::cout << "1 == " << last_index_of_v<int,
+    //     char, char, int, bool> << '\n';
 
     
 }
