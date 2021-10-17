@@ -145,7 +145,7 @@ namespace csl::mp {
     template <template <typename> typename filter_type, template <typename...> typename pack, typename ... Ts>
     requires requires { ((filter_type<Ts>::value) and ...); }
     struct filters<filter_type, pack<Ts...>>
-        : std::type_identity<decltype(std::tuple_cat(std::conditional_t< // todo : append instead
+        : std::type_identity<decltype(std::tuple_cat(std::conditional_t< // todo : cat instead
             filter_type<Ts>::value,
             std::tuple<Ts>,
             std::tuple<>
@@ -282,23 +282,23 @@ namespace csl::mp {
     template <typename T, typename ... ttps>
     constexpr std::size_t count_v = count<T, ttps...>::value;
 
-    // append
+    // cat / append
     template <typename, typename...>
-    struct append;
+    struct cat;
     template <
         template <typename...> typename pack,
         typename ... Ts,
         typename ... Us
     >
-    struct append<pack<Ts...>, Us...> : std::type_identity<pack<Ts..., Us...>>{};
+    struct cat<pack<Ts...>, Us...> : std::type_identity<pack<Ts..., Us...>>{};
     template <
         template <typename...> typename pack,
         typename ... Ts,
         typename ... Us
     >
-    struct append<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
+    struct cat<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
     template <typename pack, typename... ttps>
-    using append_t = append<pack, ttps...>;
+    using cat_t = cat<pack, ttps...>;
 
     // merge
     //  todo : add if not duplicates ?
