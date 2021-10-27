@@ -493,8 +493,7 @@ namespace workflow::functional {
                 return false;
             else return chain_trait<next>::template is_invocable<
                     typename chain_trait<node>::template invoke_result_t<args_type...>
-                > or
-                chain_trait<next>::template is_invocable<>
+                >
             ;
         }();
         template <typename ... args_type>
@@ -510,11 +509,9 @@ namespace workflow::functional {
             if constexpr (not chain_trait<node>::template is_nothrow_invocable<args_type...>)
                 return false;
             else return
-                // warning : potential error here : first case might be valid but can throw
                 chain_trait<next>::template is_nothrow_invocable<
                     typename chain_trait<node>::template invoke_result_t<args_type...>
-                > or
-                chain_trait<next>::template is_nothrow_invocable<>
+                >
             ;
         }();
         template <typename ... args_type>
