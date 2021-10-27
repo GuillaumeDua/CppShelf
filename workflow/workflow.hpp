@@ -539,26 +539,26 @@ namespace workflow::functional {
     struct chain_trait<node> {
 
         template <typename ... args_type>
-        constexpr static bool is_invocable =
-            mp::is_invocable_v<node, args_type...> or
-            mp::is_invocable_v<node>
-        ;
-        template <typename ... args_type>
         constexpr static bool is_nodiscard_invocable =
             mp::is_invocable_v<node, args_type...>;
         template <typename ... args_type>
-        constexpr static bool is_nothrow_invocable =
-            mp::is_nothrow_invocable_v<node, args_type...> or
-            mp::is_nothrow_invocable_v<node>
+        constexpr static bool is_invocable =
+            is_nodiscard_invocable<args_type...> or
+            mp::is_invocable_v<node>
         ;
         template <typename ... args_type>
         constexpr static bool is_nothrow_nodiscard_invocable =
             mp::is_nothrow_invocable_v<node, args_type...>;
+        template <typename ... args_type>
+        constexpr static bool is_nothrow_invocable =
+            is_nothrow_nodiscard_invocable<args_type...> or
+            mp::is_nothrow_invocable_v<node>
+        ;
 
         template <typename ... args_type>
         requires is_invocable<args_type...>
         using invoke_result_t = std::conditional_t<
-            mp::is_invocable_v<node, args_type...>,
+            is_nodiscard_invocable<args_type...>,
             mp::invoke_result<node, args_type...>,
             mp::invoke_result<node>
         >::type;
