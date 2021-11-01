@@ -14,6 +14,8 @@ namespace test::functional {
         static_assert(std::is_same_v<decltype(bind_front<int>(func).template operator()<char>()), std::tuple<int, char>>);
         static_assert(std::is_same_v<decltype(bind_front(func).template operator()<int, char>()), std::tuple<int, char>>);
 
+        namespace mp = workflow::functional::mp;
+
         static_assert(mp::is_invocable_r_v<std::tuple<>,             decltype(bind_front(func))>);
         static_assert(mp::is_invocable_r_v<std::tuple<int>,          decltype(bind_front<int>(func))>);
         static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_front<int, char>(func))>);
