@@ -2,11 +2,11 @@
 
 #include "../../workflow/workflow.hpp"
 
-namespace test::functional {
+namespace test {
     consteval void front_binding() {
         auto func = []<typename ... Ts>() noexcept { return std::tuple<Ts...>{}; };
 
-        using namespace csl::wf::functional;
+        using namespace csl::wf;
 
         // operator()
         static_assert(std::is_same_v<decltype(bind_front(func)()), std::tuple<>>);
@@ -15,7 +15,7 @@ namespace test::functional {
         static_assert(std::is_same_v<decltype(bind_front<int>(func).template operator()<char>()), std::tuple<int, char>>);
         static_assert(std::is_same_v<decltype(bind_front(func).template operator()<int, char>()), std::tuple<int, char>>);
 
-        namespace mp = csl::wf::functional::mp;
+        namespace mp = csl::wf::mp;
 
         // is_invocable
         static_assert(mp::is_invocable_v<decltype(bind_front(func))>);

@@ -2,10 +2,10 @@
 
 #include "../../workflow/workflow.hpp"
 
-namespace test::functional::mp {
+namespace test {
 
     consteval void invocable() {
-        using namespace csl::wf::details::mp;
+        using namespace csl::wf::mp;
 
         // f()
         {
@@ -81,7 +81,7 @@ namespace test::functional::mp {
         }
     }
     consteval void applyable() {
-        using namespace csl::wf::details::mp;
+        using namespace csl::wf::mp;
 
         // f()
         {
@@ -151,7 +151,7 @@ namespace test::functional::mp {
         }
     }
     consteval void invocable_result() {
-        using namespace csl::wf::details::mp;
+        using namespace csl::wf::mp;
 
         {
             const auto f = []<typename T = std::true_type>(auto arg = std::true_type{}) constexpr {
@@ -180,9 +180,9 @@ namespace test::functional::mp {
         }
     }
 }
-namespace test::details::mp {
+namespace test::details_mp {
     consteval void invocable_with_ttps_args() {
-        using namespace csl::wf::details::mp;
+        using namespace csl::wf::mp;
 
         const auto f_witht_ttps = []<typename T>(bool, int){};
         static_assert(invocable_with<decltype(f_witht_ttps), ttps<int>, args<bool, int>>);
@@ -190,6 +190,8 @@ namespace test::details::mp {
         const auto f_void = []<typename T>(){};
         static_assert(    invocable_with<decltype(f_void), ttps<int>, args<>>);
         static_assert(not invocable_with<decltype(f_void), ttps<int>, args<void>>);
-        static_assert(    invocable_with<decltype(f_void), ttps<int>, empty_if_void_t<args<void>>>);
+        
+        // handle void :
+        static_assert(    invocable_with<decltype(f_void), ttps<int>, csl::wf::details::mp::empty_if_void_t<args<void>>>);
     }
 }

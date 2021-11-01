@@ -2,7 +2,7 @@
 
 #include "../../workflow/workflow.hpp"
 
-namespace test::functional::invocation {
+namespace test::invocation {
     consteval void invocable() {
         using namespace csl::wf;
 
@@ -75,7 +75,7 @@ namespace test::functional::invocation {
         }
     }
     consteval void applyable() {
-        namespace ns = csl::wf::functional; // stl namespace clash https://godbolt.org/z/Kz9PjMs3P
+        namespace ns = csl::wf; // stl namespace clash https://godbolt.org/z/Kz9PjMs3P
 
         // f()
         {
@@ -175,11 +175,11 @@ namespace test::functional::invocation {
         }
     }
 }
-namespace tests::functional::mp_apply_ {
+namespace tests::mp_apply_ {
     struct A{}; struct B{};
 
     consteval void applyable_before() {
-        using namespace csl::wf::functional::mp;
+        using namespace csl::wf::mp;
 
         // f()
         {
@@ -301,7 +301,7 @@ namespace tests::functional::mp_apply_ {
         }
     }
     consteval void applyable_after() {
-        using namespace csl::wf::functional::mp;
+        using namespace csl::wf::mp;
 
         // f()
         {
@@ -426,7 +426,7 @@ namespace tests::functional::mp_apply_ {
     consteval void applyable_trait_cvref_qualifiers_noargs() {
         auto func = []() noexcept { };
 
-        using namespace csl::wf::functional;
+        using namespace csl::wf;
 
         {   // - is_applyable
             static_assert(mp::is_applyable_v<decltype(func), std::tuple<>>);
@@ -495,7 +495,7 @@ namespace tests::functional::mp_apply_ {
         struct A{}; struct B{};
         auto func = [](A, B) noexcept { };
 
-        using namespace csl::wf::functional;
+        using namespace csl::wf;
 
         {   // - is_applyable
             static_assert(mp::is_applyable_v<decltype(func), std::tuple<A, B>>);

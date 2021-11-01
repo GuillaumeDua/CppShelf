@@ -19,7 +19,9 @@
 //  - invocable
 //  - nothrow_invocable
 
-namespace csl::wf::functional::mp {
+// is_(nothrow_)invocable(_r), invoke_result
+// is_(nothrow_)applyable(_before|_after)
+namespace csl::wf::mp {
 
     // ttps -> pack of ttps
     template <typename ...>
@@ -223,14 +225,12 @@ namespace csl::wf::functional::mp {
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
 }
-namespace csl::wf::details::mp {
+namespace csl::wf::mp {
     // Extension to handle both `ttps` and `args` as pack
     // more convenient for pack_traits - like filters - applications
     //
     // Less restrictive than `is_applyable`, as `args` does not match TupleInterface.
     // Also, easier to handle types that does not fit in std::tuple, array and paires, like `void`.
-
-    using namespace functional::mp;
 
     template <typename ...>
     struct args{};
@@ -260,9 +260,9 @@ namespace csl::wf::details::mp {
     constexpr bool is_nothrow_invocable_with_v = is_nothrow_invocable_with<F, ttps, args>::value;
     template <typename F, typename ttps, typename args>
     concept nothrow_invocable_with = is_nothrow_invocable_with_v<F, ttps, args>;
+}
+namespace csl::wf::details::mp {
 
-    // ---
-    
     template <typename T>
     struct empty_if_void {
         static_assert([](){ return false; }(), "parameter must be a parameter-pack");
@@ -285,7 +285,7 @@ namespace csl::wf::details::mp {
 }
 // apply(,_after,_before), invoke
 // front_binder, bind_front
-namespace csl::wf::functional {
+namespace csl::wf {
     // todo : Universal template declaration ... (p1985)
     //  ttps -> tt{1,}ps + ntt{1,}ps 
 
@@ -469,7 +469,7 @@ namespace csl::wf::functional {
     }
 }
 // chain
-namespace csl::wf::functional {
+namespace csl::wf {
     template <typename ...>
     struct chain_trait;
     template <typename node, typename next, typename ...rest>
@@ -650,6 +650,5 @@ namespace csl::wf::details {
 
 // namespace aggregation
 namespace csl::wf {
-    using namespace csl::wf::functional::mp;
-    using namespace csl::wf::functional;
+    using namespace csl::wf::mp;
 }
