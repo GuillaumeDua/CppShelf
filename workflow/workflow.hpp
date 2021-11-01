@@ -19,6 +19,8 @@
 //  - invocable
 //  - nothrow_invocable
 
+// todo : workflow -> csl::wf
+
 namespace workflow::functional::mp {
 
     // ttps -> pack of ttps
@@ -278,9 +280,11 @@ namespace workflow::details::mp {
     template <typename T>
     using empty_if_void_t = empty_if_void<T>::type;
 }
-// apply, invoke
+// apply(,_after,_before), invoke
+// front_binder, bind_front
 namespace workflow::functional {
     // todo : Universal template declaration ... (p1985)
+    //  ttps -> tt{1,}ps + ntt{1,}ps 
 
     // invoke
     template <typename ... ttps_args, typename F, typename ... args_types>
@@ -346,6 +350,10 @@ namespace workflow::functional {
     }
 
     // front_binder
+    //  todo :  copy, move constructors
+    //          operator=
+    //          operator==, operator not_eq
+    //  todo :  member-variables binding ?
     template <typename F, typename ttps_pack_type, typename ... bounded_args_t>
     requires
             std::is_constructible_v<std::decay_t<F>, F>
@@ -379,7 +387,13 @@ namespace workflow::functional {
             mp::ttps<ttps_bounded_args_t..., ttps...>,
             bounded_args_storage_type&, parameters_t&&...
         >
-        constexpr decltype(auto) operator()(parameters_t && ... parameters) & {
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) &
+        noexcept(mp::is_nothrow_applyable_before_v<
+            F&,
+            mp::ttps<ttps_bounded_args_t..., ttps...>,
+            bounded_args_storage_type&, parameters_t&&...
+        >)
+        {
             return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
         template <typename ... ttps, typename ... parameters_t>
@@ -388,7 +402,13 @@ namespace workflow::functional {
             mp::ttps<ttps_bounded_args_t..., ttps...>,
             const bounded_args_storage_type&, parameters_t&&...
         >
-        constexpr decltype(auto) operator()(parameters_t && ... parameters) const & {
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) const &
+        noexcept (mp::is_nothrow_applyable_before_v<
+            const F&,
+            mp::ttps<ttps_bounded_args_t..., ttps...>,
+            const bounded_args_storage_type&, parameters_t&&...
+        >)
+        {
             return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
         template <typename ... ttps, typename ... parameters_t>
@@ -397,7 +417,12 @@ namespace workflow::functional {
             mp::ttps<ttps_bounded_args_t..., ttps...>,
             bounded_args_storage_type&&, parameters_t&&...
         >
-        constexpr decltype(auto) operator()(parameters_t && ... parameters) && {
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) &&
+        noexcept (mp::is_nothrow_applyable_before_v<
+            F&&,
+            mp::ttps<ttps_bounded_args_t..., ttps...>,
+            bounded_args_storage_type&&, parameters_t&&...
+        >) {
             return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
         template <typename ... ttps, typename ... parameters_t>
@@ -406,7 +431,12 @@ namespace workflow::functional {
             mp::ttps<ttps_bounded_args_t..., ttps...>,
             const bounded_args_storage_type&&, parameters_t&&...
         >
-        constexpr decltype(auto) operator()(parameters_t && ... parameters) const && {
+        constexpr decltype(auto) operator()(parameters_t && ... parameters) const &&
+        noexcept(mp::is_nothrow_applyable_before_v<
+            const F&&,
+            mp::ttps<ttps_bounded_args_t..., ttps...>,
+            const bounded_args_storage_type&&, parameters_t&&...
+        >) {
             return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
 
