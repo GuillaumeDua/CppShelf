@@ -19,9 +19,7 @@
 //  - invocable
 //  - nothrow_invocable
 
-// todo : workflow -> csl::wf
-
-namespace workflow::functional::mp {
+namespace csl::wf::functional::mp {
 
     // ttps -> pack of ttps
     template <typename ...>
@@ -225,7 +223,7 @@ namespace workflow::functional::mp {
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
 }
-namespace workflow::details::mp {
+namespace csl::wf::details::mp {
     // Extension to handle both `ttps` and `args` as pack
     // more convenient for pack_traits - like filters - applications
     //
@@ -282,7 +280,7 @@ namespace workflow::details::mp {
 }
 // apply(,_after,_before), invoke
 // front_binder, bind_front
-namespace workflow::functional {
+namespace csl::wf::functional {
     // todo : Universal template declaration ... (p1985)
     //  ttps -> tt{1,}ps + ntt{1,}ps 
 
@@ -466,7 +464,7 @@ namespace workflow::functional {
     }
 }
 // chain
-namespace workflow::functional {
+namespace csl::wf::functional {
     template <typename ...>
     struct chain_trait;
     template <typename node, typename next, typename ...rest>
@@ -590,4 +588,11 @@ namespace workflow::functional {
             mp::invoke_result<node>
         >::type;
     };
+}
+
+
+// namespace aggregation
+namespace csl::wf {
+    using namespace csl::wf::functional::mp;
+    using namespace csl::wf::functional;
 }

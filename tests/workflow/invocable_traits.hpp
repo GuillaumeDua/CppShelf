@@ -5,7 +5,7 @@
 namespace test::functional::mp {
 
     consteval void invocable() {
-        using namespace workflow::details::mp;
+        using namespace csl::wf::details::mp;
 
         // f()
         {
@@ -81,7 +81,7 @@ namespace test::functional::mp {
         }
     }
     consteval void applyable() {
-        using namespace workflow::details::mp;
+        using namespace csl::wf::details::mp;
 
         // f()
         {
@@ -151,7 +151,7 @@ namespace test::functional::mp {
         }
     }
     consteval void invocable_result() {
-        using namespace workflow::details::mp;
+        using namespace csl::wf::details::mp;
 
         {
             const auto f = []<typename T = std::true_type>(auto arg = std::true_type{}) constexpr {
@@ -182,7 +182,7 @@ namespace test::functional::mp {
 }
 namespace test::details::mp {
     consteval void invocable_with_ttps_args() {
-        using namespace workflow::details::mp;
+        using namespace csl::wf::details::mp;
 
         const auto f_witht_ttps = []<typename T>(bool, int){};
         static_assert(invocable_with<decltype(f_witht_ttps), ttps<int>, args<bool, int>>);

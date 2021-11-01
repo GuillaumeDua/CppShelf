@@ -3,7 +3,7 @@
 #include "../../workflow/workflow.hpp"
 
 namespace test::functional::chain_trait_ {
-    using namespace workflow::functional;
+    using namespace csl::wf::functional;
 
     struct type_1{};
     struct type_2{};
