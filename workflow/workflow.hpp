@@ -277,6 +277,11 @@ namespace csl::wf::details::mp {
     };
     template <typename T>
     using empty_if_void_t = empty_if_void<T>::type;
+
+    template <typename T, typename ... Ts>
+    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
+    template <typename T>
+    constexpr bool are_unique_v<T> = true;
 }
 // apply(,_after,_before), invoke
 // front_binder, bind_front
@@ -625,6 +630,22 @@ namespace csl::wf::details::mp::detect {
     : std::true_type{};
     template <typename T, typename U>
     constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
+}
+namespace csl::wf::details {
+
+    template <typename ... Ts>
+    requires (mp::are_unique_v<Ts...>)
+    struct overload : Ts... {
+        using Ts::operator()...;
+    };
+    template <typename ... Ts>
+    overload(Ts&&...) -> overload<Ts...>;
+    template <typename ... Ts, typename ... Us> // merge
+    overload(overload<Ts...>&&, overload<Us...>&&) -> overload<Ts..., Us...>;
+    template <typename ... Ts, typename U> // append (back)
+    overload(overload<Ts...>&&, U &&) -> overload<Ts..., U>;
+    template <typename U, typename ... Ts> // append (front)
+    overload(U &&, overload<Ts...> &&) -> overload<U, Ts...>;
 }
 
 // namespace aggregation
