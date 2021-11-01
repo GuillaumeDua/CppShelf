@@ -589,7 +589,43 @@ namespace csl::wf::functional {
         >::type;
     };
 }
+// detections
+namespace csl::wf::details::mp::detect {
+    // avoid recursive concepts
+    // could use std::detected_t (library fundamentals TS v2)
 
+    template <typename T, typename U, typename = void>
+    struct have_pipe_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_pipe_operator<T, U, std::void_t<decltype(std::declval<T>() | std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
+
+    template <typename T, typename U, typename = void>
+    struct have_shift_equal_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_shift_equal_operator<T, U, std::void_t<decltype(std::declval<T>() >>= std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
+
+    template <typename T, typename U, typename = void>
+    struct have_plus_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_plus_operator<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_plus_operator_v = have_plus_operator<T, U>::value;
+
+    template <typename T, typename U, typename = void>
+    struct have_multiply_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_multiply_operator<T, U, std::void_t<decltype(std::declval<T>() * std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
+}
 
 // namespace aggregation
 namespace csl::wf {
