@@ -99,7 +99,6 @@ namespace test::chain_trait_::route_discard_at_entry {
     static_assert(not trait::is_nodiscard_invocable<type_2>);
     static_assert(std::is_same_v<type_2, trait::invoke_result_t<>>);
 }
-
 namespace test::chain_trait_::route_discard {
     using trait = chain_trait<
         type2_to_type1_t,
@@ -113,4 +112,48 @@ namespace test::chain_trait_::route_discard {
     static_assert(not trait::is_nothrow_invocable<type_2>);
     static_assert(not trait::is_nothrow_nodiscard_invocable<type_2>);
     static_assert(std::is_same_v<type_2, trait::invoke_result_t<type_2>>);
+}
+namespace test::chain_trait_::non_template_function_with_empty_ttps {
+    auto func = [](){};
+
+    using trait = chain_trait<
+        decltype(func)
+    >;
+    static_assert(trait::is_invocable<>);
+    static_assert(trait::is_invocable<mp::ttps<>>);
+}
+namespace test::chain_trait_::template_function_with_ttps {
+    auto func = []<typename ... Ts>() -> std::tuple<Ts...> { return {}; };
+
+    using trait = chain_trait<
+        decltype(func)
+    >;
+    static_assert(trait::is_invocable<mp::ttps<int, char>>);
+    static_assert(std::same_as<
+        std::tuple<>,
+        trait::invoke_result_t<>
+    >);
+    static_assert(std::same_as<
+        std::tuple<>,
+        trait::invoke_result_t<mp::ttps<>>
+    >);
+    static_assert(std::same_as<
+        std::tuple<int, char>,
+        trait::invoke_result_t<mp::ttps<int, char>>
+    >);
+}
+namespace test::chain_trait_::with_ttps_forwarding {
+    auto node_1 = []<typename ... Ts>() -> mp::ttps<Ts...> { return {}; };
+    auto node_2 = []<typename ... Ts>() -> std::tuple<Ts...> { return {}; };
+
+    using trait = chain_trait<
+        decltype(node_1),
+        decltype(node_2)
+    >;
+
+    static_assert(trait::is_invocable<mp::ttps<int, char>>);
+    static_assert(std::same_as<
+        std::tuple<int, char>,
+        trait::invoke_result_t<mp::ttps<int, char>>
+    >);
 }
