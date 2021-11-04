@@ -12,6 +12,7 @@
 #include <vector>
 #include <array>
 #include <string_view>
+#include <tuple>
 
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
 
@@ -594,6 +595,65 @@ namespace csl::wf {
         >::type;
     };
 }
+// route
+namespace csl::wf {
+    // particular case : always nodiscard operator() ?
+    // bind_front -> take care of template arguments
+
+    template <typename ... Fs>
+    struct route {
+        using chain_trait_type = typename csl::wf::chain_trait<Fs...>;
+        using storage_type = std::tuple<decltype(csl::wf::bind_front(std::declval<Fs&&>()))...>;
+
+        route(Fs && ... functors)
+        : storage{ fwd(functors)... }
+        {}
+
+        template <typename ... ttps_args, typename ... args_t>
+        requires (chain_trait_type::template is_invocable<
+            csl::wf::mp::ttps<ttps_args...>, args_t&&...
+        >)
+        decltype(auto) operator()(args_t && ... args)
+        noexcept (chain_trait_type::template is_nothrow_invocable<
+            csl::wf::mp::ttps<ttps_args...>, args_t&&...
+        >)
+        {
+            // todo : requirement std::is_invocable get<0>(storage) ?
+            auto storage_view = [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return std::forward_as_tuple(std::get<indexes>(storage)...);
+            }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<storage_type>>>{});
+            return invoke_impl<ttps_args...>(fwd(storage_view), fwd(args)...);
+        }
+
+    private:
+        template <typename ... ttps_args_t, typename ... args_t>
+        static decltype(auto) invoke_impl(auto && storage_view, args_t && ... args) {
+            constexpr auto storage_view_size = std::tuple_size_v<std::remove_cvref_t<decltype(storage_view)>>;
+            static_assert(storage_view_size not_eq 0);
+
+            auto && head = std::get<0>(storage_view);
+            auto return_value = csl::wf::invoke<ttps_args_t...>(fwd(head), fwd(args)...);
+
+            // todo : transform if/else into require ?
+            if constexpr (storage_view_size == 1) // head == tail
+                return return_value;
+            else
+                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                    return invoke_impl(
+                        std::forward_as_tuple(std::get<(1 + indexes)>(storage_view)...),
+                        return_value
+                    );
+                }(std::make_index_sequence<storage_view_size - 1>{});
+        }
+
+        storage_type storage;
+    };
+    template <>
+    struct route <> {};
+
+    template <typename ... Fs>
+    route(Fs&& ...) -> route<Fs...>;
+}
 // detections
 namespace csl::wf::details::mp::detect {
     // avoid recursive concepts
@@ -652,3 +712,14 @@ namespace csl::wf::details {
 namespace csl::wf {
     using namespace csl::wf::mp;
 }
+
+#undef fwd
+
+// todo : function should be able to return a mp::ttps + return value
+//  route :
+//      - invoke
+//      - same for apply ?
+//  => as invoke_policy : invoke | apply ?
+//     or automated : is_applyable ? apply : invoke
+//
+// todo : constexpr
