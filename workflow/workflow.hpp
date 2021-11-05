@@ -600,6 +600,7 @@ namespace csl::wf {
     // particular case : always nodiscard operator() ?
     // bind_front -> take care of template arguments
 
+    /*
     template <typename ... Fs>
     struct route {
         using chain_trait_type = typename csl::wf::chain_trait<Fs...>;
@@ -632,6 +633,7 @@ namespace csl::wf {
             static_assert(storage_view_size not_eq 0);
 
             auto && head = std::get<0>(storage_view);
+            // todo : maybe discard args
             auto return_value = csl::wf::invoke<ttps_args_t...>(fwd(head), fwd(args)...);
 
             // todo : transform if/else into require ?
@@ -653,6 +655,83 @@ namespace csl::wf {
 
     template <typename ... Fs>
     route(Fs&& ...) -> route<Fs...>;
+    */
+
+    template <typename tuple_type>
+    decltype(auto) apply_with_or_discard(auto && functor, tuple_type && args_as_tuple)
+    {
+        constexpr bool is_invocable_with_args = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return std::is_invocable_v<decltype(functor), std::tuple_element_t<indexes, tuple_type>...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+
+        if constexpr (is_invocable_with_args)
+            return std::apply(fwd(functor), fwd(args_as_tuple));
+        else
+            return std::invoke(fwd(functor));
+    }
+    decltype(auto) invoke_into_tuple(auto && functor, auto && ... args) {
+        // not really tuple, but something that match TupleInterface
+        using invoke_result_t = std::invoke_result_t<decltype(functor), decltype(args)...>;
+        if constexpr (std::is_void_v<invoke_result_t>) {
+            std::invoke(fwd(functor), fwd(args)...);
+            return std::tuple{}; // no return (void)
+        }
+        else // or use std::tuple to handle multiples return values here ?
+            return std::array{std::invoke(fwd(functor), fwd(args)...)};
+    }
+
+    template <typename node, typename args_as_tuple_t>
+    decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple) {
+        return apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
+    }
+    template <typename node, typename ... rest, typename args_as_tuple_t>
+    decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
+        static_assert(sizeof...(rest) not_eq 0);
+
+        using node_invoke_result_t = decltype(apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args)));
+
+        auto result = invoke_into_tuple([](auto && ... args){
+                return apply_with_or_discard(fwd(args)...);
+            },
+            std::get<0>(fwd(functors)), fwd(args)
+        );
+
+        return chain_invoke(
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return std::forward_as_tuple(std::get<1 + indexes>(fwd(functors))...);
+            }(std::make_index_sequence<sizeof...(rest)>{}),
+            std::move(result)
+        );
+    }
+
+    template <typename ... Fs>
+    requires (sizeof...(Fs) not_eq 0)
+    struct binder {
+        using storage_type = std::tuple<Fs...>;
+
+        binder(Fs && ... args)
+        : storage{ fwd(args)... }
+        {}
+
+        decltype(auto) operator()(auto && ... args) {
+            return chain_invoke(
+                // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                //     return std::forward_as_tuple(std::get<indexes>(storage)...);
+                // }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                std::move(storage),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
+
+    private:
+
+        storage_type storage;
+    };
+    template <typename ... Ts>
+    binder(Ts &&...) -> binder<Ts...>;
+
+    template <typename ... Fs>
+    using route = binder<Fs...>;
 }
 // detections
 namespace csl::wf::details::mp::detect {
@@ -714,6 +793,8 @@ namespace csl::wf {
 }
 
 #undef fwd
+
+// wip : handle no return : https://godbolt.org/z/6x3b5Pf37
 
 // todo : function should be able to return a mp::ttps + return value
 //  route :
