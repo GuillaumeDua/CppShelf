@@ -20,6 +20,9 @@
 //  - invocable
 //  - nothrow_invocable
 
+// todo : for mid/high-level concepts, use requires { expr } noexcept,
+//          to check noexcept
+
 // is_(nothrow_)invocable(_r), invoke_result
 // is_(nothrow_)applyable(_before|_after)
 namespace csl::wf::mp {
@@ -283,6 +286,12 @@ namespace csl::wf::details::mp {
     constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
     template <typename T>
     constexpr bool are_unique_v<T> = true;
+
+    template <typename T>
+    concept bindable = 
+        std::is_constructible_v<std::decay_t<T>, T>
+        and std::is_move_constructible_v<std::decay_t<T>>
+    ;
 }
 // apply(,_after,_before), invoke
 // front_binder, bind_front
@@ -358,14 +367,13 @@ namespace csl::wf {
     //          operator=
     //          operator==, operator not_eq
     //  todo :  member-variables binding ?
-    template <typename F, typename ttps_pack_type, typename ... bounded_args_t>
-    requires
-            std::is_constructible_v<std::decay_t<F>, F>
-        and std::is_move_constructible_v<std::decay_t<F>>
-        and (std::is_constructible_v<std::decay_t<bounded_args_t>, bounded_args_t> && ...)
-        and (std::is_move_constructible_v<std::decay_t<bounded_args_t>> && ...)
+    template <
+        details::mp::bindable F,
+        typename ttps_pack_type,
+        details::mp::bindable ... bounded_args_t
+    >
     class front_binder;
-    template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
+    template <details::mp::bindable F, typename ... ttps_bounded_args_t, details::mp::bindable ... bounded_args_t>
     class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
         using type = front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
 
