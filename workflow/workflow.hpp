@@ -232,6 +232,7 @@ namespace csl::wf::mp {
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
 }
+// is(_nothrow_)invocable_with
 namespace csl::wf::mp {
     // Extension to handle both `ttps` and `args` as pack
     // more convenient for pack_traits - like filters - applications
@@ -621,8 +622,8 @@ namespace csl::wf::details {
     requires
         wf::mp::tuple_interface<tuple_type> and
         wf::mp::is_applyable_v<F&&, tuple_type&&>
-
     decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    noexcept(wf::mp::is_nothrow_applyable_v<F&&, tuple_type&&>)
     {
         return wf::apply(fwd(functor), fwd(args_as_tuple));
     }
@@ -631,9 +632,10 @@ namespace csl::wf::details {
         wf::mp::tuple_interface<tuple_type> and
         (not wf::mp::is_applyable_v<F, tuple_type&&>)
     decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    noexcept(wf::mp::is_nothrow_invocable_v<F&&>)
     {
-        static_assert(std::is_invocable_v<F&&>);
-        return std::invoke(fwd(functor));
+        static_assert(wf::mp::is_invocable_v<F&&>);
+        return wf::invoke(fwd(functor));
     }
     // todo : refactor this poc
     decltype(auto) invoke_into_tuple(auto && functor, auto && ... args) {
