@@ -20,8 +20,11 @@
 //  - invocable
 //  - nothrow_invocable
 
-// todo : for mid/high-level concepts, use requires { expr } noexcept,
-//          to check noexcept
+// todo : poc a cleaner design ?
+//  details::apply that is unsafe but hidden
+//  apply safe, part of the API
+//  applyable as requires { apply }
+//  nothrow_applyable as requires { apply } noexcept
 
 // is_(nothrow_)invocable(_r), invoke_result
 // is_(nothrow_)applyable(_before|_after)
@@ -321,7 +324,7 @@ namespace csl::wf {
     }
 
     // apply
-    template <typename ... f_ts, typename F, typename args_as_tuple_t>
+    template <typename ... f_ts, typename F, mp::tuple_interface args_as_tuple_t>
     requires mp::is_applyable_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t>
     constexpr decltype(auto) apply(F && f, args_as_tuple_t&& args)
     noexcept(mp::is_nothrow_applyable_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t>)
@@ -335,7 +338,7 @@ namespace csl::wf {
     }
 
     // apply_before
-    template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
+    template <typename ... f_ts, typename F, mp::tuple_interface args_as_tuple_t, typename ... func_args_t>
     requires mp::is_applyable_before_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>
     constexpr decltype(auto) apply_before(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
     noexcept(mp::is_nothrow_applyable_before_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>)
@@ -349,7 +352,7 @@ namespace csl::wf {
     }
 
     // apply_after
-    template <typename ... f_ts, typename F, typename args_as_tuple_t, typename ... func_args_t>
+    template <typename ... f_ts, typename F, mp::tuple_interface args_as_tuple_t, typename ... func_args_t>
     requires mp::is_applyable_after_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>
     constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
     noexcept(mp::is_nothrow_applyable_after_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>)
@@ -373,7 +376,11 @@ namespace csl::wf {
         details::mp::bindable ... bounded_args_t
     >
     class front_binder;
-    template <details::mp::bindable F, typename ... ttps_bounded_args_t, details::mp::bindable ... bounded_args_t>
+    template <
+        details::mp::bindable F,
+        typename ... ttps_bounded_args_t,
+        details::mp::bindable ... bounded_args_t
+    >
     class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
         using type = front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
 
@@ -477,7 +484,7 @@ namespace csl::wf {
         };
     }
 }
-// chain
+// chain, packed_chain_trait
 namespace csl::wf {
     template <typename ...>
     struct chain_trait;
@@ -603,6 +610,43 @@ namespace csl::wf {
         >::type;
     };
 }
+// route details
+namespace csl::wf::details {
+    // todo :
+    //  - constraints using concepts
+    //  - noexcept
+    //  - TTPS, NTTPS
+
+    template <typename F, typename tuple_type>
+    requires
+        wf::mp::tuple_interface<tuple_type> and
+        wf::mp::is_applyable_v<F&&, tuple_type&&>
+
+    decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    {
+        return wf::apply(fwd(functor), fwd(args_as_tuple));
+    }
+    template <typename F, typename tuple_type>
+    requires
+        wf::mp::tuple_interface<tuple_type> and
+        (not wf::mp::is_applyable_v<F, tuple_type&&>)
+    decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    {
+        static_assert(std::is_invocable_v<F&&>);
+        return std::invoke(fwd(functor));
+    }
+    // todo : refactor this poc
+    decltype(auto) invoke_into_tuple(auto && functor, auto && ... args) {
+        // not really tuple, but something that match TupleInterface
+        using invoke_result_t = std::invoke_result_t<decltype(functor), decltype(args)...>;
+        if constexpr (std::is_void_v<invoke_result_t>) {
+            std::invoke(fwd(functor), fwd(args)...);
+            return std::tuple{}; // no return (void)
+        }
+        else // or use std::tuple to handle multiples return values here ?
+            return std::array{std::invoke(fwd(functor), fwd(args)...)};
+    }
+}
 // route
 namespace csl::wf {
     // particular case : always nodiscard operator() ?
@@ -665,41 +709,16 @@ namespace csl::wf {
     route(Fs&& ...) -> route<Fs...>;
     */
 
-    template <typename tuple_type>
-    decltype(auto) apply_with_or_discard(auto && functor, tuple_type && args_as_tuple)
-    {
-        constexpr bool is_invocable_with_args = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return std::is_invocable_v<decltype(functor), std::tuple_element_t<indexes, tuple_type>...>;
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
-
-        if constexpr (is_invocable_with_args)
-            return std::apply(fwd(functor), fwd(args_as_tuple));
-        else
-            return std::invoke(fwd(functor));
-    }
-    decltype(auto) invoke_into_tuple(auto && functor, auto && ... args) {
-        // not really tuple, but something that match TupleInterface
-        using invoke_result_t = std::invoke_result_t<decltype(functor), decltype(args)...>;
-        if constexpr (std::is_void_v<invoke_result_t>) {
-            std::invoke(fwd(functor), fwd(args)...);
-            return std::tuple{}; // no return (void)
-        }
-        else // or use std::tuple to handle multiples return values here ?
-            return std::array{std::invoke(fwd(functor), fwd(args)...)};
-    }
-
-    template <typename node, typename args_as_tuple_t>
+    template <typename node, mp::tuple_interface args_as_tuple_t>
     decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple) {
-        return apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
+        return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
-    template <typename node, typename ... rest, typename args_as_tuple_t>
+    template <typename node, typename ... rest, mp::tuple_interface args_as_tuple_t>
     decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
         static_assert(sizeof...(rest) not_eq 0);
 
-        using node_invoke_result_t = decltype(apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args)));
-
-        auto result = invoke_into_tuple([](auto && ... args){
-                return apply_with_or_discard(fwd(args)...);
+        auto result = details::invoke_into_tuple([](auto && ... args){
+                return details::apply_with_or_discard(fwd(args)...);
             },
             std::get<0>(fwd(functors)), fwd(args)
         );
@@ -723,9 +742,6 @@ namespace csl::wf {
 
         decltype(auto) operator()(auto && ... args) {
             return chain_invoke(
-                // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                //     return std::forward_as_tuple(std::get<indexes>(storage)...);
-                // }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
                 std::move(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
