@@ -14,17 +14,70 @@
 #include <string_view>
 #include <tuple>
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
+// -- dev/wip/debug only
+namespace gcl::cx {
+    template <typename T>
+    static constexpr /*consteval*/ std::string_view type_name(/*no parameters allowed*/)
+    {
+    #if defined(__GNUC__) or defined(__clang__)
+        std::string_view str_view = __PRETTY_FUNCTION__;
+        str_view.remove_prefix(str_view.find(__FUNCTION__) + sizeof(__FUNCTION__));
+        const char prefix[] = "T = ";
+        str_view.remove_prefix(str_view.find(prefix) + sizeof(prefix) - 1);
+        str_view.remove_suffix(str_view.length() - str_view.find_first_of(";]"));
+    #elif defined(_MSC_VER)
+        std::string_view str_view = __FUNCSIG__;
+        str_view.remove_prefix(str_view.find(__func__) + sizeof(__func__));
+        if (auto enum_token_pos = str_view.find("enum "); enum_token_pos == 0)
+            str_view.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
+        str_view.remove_suffix(str_view.length() - str_view.rfind(">(void)"));
+    #else
+        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
+    #endif
+        return str_view;
+    }
+    template <typename T>
+    constexpr inline auto type_name_v = type_name<T>();
+    template <auto value>
+    static constexpr std::string_view type_name(/*no parameters allowed*/)
+    {
+        return type_name<decltype(value)>();
+    }
 
-// todo : concepts (not from invoke like the STL does, but from traits instead)
-//  - invocable
-//  - nothrow_invocable
+    template <auto value>
+    static constexpr std::string_view value_name(/*no parameters allowed*/)
+    {
+    #if defined(__GNUC__) or defined(__clang__)
+        std::string_view str_view = __PRETTY_FUNCTION__;
+        str_view.remove_prefix(str_view.find(__FUNCTION__) + sizeof(__FUNCTION__));
+        const char prefix[] = "value = ";
+        str_view.remove_prefix(str_view.find(prefix) + sizeof(prefix) - 1);
+        str_view.remove_suffix(str_view.length() - str_view.find_first_of(";]"));
+    #elif defined(_MSC_VER)
+        std::string_view str_view = __FUNCSIG__;
+        str_view.remove_prefix(str_view.find(__func__) + sizeof(__func__));
+        if (auto enum_token_pos = str_view.find("enum "); enum_token_pos == 0)
+            str_view.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
+        str_view.remove_suffix(str_view.length() - str_view.rfind(">(void)"));
+    #else
+        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
+    #endif
+        return str_view;
+    }
+    template <auto value>
+    constexpr inline auto value_name_v = value_name<value>();
+}
+// --
+
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
 
 // todo : poc a cleaner design ?
 //  details::apply that is unsafe but hidden
 //  apply safe, part of the API
 //  applyable as requires { apply }
 //  nothrow_applyable as requires { apply } noexcept
+// however, STL's invocable is requires { std::invoke(...) }
+//  https://en.cppreference.com/w/cpp/concepts/invocable
 
 // is_(nothrow_)invocable(_r), invoke_result
 // is_(nothrow_)applyable(_before|_after)
@@ -416,6 +469,7 @@ namespace csl::wf {
         {
             return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
+
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
             const F&,
@@ -431,6 +485,7 @@ namespace csl::wf {
         {
             return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
+
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
             F&&,
@@ -445,6 +500,7 @@ namespace csl::wf {
         >) {
             return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
+
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
             const F&&,
@@ -617,7 +673,9 @@ namespace csl::wf::details {
     //  - constraints using concepts
     //  - noexcept
     //  - TTPS, NTTPS
+    // - multiples return values => csl::wf::mp::args<...> with tuple-like storage ? (or strong-type for std::tuple...)
 
+    // apply_with_or_discard
     template <typename F, typename tuple_type>
     requires
         wf::mp::tuple_interface<tuple_type> and
@@ -637,19 +695,26 @@ namespace csl::wf::details {
         static_assert(wf::mp::is_invocable_v<F&&>);
         return wf::invoke(fwd(functor));
     }
-    // todo : refactor this poc
-    decltype(auto) invoke_into_tuple(auto && functor, auto && ... args) {
-        // not really tuple, but something that match TupleInterface
+    
+    // todo : multiple returns value (including ttps<...>)
+    decltype(auto) invoke_into_tuple(auto && functor, auto && ... args)
+    noexcept (wf::mp::is_nothrow_invocable_v<decltype(functor), decltype(args)...>)
+    requires wf::mp::is_invocable_v<decltype(functor), decltype(args)...>
+    {   // not really tuple, but something that match TupleInterface
         using invoke_result_t = std::invoke_result_t<decltype(functor), decltype(args)...>;
+
         if constexpr (std::is_void_v<invoke_result_t>) {
-            std::invoke(fwd(functor), fwd(args)...);
+            wf::invoke(fwd(functor), fwd(args)...);
             return std::tuple{}; // no return (void)
         }
         else // or use std::tuple to handle multiples return values here ?
-            return std::array{std::invoke(fwd(functor), fwd(args)...)};
+            return std::array{wf::invoke(fwd(functor), fwd(args)...)};
     }
 }
 // route
+// todo : value semantic correctness for route/binder storage
+//  cvref qualifiers for binder::operator()
+//  always owning ? mix owning and non-owning functors in storage ?
 namespace csl::wf {
     // particular case : always nodiscard operator() ?
     // bind_front -> take care of template arguments
@@ -744,7 +809,9 @@ namespace csl::wf {
 
         decltype(auto) operator()(auto && ... args) {
             return chain_invoke(
-                std::move(storage),
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                    return std::forward_as_tuple(std::get<indexes>(fwd(storage))...);
+                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
@@ -830,3 +897,10 @@ namespace csl::wf {
 //     or automated : is_applyable ? apply : invoke
 //
 // todo : constexpr
+// todo : better error messages
+// todo : static-analysis (sonar-lint, clang-tidy)
+//  cppcoreguideline
+
+// extensions :
+// - coroutines, futures
+// - async generators as entry-point for redundant calls
