@@ -14,6 +14,9 @@
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.out"
             ],
+            "presentation": {
+                "clear": true
+            },
             "options": {
                 "cwd": "${fileDirname}"
             },
