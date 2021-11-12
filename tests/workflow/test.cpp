@@ -5,5 +5,4 @@
 #include "./route.hpp"
 
 auto main() -> int {
-    // test::route_::proceed(); // runtime tests
 }

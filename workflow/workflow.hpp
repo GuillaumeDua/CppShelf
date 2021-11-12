@@ -436,6 +436,7 @@ namespace csl::wf {
         details::mp::bindable ... bounded_args_t
     >
     class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
+
         using type = front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
 
         using bounded_args_storage_type = std::tuple<bounded_args_t...>;
@@ -443,6 +444,8 @@ namespace csl::wf {
         F f;
 
     public:
+        constexpr front_binder(front_binder &&) = default;
+
         constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
@@ -798,19 +801,47 @@ namespace csl::wf {
         );
     }
 
+    // todo : owning by default, non-owning (opt-out) policy ?
+
     template <typename ... Fs>
     requires (sizeof...(Fs) not_eq 0)
     struct binder {
+        static_assert((not std::is_reference_v<Fs> && ...));
+
         using storage_type = std::tuple<Fs...>;
 
-        binder(Fs && ... args)
+        constexpr binder(auto && ... args)
         : storage{ fwd(args)... }
         {}
 
-        decltype(auto) operator()(auto && ... args) {
+        constexpr decltype(auto) operator()(auto && ... args) & {
             return chain_invoke(
-                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<Fs&...> {
+                    return { std::get<indexes>(storage)... };
+                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
+        constexpr decltype(auto) operator()(auto && ... args) && {
+            return chain_invoke(
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<Fs&&...> {
                     return std::forward_as_tuple(std::get<indexes>(fwd(storage))...);
+                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
+        constexpr decltype(auto) operator()(auto && ... args) const & {
+            return chain_invoke(
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<const Fs&...> {
+                    return { std::get<indexes>(storage)... };
+                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
+        constexpr decltype(auto) operator()(auto && ... args) const && {
+            return chain_invoke(
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<const Fs&&...> {
+                    return { std::get<indexes>(static_cast<const storage_type &&>(storage))... };
                 }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
                 std::forward_as_tuple(fwd(args)...)
             );
@@ -821,7 +852,7 @@ namespace csl::wf {
         storage_type storage;
     };
     template <typename ... Ts>
-    binder(Ts &&...) -> binder<Ts...>;
+    binder(Ts &&...) -> binder<std::remove_cvref_t<Ts>...>;
 
     template <typename ... Fs>
     using route = binder<Fs...>;
