@@ -51,43 +51,22 @@ namespace test::route_ {
 
 #pragma endregion
 
-    // todo : use deleted operator() instead
-
-    template <typename T, typename U>
-    struct is_same_cvref_qualifiers {
-        constexpr static bool value = (
-                std::is_lvalue_reference_v<T> == std::is_lvalue_reference_v<U>
-            and std::is_rvalue_reference_v<T> == std::is_rvalue_reference_v<U>
-            and std::is_const_v<std::remove_reference_t<T>> == std::is_const_v<std::remove_reference_t<U>>
-            and std::is_volatile_v<std::remove_reference_t<T>> == std::is_volatile_v<std::remove_reference_t<U>>
-        );
-    };
-    template <typename T, typename U>
-    constexpr bool is_same_cvref_qualifiers_v = is_same_cvref_qualifiers<T, U>::value;
-
-    template <typename expected>
-    struct cvref_validator_functor {
-        using type = int; // doesnt matter
-        void operator()() & {
-            static_assert(is_same_cvref_qualifiers_v<expected, type&>);
-        }
-        void operator()() && {
-            static_assert(is_same_cvref_qualifiers_v<expected, type&&>);
-        }
-        void operator()() const & {
-            static_assert(is_same_cvref_qualifiers_v<expected, const type&>);
-        }
-        void operator()() const && {
-            static_assert(is_same_cvref_qualifiers_v<expected, const type &&>);
-        }
-    };
-
     consteval void call_cvref_correctness() {
 
-        using lvalue_node_type          = cvref_validator_functor<int&>;
-        using const_lvalue_node_type    = cvref_validator_functor<const int&>;
-        using rvalue_node_type          = cvref_validator_functor<int&&>;
-        using const_rvalue_node_type    = cvref_validator_functor<const int&&>;
+        using lvalue_node_type          = struct {
+            void operator()() & {};
+        };
+        using const_lvalue_node_type    = struct {
+            void operator()() & = delete;
+            void operator()() const & {};
+        };
+        using rvalue_node_type          = struct {
+            void operator()() && {};
+        };
+        using const_rvalue_node_type    = struct {
+            void operator()() && = delete;
+            void operator()() const && {};
+        };
 
         {   // lvalue route
             auto route = csl::wf::route {
@@ -118,8 +97,7 @@ namespace test::route_ {
                 const_rvalue_node_type{},
                 const_rvalue_node_type{}
             };
-            static_cast<const decltype(route)&&>(route)();
-            //std::move(route)();
+            std::move(route)();
         }
     }
 }
