@@ -180,6 +180,7 @@ namespace test {
         }
     }
 }
+
 namespace test::details_mp {
     consteval void invocable_with_ttps_args() {
         using namespace csl::wf::mp;
@@ -190,8 +191,5 @@ namespace test::details_mp {
         const auto f_void = []<typename T>(){};
         static_assert(    invocable_with<decltype(f_void), ttps<int>, args<>>);
         static_assert(not invocable_with<decltype(f_void), ttps<int>, args<void>>);
-        
-        // handle void :
-        static_assert(    invocable_with<decltype(f_void), ttps<int>, csl::wf::details::mp::empty_if_void_t<args<void>>>);
     }
 }

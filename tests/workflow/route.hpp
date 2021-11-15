@@ -54,18 +54,18 @@ namespace test::route_ {
     consteval void call_cvref_correctness() {
 
         using lvalue_node_type          = struct {
-            void operator()() & {};
+            void operator()() & {}
         };
         using const_lvalue_node_type    = struct {
             void operator()() & = delete;
-            void operator()() const & {};
+            void operator()() const & {}
         };
         using rvalue_node_type          = struct {
             void operator()() && {};
         };
         using const_rvalue_node_type    = struct {
             void operator()() && = delete;
-            void operator()() const && {};
+            void operator()() const && {}
         };
 
         {   // lvalue route
@@ -99,5 +99,14 @@ namespace test::route_ {
             };
             std::move(route)();
         }
+    }
+
+    consteval void constexpr_nodes() {
+        constexpr auto route = csl::wf::route {
+            []() constexpr { return 40; },
+            [](int i) constexpr {return i + 1; },
+            [](int i) constexpr {return i + 1; }
+        };
+        static_assert(route() == 42);
     }
 }

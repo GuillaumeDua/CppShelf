@@ -322,34 +322,6 @@ namespace csl::wf::mp {
     template <typename F, typename ttps, typename args>
     concept nothrow_invocable_with = is_nothrow_invocable_with_v<F, ttps, args>;
 }
-namespace csl::wf::details::mp {
-
-    template <typename T>
-    struct empty_if_void {
-        static_assert([](){ return false; }(), "parameter must be a parameter-pack");
-    };
-    template <template <typename...> typename pack_type, typename ... Ts>
-    struct empty_if_void<pack_type<Ts...>> {
-        using type = pack_type<Ts...>;
-    };
-    template <template <typename...> typename pack_type>
-    struct empty_if_void<pack_type<void>> {
-        using type = pack_type<>;
-    };
-    template <typename T>
-    using empty_if_void_t = empty_if_void<T>::type;
-
-    template <typename T, typename ... Ts>
-    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
-    template <typename T>
-    constexpr bool are_unique_v<T> = true;
-
-    template <typename T>
-    concept bindable = 
-        std::is_constructible_v<std::decay_t<T>, T>
-        and std::is_move_constructible_v<std::decay_t<T>>
-    ;
-}
 // apply(,_after,_before), invoke
 // front_binder, bind_front
 namespace csl::wf {
@@ -419,21 +391,27 @@ namespace csl::wf {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 
+    // front_bindable
+    template <typename T>
+    concept front_bindable = 
+        std::is_constructible_v<std::decay_t<T>, T>
+        and std::is_move_constructible_v<std::decay_t<T>>
+    ;
     // front_binder
     //  todo :  copy, move constructors
     //          operator=
     //          operator==, operator not_eq
     //  todo :  member-variables binding ?
     template <
-        details::mp::bindable F,
+        wf::front_bindable F,
         typename ttps_pack_type,
-        details::mp::bindable ... bounded_args_t
+        wf::front_bindable ... bounded_args_t
     >
     class front_binder;
     template <
-        details::mp::bindable F,
+        wf::front_bindable F,
         typename ... ttps_bounded_args_t,
-        details::mp::bindable ... bounded_args_t
+        wf::front_bindable ... bounded_args_t
     >
     class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
 
@@ -683,7 +661,7 @@ namespace csl::wf::details {
     requires
         wf::mp::tuple_interface<tuple_type> and
         wf::mp::is_applyable_v<F&&, tuple_type&&>
-    decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
     noexcept(wf::mp::is_nothrow_applyable_v<F&&, tuple_type&&>)
     {
         return wf::apply(fwd(functor), fwd(args_as_tuple));
@@ -692,7 +670,7 @@ namespace csl::wf::details {
     requires
         wf::mp::tuple_interface<tuple_type> and
         (not wf::mp::is_applyable_v<F, tuple_type&&>)
-    decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
     noexcept(wf::mp::is_nothrow_invocable_v<F&&>)
     {
         static_assert(wf::mp::is_invocable_v<F&&>);
@@ -700,7 +678,7 @@ namespace csl::wf::details {
     }
     
     // todo : multiple returns value (including ttps<...>)
-    decltype(auto) invoke_into_tuple(auto && functor, auto && ... args)
+    constexpr decltype(auto) invoke_into_tuple(auto && functor, auto && ... args)
     noexcept (wf::mp::is_nothrow_invocable_v<decltype(functor), decltype(args)...>)
     requires wf::mp::is_invocable_v<decltype(functor), decltype(args)...>
     {   // not really tuple, but something that match TupleInterface
@@ -723,11 +701,11 @@ namespace csl::wf {
     // bind_front -> take care of template arguments
 
     template <typename node, mp::tuple_interface args_as_tuple_t>
-    decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple) {
+    constexpr decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple) {
         return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
     template <typename node, typename ... rest, mp::tuple_interface args_as_tuple_t>
-    decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
+    constexpr decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
         static_assert(sizeof...(rest) not_eq 0);
 
         auto result = details::invoke_into_tuple([](auto && ... args){
@@ -837,6 +815,14 @@ namespace csl::wf::details::mp::detect {
     template <typename T, typename U>
     constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
 }
+// mp::are_unique_v<Ts..>
+namespace csl::wf::details::mp {
+
+    template <typename T, typename ... Ts>
+    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
+    template <typename T>
+    constexpr bool are_unique_v<T> = true;
+}
 namespace csl::wf::details {
 
     template <typename ... Ts>
@@ -861,8 +847,6 @@ namespace csl::wf {
 
 #undef fwd
 
-// wip : handle no return : https://godbolt.org/z/6x3b5Pf37
-
 // todo : function should be able to return a mp::ttps + return value
 //  route :
 //      - invoke
@@ -870,7 +854,6 @@ namespace csl::wf {
 //  => as invoke_policy : invoke | apply ?
 //     or automated : is_applyable ? apply : invoke
 //
-// todo : constexpr
 // todo : better error messages
 // todo : static-analysis (sonar-lint, clang-tidy)
 //  cppcoreguideline
