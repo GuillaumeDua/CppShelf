@@ -1,36 +1,108 @@
----
-BasedOnStyle: Microsoft
-Language: Cpp
-AlignAfterOpenBracket: AlwaysBreak
-AlignConsecutiveDeclarations: 'true'
-AlignTrailingComments: 'true'
-# AllowShortEnumsOnASingleLine : 'true'
-AllowShortFunctionsOnASingleLine: InlineOnly
-# AllowShortLambdasOnASingleLine: SLS_Inline
-AlwaysBreakBeforeMultilineStrings: 'true'
-AlwaysBreakTemplateDeclarations: 'Yes'
-BinPackArguments: 'false'
-BinPackParameters: 'false'
-# BreakBeforeConceptDeclarations: 'true'
-# IndentRequires: 'true'
-SpaceAfterTemplateKeyword: 'true'
-SpacesInAngles: 'false'
-# BreakBeforeBraces: Allman
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterEnum: true
-  AfterClass: false
-  AfterStruct: false
-  #BeforeLambdaBody: false
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
+# Still waiting for https://reviews.llvm.org/D33029 ...
 
-BreakBeforeTernaryOperators: 'true'
-BreakConstructorInitializers: BeforeComma
-BreakInheritanceList: BeforeComma
-Cpp11BracedListStyle: 'true'
-NamespaceIndentation: All
-FixNamespaceComments: 'false'
-PointerAlignment: "Left"
-IndentWidth: 4
-TabWidth: 4
+BasedOnStyle                                  : Microsoft
+Language                                      : Cpp
+Standard                                      : Latest
+
+IncludeBlocks                                 : Regroup
+SortIncludes                                  : 'true' # CaseInsensitive
+
+AlignAfterOpenBracket                         : AlwaysBreak
+AlignArrayOfStructures                        : Right # to be tested
+AlignOperands                                 : AlignAfterOperator
+AlignConsecutiveAssignments                   : None # AcrossEmptyLinesAndComments => dirty with using-alias directives followed by declaration(s)
+BreakBeforeBinaryOperators                    : NonAssignment
+AlignConsecutiveDeclarations                  : 'true'
+AlignTrailingComments                         : 'true'
+
+AllowShortCaseLabelsOnASingleLine             : 'false'
+AllowShortEnumsOnASingleLine                  : 'true'
+AllowShortFunctionsOnASingleLine              : InlineOnly # Empty
+AllowShortIfStatementsOnASingleLine           : Never # WithoutElse
+AllowShortLambdasOnASingleLine                : All
+AllowShortLoopsOnASingleLine                  : 'false'
+AlwaysBreakAfterReturnType                    : None
+AlwaysBreakBeforeMultilineStrings             : 'false' # true
+AlwaysBreakTemplateDeclarations               : Yes
+BinPackArguments                              : 'false'
+BinPackParameters                             : 'false'
+ExperimentalAutoDetectBinPacking              : 'false'
+BreakBeforeConceptDeclarations                : 'true'
+# IndentRequires                              : 'true'
+BreakBeforeBraces                             : Custom
+BraceWrapping:
+    AfterCaseLabel          : 'false'
+    AfterClass: 'false'
+    AfterStruct: 'false'
+    AfterControlStatement : Never #MultiLine
+    AfterEnum: 'false'
+    AfterFunction: 'false'
+    AfterNamespace: 'false'
+    AfterUnion: 'false'
+    AfterExternBlock: 'false'
+    BeforeCatch: 'true'
+    BeforeElse: 'true'
+    BeforeWhile: 'true'
+    # IndentBraces: 'true' # to test
+    BeforeLambdaBody      : 'false'
+    SplitEmptyFunction    : 'false'
+    SplitEmptyRecord      : 'false'
+    SplitEmptyNamespace   : 'false'
+BreakBeforeTernaryOperators   : 'true'
+BreakConstructorInitializers  : 'BeforeComma'
+BreakInheritanceList          : 'BeforeComma'
+BreakStringLiterals           : 'false'
+NamespaceIndentation          : 'All'
+FixNamespaceComments          : 'false'
+ColumnLimit                   : '0'
+IndentWidth                   : '4'
+PPIndentWidth                 : '-1' # == IndentWidth
+TabWidth                      : '4'
+UseTab                        : Never
+UseCRLF                       : 'false'
+CompactNamespaces             : 'true'
+AllowAllArgumentsOnNextLine   : 'true'
+AllowAllParametersOfDeclarationOnNextLine : 'false'
+ConstructorInitializerAllOnOneLineOrOnePerLine : 'true'
+ConstructorInitializerIndentWidth : '4'
+ContinuationIndentWidth       : '4'
+Cpp11BracedListStyle          : 'false' # true
+EmptyLineAfterAccessModifier  : Always 
+EmptyLineBeforeAccessModifier : Always
+IndentAccessModifiers         : 'false' 
+IndentCaseBlocks              : 'false'
+IndentCaseLabels              : 'true'
+IndentExternBlock             : Indent
+IndentGotoLabels              : 'false'
+IndentPPDirectives            : BeforeHash
+IndentRequires                : 'false' # true ?
+IndentWrappedFunctionNames    : 'false'
+InsertTrailingCommas          : Wrapped
+KeepEmptyLinesAtTheStartOfBlocks: 'false'
+LambdaBodyIndentation         : Signature 
+MaxEmptyLinesToKeep           : '1'
+PointerAlignment              : Middle # or left
+ReferenceAlignment            : 'Middle' 
+ReflowComments                : 'false'
+# ShortNamespaceLines 
+SpaceAfterLogicalNot          : 'false'
+SpaceAfterTemplateKeyword     : 'true'
+SpaceAroundPointerQualifiers  : 'Both'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeCaseColon          : 'true'
+SpaceBeforeCpp11BracedList    : 'false'
+SpacesInContainerLiterals     : 'false'
+SpaceBeforeCtorInitializerColon: 'true'
+SpaceBeforeInheritanceColon   : 'true'
+SpaceBeforeParens             : ControlStatements
+SpaceBeforeRangeBasedForLoopColon : 'true'
+SpaceBeforeSquareBrackets     : 'false'
+SpaceInEmptyBlock             : 'false'
+SpaceInEmptyParentheses       : 'false'
+SpacesBeforeTrailingComments  : '1'
+SpacesInAngles                : Never # previously, 'false'
+SpacesInCStyleCastParentheses : 'false'
+SpacesInConditionalStatement  : 'false'
+# SpacesInLineCommentPrefix
+SpacesInParentheses           : 'false'
+SpacesInSquareBrackets        : 'false'
