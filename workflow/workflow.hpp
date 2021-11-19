@@ -72,7 +72,7 @@ namespace gcl::cx {
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
 
 // todo : poc a cleaner design ?
-//  details::apply that is unsafe but hidden
+//  details::apply which would be unsafe but hidden
 //  apply safe, part of the API
 //  applyable as requires { apply }
 //  nothrow_applyable as requires { apply } noexcept
@@ -172,7 +172,7 @@ namespace csl::wf::mp {
         );
     };
     template <typename F, typename... Ts>
-    using invoke_result_t = invoke_result<F, Ts...>::type;
+    using invoke_result_t = typename invoke_result<F, Ts...>::type;
 
     // ---
 
@@ -567,7 +567,7 @@ namespace csl::wf {
         requires
             is_invocable<args_type...> or
             is_invocable<>
-        using invoke_result_t = chain_trait<rest...>::template invoke_result_t<
+        using invoke_result_t = typename chain_trait<rest...>::template invoke_result_t<
             typename chain_trait<node, next>::template invoke_result_t<args_type...>
         >;
     };
@@ -641,7 +641,7 @@ namespace csl::wf {
 
         template <typename ... args_type>
         requires is_invocable<args_type...>
-        using invoke_result_t = std::conditional_t<
+        using invoke_result_t = typename std::conditional_t<
             is_nodiscard_invocable<args_type...>,
             mp::invoke_result<node, args_type...>,
             mp::invoke_result<node>
