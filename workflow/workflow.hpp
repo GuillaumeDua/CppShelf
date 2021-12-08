@@ -72,7 +72,7 @@ namespace gcl::cx {
 }
 // --
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
 // todo : poc a cleaner design ?
 //  details::apply which would be unsafe but hidden

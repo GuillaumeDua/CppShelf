@@ -3,15 +3,20 @@ Checks: '-boost-*,
         cppcoreguidelines-*,
         clang-analyzer-*,
         google-*,
+            -google-readability-namespace-comments,
+            -google-readability-braces-around-statements,
         llvm-*,
-        -llvm-include-order,
+            -llvm-header-guard,
+            -llvm-include-order,
+            -llvm-namespace-comment,
         misc-*,
         modernize-*,
         mpi-*,
         performance-*,
         readability-*,
-        -google-readability-namespace-comments
+            -readability-braces-around-statements,
+            -readability-named-parameter
         '
 
-WarningsAsErrors: '*'
+# WarningsAsErrors: '*'
 HeaderFilterRegex: '.*hpp$'
