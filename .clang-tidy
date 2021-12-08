@@ -1,0 +1,16 @@
+Checks: '-boost-*,
+        cert-*,
+        cppcoreguidelines-*,
+        clang-analyzer-*,
+        google-*,
+        llvm-*,
+        -llvm-include-order,
+        misc-*,
+        modernize-*,
+        mpi-*,
+        performance-*,
+        readability-*,
+        '
+
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*hpp$'
