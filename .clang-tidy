@@ -10,6 +10,7 @@ Checks: '-boost-*,
         mpi-*,
         performance-*,
         readability-*,
+        -google-readability-namespace-comments
         '
 
 WarningsAsErrors: '*'

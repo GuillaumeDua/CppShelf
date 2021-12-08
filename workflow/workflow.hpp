@@ -17,13 +17,14 @@
 // -- dev/wip/debug only
 namespace gcl::cx {
     template <typename T>
-    static constexpr /*consteval*/ std::string_view type_name(/*no parameters allowed*/)
+    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
+    -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
         std::string_view str_view = __PRETTY_FUNCTION__;
         str_view.remove_prefix(str_view.find(__FUNCTION__) + sizeof(__FUNCTION__));
-        const char prefix[] = "T = ";
-        str_view.remove_prefix(str_view.find(prefix) + sizeof(prefix) - 1);
+        constexpr std::string_view prefix = "T = ";
+        str_view.remove_prefix(str_view.find(prefix) + prefix.length());
         str_view.remove_suffix(str_view.length() - str_view.find_first_of(";]"));
     #elif defined(_MSC_VER)
         std::string_view str_view = __FUNCSIG__;
@@ -39,19 +40,21 @@ namespace gcl::cx {
     template <typename T>
     constexpr inline auto type_name_v = type_name<T>();
     template <auto value>
-    static constexpr std::string_view type_name(/*no parameters allowed*/)
+    static constexpr auto type_name(/*no parameters allowed*/)
+    -> std::string_view
     {
         return type_name<decltype(value)>();
     }
 
     template <auto value>
-    static constexpr std::string_view value_name(/*no parameters allowed*/)
+    static constexpr auto value_name(/*no parameters allowed*/)
+    -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
         std::string_view str_view = __PRETTY_FUNCTION__;
         str_view.remove_prefix(str_view.find(__FUNCTION__) + sizeof(__FUNCTION__));
-        const char prefix[] = "value = ";
-        str_view.remove_prefix(str_view.find(prefix) + sizeof(prefix) - 1);
+        constexpr std::string_view prefix = "value = ";
+        str_view.remove_prefix(str_view.find(prefix) + prefix.length());
         str_view.remove_suffix(str_view.length() - str_view.find_first_of(";]"));
     #elif defined(_MSC_VER)
         std::string_view str_view = __FUNCSIG__;
