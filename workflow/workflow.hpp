@@ -425,13 +425,12 @@ namespace csl::wf {
         F f;
 
     public:
-        constexpr front_binder(front_binder &&) = default;
 
         constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
-        constexpr front_binder(auto && f_arg, auto && ... args)
+        constexpr explicit front_binder(auto && f_arg, auto && ... args)
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {
@@ -673,7 +672,7 @@ namespace csl::wf::details {
     requires
         wf::mp::tuple_interface<tuple_type> and
         (not wf::mp::is_applyable_v<F, tuple_type&&>)
-    constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
+    constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type &&)
     noexcept(wf::mp::is_nothrow_invocable_v<F&&>)
     {
         static_assert(wf::mp::is_invocable_v<F&&>);
@@ -734,7 +733,7 @@ namespace csl::wf {
 
         using storage_type = std::tuple<Fs...>;
 
-        constexpr binder(auto && ... args)
+        constexpr explicit binder(auto && ... args)
         : storage{ fwd(args)... }
         {}
 
