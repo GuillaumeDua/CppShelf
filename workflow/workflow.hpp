@@ -831,15 +831,49 @@ namespace csl::wf::details {
     requires (mp::are_unique_v<Ts...>)
     struct overload : Ts... {
         using Ts::operator()...;
+
+        explicit overload(Ts&&... args)
+        : Ts{ fwd(args) }...
+        {}
+        #pragma region flatten
+        // flatten-append-left
+        template <typename ... lhs_ts, typename ... rhs_ts>
+        explicit overload(overload<lhs_ts...> && lhs, rhs_ts && ... rhs)
+        : lhs_ts{ fwd(lhs) }...
+        , rhs_ts{ fwd(rhs) }...
+        {
+            static_assert(std::is_same_v<
+                csl::wf::mp::ttps<lhs_ts..., rhs_ts...>,
+                csl::wf::mp::ttps<Ts...>
+            >, "overload (flatten) : unexpected deduced types");
+        }
+        // flatten-merge
+        template <typename ... lhs_ts, typename ... rhs_ts>
+        overload(overload<lhs_ts...> && lhs, overload<rhs_ts...> && rhs)
+        : lhs_ts{ fwd(lhs) }...
+        , rhs_ts{ fwd(rhs) }...
+        {
+            static_assert(std::is_same_v<
+                csl::wf::mp::ttps<lhs_ts..., rhs_ts...>,
+                csl::wf::mp::ttps<Ts...>
+            >, "overload (flatten) : unexpected deduced types");
+        }
+        #pragma endregion
     };
-    template <typename ... Ts>
-    overload(Ts&&...) -> overload<Ts...>;
     template <typename ... Ts, typename ... Us> // merge
     overload(overload<Ts...>&&, overload<Us...>&&) -> overload<Ts..., Us...>;
-    template <typename ... Ts, typename U> // append (back)
-    overload(overload<Ts...>&&, U &&) -> overload<Ts..., U>;
-    template <typename U, typename ... Ts> // append (front)
-    overload(U &&, overload<Ts...> &&) -> overload<U, Ts...>;
+    template <typename ... Ts, typename ... Us> // append (back)
+    overload(overload<Ts...>&&, Us && ...) -> overload<Ts..., Us...>;
+    template <typename ... Ts>
+    overload(Ts&&...) -> overload<Ts...>;
+}
+namespace csl::wf::operators {
+    template <typename lhs_t, typename rhs_t>
+    auto operator|(lhs_t && lhs, rhs_t && rhs) {
+        return csl::wf::details::overload {
+            fwd(lhs), fwd(rhs)
+        };
+    }
 }
 
 // namespace aggregation
