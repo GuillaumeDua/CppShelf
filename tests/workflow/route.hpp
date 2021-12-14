@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../workflow/workflow.hpp"
+#include <csl/workflow.hpp>
 #include <bitset>
 
 namespace test::route_ {

@@ -1,3 +1,7 @@
+# CMake
+
+build/
+
 # MSVC
 *.vs
 bin

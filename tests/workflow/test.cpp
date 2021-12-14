@@ -4,5 +4,8 @@
 #include "./chain_trait.hpp"
 #include "./route.hpp"
 
+// syntactic sugar :
+#include "./operators/pipe_overload.hpp"
+
 auto main() -> int {
 }

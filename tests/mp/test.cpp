@@ -1,4 +1,4 @@
-#include "../../mp/mp.hpp" // temporary, create real test later ...
+#include <csl/mp.hpp>
 
 #include <iostream> // debug only
 
