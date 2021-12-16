@@ -1,3 +1,5 @@
+#include "./cat_merge_flatten.hpp"
+
 #include <csl/mp.hpp>
 
 #include <iostream> // debug only
