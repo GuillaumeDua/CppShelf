@@ -68,15 +68,29 @@ namespace csl::mp::seq {
 }
 
 namespace csl::mp {
+    // pack
     template <typename ... Ts>
     struct pack{};
 
+    // is_pack
     template <typename T>
     struct is_pack : std::false_type{};
     template <typename ... Ts>
     struct is_pack<pack<Ts...>> : std::true_type{};
     template <typename T>
     constexpr bool is_pack_v = is_pack<T>::value;
+    template <typename T>
+    concept PackType = is_pack_v<T>;
+
+    // is_same_template
+    template <typename, typename>
+    struct is_same_template : std::false_type{};
+    template <template <typename...> typename T, typename ... Ts, typename ... Us>
+    struct is_same_template<T<Ts...>, T<Us...>> : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool is_same_template_v = is_same_template<T, U>::value;
+    template <typename T, typename U>
+    concept SameTemplateAs = is_same_template<T, U>::value;
 }
 // todo :
 //  check `std::make_index_sequence` performances
@@ -260,7 +274,6 @@ namespace csl::mp {
 
     template <typename T>
     concept TemplateType = is_template_v<T>;
-
     #pragma endregion
 
     // size
@@ -306,7 +319,19 @@ namespace csl::mp {
     using cat_t = cat<pack, ttps...>;
 
     // merge
-    //  todo : add if not duplicates ?
+    // todo : deduplicate
+    template <typename, typename ...>
+    struct merge;
+    template <template <typename...> typename pack_type, typename ... Ts, typename ... rest>
+    struct merge<pack_type<Ts...>, rest...>
+    : std::type_identity<
+        pack_arguments_as_t<pack_type, decltype(std::tuple_cat(
+            std::tuple<Ts...>{},
+            unfold_in_tuple_if_type_t<pack_type, rest>{}...
+        ))>
+    >{};
+    template <typename pack_type, typename ... Ts>
+    using merge_t = merge<pack_type, Ts...>::type;
 
     // repack_into
     template <template <typename...> typename destination, typename ... Ts>
