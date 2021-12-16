@@ -91,6 +91,16 @@ namespace csl::mp {
     constexpr bool is_same_template_v = is_same_template<T, U>::value;
     template <typename T, typename U>
     concept SameTemplateAs = is_same_template<T, U>::value;
+
+    // is_instance_of
+    template <template <typename ...> typename pack_type, typename T>
+    struct is_instance_of : std::false_type{};
+    template <template <typename ...> typename pack_type, typename ... Ts>
+    struct is_instance_of<pack_type, pack_type<Ts...>> : std::true_type{};
+    template <template <typename ...> typename pack_type, typename T>
+    constexpr bool is_instance_of_v = is_instance_of<pack_type, T>::value;
+    template <template <typename ...> typename pack_type, typename T>
+    concept InstanceOf = is_instance_of_v<pack_type, T>;
 }
 // todo :
 //  check `std::make_index_sequence` performances
