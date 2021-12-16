@@ -375,6 +375,19 @@ namespace csl::mp {
     template <typename T>
     using flatten_once_t = flatten_once<T>::type;
 
+    // flatten
+    template <typename T>
+    struct flatten;
+    template <typename T>
+    requires (std::same_as<T, flatten_once_t<T>>)
+    struct flatten<T>
+    : std::type_identity<T>{};
+    template <typename T>
+    struct flatten
+    : std::type_identity<typename flatten<flatten_once_t<T>>::type>{};
+    template <typename T>
+    using flatten_t = typename flatten<T>::type;
+
     // reverse
     template <typename>
     struct reverse;
