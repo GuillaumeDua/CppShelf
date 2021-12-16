@@ -328,28 +328,32 @@ namespace csl::mp {
     template <typename pack, typename... ttps>
     using cat_t = cat<pack, ttps...>;
 
-    // merge
-    // todo : deduplicate
-    template <typename, typename ...>
-    struct merge;
-    template <template <typename...> typename pack_type, typename ... Ts, typename ... rest>
-    struct merge<pack_type<Ts...>, rest...>
-    : std::type_identity<
-        pack_arguments_as_t<pack_type, decltype(std::tuple_cat(
-            std::tuple<Ts...>{},
-            unfold_in_tuple_if_type_t<pack_type, rest>{}...
-        ))>
-    >{};
-    template <typename pack_type, typename ... Ts>
-    using merge_t = merge<pack_type, Ts...>::type;
-
-    // repack_into
+    // unfold_to
     template <template <typename...> typename destination, typename ... Ts>
     struct unfold_to : std::type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
     struct unfold_to<destination, from<Ts...>> : unfold_to<destination, Ts...>{};
     template <template <typename...> typename destination, typename ... from>
     using unfold_to_t = unfold_to<destination, from...>::type;
+
+    // flat_merge
+    // todo : deduplicate ?
+    template <typename, typename ...>
+    struct flat_merge;
+    template <template <typename...> typename pack_type, typename ... Ts, typename ... rest>
+    struct flat_merge<pack_type<Ts...>, rest...>
+    : std::type_identity<
+        unfold_to_t<pack_type, decltype(std::tuple_cat(
+            std::tuple<Ts...>{},
+            std::conditional_t<
+                is_instance_of_v<pack_type, rest>,
+                unfold_to_t<std::tuple, rest>,
+                std::tuple<rest>
+            >{}...
+        ))>
+    >{};
+    template <typename pack_type, typename ... Ts>
+    using flat_merge_t = flat_merge<pack_type, Ts...>::type;
 
     // reverse
     template <typename>
