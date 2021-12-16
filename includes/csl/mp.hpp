@@ -332,16 +332,15 @@ namespace csl::mp {
     template <template <typename...> typename destination, typename ... Ts>
     struct unfold_to : std::type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
-    struct unfold_to<destination, from<Ts...>> : unfold_to<destination, Ts...>{};
+    struct unfold_to<destination, from<Ts...>> : std::type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, typename ... from>
-    using unfold_to_t = unfold_to<destination, from...>::type;
+    using unfold_to_t = typename unfold_to<destination, from...>::type;
 
-    // flat_merge
-    // todo : deduplicate ?
+    // flat_cat
     template <typename, typename ...>
-    struct flat_merge;
+    struct flat_cat;
     template <template <typename...> typename pack_type, typename ... Ts, typename ... rest>
-    struct flat_merge<pack_type<Ts...>, rest...>
+    struct flat_cat<pack_type<Ts...>, rest...>
     : std::type_identity<
         unfold_to_t<pack_type, decltype(std::tuple_cat(
             std::tuple<Ts...>{},
@@ -353,7 +352,28 @@ namespace csl::mp {
         ))>
     >{};
     template <typename pack_type, typename ... Ts>
-    using flat_merge_t = flat_merge<pack_type, Ts...>::type;
+    using flat_cat_t = flat_cat<pack_type, Ts...>::type;
+
+    // flat_merge : flat_cat + deduplication
+    // todo
+
+    // flatten_once
+    template <typename T>
+    struct flatten_once
+    : std::type_identity<T>{};
+    template <template <typename ...> typename pack_type, typename ... Ts>
+    struct flatten_once<pack_type<Ts...>>
+    : std::type_identity<
+        unfold_to_t<pack_type, decltype(std::tuple_cat(
+            std::conditional_t<
+                is_instance_of_v<pack_type, Ts>,
+                unfold_to_t<std::tuple, Ts>,
+                std::tuple<Ts>
+            >{}...
+        ))>
+    >{};
+    template <typename T>
+    using flatten_once_t = flatten_once<T>::type;
 
     // reverse
     template <typename>
