@@ -6,6 +6,6 @@ Collection of - Single-Header, header-only, C++ libraries files
 
 A collection of metaprogramming utilities
 
-## [workflow](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/workflow/workflow.hpp)
+## [workflow](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/csl/workflow.hpp)
 
 Simple route pattern to best translate workflow/use-cases in C++
