@@ -859,21 +859,21 @@ namespace csl::wf::details::mp {
     >;
 
     template <template <typename ...> typename destination_type, typename T>
-    decltype(auto) unfold_super_into(T && value) {
+    constexpr decltype(auto) unfold_super_into(T && value) {
         return destination_type<T&&>(fwd(value));
     }
     template <template <typename ...> typename destination_type, typename ... Ts>
-    decltype(auto) unfold_super_into(destination_type<Ts...> && value) {
+    constexpr decltype(auto) unfold_super_into(destination_type<Ts...> && value) {
         return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
     template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
-    decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
+    constexpr decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
         return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
 
     template <template <typename ...> typename super_type, typename... Ts>
-    requires ((csl::wf::details::mp::InstanceOf<super_type, Ts> and ...))
-    auto make_flatten_super(Ts && ... args) {
+    // requires ((csl::wf::details::mp::InstanceOf<super_type, Ts> and ...))
+    constexpr auto make_flatten_super(Ts && ... args) {
 
         auto flatten_args_as_tuple = std::tuple_cat(unfold_super_into<std::tuple>(fwd(args))...);
         constexpr auto flatten_args_as_tuple_index_sequence = std::make_index_sequence<
@@ -912,13 +912,13 @@ namespace csl::wf::operators {
         not csl::wf::details::mp::is_instance_of_v<csl::wf::details::overload, lhs_t> and
         not csl::wf::details::mp::is_instance_of_v<csl::wf::details::overload, rhs_t>
     )
-    auto operator|(lhs_t && lhs, rhs_t && rhs) {
+    constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
         return csl::wf::details::overload {
             fwd(lhs), fwd(rhs)
         };
     }
     template <typename lhs_t, typename rhs_t>
-    auto operator|(lhs_t && lhs, rhs_t && rhs) {
+    constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
         return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
             fwd(lhs), fwd(rhs)
         );
