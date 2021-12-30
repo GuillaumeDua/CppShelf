@@ -891,14 +891,19 @@ namespace csl::wf::details {
     template <typename ... Ts>
     requires (mp::are_unique_v<Ts...>)
     struct overload : Ts... {
+
+        static_assert((not std::is_reference_v<Ts> && ...));
+        static_assert((not std::is_const_v<Ts> && ...));
+
         using Ts::operator()...;
 
-        explicit overload(Ts&&... args)
+        template <typename ... args_ts>
+        constexpr explicit overload(args_ts &&... args)
         : Ts{ fwd(args) }...
         {}
     };
     template <typename ... Ts>
-    overload(Ts&&...) -> overload<Ts...>;
+    overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
 }
 namespace csl::wf::operators {
     template <typename lhs_t, typename rhs_t>
