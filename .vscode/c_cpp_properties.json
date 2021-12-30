@@ -7,7 +7,9 @@
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang++",
-            "intelliSenseMode": "linux-clang-x64"
+            "intelliSenseMode": "linux-clang-x64",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
             "name": "Linux - GNU/g++",

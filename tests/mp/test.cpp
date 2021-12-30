@@ -1,4 +1,4 @@
-#include "./cat_merge_flatten.hpp"
+#include "./flat.hpp"
 
 #include <csl/mp.hpp>
 
