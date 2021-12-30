@@ -871,7 +871,8 @@ namespace csl::wf::details::mp {
         return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
 
-    template <template <typename ...> typename super_type, typename ... Ts>
+    template <template <typename ...> typename super_type, typename... Ts>
+    requires ((csl::wf::details::mp::InstanceOf<super_type, Ts> and ...))
     auto make_flatten_super(Ts && ... args) {
 
         auto flatten_args_as_tuple = std::tuple_cat(unfold_super_into<std::tuple>(fwd(args))...);
