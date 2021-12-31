@@ -830,6 +830,7 @@ namespace csl::wf::details::mp {
     template <typename T>
     constexpr bool are_unique_v<T> = true;
 
+    // is_instance_of
     template <template <typename...> typename type, typename T>
     struct is_instance_of : std::false_type{};
     template <template <typename...> typename type, typename ... Ts>
@@ -839,6 +840,7 @@ namespace csl::wf::details::mp {
     template <template <typename...> typename type, typename T>
     concept InstanceOf = is_instance_of_v<type, T>;
 
+    // unfold_to
     template <template <typename...> typename destination, typename ... Ts>
     struct unfold_to : std::type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
@@ -846,6 +848,7 @@ namespace csl::wf::details::mp {
     template <template <typename...> typename destination, typename ... from>
     using unfold_to_t = typename unfold_to<destination, from...>::type;
 
+    // flatten_of_t
     template <template <typename ...> typename pack_type, typename ... Ts>
     using flatten_of_t = unfold_to_t<
         pack_type,
@@ -858,21 +861,23 @@ namespace csl::wf::details::mp {
         ))
     >;
 
+    // unfold_super_into
     template <template <typename ...> typename destination_type, typename T>
     constexpr decltype(auto) unfold_super_into(T && value) {
         return destination_type<T&&>(fwd(value));
     }
     template <template <typename ...> typename destination_type, typename ... Ts>
     constexpr decltype(auto) unfold_super_into(destination_type<Ts...> && value) {
-        return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
+        return fwd(value);
+        // return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
     template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
     constexpr decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
         return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
 
+    // make_flatten_super
     template <template <typename ...> typename super_type, typename... Ts>
-    // requires ((csl::wf::details::mp::InstanceOf<super_type, Ts> and ...))
     constexpr auto make_flatten_super(Ts && ... args) {
 
         auto flatten_args_as_tuple = std::tuple_cat(unfold_super_into<std::tuple>(fwd(args))...);
@@ -908,16 +913,16 @@ namespace csl::wf::details {
 }
 namespace csl::wf::operators {
     template <typename lhs_t, typename rhs_t>
-    requires (
-        not csl::wf::details::mp::is_instance_of_v<csl::wf::details::overload, lhs_t> and
-        not csl::wf::details::mp::is_instance_of_v<csl::wf::details::overload, rhs_t>
-    )
     constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
         return csl::wf::details::overload {
             fwd(lhs), fwd(rhs)
         };
     }
     template <typename lhs_t, typename rhs_t>
+    requires (
+        csl::wf::details::mp::InstanceOf<csl::wf::details::overload, lhs_t> or
+        csl::wf::details::mp::InstanceOf<csl::wf::details::overload, rhs_t>
+    )
     constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
         return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
             fwd(lhs), fwd(rhs)
@@ -940,9 +945,8 @@ namespace csl::wf {
 //     or automated : is_applyable ? apply : invoke
 //
 // todo : better error messages
-// todo : static-analysis (sonar-lint, clang-tidy)
-//  cppcoreguideline
 
 // extensions :
 // - coroutines, futures
 // - async generators as entry-point for redundant calls
+// - network ?
