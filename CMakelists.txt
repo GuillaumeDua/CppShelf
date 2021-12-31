@@ -41,7 +41,15 @@ add_library(csl::csl ALIAS csl_lib)
 option(CSL_BUILD_ALL_TESTS "Build all tests for csl" ON)
 if (CSL_BUILD_ALL_TESTS)
     enable_testing()
+
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options(-fdiagnostics-color=always)
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options(-fcolor-diagnostics)
+    endif()
+
     # Catch2, Ctest
+    
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests/mp)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests/workflow)
 endif()

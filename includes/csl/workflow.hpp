@@ -727,9 +727,9 @@ namespace csl::wf {
     // todo : owning by default, non-owning (opt-out) policy ?
 
     template <typename ... Fs>
-    requires (sizeof...(Fs) not_eq 0)
     struct binder {
-        static_assert((not std::is_reference_v<Fs> && ...));
+        static_assert(sizeof...(Fs) not_eq 0,               "csl::wf::binder : binds nothing");
+        static_assert((not std::is_reference_v<Fs> && ...), "csl::wf::binder : non-owning");
 
         using storage_type = std::tuple<Fs...>;
 
@@ -769,6 +769,16 @@ namespace csl::wf {
                 std::forward_as_tuple(fwd(args)...)
             );
         }
+
+        template <std::size_t index>
+        using node_t = std::tuple_element_t<index, storage_type>;
+
+        template <std::size_t index> constexpr decltype(auto) at() &         { return std::get<index>(storage); }
+        template <std::size_t index> constexpr decltype(auto) at() const &   { return std::get<index>(storage); }
+        template <std::size_t index> constexpr decltype(auto) at() &&        { return std::get<index>(std::move(storage)); }
+        template <std::size_t index> constexpr decltype(auto) at() const &&  { return std::get<index>(std::move(storage)); }
+
+        constexpr static std::size_t size = std::tuple_size_v<storage_type>;
 
     private:
 
@@ -892,6 +902,7 @@ namespace csl::wf::details::mp {
         }(flatten_args_as_tuple_index_sequence);
     }
 }
+// overload
 namespace csl::wf::details {
 
     template <typename ... Ts>
@@ -911,7 +922,12 @@ namespace csl::wf::details {
     template <typename ... Ts>
     overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
 }
+// operator*
+// operator|
+// operator>>=
 namespace csl::wf::operators {
+    
+    // operator|
     template <typename lhs_t, typename rhs_t>
     constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
         return csl::wf::details::overload {
@@ -927,6 +943,45 @@ namespace csl::wf::operators {
         return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
             fwd(lhs), fwd(rhs)
         );
+    }
+
+    // operator>>=
+    template <typename lhs_t, typename rhs_t>
+    constexpr auto operator>>=(lhs_t && lhs, rhs_t && rhs) {
+        return csl::wf::binder{
+            fwd(lhs), fwd(rhs)
+        };
+    }
+    template <typename T>
+    constexpr auto fwd_nodes_as_tuple(T && value) {
+        return std::tuple<T&&>{ fwd(value) };
+    }
+    template <typename T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::binder, T>
+    constexpr auto fwd_nodes_as_tuple(T && value) {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::tuple<typename T::node_t<indexes>&&...>{
+                fwd(value).template at<indexes>()...
+            };
+        }(std::make_index_sequence<T::size>{});
+    }
+    
+    template <typename lhs_t, typename rhs_t>
+    requires (
+        csl::wf::details::mp::InstanceOf<csl::wf::binder, lhs_t> or
+        csl::wf::details::mp::InstanceOf<csl::wf::binder, rhs_t>
+    )
+    constexpr auto operator>>=(lhs_t && lhs, rhs_t && rhs) {
+        
+        auto nodes = std::tuple_cat(
+            fwd_nodes_as_tuple(fwd(lhs)),
+            fwd_nodes_as_tuple(fwd(rhs))
+        );
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return csl::wf::binder{
+                std::get<indexes>(std::move(nodes))...
+            };
+        }(std::make_index_sequence<std::tuple_size_v<decltype(nodes)>>{});
     }
 }
 

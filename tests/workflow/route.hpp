@@ -3,7 +3,7 @@
 #include <csl/workflow.hpp>
 #include <bitset>
 
-namespace test::route_ {
+namespace test::wf::route_ {
     auto node_1 = []()      { return 41; };
     auto node_2 = [](int i) { return i + 1; };
     auto node_3 = []()      { };
@@ -37,7 +37,6 @@ namespace test::route_ {
         int
     >);
 #pragma endregion
-
 #pragma region discard (node_1 >[int]> node_3)
     static_assert(std::invocable<
         decltype(csl::wf::route{ node_1, node_3 })
