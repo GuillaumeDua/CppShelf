@@ -1,7 +1,8 @@
 #pragma once
 
 // Evolutions :
-//  Consider P2347 "Argument type deduction for non-trailing parameter packs" to deduce a single non-trailing parameters pack for function arguments
+//  - Consider P2347 "Argument type deduction for non-trailing parameter packs" to deduce a single non-trailing parameters pack for function arguments
+//  - std::any_invocable ?
 
 #include <utility>
 #include <type_traits>
@@ -650,6 +651,25 @@ namespace csl::wf {
         >::type;
     };
 }
+// mp::are_unique_v<Ts..>
+// mp::is_instance_of<pack<...>, T>
+namespace csl::wf::details::mp {
+
+    template <typename T, typename ... Ts>
+    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
+    template <typename T>
+    constexpr bool are_unique_v<T> = true;
+
+    // is_instance_of
+    template <template <typename...> typename type, typename T>
+    struct is_instance_of : std::false_type{};
+    template <template <typename...> typename type, typename ... Ts>
+    struct is_instance_of<type, type<Ts...>>  : std::true_type{};
+    template <template <typename...> typename type, typename T>
+    constexpr bool is_instance_of_v = is_instance_of<type, T>::value;
+    template <template <typename...> typename type, typename T>
+    concept InstanceOf = is_instance_of_v<type, T>;
+}
 // route details
 namespace csl::wf::details {
     // todo :
@@ -725,7 +745,6 @@ namespace csl::wf {
     }
 
     // todo : owning by default, non-owning (opt-out) policy ?
-
     template <typename ... Fs>
     struct binder {
         static_assert(sizeof...(Fs) not_eq 0,               "csl::wf::binder : binds nothing");
@@ -737,6 +756,8 @@ namespace csl::wf {
         : storage{ fwd(args)... }
         {}
 
+        // todo : conditionally noexcept
+        // todo : conditionally enabled
         constexpr decltype(auto) operator()(auto && ... args) & {
             return chain_invoke(
                 [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<Fs&...> {
@@ -773,10 +794,10 @@ namespace csl::wf {
         template <std::size_t index>
         using node_t = std::tuple_element_t<index, storage_type>;
 
-        template <std::size_t index> constexpr decltype(auto) at() &         { return std::get<index>(storage); }
-        template <std::size_t index> constexpr decltype(auto) at() const &   { return std::get<index>(storage); }
-        template <std::size_t index> constexpr decltype(auto) at() &&        { return std::get<index>(std::move(storage)); }
-        template <std::size_t index> constexpr decltype(auto) at() const &&  { return std::get<index>(std::move(storage)); }
+        template <std::size_t index> constexpr decltype(auto) at() &         noexcept { return std::get<index>(storage); }
+        template <std::size_t index> constexpr decltype(auto) at() const &   noexcept { return std::get<index>(storage); }
+        template <std::size_t index> constexpr decltype(auto) at() &&        noexcept { return std::get<index>(std::move(storage)); }
+        template <std::size_t index> constexpr decltype(auto) at() const &&  noexcept { return std::get<index>(std::move(storage)); }
 
         constexpr static std::size_t size = std::tuple_size_v<storage_type>;
 
@@ -789,66 +810,39 @@ namespace csl::wf {
 
     template <typename ... Fs>
     using route = binder<Fs...>;
+
+    template <std::size_t index, typename T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::binder, T>
+    constexpr decltype(auto) get(T && value) noexcept {
+        return fwd(value).template at<index>();
+    }
 }
-// detections
-namespace csl::wf::details::mp::detect {
-    // avoid recursive concepts
-    // could use std::detected_t (library fundamentals TS v2)
+// overload
+namespace csl::wf::details {
 
-    template <typename T, typename U, typename = void>
-    struct have_pipe_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_pipe_operator<T, U, std::void_t<decltype(std::declval<T>() | std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
+    template <typename ... Ts>
+    requires (mp::are_unique_v<Ts...>)
+    struct overload : Ts... {
 
-    template <typename T, typename U, typename = void>
-    struct have_shift_equal_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_shift_equal_operator<T, U, std::void_t<decltype(std::declval<T>() >>= std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
+        static_assert((not std::is_reference_v<Ts> && ...));
+        static_assert((not std::is_const_v<Ts> && ...));
 
-    template <typename T, typename U, typename = void>
-    struct have_plus_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_plus_operator<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_plus_operator_v = have_plus_operator<T, U>::value;
+        using Ts::operator()...;
 
-    template <typename T, typename U, typename = void>
-    struct have_multiply_operator : std::false_type{};
-    template <typename T, typename U>
-    struct have_multiply_operator<T, U, std::void_t<decltype(std::declval<T>() * std::declval<U>())>>
-    : std::true_type{};
-    template <typename T, typename U>
-    constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
+        template <typename ... args_ts>
+        constexpr explicit overload(args_ts &&... args)
+        : Ts{ fwd(args) }...
+        {}
+    };
+    template <typename ... Ts>
+    overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
 }
-// mp::are_unique_v<Ts..>
-// mp::is_instance_of<pack<...>, T>
-// mp::unfold_to<dest<...>, T>
-// mp::flatten_of_t<pack<...>, Ts...>
-// mp::unfold_super_into<pack<...>, Ts...>
-// mp::make_flatten_super(super<...>, Ts&&...)
+// flattening utility
+// - mp::unfold_to<dest<...>, T>
+// - mp::flatten_of_t<pack<...>, Ts...>
+// - mp::unfold_super_into<pack<...>, Ts...>
+// - mp::make_flatten_super(super<...>, Ts&&...)
 namespace csl::wf::details::mp {
-
-    template <typename T, typename ... Ts>
-    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
-    template <typename T>
-    constexpr bool are_unique_v<T> = true;
-
-    // is_instance_of
-    template <template <typename...> typename type, typename T>
-    struct is_instance_of : std::false_type{};
-    template <template <typename...> typename type, typename ... Ts>
-    struct is_instance_of<type, type<Ts...>>  : std::true_type{};
-    template <template <typename...> typename type, typename T>
-    constexpr bool is_instance_of_v = is_instance_of<type, T>::value;
-    template <template <typename...> typename type, typename T>
-    concept InstanceOf = is_instance_of_v<type, T>;
 
     // unfold_to
     template <template <typename...> typename destination, typename ... Ts>
@@ -901,30 +895,82 @@ namespace csl::wf::details::mp {
             };
         }(flatten_args_as_tuple_index_sequence);
     }
+
+    // fwd_nodes_as_tuple
+    template <template <typename...> typename destination_type, typename T>
+    constexpr auto fwd_nodes_into(T && value) {
+        return destination_type<T&&>{ fwd(value) };
+    }
+    template <template <typename...> typename destination_type, typename T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::binder, T>
+    constexpr auto fwd_nodes_into(T && value) {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return destination_type<typename T::template node_t<indexes>&&...>{
+                csl::wf::get<indexes>(fwd(value))...
+            };
+        }(std::make_index_sequence<T::size>{});
+    }
 }
-// overload
-namespace csl::wf::details {
+// detections
+namespace csl::wf::details::mp::detect {
+    // avoid recursive concepts
+    // could use std::detected_t (library fundamentals TS v2)
 
-    template <typename ... Ts>
-    requires (mp::are_unique_v<Ts...>)
-    struct overload : Ts... {
+    // have_pipe_operator
+    template <typename T, typename U, typename = void>
+    struct have_pipe_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_pipe_operator<T, U, std::void_t<decltype(std::declval<T>() | std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
 
-        static_assert((not std::is_reference_v<Ts> && ...));
-        static_assert((not std::is_const_v<Ts> && ...));
+    // have_shift_equal_operator
+    template <typename T, typename U, typename = void>
+    struct have_shift_equal_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_shift_equal_operator<T, U, std::void_t<decltype(std::declval<T>() >>= std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
 
-        using Ts::operator()...;
+    // have_plus_operator
+    template <typename T, typename U, typename = void>
+    struct have_plus_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_plus_operator<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_plus_operator_v = have_plus_operator<T, U>::value;
 
-        template <typename ... args_ts>
-        constexpr explicit overload(args_ts &&... args)
-        : Ts{ fwd(args) }...
-        {}
-    };
-    template <typename ... Ts>
-    overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
+    // have_multiply_operator
+    template <typename T, typename U, typename = void>
+    struct have_multiply_operator : std::false_type{};
+    template <typename T, typename U>
+    struct have_multiply_operator<T, U, std::void_t<decltype(std::declval<T>() * std::declval<U>())>>
+    : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
 }
-// operator*
-// operator|
-// operator>>=
+// eDSL
+namespace csl::wf {
+    template <typename ... Ts>
+    auto make_continuation(Ts && ... nodes) {
+        return csl::wf::binder{ fwd(nodes)... };
+    }
+    template <typename ... Ts>
+    requires (csl::wf::details::mp::InstanceOf<csl::wf::binder, Ts> or ...)
+    auto make_continuation(Ts && ... nodes) {
+        auto route_elements = std::tuple_cat(
+            csl::wf::details::mp::fwd_nodes_into<std::tuple>(fwd(nodes))...
+        );
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return csl::wf::binder{
+                std::get<indexes>(std::move(route_elements))...
+            };
+        }(std::make_index_sequence<std::tuple_size_v<decltype(route_elements)>>{});
+    }
+}
 namespace csl::wf::operators {
     
     // operator|
@@ -948,40 +994,7 @@ namespace csl::wf::operators {
     // operator>>=
     template <typename lhs_t, typename rhs_t>
     constexpr auto operator>>=(lhs_t && lhs, rhs_t && rhs) {
-        return csl::wf::binder{
-            fwd(lhs), fwd(rhs)
-        };
-    }
-    template <typename T>
-    constexpr auto fwd_nodes_as_tuple(T && value) {
-        return std::tuple<T&&>{ fwd(value) };
-    }
-    template <typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::binder, T>
-    constexpr auto fwd_nodes_as_tuple(T && value) {
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return std::tuple<typename T::node_t<indexes>&&...>{
-                fwd(value).template at<indexes>()...
-            };
-        }(std::make_index_sequence<T::size>{});
-    }
-    
-    template <typename lhs_t, typename rhs_t>
-    requires (
-        csl::wf::details::mp::InstanceOf<csl::wf::binder, lhs_t> or
-        csl::wf::details::mp::InstanceOf<csl::wf::binder, rhs_t>
-    )
-    constexpr auto operator>>=(lhs_t && lhs, rhs_t && rhs) {
-        
-        auto nodes = std::tuple_cat(
-            fwd_nodes_as_tuple(fwd(lhs)),
-            fwd_nodes_as_tuple(fwd(rhs))
-        );
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return csl::wf::binder{
-                std::get<indexes>(std::move(nodes))...
-            };
-        }(std::make_index_sequence<std::tuple_size_v<decltype(nodes)>>{});
+        return make_continuation(fwd(lhs), fwd(rhs));
     }
 }
 
