@@ -954,6 +954,7 @@ namespace csl::wf::details::mp::detect {
 }
 // eDSL
 namespace csl::wf {
+    // make_continuation
     template <typename ... Ts>
     auto make_continuation(Ts && ... nodes) {
         return csl::wf::binder{ fwd(nodes)... };
@@ -970,25 +971,26 @@ namespace csl::wf {
             };
         }(std::make_index_sequence<std::tuple_size_v<decltype(route_elements)>>{});
     }
+
+    // make_condition
+    template <typename ... Ts>
+    constexpr auto make_condition(Ts && ... nodes) {
+        return csl::wf::details::overload { fwd(nodes)... };
+    }
+    template <typename ... Ts>
+    requires (csl::wf::details::mp::InstanceOf<csl::wf::details::overload, Ts> or ...)
+    constexpr auto make_condition(Ts && ... nodes) {
+        return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
+            fwd(nodes)...
+        );
+    }
 }
 namespace csl::wf::operators {
     
     // operator|
     template <typename lhs_t, typename rhs_t>
     constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
-        return csl::wf::details::overload {
-            fwd(lhs), fwd(rhs)
-        };
-    }
-    template <typename lhs_t, typename rhs_t>
-    requires (
-        csl::wf::details::mp::InstanceOf<csl::wf::details::overload, lhs_t> or
-        csl::wf::details::mp::InstanceOf<csl::wf::details::overload, rhs_t>
-    )
-    constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
-        return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
-            fwd(lhs), fwd(rhs)
-        );
+        return make_condition(fwd(lhs), fwd(rhs));
     }
 
     // operator>>=
