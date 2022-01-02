@@ -952,7 +952,7 @@ namespace csl::wf::details::mp::detect {
     template <typename T, typename U>
     constexpr bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
 }
-// eDSL
+// eDSL utility
 namespace csl::wf {
     // make_continuation
     template <typename ... Ts>
@@ -984,7 +984,45 @@ namespace csl::wf {
             fwd(nodes)...
         );
     }
+
+    template <auto times, typename F>
+    struct repeat {
+        explicit repeat(F && func)
+        : storage{ fwd(func) }
+        {}
+
+        template <typename ... args_ts>
+        decltype(auto) operator()(args_ts && ... args) {
+            using invoke_result_t = std::invoke_result_t<decltype(storage), decltype(fwd(args))...>;
+            if constexpr (std::is_void_v<invoke_result_t>) {
+                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                    ((indexes, std::invoke(storage, fwd(args)...)), ...);
+                }(std::make_index_sequence<times>{});
+            }
+            else {
+                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                    return std::array<invoke_result_t, times>{
+                        (indexes, std::invoke(storage, fwd(args)...))...
+                    };
+                }(std::make_index_sequence<times>{});
+            }
+        }
+
+    private:
+        using storage_type = F;
+        storage_type storage;
+    };
+    template <auto times, typename F>
+    repeat(F &&) -> repeat<times, std::remove_cvref_t<F>>;
+
+    // make_repetition
+    template <auto times, typename F>
+    decltype(auto) make_repetition(F && func) {
+        return repeat<times, F>(fwd(func));
+    }
+
 }
+// eDSL
 namespace csl::wf::operators {
     
     // operator|
