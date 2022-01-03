@@ -1,6 +1,7 @@
 #pragma once
 
 // Evolutions :
+//  - Consider P1985 "Universal template declaration"
 //  - Consider P2347 "Argument type deduction for non-trailing parameter packs" to deduce a single non-trailing parameters pack for function arguments
 //  - std::any_invocable ?
 
@@ -326,7 +327,8 @@ namespace csl::wf::mp {
     template <typename F, typename ttps, typename args>
     concept nothrow_invocable_with = is_nothrow_invocable_with_v<F, ttps, args>;
 }
-// apply(,_after,_before), invoke
+// invoke
+// apply(,_after,_before)
 // front_binder, bind_front
 namespace csl::wf {
     // todo : Universal template declaration ... (p1985)
@@ -985,40 +987,52 @@ namespace csl::wf {
         );
     }
 
+    template <auto times, typename F, typename ... Ts>
+    constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args)
+    noexcept(noexcept(csl::wf::invoke(fwd(func), fwd(args)...)))
+    requires(std::is_void_v<csl::wf::mp::invoke_result_t<F&&, Ts&&...>>)
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((indexes, std::invoke(fwd(func), fwd(args)...)), ...);
+        }(std::make_index_sequence<times>{});
+    }
+    template <auto times, typename F, typename ... Ts>
+    constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args)
+    noexcept(noexcept(csl::wf::invoke(fwd(func), fwd(args)...)))
+    {
+        using invoke_result_t = csl::wf::mp::invoke_result_t<F&&, Ts&&...>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::array<invoke_result_t, times>{
+                (indexes, std::invoke(fwd(func), fwd(args)...))...
+            };
+        }(std::make_index_sequence<times>{});
+    }
+
     template <auto times, typename F>
-    struct repeat {
-        explicit repeat(F && func)
+    struct repeater {
+        constexpr explicit repeater(F && func)
         : storage{ fwd(func) }
         {}
 
         template <typename ... args_ts>
-        decltype(auto) operator()(args_ts && ... args) {
-            using invoke_result_t = std::invoke_result_t<decltype(storage), decltype(fwd(args))...>;
-            if constexpr (std::is_void_v<invoke_result_t>) {
-                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                    ((indexes, std::invoke(storage, fwd(args)...)), ...);
-                }(std::make_index_sequence<times>{});
-            }
-            else {
-                return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                    return std::array<invoke_result_t, times>{
-                        (indexes, std::invoke(storage, fwd(args)...))...
-                    };
-                }(std::make_index_sequence<times>{});
-            }
+        constexpr decltype(auto) operator()(args_ts && ... args)
+        noexcept(noexcept(invoke_n_times<times>(std::declval<F>(), fwd(args)...)))
+        {
+            return invoke_n_times<times>(storage, fwd(args)...);
         }
+        
 
     private:
         using storage_type = F;
         storage_type storage;
     };
     template <auto times, typename F>
-    repeat(F &&) -> repeat<times, std::remove_cvref_t<F>>;
+    repeater(F &&) -> repeater<times, std::remove_cvref_t<F>>;
 
     // make_repetition
     template <auto times, typename F>
-    decltype(auto) make_repetition(F && func) {
-        return repeat<times, F>(fwd(func));
+    constexpr decltype(auto) make_repetition(F && func) {
+        return repeater<times, F>(fwd(func));
     }
 
 }

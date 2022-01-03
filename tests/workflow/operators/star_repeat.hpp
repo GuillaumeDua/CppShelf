@@ -2,5 +2,5 @@
 
 #include <csl/workflow.hpp>
 
-namespace test::wf::operators::shift_equal {
+namespace test::wf::operators::star {
 }
