@@ -331,8 +331,6 @@ namespace csl::wf::mp {
 // apply(,_after,_before)
 // front_binder, bind_front
 namespace csl::wf {
-    // todo : Universal template declaration ... (p1985)
-    //  ttps -> tt{1,}ps + ntt{1,}ps 
 
     // invoke
     template <typename ... ttps_args, typename F, typename ... args_types>
@@ -958,12 +956,12 @@ namespace csl::wf::details::mp::detect {
 namespace csl::wf {
     // make_continuation
     template <typename ... Ts>
-    auto make_continuation(Ts && ... nodes) {
+    constexpr auto make_continuation(Ts && ... nodes) {
         return csl::wf::binder{ fwd(nodes)... };
     }
     template <typename ... Ts>
     requires (csl::wf::details::mp::InstanceOf<csl::wf::binder, Ts> or ...)
-    auto make_continuation(Ts && ... nodes) {
+    constexpr auto make_continuation(Ts && ... nodes) {
         auto route_elements = std::tuple_cat(
             csl::wf::details::mp::fwd_nodes_into<std::tuple>(fwd(nodes))...
         );
@@ -987,13 +985,17 @@ namespace csl::wf {
         );
     }
 
+    // invoke_n_times
+    template <auto times, typename F, typename ... Ts>
+    requires(not csl::wf::mp::is_invocable_v<F&&, Ts&&...>) 
+    constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args) = delete;
     template <auto times, typename F, typename ... Ts>
     constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args)
     noexcept(noexcept(csl::wf::invoke(fwd(func), fwd(args)...)))
     requires(std::is_void_v<csl::wf::mp::invoke_result_t<F&&, Ts&&...>>)
     {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((indexes, std::invoke(fwd(func), fwd(args)...)), ...);
+            ((indexes, csl::wf::invoke(fwd(func), fwd(args)...)), ...);
         }(std::make_index_sequence<times>{});
     }
     template <auto times, typename F, typename ... Ts>
@@ -1003,36 +1005,62 @@ namespace csl::wf {
         using invoke_result_t = csl::wf::mp::invoke_result_t<F&&, Ts&&...>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::array<invoke_result_t, times>{
-                (indexes, std::invoke(fwd(func), fwd(args)...))...
+                (indexes, csl::wf::invoke(fwd(func), fwd(args)...))...
             };
         }(std::make_index_sequence<times>{});
     }
 
+    // todo : cx vs. rt
+    // repeater
     template <auto times, typename F>
     struct repeater {
+        static_assert(not std::is_reference_v<F>);
+        static_assert(not std::is_const_v<F>);
+
         constexpr explicit repeater(F && func)
         : storage{ fwd(func) }
         {}
 
+        // todo : ttps
         template <typename ... args_ts>
-        constexpr decltype(auto) operator()(args_ts && ... args)
-        noexcept(noexcept(invoke_n_times<times>(std::declval<F>(), fwd(args)...)))
+        constexpr decltype(auto) operator()(args_ts && ... args) &
+        noexcept(noexcept(invoke_n_times<times>(std::declval<F&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times>(std::declval<F&>(), fwd(args)...); }
         {
             return invoke_n_times<times>(storage, fwd(args)...);
         }
+        template <typename ... args_ts>
+        constexpr decltype(auto) operator()(args_ts && ... args) const &
+        noexcept(noexcept(invoke_n_times<times>(std::declval<const F&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times>(std::declval<const F&>(), fwd(args)...); }
+        {
+            return invoke_n_times<times>(storage, fwd(args)...);
+        }
+        template <typename ... args_ts>
+        constexpr decltype(auto) operator()(args_ts && ... args) &&
+        noexcept(noexcept(invoke_n_times<times>(std::declval<F&&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times>(std::declval<F&&>(), fwd(args)...); }
+        {
+            return invoke_n_times<times>(std::move(storage), fwd(args)...);
+        }
+        template <typename ... args_ts>
+        constexpr decltype(auto) operator()(args_ts && ... args) const &&
+        noexcept(noexcept(invoke_n_times<times>(std::declval<const F&&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times>(std::declval<const F&&>(), fwd(args)...); }
+        {
+            return invoke_n_times<times>(std::move(storage), fwd(args)...);
+        }
         
-
     private:
         using storage_type = F;
         storage_type storage;
     };
-    template <auto times, typename F>
-    repeater(F &&) -> repeater<times, std::remove_cvref_t<F>>;
 
     // make_repetition
     template <auto times, typename F>
     constexpr decltype(auto) make_repetition(F && func) {
-        return repeater<times, F>(fwd(func));
+        using repeater_type = repeater<times, std::remove_cvref_t<F>>;
+        return repeater_type{ fwd(func) };
     }
 
 }
