@@ -1,0 +1,62 @@
+name: cmake-Ubuntu-gcc_11
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+        matrix:
+            BUILD_TYPE: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Initialize compiler (GCC)
+      run: |
+          sudo apt update
+          sudo apt install gcc-11 g++-11
+          sudo update-alternatives \
+            --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
+            --slave /usr/bin/g++ g++  /usr/bin/g++-11 \
+            --slave /usr/bin/gcov gcov /usr/bin/gcov-11
+
+    - name: cmake create build env - ${{matrix.BUILD_TYPE}}
+      run: |
+        cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+        cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}
+      
+    - name: cmake cache - ${{matrix.BUILD_TYPE}}
+     #shell: bash
+     #working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+      run: |
+        cmake \
+            -DGCL_BUILD_TEST:BOOL=TRUE                                                              \
+            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}    \
+            -S ${{github.workspace}}                                                                \
+            -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+        
+      env:
+        CC:   gcc-11
+        CXX:  g++-11
+
+    - name: cmake build - ${{matrix.BUILD_TYPE}}
+     #working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+      run: |
+        cmake \
+            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}  \
+            --config ${{matrix.BUILD_TYPE}}
+
+    # Tests
+    - name: Test - csl::wf
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: ctest -R csl_validate_wf
+
+    - name: Test - csl::mp
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: ctest -R csl_validate_mp

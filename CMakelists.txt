@@ -48,7 +48,7 @@ if (CSL_BUILD_ALL_TESTS)
         add_compile_options(-fcolor-diagnostics)
     endif()
 
-    # Catch2, Ctest
+    # Catch2
     
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests/mp)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests/workflow)

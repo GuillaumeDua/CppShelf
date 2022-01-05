@@ -1,6 +1,7 @@
 # CMake
 
 build/
+Testing/
 
 # MSVC
 *.vs
