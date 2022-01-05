@@ -8,6 +8,7 @@ target_link_libraries(${test_name}
 		${PROJECT_NAME}::${component_name}
 )
 
-# add_test(NAME validate_Q1
-# 	COMMAND $<TARGET_FILE:${PROJECT_NAME}_validate_Q1> ${test_datas_filepath} 
-# )
+add_test(
+	NAME 	${PROJECT_NAME}_validate_${component_name}
+	COMMAND $<TARGET_FILE:${test_name}>
+)
