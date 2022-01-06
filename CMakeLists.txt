@@ -12,53 +12,45 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}] : In-source build not recommended")
 endif()
 
-# TODO : Component list + foreach
-
 ## Components
-## - csl::mp
-add_library(csl_mp_lib INTERFACE)
-target_include_directories(csl_mp_lib INTERFACE
-    ${PROJECT_SOURCE_DIR}/includes #/csl/mp.hpp
-)
-add_library(csl::mp ALIAS csl_mp_lib)
-## - csl::wf
-add_library(csl_wf_lib INTERFACE)
-target_include_directories(csl_wf_lib INTERFACE
-    ${PROJECT_SOURCE_DIR}/includes #/csl/workflow.hpp
-)
-add_library(csl::wf ALIAS csl_wf_lib)
+set(CSL_COMPONENT_LIST mp wf)
+
+### Components - tests
+option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF) # force all tests
+message(STATUS "[${CMAKE_PROJECT_NAME}] : CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
+set(CSL_TESTS_LIST "")
+
+### Components - add/glue (csl_lib)
+function(CSL_ADD_COMPONENT component_name)
+    message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} ...")
+    add_library(csl_${component_name}_lib INTERFACE)
+    target_include_directories(csl_${component_name}_lib INTERFACE
+        ${PROJECT_SOURCE_DIR}/includes #/csl/${component_name}.hpp
+    )
+    add_library(csl::${component_name} ALIAS csl_${component_name}_lib)
+endfunction()
 
 add_library(csl_lib INTERFACE)
-add_dependencies(csl_lib
-    csl::mp
-    csl::wf
-)
-target_link_libraries(csl_lib INTERFACE
-    csl::mp
-    csl::wf
-)
-add_library(csl::csl ALIAS csl_lib)
+foreach(component_name IN LISTS CSL_COMPONENT_LIST)
+    CSL_ADD_COMPONENT(${component_name})
+    
+    # library glue
+    add_dependencies(csl_lib csl::${component_name})
+    target_link_libraries(csl_lib INTERFACE csl::${component_name})
+    
+    # tests
+    if (${CSL_BUILD_ALL_TESTS})
+        set(CSL_BUILD_TEST_${component_name} ON)
+    else()
+        option(CSL_BUILD_TEST_${component_name} "[${CMAKE_PROJECT_NAME}] : Tests : all of csl::${component_name}" OFF)
+    endif()
+    if (CSL_BUILD_TEST_${component_name})
+        message(STATUS "[${CMAKE_PROJECT_NAME}] : Tests : building csl::${component_name} ...")
+        LIST(APPEND CSL_TESTS_LIST ${component_name})
+    endif()
+endforeach()
 
-# Tests
-option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF)
-message(STATUS "[${CMAKE_PROJECT_NAME}] : CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
-
-if (CSL_BUILD_ALL_TESTS)
-    set(CSL_BUILD_TEST_WF ON)
-    set(CSL_BUILD_TEST_MP ON)
-else()
-    option(CSL_BUILD_TEST_WF "Build all tests for csl::wf" OFF)
-    option(CSL_BUILD_TEST_MP "Build all tests for csl::mp" OFF)
-endif()
-
-set(CSL_TESTS_LIST "")
-if (CSL_BUILD_TEST_WF)
-    LIST(APPEND CSL_TESTS_LIST wf)
-endif()
-if (CSL_BUILD_TEST_MP)
-    LIST(APPEND CSL_TESTS_LIST mp)
-endif()
-
+## Tests
 list(LENGTH CSL_TESTS_LIST CSL_TESTS_LIST_length)
 if (${CSL_TESTS_LIST_length} EQUAL 0)
     return()
@@ -74,12 +66,6 @@ else()
     # Catch2
 endif()
 
-function(CSL_ADD_COMPONENT_TEST component_name)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
-endfunction()
-
 foreach(component_name IN LISTS CSL_TESTS_LIST)
-    CSL_ADD_COMPONENT_TEST(${component_name})
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
 endforeach()
-
-#add_subdirectory(${PROJECT_SOURCE_DIR}/tests/workflow)
