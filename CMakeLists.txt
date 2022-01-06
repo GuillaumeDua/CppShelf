@@ -12,6 +12,8 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}] : In-source build not recommended")
 endif()
 
+# TODO : Component list + foreach
+
 ## Components
 ## - csl::mp
 add_library(csl_mp_lib INTERFACE)
@@ -40,7 +42,27 @@ add_library(csl::csl ALIAS csl_lib)
 # Tests
 option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] : CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
-if (${CSL_BUILD_ALL_TESTS})
+
+if (CSL_BUILD_ALL_TESTS)
+    set(CSL_BUILD_TEST_WF ON)
+    set(CSL_BUILD_TEST_MP ON)
+else()
+    option(CSL_BUILD_TEST_WF "Build all tests for csl::wf" OFF)
+    option(CSL_BUILD_TEST_MP "Build all tests for csl::mp" OFF)
+endif()
+
+set(CSL_TESTS_LIST "")
+if (CSL_BUILD_TEST_WF)
+    LIST(APPEND CSL_TESTS_LIST wf)
+endif()
+if (CSL_BUILD_TEST_MP)
+    LIST(APPEND CSL_TESTS_LIST mp)
+endif()
+
+list(LENGTH CSL_TESTS_LIST CSL_TESTS_LIST_length)
+if (${CSL_TESTS_LIST_length} EQUAL 0)
+    return()
+else()
     enable_testing()
 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -50,7 +72,14 @@ if (${CSL_BUILD_ALL_TESTS})
     endif()
 
     # Catch2
-    
-    add_subdirectory(${PROJECT_SOURCE_DIR}/tests/mp)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/tests/workflow)
 endif()
+
+function(CSL_ADD_COMPONENT_TEST component_name)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
+endfunction()
+
+foreach(component_name IN LISTS CSL_TESTS_LIST)
+    CSL_ADD_COMPONENT_TEST(${component_name})
+endforeach()
+
+#add_subdirectory(${PROJECT_SOURCE_DIR}/tests/workflow)
