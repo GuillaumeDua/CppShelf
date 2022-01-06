@@ -38,8 +38,9 @@ target_link_libraries(csl_lib INTERFACE
 add_library(csl::csl ALIAS csl_lib)
 
 # Tests
-option(CSL_BUILD_ALL_TESTS "Build all tests for csl" ON)
-if (CSL_BUILD_ALL_TESTS)
+option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] : CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
+if (${CSL_BUILD_ALL_TESTS})
     enable_testing()
 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
