@@ -33,7 +33,7 @@ jobs:
      #working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
       run: |
         cmake \
-            -DGCL_BUILD_TEST:BOOL=TRUE                                                              \
+            -DCSL_BUILD_ALL_TESTS:BOOL=TRUE                                                              \
             -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
             -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}    \
             -S ${{github.workspace}}                                                                \
