@@ -3,7 +3,7 @@ name: cmake-Ubuntu-gcc_11
 on: [push, pull_request]
 
 jobs:
-  build:
+  cmake-Ubuntu-gcc_11_build_test:
 
     runs-on: ubuntu-latest
 
