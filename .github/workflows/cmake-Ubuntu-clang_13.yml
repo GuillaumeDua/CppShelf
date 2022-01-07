@@ -1,37 +1,41 @@
-name: cmake-Ubuntu-gcc_11
+name: cmake-Ubuntu-clang_13
 
 on: [push, pull_request]
 
 jobs:
-  cmake-Ubuntu-gcc_11_build_test:
+  cmake-Ubuntu-clang_13_build_test:
 
     runs-on: ubuntu-latest
 
     strategy:
         matrix:
             BUILD_TYPE: [Debug, Release]
+            STL_IMPLEMENTATION: [libstdc++, libc++ -lc++abi]
             CSL_COMPONENTS: [wf, mp]
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Initialize compiler (GCC)
+    - name: Initialize compiler (Clang)
       run: |
           sudo apt update
-          sudo apt install gcc-11 g++-11
+          sudo apt install libstdc++-11-dev
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
           sudo update-alternatives \
-            --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
-            --slave /usr/bin/g++ g++  /usr/bin/g++-11 \
-            --slave /usr/bin/gcov gcov /usr/bin/gcov-11
+            --install /usr/bin/clang clang /usr/bin/clang-13 100
+          sudo update-alternatives \
+            --install /usr/bin/clang++ clang++ /usr/bin/clang++-13 100
+          sudo apt install libc++1-13 libc++-13-dev libc++abi-13-dev libc++abi1-13
 
-    - name: cmake create build env - ${{matrix.BUILD_TYPE}}
+    - name: cmake create build env - ${{matrix.BUILD_TYPE}} - ${{matrix.STL_IMPLEMENTATION}}
       run: |
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
         cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       
-    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |
         cmake \
+            -DCMAKE_CXX_FLAGS="-stdlib=${{matrix.STL_IMPLEMENTATION}}"                              \
             -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                   \
             -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
             -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
@@ -39,18 +43,17 @@ jobs:
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
         
       env:
-        CC:   gcc-11
-        CXX:  g++-11
+        CC:   clang-13
+        CXX:  clang++-13
 
-    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |
         cmake \
             --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
             --config ${{matrix.BUILD_TYPE}}
 
     # Tests
-    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
       run: ctest -R csl_validate_${{matrix.CSL_COMPONENTS}}
-
