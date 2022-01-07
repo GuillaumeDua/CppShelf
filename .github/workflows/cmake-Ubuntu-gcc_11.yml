@@ -26,17 +26,17 @@ jobs:
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
-        cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
-        cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}
+        cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
+        cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       
     - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
             -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                              \
             -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}    \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
             -S ${{github.workspace}}                                                                \
-            -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+            -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
         
       env:
         CC:   gcc-11
