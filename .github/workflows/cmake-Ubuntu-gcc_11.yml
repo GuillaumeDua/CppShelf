@@ -10,6 +10,7 @@ jobs:
     strategy:
         matrix:
             BUILD_TYPE: [Debug, Release]
+            CSL_COMPONENTS: [wf, mp]
 
     steps:
     - uses: actions/checkout@v2
@@ -28,12 +29,10 @@ jobs:
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
         cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}
       
-    - name: cmake cache - ${{matrix.BUILD_TYPE}}
-     #shell: bash
-     #working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
-            -DCSL_BUILD_ALL_TESTS:BOOL=TRUE                                                              \
+            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                              \
             -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
             -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}    \
             -S ${{github.workspace}}                                                                \
@@ -43,20 +42,15 @@ jobs:
         CC:   gcc-11
         CXX:  g++-11
 
-    - name: cmake build - ${{matrix.BUILD_TYPE}}
-     #working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
-            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}  \
+            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
             --config ${{matrix.BUILD_TYPE}}
 
     # Tests
-    - name: Test - csl::wf
-      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
-      run: ctest -R csl_validate_wf
+      run: ctest -R csl_validate_${{matrix.CSL_COMPONENTS}}
 
-    - name: Test - csl::mp
-      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
-      shell: bash
-      run: ctest -R csl_validate_mp
