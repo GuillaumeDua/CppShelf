@@ -52,11 +52,11 @@ jobs:
 
     # Tests
     - name: Test - csl::wf
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
       shell: bash
       run: ctest -R csl_validate_wf
 
     - name: Test - csl::mp
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
       shell: bash
       run: ctest -R csl_validate_mp
