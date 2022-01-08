@@ -4,9 +4,9 @@
 #include <bitset>
 
 namespace test::wf::route_ {
-    auto node_1 = []()      { return 41; };
-    auto node_2 = [](int i) { return i + 1; };
-    auto node_3 = []()      { };
+    const auto node_1 = []()      { return 41; /* NOLINT(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) */ };
+    const auto node_2 = [](int i) { return i + 1; };
+    const auto node_3 = []()      { };
 
 #pragma region fwd (node_1 >[int]> node_2)
     // std::invocable
@@ -52,17 +52,17 @@ namespace test::wf::route_ {
 
     consteval void call_cvref_correctness() {
 
-        using lvalue_node_type          = struct {
+        struct lvalue_node_type {
             void operator()() & {}
         };
-        using const_lvalue_node_type    = struct {
+        struct const_lvalue_node_type {
             void operator()() & = delete;
             void operator()() const & {}
         };
-        using rvalue_node_type          = struct {
+        struct rvalue_node_type {
             void operator()() && {};
         };
-        using const_rvalue_node_type    = struct {
+        struct const_rvalue_node_type {
             void operator()() && = delete;
             void operator()() const && {}
         };

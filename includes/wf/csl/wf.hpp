@@ -93,9 +93,16 @@ namespace csl::wf::mp {
     struct ttps{};
 
     template <typename T>
-    constexpr bool is_ttps_v = false;
+    struct is_ttps : std::false_type{};
     template <typename ... Ts>
-    constexpr bool is_ttps_v<ttps<Ts...>> = true;
+    struct is_ttps<ttps<Ts...>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_ttps_v = is_ttps<T>::value;
+
+    // template <typename T>
+    // constexpr bool is_ttps_v = false;
+    // template <typename ... Ts>
+    // constexpr bool is_ttps_v<ttps<Ts...>> = true;
 
     // is_invocable<F, [ttps<...>,] args_types...>
     template <typename F, typename... args_types>
@@ -715,9 +722,9 @@ namespace csl::wf::details {
     }
 }
 // route
-// todo : value semantic correctness for route/binder storage
-//  cvref qualifiers for binder::operator()
+// todo :
 //  always owning ? mix owning and non-owning functors in storage ?
+//  if non-owning, value semantic correctness for route/binder storage
 namespace csl::wf {
     // particular case : always nodiscard operator() ?
     // bind_front -> take care of template arguments
@@ -727,8 +734,8 @@ namespace csl::wf {
         return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
     template <typename node, typename ... rest, mp::tuple_interface args_as_tuple_t>
+    requires (sizeof...(rest) not_eq 0)
     constexpr decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
-        static_assert(sizeof...(rest) not_eq 0);
 
         auto result = details::invoke_into_tuple([](auto && ... args){
                 return details::apply_with_or_discard(fwd(args)...);
@@ -746,13 +753,13 @@ namespace csl::wf {
 
     // todo : owning by default, non-owning (opt-out) policy ?
     template <typename ... Fs>
-    struct binder {
+    struct route {
         static_assert(sizeof...(Fs) not_eq 0,               "csl::wf::binder : binds nothing");
         static_assert((not std::is_reference_v<Fs> && ...), "csl::wf::binder : non-owning");
 
         using storage_type = std::tuple<Fs...>;
 
-        constexpr explicit binder(auto && ... args)
+        constexpr explicit route(auto && ... args)
         : storage{ fwd(args)... }
         {}
 
@@ -806,13 +813,13 @@ namespace csl::wf {
         storage_type storage;
     };
     template <typename ... Ts>
-    binder(Ts &&...) -> binder<std::remove_cvref_t<Ts>...>;
+    route(Ts &&...) -> route<std::remove_cvref_t<Ts>...>;
 
-    template <typename ... Fs>
-    using route = binder<Fs...>;
+    // template <typename ... Fs>
+    // using route = binder<Fs...>;
 
     template <std::size_t index, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::binder, T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
     constexpr decltype(auto) get(T && value) noexcept {
         return fwd(value).template at<index>();
     }
@@ -902,7 +909,7 @@ namespace csl::wf::details::mp {
         return destination_type<T&&>{ fwd(value) };
     }
     template <template <typename...> typename destination_type, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::binder, T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
     constexpr auto fwd_nodes_into(T && value) {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return destination_type<typename T::template node_t<indexes>&&...>{
@@ -957,16 +964,16 @@ namespace csl::wf {
     // make_continuation
     template <typename ... Ts>
     constexpr auto make_continuation(Ts && ... nodes) {
-        return csl::wf::binder{ fwd(nodes)... };
+        return csl::wf::route{ fwd(nodes)... };
     }
     template <typename ... Ts>
-    requires (csl::wf::details::mp::InstanceOf<csl::wf::binder, Ts> or ...)
+    requires (csl::wf::details::mp::InstanceOf<csl::wf::route, Ts> or ...)
     constexpr auto make_continuation(Ts && ... nodes) {
         auto route_elements = std::tuple_cat(
             csl::wf::details::mp::fwd_nodes_into<std::tuple>(fwd(nodes))...
         );
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return csl::wf::binder{
+            return csl::wf::route{
                 std::get<indexes>(std::move(route_elements))...
             };
         }(std::make_index_sequence<std::tuple_size_v<decltype(route_elements)>>{});
@@ -995,7 +1002,7 @@ namespace csl::wf {
     requires(std::is_void_v<csl::wf::mp::invoke_result_t<F&&, Ts&&...>>)
     {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((indexes, csl::wf::invoke(fwd(func), fwd(args)...)), ...);
+            ((static_cast<void>(indexes), csl::wf::invoke(fwd(func), fwd(args)...)), ...);
         }(std::make_index_sequence<times>{});
     }
     template <auto times, typename F, typename ... Ts>
@@ -1005,7 +1012,7 @@ namespace csl::wf {
         using invoke_result_t = csl::wf::mp::invoke_result_t<F&&, Ts&&...>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::array<invoke_result_t, times>{
-                (indexes, csl::wf::invoke(fwd(func), fwd(args)...))...
+                (static_cast<void>(indexes), csl::wf::invoke(fwd(func), fwd(args)...))...
             };
         }(std::make_index_sequence<times>{});
     }
