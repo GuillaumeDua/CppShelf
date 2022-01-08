@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <iterator>
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)
-#define static_dependent_error(message) static_assert([](){ return false; }(), message)
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+#define static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
 // cpp shelf library : metaprogramming
 // sequences
@@ -33,7 +33,7 @@ namespace csl::mp::seq {
     template <typename T, T ... values>
     struct reverse_integer_sequence<std::integer_sequence<T, values...>> : reverse_integer_sequence<T, values...>{};
     template <typename T, std::size_t ... values>
-    using reverse_integer_sequence_t = reverse_integer_sequence<T, values...>::type;
+    using reverse_integer_sequence_t = typename reverse_integer_sequence<T, values...>::type;
 
     template <std::size_t size>
     using make_reversed_index_sequence = reverse_integer_sequence_t<std::make_index_sequence<size>>;
@@ -159,7 +159,7 @@ namespace csl::mp {
     template <template <typename ...> typename pack, typename T, typename ... Ts>
     struct front<pack<T, Ts...>> : std::type_identity<T>{};
     template <typename T>
-    using front_t = front<T>::type;
+    using front_t = typename front<T>::type;
 
     // filters
     // todo : remove dependency to std::tuple
@@ -177,7 +177,7 @@ namespace csl::mp {
         >{}...))>{}; // todo : repack tuple into pack
 
     template <template <typename> typename filter_type, typename pack>
-    using filters_t = filters<filter_type, pack>::type;
+    using filters_t = typename filters<filter_type, pack>::type;
 
     // nth element
     //  wip benchmarks : https://www.build-bench.com/b/gysn2DDajc38cdeUbNHnjmtKKvA
@@ -352,7 +352,7 @@ namespace csl::mp {
         ))>
     >{};
     template <typename pack_type, typename ... Ts>
-    using flat_cat_t = flat_cat<pack_type, Ts...>::type;
+    using flat_cat_t = typename flat_cat<pack_type, Ts...>::type;
 
     // flat_merge : flat_cat + deduplication
     // todo
@@ -373,7 +373,7 @@ namespace csl::mp {
         ))>
     >{};
     template <typename T>
-    using flatten_once_t = flatten_once<T>::type;
+    using flatten_once_t = typename flatten_once<T>::type;
 
     // flatten
     template <typename T>
@@ -400,7 +400,7 @@ namespace csl::mp {
         }
     };
     template <typename T>
-    using reverse_t = reverse<T>::type;
+    using reverse_t = typename reverse<T>::type;
 
     #ifdef false
     // rindex_of
@@ -494,7 +494,7 @@ namespace csl::mp {
         using type = unfold_to_t<type_pack, tuple_type>;
     };
     template <typename T>
-    using deduplicate_t = deduplicate<T>::type;
+    using deduplicate_t = typename deduplicate<T>::type;
 }
 
 #undef fwd
