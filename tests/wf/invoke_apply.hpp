@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <csl/workflow.hpp>
+#include <csl/wf.hpp>
 
 namespace test::invocation {
     consteval void invocable() {

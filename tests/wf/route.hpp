@@ -1,6 +1,6 @@
 #pragma once
 
-#include <csl/workflow.hpp>
+#include <csl/wf.hpp>
 #include <bitset>
 
 namespace test::wf::route_ {

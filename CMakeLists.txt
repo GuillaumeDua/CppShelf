@@ -13,7 +13,10 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif()
 
 ## Components
-set(CSL_COMPONENT_LIST mp wf)
+set(CSL_COMPONENT_LIST
+    mp
+    wf
+)
 
 ### Components - tests
 option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF) # force all tests
@@ -25,7 +28,7 @@ function(CSL_ADD_COMPONENT component_name)
     message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} ...")
     add_library(csl_${component_name}_lib INTERFACE)
     target_include_directories(csl_${component_name}_lib INTERFACE
-        ${PROJECT_SOURCE_DIR}/includes #/csl/${component_name}.hpp
+        ${PROJECT_SOURCE_DIR}/includes/${component_name}
     )
     add_library(csl::${component_name} ALIAS csl_${component_name}_lib)
 endfunction()

@@ -10,7 +10,7 @@
 #include <variant>
 #include <concepts>
 #include <functional>
-#include <ranges>
+//#include <ranges>
 #include <vector>
 #include <array>
 #include <string_view>

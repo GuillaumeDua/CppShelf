@@ -1,6 +1,6 @@
 #pragma once
 
-#include <csl/workflow.hpp>
+#include <csl/wf.hpp>
 
 namespace test::wf::operators::pipe {
     consteval void overload_rvalue_references() {
