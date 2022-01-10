@@ -873,14 +873,15 @@ namespace csl::wf {
         }(std::make_index_sequence<times>{});
     }
 
-    // todo : cx vs. rt
     // repeater
+    //  todo : cx vs. rt
     template <auto times, typename F>
     struct repeater {
         static_assert(not std::is_reference_v<F>);
         static_assert(not std::is_const_v<F>);
 
-        constexpr explicit repeater(F && func)
+        template <typename T>
+        constexpr explicit repeater(T && func)
         : storage{ fwd(func) }
         {}
 
@@ -918,8 +919,20 @@ namespace csl::wf {
         using storage_type = F;
         storage_type storage;
     };
-}
+    // repeater_factory
+    //  ADL helper
+    template <auto times>
+    struct repeater_factory {
 
+        template <typename F>
+        using result_type = std::remove_cvref_t<F>;
+
+        template <typename F>
+        static constexpr auto make(F && arg) {
+            return repeater<times, result_type<F>>(fwd(arg));
+        }
+    };
+}
 // flattening utility
 // - mp::unfold_to<dest<...>, T>
 // - mp::flatten_of_t<pack<...>, Ts...>
@@ -1074,7 +1087,7 @@ namespace csl::wf {
         using repeater_type = csl::wf::repeater<times, std::remove_cvref_t<F>>;
         return repeater_type{ fwd(func) };
     }
-
+    // todo : flatten repetitions
 }
 // eDSL
 namespace csl::wf::operators {
