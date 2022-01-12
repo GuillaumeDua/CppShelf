@@ -875,15 +875,43 @@ namespace csl::wf {
 
     // repeater
     //  todo : cx vs. rt
-    template <auto times, typename F>
+    template <auto times, typename F> struct repeater;
+
+    template <typename T>
+    struct is_repeater : std::false_type{};
+    template <auto times, typename T>
+    struct is_repeater<repeater<times, T>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_repeater_v = is_repeater<T>::value;
+
+    template <auto times_, typename F>
     struct repeater {
         static_assert(not std::is_reference_v<F>);
         static_assert(not std::is_const_v<F>);
 
+        constexpr static auto times = times_;
+        using underlying_type = F;
+
         template <typename T>
         constexpr explicit repeater(T && func)
+        requires (not is_repeater_v<std::remove_cvref_t<T>>)
         : storage{ fwd(func) }
         {}
+
+        // flattening
+    #pragma region flattening
+        template <auto N, typename fun>
+        friend class repeater;
+
+        template <auto other_times, typename other_F>
+        constexpr repeater(repeater<other_times, other_F> && func)
+        : storage{ std::move(func.storage) }
+        {}
+        template <auto other_times, typename other_F>
+        constexpr repeater(const repeater<other_times, other_F> & func)
+        : storage{ func.storage }
+        {}
+    #pragma endregion
 
         // todo : ttps
         template <typename ... args_ts>
@@ -919,17 +947,27 @@ namespace csl::wf {
         using storage_type = F;
         storage_type storage;
     };
+
     // repeater_factory
     //  ADL helper
     template <auto times>
     struct repeater_factory {
 
         template <typename F>
-        using result_type = std::remove_cvref_t<F>;
-
-        template <typename F>
         static constexpr auto make(F && arg) {
-            return repeater<times, result_type<F>>(fwd(arg));
+            return repeater<times, std::remove_cvref_t<F>>{ fwd(arg) };
+        }
+
+        // flattening
+        template <typename F>
+        requires (is_repeater_v<std::remove_cvref_t<F>>)
+        static constexpr auto make(F && arg) {
+            using f_type = std::remove_cvref_t<F>;
+            constexpr auto repetition_times = times * f_type::times;
+            using underlying_underlying_type  = typename f_type::underlying_type;
+
+            using repeater_type = repeater<repetition_times, underlying_underlying_type>;
+            return repeater_type{ fwd(arg) };
         }
     };
 }
@@ -1084,10 +1122,8 @@ namespace csl::wf {
     // make_repetition
     template <auto times, typename F>
     constexpr decltype(auto) make_repetition(F && func) {
-        using repeater_type = csl::wf::repeater<times, std::remove_cvref_t<F>>;
-        return repeater_type{ fwd(func) };
+        return repeater_factory<times>::make(fwd(func));
     }
-    // todo : flatten repetitions
 }
 // eDSL
 namespace csl::wf::operators {
