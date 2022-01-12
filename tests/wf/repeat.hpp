@@ -69,3 +69,18 @@ namespace test::wf::repeat_ {
         static_assert(result == std::array{1,2,3});
     }
 }
+namespace test::wf::repeat_flattening {
+    struct func{ void operator()(){} };
+    
+    static_assert(std::same_as<
+        csl::wf::repeater<3, func>,
+        decltype(csl::wf::make_repetition<3>(func{}))
+    >);
+
+    static_assert(std::same_as<
+        csl::wf::repeater<12, func>,
+        decltype(csl::wf::make_repetition<3>(
+            csl::wf::make_repetition<4>(func{})
+        ))
+    >, "flattening failed");
+}
