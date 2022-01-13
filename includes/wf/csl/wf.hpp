@@ -849,26 +849,28 @@ namespace csl::wf::details {
 // - repeater
 namespace csl::wf {
     // invoke_n_times
-    template <auto times, typename F, typename ... Ts>
-    requires(not csl::wf::mp::is_invocable_v<F&&, Ts&&...>) 
+    template <auto times, typename ... ttps_args, typename F, typename ... Ts>
+    requires(not csl::wf::mp::is_invocable_v<F&&, mp::ttps<ttps_args...>, Ts &&...>) 
     constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args) = delete;
-    template <auto times, typename F, typename ... Ts>
+
+    template <auto times, typename ... ttps_args, typename F, typename ... Ts>
     constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args)
     noexcept(noexcept(csl::wf::invoke(fwd(func), fwd(args)...)))
-    requires(std::is_void_v<csl::wf::mp::invoke_result_t<F&&, Ts&&...>>)
+    requires(std::is_void_v<csl::wf::mp::invoke_result_t<F&&, mp::ttps<ttps_args...>, Ts&&...>>)
     {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((static_cast<void>(indexes), csl::wf::invoke(fwd(func), fwd(args)...)), ...);
+            ((static_cast<void>(indexes), csl::wf::invoke<ttps_args...>(fwd(func), fwd(args)...)), ...);
         }(std::make_index_sequence<times>{});
     }
-    template <auto times, typename F, typename ... Ts>
+    
+    template <auto times, typename ... ttps_args, typename F, typename ... Ts>
     constexpr decltype(auto) invoke_n_times(F && func, Ts && ... args)
-    noexcept(noexcept(csl::wf::invoke(fwd(func), fwd(args)...)))
+    noexcept(noexcept(csl::wf::invoke<ttps_args...>(fwd(func), fwd(args)...)))
     {
-        using invoke_result_t = csl::wf::mp::invoke_result_t<F&&, Ts&&...>;
+        using invoke_result_t = csl::wf::mp::invoke_result_t<F&&, mp::ttps<ttps_args...>, decltype(args)...>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::array<invoke_result_t, times>{
-                (static_cast<void>(indexes), csl::wf::invoke(fwd(func), fwd(args)...))...
+                (static_cast<void>(indexes), csl::wf::invoke<ttps_args...>(fwd(func), fwd(args)...))...
             };
         }(std::make_index_sequence<times>{});
     }
@@ -904,11 +906,11 @@ namespace csl::wf {
         friend class repeater;
 
         template <auto other_times, typename other_F>
-        constexpr repeater(repeater<other_times, other_F> && func)
+        explicit constexpr repeater(repeater<other_times, other_F> && func)
         : storage{ std::move(func.storage) }
         {}
         template <auto other_times, typename other_F>
-        constexpr repeater(const repeater<other_times, other_F> & func)
+        explicit constexpr repeater(const repeater<other_times, other_F> & func)
         : storage{ func.storage }
         {}
     #pragma endregion
