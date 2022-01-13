@@ -19,6 +19,13 @@ namespace test::wf::repeat_ {
         constexpr auto result = csl::wf::invoke_n_times<3>([i = 0]() constexpr mutable { return ++i; });
         static_assert(result == std::array{1,2,3});
     }
+    consteval void invoke_n_times_ttps() {
+        constexpr auto func = []<typename T1, typename T2>(){
+            return std::same_as<T1, T2>;
+        };
+        static_assert(std::array{true, true, true} == csl::wf::invoke_n_times<3, int, int>(func));
+        static_assert(std::array{false, false, false} == csl::wf::invoke_n_times<3, char, int>(func));
+    }
 
     // repeater
     consteval void repeater_() {
