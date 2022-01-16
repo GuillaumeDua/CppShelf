@@ -1129,7 +1129,8 @@ namespace csl::wf {
 }
 // eDSL
 namespace csl::wf::operators {
-    
+    // todo : protect injection against overload ambiguities
+
     // operator|
     template <typename lhs_t, typename rhs_t>
     constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
@@ -1140,6 +1141,13 @@ namespace csl::wf::operators {
     template <typename lhs_t, typename rhs_t>
     constexpr auto operator>>=(lhs_t && lhs, rhs_t && rhs) {
         return make_continuation(fwd(lhs), fwd(rhs));
+    }
+
+    // operator*
+    // todo : integral_constant::value ?
+    template <typename lhs_t, auto times>
+    constexpr auto operator*(lhs_t && lhs, std::integral_constant<decltype(times), times>) {
+        return make_repetition<times>(fwd(lhs));
     }
 }
 
