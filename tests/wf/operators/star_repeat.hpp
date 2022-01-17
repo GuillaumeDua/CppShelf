@@ -38,7 +38,7 @@ namespace test::wf::operators::star {
         using namespace csl::wf::operators;
         constexpr auto func_3_times = func * three_times;
 
-        // static_assert(std::array{true, true, true} == func_3_times.template operator()<int, int>());
-        // static_assert(std::array{false, false, false} == func_3_times.template operator()<char, int>(func));
+        static_assert(std::array{true, true, true} == func_3_times.template operator()<int, int>());
+        static_assert(std::array{false, false, false} == func_3_times.template operator()<char, int>());
     }
 }
