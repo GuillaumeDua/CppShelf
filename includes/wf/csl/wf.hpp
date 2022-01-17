@@ -179,6 +179,11 @@ namespace csl::wf::mp {
     struct invoke_result<F, ttps<>, args_types...> : invoke_result<F, args_types...>{};
     template <typename F, typename ... ttps_args, typename ... args_types>
     struct invoke_result<F, ttps<ttps_args...>, args_types...> {
+        
+        static_assert(requires{
+            std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...);
+        }, "csl::wf::invoke_result : invalid resolution");
+
         using type = decltype(
             std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...)
         );
@@ -876,7 +881,7 @@ namespace csl::wf {
     }
 
     // repeater
-    //  todo : cx vs. rt
+    //  todo : cx vs. rt => + type erasure
     template <auto times, typename F> struct repeater;
 
     template <typename T>
