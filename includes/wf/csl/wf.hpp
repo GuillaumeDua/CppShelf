@@ -915,34 +915,33 @@ namespace csl::wf {
         {}
     #pragma endregion
 
-        // todo : ttps
-        template <typename ... args_ts>
+        template <typename ... ttps_args, typename ... args_ts>
         constexpr decltype(auto) operator()(args_ts && ... args) &
-        noexcept(noexcept(invoke_n_times<times>(std::declval<F&>(), fwd(args)...)))
-        requires requires { invoke_n_times<times>(std::declval<F&>(), fwd(args)...); }
+        noexcept(noexcept(invoke_n_times<times, ttps_args...>(std::declval<F&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times, ttps_args...>(std::declval<F&>(), fwd(args)...); }
         {
-            return invoke_n_times<times>(storage, fwd(args)...);
+            return invoke_n_times<times, ttps_args...>(storage, fwd(args)...);
         }
-        template <typename ... args_ts>
+        template <typename ... ttps_args, typename ... args_ts>
         constexpr decltype(auto) operator()(args_ts && ... args) const &
-        noexcept(noexcept(invoke_n_times<times>(std::declval<const F&>(), fwd(args)...)))
-        requires requires { invoke_n_times<times>(std::declval<const F&>(), fwd(args)...); }
+        noexcept(noexcept(invoke_n_times<times, ttps_args...>(std::declval<const F&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times, ttps_args...>(std::declval<const F&>(), fwd(args)...); }
         {
-            return invoke_n_times<times>(storage, fwd(args)...);
+            return invoke_n_times<times, ttps_args...>(storage, fwd(args)...);
         }
-        template <typename ... args_ts>
+        template <typename ... ttps_args, typename ... args_ts>
         constexpr decltype(auto) operator()(args_ts && ... args) &&
-        noexcept(noexcept(invoke_n_times<times>(std::declval<F&&>(), fwd(args)...)))
-        requires requires { invoke_n_times<times>(std::declval<F&&>(), fwd(args)...); }
+        noexcept(noexcept(invoke_n_times<times, ttps_args...>(std::declval<F&&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times, ttps_args...>(std::declval<F&&>(), fwd(args)...); }
         {
-            return invoke_n_times<times>(std::move(storage), fwd(args)...);
+            return invoke_n_times<times, ttps_args...>(std::move(storage), fwd(args)...);
         }
-        template <typename ... args_ts>
+        template <typename ... ttps_args, typename ... args_ts>
         constexpr decltype(auto) operator()(args_ts && ... args) const &&
-        noexcept(noexcept(invoke_n_times<times>(std::declval<const F&&>(), fwd(args)...)))
-        requires requires { invoke_n_times<times>(std::declval<const F&&>(), fwd(args)...); }
+        noexcept(noexcept(invoke_n_times<times, ttps_args...>(std::declval<const F&&>(), fwd(args)...)))
+        requires requires { invoke_n_times<times, ttps_args...>(std::declval<const F&&>(), fwd(args)...); }
         {
-            return invoke_n_times<times>(std::move(storage), fwd(args)...);
+            return invoke_n_times<times, ttps_args...>(std::move(storage), fwd(args)...);
         }
         
     private:
