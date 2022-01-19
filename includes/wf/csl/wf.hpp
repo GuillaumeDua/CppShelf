@@ -729,9 +729,9 @@ namespace csl::wf::details {
         return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 
-    auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
+    constexpr auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
         using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
-        return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
             return std::tuple<
                 decltype(std::get<indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
             >{ std::get<indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
@@ -795,33 +795,25 @@ namespace csl::wf {
         constexpr decltype(auto) operator()(auto && ... args) &
         {
             return chain_invoke(
-                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<Fs&...> {
-                    return { std::get<indexes>(storage)... };
-                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
         constexpr decltype(auto) operator()(auto && ... args) && {
             return chain_invoke(
-                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<Fs&&...> {
-                    return std::forward_as_tuple(std::get<indexes>(fwd(storage))...);
-                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                details::make_tuple_view(fwd(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
         constexpr decltype(auto) operator()(auto && ... args) const & {
             return chain_invoke(
-                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<const Fs&...> {
-                    return { std::get<indexes>(storage)... };
-                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
         constexpr decltype(auto) operator()(auto && ... args) const && {
             return chain_invoke(
-                [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<const Fs&&...> {
-                    return { std::get<indexes>(static_cast<const storage_type &&>(storage))... };
-                }(std::make_index_sequence<std::tuple_size_v<storage_type>>{}),
+                details::make_tuple_view(static_cast<const storage_type &&>(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
