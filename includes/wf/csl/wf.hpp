@@ -722,6 +722,25 @@ namespace csl::wf::details {
         else // or use std::tuple to handle multiples return values here ?
             return std::array{wf::invoke(fwd(functor), fwd(args)...)};
     }
+
+    // tuple utilities (non-owning/view)
+    template <typename T>
+    concept tuple_view = wf::mp::tuple_interface<T> and []<std::size_t ... indexes>(std::index_sequence<indexes...>) noexcept {
+        return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
+    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+
+    auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
+        using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
+        return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::tuple<
+                decltype(std::get<indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
+            >{ std::get<indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
+        }(std::make_index_sequence<std::tuple_size_v<remove_cvref_tuple_type>>{});
+    }
+    static_assert(std::same_as<
+        std::tuple<int&&, const char &&>,
+        decltype(make_tuple_view(std::tuple<int, const char>{}))
+    >);
 }
 // route
 // todo :
@@ -773,7 +792,8 @@ namespace csl::wf {
 
         // todo : conditionally noexcept
         // todo : conditionally enabled
-        constexpr decltype(auto) operator()(auto && ... args) & {
+        constexpr decltype(auto) operator()(auto && ... args) &
+        {
             return chain_invoke(
                 [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::tuple<Fs&...> {
                     return { std::get<indexes>(storage)... };
