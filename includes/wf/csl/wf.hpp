@@ -685,9 +685,6 @@ namespace csl::wf::details::mp {
 // route details
 namespace csl::wf::details {
     // todo :
-    //  - constraints using concepts
-    //  - noexcept
-    //  - TTPS, NTTPS
     // - multiples return values => csl::wf::mp::args<...> with tuple-like storage ? (or strong-type for std::tuple...)
 
     // apply_with_or_discard
@@ -735,17 +732,20 @@ namespace csl::wf {
     // bind_front -> take care of template arguments
 
     template <typename node, mp::tuple_interface args_as_tuple_t>
-    constexpr decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple) {
+    constexpr decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple)
+    noexcept(noexcept(details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple))))
+    requires requires{details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));}
+    {
         return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
     template <typename node, typename ... rest, mp::tuple_interface args_as_tuple_t>
     requires (sizeof...(rest) not_eq 0)
-    constexpr decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args) {
+    constexpr decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args_as_tuple) {
 
         auto result = details::invoke_into_tuple([](auto && ... args){
                 return details::apply_with_or_discard(fwd(args)...);
             },
-            std::get<0>(fwd(functors)), fwd(args)
+            std::get<0>(fwd(functors)), fwd(args_as_tuple)
         );
 
         return chain_invoke(
@@ -754,6 +754,9 @@ namespace csl::wf {
             }(std::make_index_sequence<sizeof...(rest)>{}),
             std::move(result)
         );
+    }
+    constexpr decltype(auto) chain_invoke(auto && ...) {
+        static_assert([](){ return false; }(), "csl::wf::chain_invoke : invalid overload");
     }
 
     // todo : owning by default, non-owning (opt-out) policy ?
