@@ -790,28 +790,45 @@ namespace csl::wf {
         : storage{ fwd(args)... }
         {}
 
-        // todo : conditionally noexcept
         // todo : conditionally enabled
         constexpr decltype(auto) operator()(auto && ... args) &
+        noexcept(noexcept(chain_invoke(
+            details::make_tuple_view(storage),
+            std::forward_as_tuple(fwd(args)...)
+        )))
         {
             return chain_invoke(
                 details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
-        constexpr decltype(auto) operator()(auto && ... args) && {
+        constexpr decltype(auto) operator()(auto && ... args) &&
+        noexcept(noexcept(chain_invoke(
+            details::make_tuple_view(fwd(storage)),
+            std::forward_as_tuple(fwd(args)...)
+        )))
+        {
             return chain_invoke(
                 details::make_tuple_view(fwd(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
-        constexpr decltype(auto) operator()(auto && ... args) const & {
+        constexpr decltype(auto) operator()(auto && ... args) const &
+        noexcept(noexcept(chain_invoke(
+            details::make_tuple_view(storage),
+            std::forward_as_tuple(fwd(args)...)
+        )))
+        {
             return chain_invoke(
                 details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
-        constexpr decltype(auto) operator()(auto && ... args) const && {
+        constexpr decltype(auto) operator()(auto && ... args) const &&
+        noexcept(noexcept(chain_invoke(
+            details::make_tuple_view(static_cast<const storage_type &&>(storage)),
+            std::forward_as_tuple(fwd(args)...)
+        ))){
             return chain_invoke(
                 details::make_tuple_view(static_cast<const storage_type &&>(storage)),
                 std::forward_as_tuple(fwd(args)...)
