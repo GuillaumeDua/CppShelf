@@ -109,3 +109,13 @@ namespace test::wf::route_ {
         static_assert(route() == 42);
     }
 }
+namespace test::wf::route_noexcept {
+
+    constexpr auto may_thow_route = csl::wf::route{ []() noexcept {}, []() noexcept {}, [](){} };
+    static_assert(std::invocable<decltype(may_thow_route)>);
+    static_assert(not std::is_nothrow_invocable_v<decltype(may_thow_route)>);
+
+    constexpr auto nothow_route = csl::wf::route{ []() noexcept {}, []() noexcept {}, []() noexcept {} };
+    static_assert(std::invocable<decltype(nothow_route)>);
+    // static_assert(std::is_nothrow_invocable_v<decltype(nothow_route)>);
+}
