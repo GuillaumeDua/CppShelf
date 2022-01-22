@@ -15,6 +15,7 @@
 #include <array>
 #include <string_view>
 #include <tuple>
+#include <cstdio> // debug purpose
 
 // -- dev/wip/debug only
 namespace gcl::cx {
@@ -688,25 +689,27 @@ namespace csl::wf::details {
     // - multiples return values => csl::wf::mp::args<...> with tuple-like storage ? (or strong-type for std::tuple...)
 
     // apply_with_or_discard
-    template <typename F, typename tuple_type>
+    template <typename F, wf::mp::tuple_interface tuple_type>
     requires
-        wf::mp::tuple_interface<tuple_type> and
         wf::mp::is_applyable_v<F&&, tuple_type&&>
     constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
     noexcept(wf::mp::is_nothrow_applyable_v<F&&, tuple_type&&>)
     {
         return wf::apply(fwd(functor), fwd(args_as_tuple));
     }
-    template <typename F, typename tuple_type>
+    template <typename F, wf::mp::tuple_interface tuple_type>
     requires
-        wf::mp::tuple_interface<tuple_type> and
-        (not wf::mp::is_applyable_v<F, tuple_type&&>)
+        (not wf::mp::is_applyable_v<F&&, tuple_type&&>)
+        and wf::mp::is_invocable_v<F&&>
     constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type &&)
     noexcept(wf::mp::is_nothrow_invocable_v<F&&>)
     {
-        static_assert(wf::mp::is_invocable_v<F&&>);
+        // static_assert(wf::mp::is_invocable_v<F&&>, "csl::wf::details::apply_with_or_discard : invalid overload (fallback : discard scenario)");
         return wf::invoke(fwd(functor));
     }
+    // constexpr decltype(auto) apply_with_or_discard(auto &&, auto &&) {
+    //     static_assert([](){ return false; }(), "csl::wf::details::apply_with_or_discard : invalid overload");
+    // }
     
     // todo : multiple returns value (including ttps<...>)
     constexpr decltype(auto) invoke_into_tuple(auto && functor, auto && ... args)
@@ -729,13 +732,24 @@ namespace csl::wf::details {
         return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 
-    constexpr auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
+    template <
+        std::size_t pos = 0,
+        std::size_t count = std::string_view::npos
+    >
+    constexpr auto make_tuple_subview(wf::mp::tuple_interface auto && tuple_value) noexcept {
         using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
+        static_assert(pos < std::tuple_size_v<remove_cvref_tuple_type>);
+
+        constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
         return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
             return std::tuple<
-                decltype(std::get<indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
-            >{ std::get<indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
-        }(std::make_index_sequence<std::tuple_size_v<remove_cvref_tuple_type>>{});
+                decltype(std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
+            >{ std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
+        }(std::make_index_sequence<length>{});
+    }
+
+    constexpr auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
+        return make_tuple_subview(std::forward<decltype(tuple_value)>(tuple_value));
     }
     static_assert(std::same_as<
         std::tuple<int&&, const char &&>,
@@ -747,8 +761,8 @@ namespace csl::wf::details {
 //  always owning ? mix owning and non-owning functors in storage ?
 //  if non-owning, value semantic correctness for route/binder storage
 namespace csl::wf {
-    // particular case : always nodiscard operator() ?
-    // bind_front -> take care of template arguments
+
+    // todo : ttps
 
     template <typename node, mp::tuple_interface args_as_tuple_t>
     constexpr decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple)
@@ -757,6 +771,7 @@ namespace csl::wf {
     {
         return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
+    // todo : requires !!!
     template <typename node, typename ... rest, mp::tuple_interface args_as_tuple_t>
     requires (sizeof...(rest) not_eq 0)
     constexpr decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args_as_tuple) {
@@ -774,9 +789,15 @@ namespace csl::wf {
             std::move(result)
         );
     }
-    constexpr decltype(auto) chain_invoke(auto && ...) {
-        static_assert([](){ return false; }(), "csl::wf::chain_invoke : invalid overload");
-    }
+    // constexpr decltype(auto) chain_invoke(auto && ...) {
+    //     static_assert([](){ return false; }(), "csl::wf::chain_invoke : invalid overload");
+    // }
+
+    // todo : use to instead of requires requires { chain_invoke }
+    template <typename ... Ts>
+    concept chain_invocable = requires {
+        chain_invoke(std::declval<Ts>()...);
+    };
 
     // todo : owning by default, non-owning (opt-out) policy ?
     template <typename ... Fs>
@@ -790,50 +811,85 @@ namespace csl::wf {
         : storage{ fwd(args)... }
         {}
 
+        // todo : ttps
         // todo : conditionally enabled
         constexpr decltype(auto) operator()(auto && ... args) &
         noexcept(noexcept(chain_invoke(
             details::make_tuple_view(storage),
             std::forward_as_tuple(fwd(args)...)
         )))
+        // todo : requires chain_invocable
+        requires requires {
+            chain_invoke(
+                details::make_tuple_view(std::declval<storage_type&>()),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
         {
+            static_assert((not std::is_reference_v<Fs> && ...));
+            std::puts("as expected (&)");
             return chain_invoke(
                 details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
-        constexpr decltype(auto) operator()(auto && ... args) &&
-        noexcept(noexcept(chain_invoke(
-            details::make_tuple_view(fwd(storage)),
-            std::forward_as_tuple(fwd(args)...)
-        )))
-        {
-            return chain_invoke(
-                details::make_tuple_view(fwd(storage)),
-                std::forward_as_tuple(fwd(args)...)
-            );
-        }
+
+        // constexpr decltype(auto) operator()(auto && ... args) &&
+        // noexcept(noexcept(chain_invoke(
+        //     details::make_tuple_view(fwd(storage)),
+        //     std::forward_as_tuple(fwd(args)...)
+        // )))
+        // requires requires {
+        //     chain_invoke(
+        //         details::make_tuple_view(std::declval<storage_type&&>()),
+        //         std::forward_as_tuple(fwd(args)...)
+        //     );
+        // }
+        // {
+        //     std::puts("&&");
+        //     return chain_invoke(
+        //         details::make_tuple_view(fwd(storage)),
+        //         std::forward_as_tuple(fwd(args)...)
+        //     );
+        // }
+
         constexpr decltype(auto) operator()(auto && ... args) const &
         noexcept(noexcept(chain_invoke(
             details::make_tuple_view(storage),
             std::forward_as_tuple(fwd(args)...)
         )))
+        requires requires {
+            chain_invoke(
+                details::make_tuple_view(std::declval<const storage_type&>()),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
         {
+            std::puts("const &");
             return chain_invoke(
-                details::make_tuple_view(storage),
+                details::make_tuple_view(static_cast<const storage_type &>(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
-        constexpr decltype(auto) operator()(auto && ... args) const &&
-        noexcept(noexcept(chain_invoke(
-            details::make_tuple_view(static_cast<const storage_type &&>(storage)),
-            std::forward_as_tuple(fwd(args)...)
-        ))){
-            return chain_invoke(
-                details::make_tuple_view(static_cast<const storage_type &&>(storage)),
-                std::forward_as_tuple(fwd(args)...)
-            );
-        }
+
+        // constexpr decltype(auto) operator()(auto && ... args) const &&
+        // noexcept(noexcept(chain_invoke(
+        //     details::make_tuple_view(static_cast<const storage_type &&>(storage)),
+        //     std::forward_as_tuple(fwd(args)...)
+        // )))
+        // requires requires {
+        //     chain_invoke(
+        //         details::make_tuple_view(std::declval<const storage_type&&>()),
+        //         std::forward_as_tuple(fwd(args)...)
+        //     );
+        // }
+        // {
+        //     std::puts("const &&");
+        //     return chain_invoke(
+        //         details::make_tuple_view(static_cast<const storage_type &&>(storage)),
+        //         std::forward_as_tuple(fwd(args)...)
+        //     );
+        // }
 
         template <std::size_t index>
         using node_t = std::tuple_element_t<index, storage_type>;
