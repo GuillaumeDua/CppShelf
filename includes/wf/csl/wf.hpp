@@ -725,6 +725,11 @@ namespace csl::wf::details {
         else // or use std::tuple to handle multiples return values here ?
             return std::array{wf::invoke(fwd(functor), fwd(args)...)};
     }
+    template <typename F, typename ... args_ts>
+    requires requires {
+        invoke_into_tuple(std::declval<F>(), std::declval<args_ts...>());
+    }
+    using invoke_into_tuple_result_t = decltype(invoke_into_tuple(std::declval<F>(), std::declval<args_ts...>()));
 
     // tuple utilities (non-owning/view)
     template <typename T>
@@ -736,10 +741,9 @@ namespace csl::wf::details {
         std::size_t pos = 0,
         std::size_t count = std::string_view::npos
     >
-    constexpr auto make_tuple_subview(wf::mp::tuple_interface auto && tuple_value) noexcept {
+    constexpr auto make_tuple_subview(wf::mp::tuple_interface auto && tuple_value) noexcept
+    requires (pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>) {
         using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
-        static_assert(pos < std::tuple_size_v<remove_cvref_tuple_type>);
-
         constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
         return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
             return std::tuple<
@@ -747,7 +751,6 @@ namespace csl::wf::details {
             >{ std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
         }(std::make_index_sequence<length>{});
     }
-
     constexpr auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
         return make_tuple_subview(std::forward<decltype(tuple_value)>(tuple_value));
     }
@@ -771,21 +774,51 @@ namespace csl::wf {
     {
         return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
-    // todo : requires !!!
-    template <typename node, typename ... rest, mp::tuple_interface args_as_tuple_t>
-    requires (sizeof...(rest) not_eq 0)
-    constexpr decltype(auto) chain_invoke(std::tuple<node, rest...> && functors, args_as_tuple_t && args_as_tuple) {
 
+    template <typename ... Fs, mp::tuple_interface args_as_tuple_t>
+    constexpr decltype(auto) chain_invoke(std::tuple<Fs...> && functors, args_as_tuple_t && args_as_tuple)
+    requires (sizeof...(Fs) > 1)
+    and requires {
+        details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
+    }
+    and requires {
+        csl::wf::chain_invoke(
+            details::make_tuple_subview<1>(fwd(functors)),
+            std::move(
+                details::invoke_into_tuple([](auto && ... args){
+                    return details::apply_with_or_discard(fwd(args)...);
+                },
+                std::get<0>(fwd(functors)), fwd(args_as_tuple)
+            ))
+        );
+    }
+    ;
+
+    template <typename ... Fs, mp::tuple_interface args_as_tuple_t>
+    constexpr decltype(auto) chain_invoke(std::tuple<Fs...> && functors, args_as_tuple_t && args_as_tuple)
+    requires (sizeof...(Fs) > 1)
+    and requires {
+        details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
+    }
+    and requires {
+        csl::wf::chain_invoke(
+            details::make_tuple_subview<1>(fwd(functors)),
+            std::move(
+                details::invoke_into_tuple([](auto && ... args){
+                    return details::apply_with_or_discard(fwd(args)...);
+                },
+                std::get<0>(fwd(functors)), fwd(args_as_tuple)
+            ))
+        );
+    }
+    {
         auto result = details::invoke_into_tuple([](auto && ... args){
                 return details::apply_with_or_discard(fwd(args)...);
             },
             std::get<0>(fwd(functors)), fwd(args_as_tuple)
         );
-
-        return chain_invoke(
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return std::forward_as_tuple(std::get<1 + indexes>(fwd(functors))...);
-            }(std::make_index_sequence<sizeof...(rest)>{}),
+        return csl::wf::chain_invoke(
+            details::make_tuple_subview<1>(fwd(functors)),
             std::move(result)
         );
     }
@@ -818,7 +851,10 @@ namespace csl::wf {
             details::make_tuple_view(storage),
             std::forward_as_tuple(fwd(args)...)
         )))
-        // todo : requires chain_invocable
+        // requires chain_invocable<
+        //     decltype(details::make_tuple_view(std::declval<storage_type&>())),
+        //     decltype(std::forward_as_tuple(fwd(args)...))
+        // >
         requires requires {
             chain_invoke(
                 details::make_tuple_view(std::declval<storage_type&>()),
@@ -827,31 +863,29 @@ namespace csl::wf {
         }
         {
             static_assert((not std::is_reference_v<Fs> && ...));
-            std::puts("as expected (&)");
             return chain_invoke(
                 details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
 
-        // constexpr decltype(auto) operator()(auto && ... args) &&
-        // noexcept(noexcept(chain_invoke(
-        //     details::make_tuple_view(fwd(storage)),
-        //     std::forward_as_tuple(fwd(args)...)
-        // )))
-        // requires requires {
-        //     chain_invoke(
-        //         details::make_tuple_view(std::declval<storage_type&&>()),
-        //         std::forward_as_tuple(fwd(args)...)
-        //     );
-        // }
-        // {
-        //     std::puts("&&");
-        //     return chain_invoke(
-        //         details::make_tuple_view(fwd(storage)),
-        //         std::forward_as_tuple(fwd(args)...)
-        //     );
-        // }
+        constexpr decltype(auto) operator()(auto && ... args) &&
+        noexcept(noexcept(chain_invoke(
+            details::make_tuple_view(fwd(storage)),
+            std::forward_as_tuple(fwd(args)...)
+        )))
+        requires requires {
+            chain_invoke(
+                details::make_tuple_view(std::declval<storage_type&&>()),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
+        {
+            return chain_invoke(
+                details::make_tuple_view(fwd(storage)),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
 
         constexpr decltype(auto) operator()(auto && ... args) const &
         noexcept(noexcept(chain_invoke(
@@ -865,31 +899,29 @@ namespace csl::wf {
             );
         }
         {
-            std::puts("const &");
             return chain_invoke(
                 details::make_tuple_view(static_cast<const storage_type &>(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
 
-        // constexpr decltype(auto) operator()(auto && ... args) const &&
-        // noexcept(noexcept(chain_invoke(
-        //     details::make_tuple_view(static_cast<const storage_type &&>(storage)),
-        //     std::forward_as_tuple(fwd(args)...)
-        // )))
-        // requires requires {
-        //     chain_invoke(
-        //         details::make_tuple_view(std::declval<const storage_type&&>()),
-        //         std::forward_as_tuple(fwd(args)...)
-        //     );
-        // }
-        // {
-        //     std::puts("const &&");
-        //     return chain_invoke(
-        //         details::make_tuple_view(static_cast<const storage_type &&>(storage)),
-        //         std::forward_as_tuple(fwd(args)...)
-        //     );
-        // }
+        constexpr decltype(auto) operator()(auto && ... args) const &&
+        noexcept(noexcept(chain_invoke(
+            details::make_tuple_view(static_cast<const storage_type &&>(storage)),
+            std::forward_as_tuple(fwd(args)...)
+        )))
+        requires requires {
+            chain_invoke(
+                details::make_tuple_view(std::declval<const storage_type&&>()),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
+        {
+            return chain_invoke(
+                details::make_tuple_view(static_cast<const storage_type &&>(storage)),
+                std::forward_as_tuple(fwd(args)...)
+            );
+        }
 
         template <std::size_t index>
         using node_t = std::tuple_element_t<index, storage_type>;

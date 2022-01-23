@@ -10,30 +10,46 @@
 #include "./operators/shift_equal_continuation.hpp"
 #include "./operators/star_repeat.hpp"
 
+#include <csl/wf.hpp>
 #include <iostream>
 auto main() -> int {
 
-#pragma region route continuation wip test
-    using namespace csl::wf::operators;
-    auto route = [](){
-        std::cout << "A ";
-    } >>=
-    [](){
-        std::cout << "B ";
-    } >>=
-    [](){
-        std::cout << "C\n";
+    struct lvalue_node_type {
+        void operator()() &         { std::puts("&"); }
+        // void operator()() &&        { std::puts("&&"); }
+        void operator()() const &   { std::puts("const &"); }
+        // void operator()() const &&  { std::puts("const &&"); }
     };
-    route();
-    std::cout << gcl::cx::type_name_v<decltype(route)> << '\n';
+    {   // lvalue route
+        auto route = csl::wf::route {
+            lvalue_node_type{},
+            lvalue_node_type{},
+            lvalue_node_type{}
+        };
+        route();
+    }
 
-    auto route_2 = std::move(route) >>= [](){
-    // auto route_2 = route >>= [](){
-        std::cout << "D\n";
-    };
-    std::cout << gcl::cx::type_name_v<decltype(route_2)> << '\n';
-#pragma endregion
-#pragma region repeat wip test
+    // using namespace csl::wf::operators;
 
-#pragma endregion
+    // auto route = [](){
+    //     std::cout << "A";
+    // } >>=
+    // [](){
+    //     std::cout << "B";
+    // } >>=
+    // [](){
+    //     std::cout << "C\n";
+    // };
+    // route();
+    // std::move(route)();
+    // std::as_const(route)();
+    // std::move(std::as_const(route))();
+
+    // std::cout << gcl::cx::type_name_v<decltype(route)> << '\n';
+
+    // auto route_2 = std::move(route) >>= [](){
+    // // auto route_2 = route >>= [](){
+    //     std::cout << "D\n";
+    // };
+    // std::cout << gcl::cx::type_name_v<decltype(route_2)> << '\n';
 }
