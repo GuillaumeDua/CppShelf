@@ -538,8 +538,8 @@ namespace csl::wf {
         };
     }
 }
-// chain, packed_chain_trait
-namespace csl::wf {
+// mp::chain_trait
+namespace csl::wf::mp {
     template <typename ...>
     struct chain_trait;
     template <typename node, typename next, typename ...rest>
@@ -663,6 +663,17 @@ namespace csl::wf {
             mp::invoke_result<node>
         >::type;
     };
+
+    // using tuples to match chain_invoke interface
+    template <typename, typename>
+    constexpr bool is_chain_invocable_v = false;
+    template <typename ... fs, typename ... args_ts>
+    constexpr bool is_chain_invocable_v<std::tuple<fs...>&&, std::tuple<args_ts...>&&> = chain_trait<fs...>::template is_invocable<args_ts...>;
+
+    template <typename, typename>
+    constexpr bool is_chain_nothrow_invocable_v = false;
+    template <typename ... fs, typename ... args_ts>
+    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>&&, std::tuple<args_ts...>&&> = chain_trait<fs...>::template is_nothrow_invocable<args_ts...>;
 }
 // mp::are_unique_v<Ts..>
 // mp::is_instance_of<pack<...>, T>
@@ -760,57 +771,35 @@ namespace csl::wf::details {
     >);
 }
 // route
+// chain_invoke
 // todo :
 //  always owning ? mix owning and non-owning functors in storage ?
 //  if non-owning, value semantic correctness for route/binder storage
 namespace csl::wf {
 
     // todo : ttps
+    // todo : use csl::wf::chain_trait ?
 
-    template <typename node, mp::tuple_interface args_as_tuple_t>
-    constexpr decltype(auto) chain_invoke(std::tuple<node> && functors, args_as_tuple_t && args_as_tuple)
+    constexpr decltype(auto) chain_invoke(
+        mp::tuple_interface auto && functors,
+        mp::tuple_interface auto && args_as_tuple
+    )
     noexcept(noexcept(details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple))))
-    requires requires{details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));}
+    requires
+        (std::tuple_size_v<std::remove_cvref_t<decltype(functors)>> == 1)
+        and requires{details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));}
     {
         return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
     }
 
-    template <typename ... Fs, mp::tuple_interface args_as_tuple_t>
-    constexpr decltype(auto) chain_invoke(std::tuple<Fs...> && functors, args_as_tuple_t && args_as_tuple)
-    requires (sizeof...(Fs) > 1)
-    and requires {
-        details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
-    }
-    and requires {
-        csl::wf::chain_invoke(
-            details::make_tuple_subview<1>(fwd(functors)),
-            std::move(
-                details::invoke_into_tuple([](auto && ... args){
-                    return details::apply_with_or_discard(fwd(args)...);
-                },
-                std::get<0>(fwd(functors)), fwd(args_as_tuple)
-            ))
-        );
-    }
-    ;
-
-    template <typename ... Fs, mp::tuple_interface args_as_tuple_t>
-    constexpr decltype(auto) chain_invoke(std::tuple<Fs...> && functors, args_as_tuple_t && args_as_tuple)
-    requires (sizeof...(Fs) > 1)
-    and requires {
-        details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
-    }
-    and requires {
-        csl::wf::chain_invoke(
-            details::make_tuple_subview<1>(fwd(functors)),
-            std::move(
-                details::invoke_into_tuple([](auto && ... args){
-                    return details::apply_with_or_discard(fwd(args)...);
-                },
-                std::get<0>(fwd(functors)), fwd(args_as_tuple)
-            ))
-        );
-    }
+    constexpr decltype(auto) chain_invoke(
+        mp::tuple_interface auto && functors,
+        mp::tuple_interface auto && args_as_tuple
+    )
+    noexcept(mp::is_chain_nothrow_invocable_v<decltype(functors), decltype(args_as_tuple)>)
+    requires
+        (std::tuple_size_v<std::remove_cvref_t<decltype(functors)>> > 1) and
+        (mp::is_chain_invocable_v<decltype(functors), decltype(args_as_tuple)>)
     {
         auto result = details::invoke_into_tuple([](auto && ... args){
                 return details::apply_with_or_discard(fwd(args)...);
@@ -833,6 +822,7 @@ namespace csl::wf {
     };
 
     // todo : owning by default, non-owning (opt-out) policy ?
+    // todo : allow `sizeof...(Fs) == 0` ?
     template <typename ... Fs>
     struct route {
         static_assert(sizeof...(Fs) not_eq 0,               "csl::wf::binder : binds nothing");
@@ -845,7 +835,6 @@ namespace csl::wf {
         {}
 
         // todo : ttps
-        // todo : conditionally enabled
         constexpr decltype(auto) operator()(auto && ... args) &
         noexcept(noexcept(chain_invoke(
             details::make_tuple_view(storage),
@@ -862,7 +851,6 @@ namespace csl::wf {
             );
         }
         {
-            static_assert((not std::is_reference_v<Fs> && ...));
             return chain_invoke(
                 details::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)

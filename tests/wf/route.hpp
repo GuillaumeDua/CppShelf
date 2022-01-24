@@ -117,5 +117,5 @@ namespace test::wf::route_noexcept {
 
     constexpr auto nothow_route = csl::wf::route{ []() noexcept {}, []() noexcept {}, []() noexcept {} };
     static_assert(std::invocable<decltype(nothow_route)>);
-    // static_assert(std::is_nothrow_invocable_v<decltype(nothow_route)>);
+    static_assert(std::is_nothrow_invocable_v<decltype(nothow_route)>);
 }
