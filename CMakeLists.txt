@@ -19,7 +19,7 @@ set(CSL_COMPONENT_LIST
 )
 
 ### Components - tests
-option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF) # force all tests
+option(CSL_BUILD_ALL_TESTS "Build all tests for csl" ON) # force all tests
 message(STATUS "[${CMAKE_PROJECT_NAME}] : CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
 set(CSL_TESTS_LIST "")
 
