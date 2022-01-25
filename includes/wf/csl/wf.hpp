@@ -538,7 +538,50 @@ namespace csl::wf {
         };
     }
 }
+// mp::are_unique_v<Ts..>
+// mp::is_instance_of<pack<...>, T>
+// mp::unfold_to<dest<...>, T>
+namespace csl::wf::details::mp {
+
+    template <typename T, typename ... Ts>
+    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
+    template <typename T>
+    constexpr bool are_unique_v<T> = true;
+
+    // is_instance_of
+    template <template <typename...> typename type, typename T>
+    struct is_instance_of : std::false_type{};
+    template <template <typename...> typename type, typename ... Ts>
+    struct is_instance_of<type, type<Ts...>>  : std::true_type{};
+    template <template <typename...> typename type, typename T>
+    constexpr bool is_instance_of_v = is_instance_of<type, T>::value;
+    template <template <typename...> typename type, typename T>
+    concept InstanceOf = is_instance_of_v<type, T>;
+
+    // unfold_to
+    template <template <typename...> typename destination, typename ... Ts>
+    struct unfold_to : std::type_identity<destination<Ts...>>{};
+    template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
+    struct unfold_to<destination, from<Ts...>> : unfold_to<destination, Ts...>{};
+    template <template <typename...> typename destination, typename ... from>
+    using unfold_to_t = typename unfold_to<destination, from...>::type;
+
+    // unfold_tuple_to
+    template <template <typename...> typename destination, csl::wf::mp::tuple_interface T>
+    struct unfold_tuple_to {
+        using type = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            using result_t = destination<std::tuple_element_t<indexes, T>...>;
+            return std::type_identity<result_t>{};
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{}))::type;
+    };
+    template <template <typename...> typename destination, csl::wf::mp::tuple_interface T>
+    using unfold_tuple_to_t = typename unfold_tuple_to<destination, T>::type;
+}
+
 // mp::chain_trait
+// To match tuple_interface
+// - mp::is_chain_invocable_v
+// - mp::is_chain_nothrow_invocable_v
 namespace csl::wf::mp {
     template <typename ...>
     struct chain_trait;
@@ -665,34 +708,28 @@ namespace csl::wf::mp {
     };
 
     // using tuples to match chain_invoke interface
+    // todo :
+    //  - check if this cannot be by-passed/misleading
+    //    [](std::array<int, 3>){} called with (1,2) from the public interface
     template <typename, typename>
     constexpr bool is_chain_invocable_v = false;
-    template <typename ... fs, typename ... args_ts>
-    constexpr bool is_chain_invocable_v<std::tuple<fs...>&&, std::tuple<args_ts...>&&> = chain_trait<fs...>::template is_invocable<args_ts...>;
+    // template <typename ... fs, typename ... args_ts>
+    // constexpr bool is_chain_invocable_v<std::tuple<fs...>&&, std::tuple<args_ts...>&&> = chain_trait<fs...>::template is_invocable<args_ts...>;
+    template <typename ... fs, tuple_interface args_ts>
+    constexpr bool is_chain_invocable_v<std::tuple<fs...>, args_ts> = 
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return chain_trait<fs...>::template is_invocable<std::tuple_element_t<indexes, args_ts>...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
+    ;
 
     template <typename, typename>
     constexpr bool is_chain_nothrow_invocable_v = false;
-    template <typename ... fs, typename ... args_ts>
-    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>&&, std::tuple<args_ts...>&&> = chain_trait<fs...>::template is_nothrow_invocable<args_ts...>;
-}
-// mp::are_unique_v<Ts..>
-// mp::is_instance_of<pack<...>, T>
-namespace csl::wf::details::mp {
-
-    template <typename T, typename ... Ts>
-    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
-    template <typename T>
-    constexpr bool are_unique_v<T> = true;
-
-    // is_instance_of
-    template <template <typename...> typename type, typename T>
-    struct is_instance_of : std::false_type{};
-    template <template <typename...> typename type, typename ... Ts>
-    struct is_instance_of<type, type<Ts...>>  : std::true_type{};
-    template <template <typename...> typename type, typename T>
-    constexpr bool is_instance_of_v = is_instance_of<type, T>::value;
-    template <template <typename...> typename type, typename T>
-    concept InstanceOf = is_instance_of_v<type, T>;
+    template <typename ... fs, tuple_interface args_ts>
+    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>, args_ts> = 
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return chain_trait<fs...>::template is_nothrow_invocable<std::tuple_element_t<indexes, args_ts>...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
+    ;
 }
 // route details
 namespace csl::wf::details {
@@ -937,6 +974,71 @@ namespace csl::wf {
         return fwd(value).template at<index>();
     }
 }
+// flattening utility
+// - mp::flatten_of_t<pack<...>, Ts...>
+// - mp::unfold_super_into<pack<...>, Ts...>
+// - mp::make_flatten_super(super<...>, Ts&&...)
+namespace csl::wf::details::mp {
+
+    // flatten_of_t
+    template <template <typename ...> typename pack_type, typename ... Ts>
+    using flatten_of_t = unfold_to_t<
+        pack_type,
+        decltype(std::tuple_cat(
+            std::conditional_t<
+                is_instance_of_v<pack_type, Ts>,
+                unfold_to_t<std::tuple, Ts>,
+                std::tuple<Ts>
+            >{}...
+        ))
+    >;
+
+    // unfold_super_into
+    template <template <typename ...> typename destination_type, typename T>
+    constexpr decltype(auto) unfold_super_into(T && value) {
+        return destination_type<T&&>(fwd(value));
+    }
+    template <template <typename ...> typename destination_type, typename ... Ts>
+    constexpr decltype(auto) unfold_super_into(destination_type<Ts...> && value) {
+        return fwd(value);
+        // return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
+    }
+    template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
+    constexpr decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
+        return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
+    }
+
+    // make_flatten_super
+    template <template <typename ...> typename super_type, typename... Ts>
+    constexpr auto make_flatten_super(Ts && ... args) {
+
+        auto flatten_args_as_tuple = std::tuple_cat(unfold_super_into<std::tuple>(fwd(args))...);
+        constexpr auto flatten_args_as_tuple_index_sequence = std::make_index_sequence<
+            std::tuple_size_v<std::remove_cvref_t<decltype(flatten_args_as_tuple)>>
+        >{};
+
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return super_type{
+                std::get<indexes>(std::move(flatten_args_as_tuple))...
+            };
+        }(flatten_args_as_tuple_index_sequence);
+    }
+
+    // fwd_nodes_as_tuple
+    template <template <typename...> typename destination_type, typename T>
+    constexpr auto fwd_nodes_into(T && value) {
+        return destination_type<T&&>{ fwd(value) };
+    }
+    template <template <typename...> typename destination_type, typename T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
+    constexpr auto fwd_nodes_into(T && value) {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return destination_type<typename T::template node_t<indexes>&&...>{
+                csl::wf::get<indexes>(fwd(value))...
+            };
+        }(std::make_index_sequence<T::size>{});
+    }
+}
 // overload
 namespace csl::wf::details {
 
@@ -1084,80 +1186,6 @@ namespace csl::wf {
             return repeater_type{ fwd(arg) };
         }
     };
-}
-// flattening utility
-// - mp::unfold_to<dest<...>, T>
-// - mp::flatten_of_t<pack<...>, Ts...>
-// - mp::unfold_super_into<pack<...>, Ts...>
-// - mp::make_flatten_super(super<...>, Ts&&...)
-namespace csl::wf::details::mp {
-
-    // unfold_to
-    template <template <typename...> typename destination, typename ... Ts>
-    struct unfold_to : std::type_identity<destination<Ts...>>{};
-    template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
-    struct unfold_to<destination, from<Ts...>> : unfold_to<destination, Ts...>{};
-    template <template <typename...> typename destination, typename ... from>
-    using unfold_to_t = typename unfold_to<destination, from...>::type;
-
-    // flatten_of_t
-    template <template <typename ...> typename pack_type, typename ... Ts>
-    using flatten_of_t = unfold_to_t<
-        pack_type,
-        decltype(std::tuple_cat(
-            std::conditional_t<
-                is_instance_of_v<pack_type, Ts>,
-                unfold_to_t<std::tuple, Ts>,
-                std::tuple<Ts>
-            >{}...
-        ))
-    >;
-
-    // unfold_super_into
-    template <template <typename ...> typename destination_type, typename T>
-    constexpr decltype(auto) unfold_super_into(T && value) {
-        return destination_type<T&&>(fwd(value));
-    }
-    template <template <typename ...> typename destination_type, typename ... Ts>
-    constexpr decltype(auto) unfold_super_into(destination_type<Ts...> && value) {
-        return fwd(value);
-        // return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
-    }
-    template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
-    constexpr decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
-        return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
-    }
-
-    // make_flatten_super
-    template <template <typename ...> typename super_type, typename... Ts>
-    constexpr auto make_flatten_super(Ts && ... args) {
-
-        auto flatten_args_as_tuple = std::tuple_cat(unfold_super_into<std::tuple>(fwd(args))...);
-        constexpr auto flatten_args_as_tuple_index_sequence = std::make_index_sequence<
-            std::tuple_size_v<std::remove_cvref_t<decltype(flatten_args_as_tuple)>>
-        >{};
-
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return super_type{
-                std::get<indexes>(std::move(flatten_args_as_tuple))...
-            };
-        }(flatten_args_as_tuple_index_sequence);
-    }
-
-    // fwd_nodes_as_tuple
-    template <template <typename...> typename destination_type, typename T>
-    constexpr auto fwd_nodes_into(T && value) {
-        return destination_type<T&&>{ fwd(value) };
-    }
-    template <template <typename...> typename destination_type, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
-    constexpr auto fwd_nodes_into(T && value) {
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return destination_type<typename T::template node_t<indexes>&&...>{
-                csl::wf::get<indexes>(fwd(value))...
-            };
-        }(std::make_index_sequence<T::size>{});
-    }
 }
 // detections
 namespace csl::wf::details::mp::detect {
