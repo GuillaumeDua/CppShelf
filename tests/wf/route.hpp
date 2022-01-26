@@ -1,7 +1,6 @@
 #pragma once
 
 #include <csl/wf.hpp>
-#include <bitset>
 
 namespace test::wf::route_ {
     const auto node_1 = []()      { return 41; /* NOLINT(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) */ };
