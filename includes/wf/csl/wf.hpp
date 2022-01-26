@@ -713,8 +713,10 @@ namespace csl::wf::mp {
     //    [](std::array<int, 3>){} called with (1,2) from the public interface
     template <typename, typename>
     constexpr bool is_chain_invocable_v = false;
+    template <tuple_interface fs, tuple_interface args_ts>
+    constexpr bool is_chain_invocable_v<fs, args_ts> = is_chain_invocable_v<std::remove_cvref_t<fs>, std::remove_cvref_t<args_ts>>;
     template <typename ... fs, tuple_interface args_ts>
-    constexpr bool is_chain_invocable_v<std::tuple<fs...>&&, args_ts&&> = 
+    constexpr bool is_chain_invocable_v<std::tuple<fs...>, args_ts> = 
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return chain_trait<fs...>::template is_invocable<std::tuple_element_t<indexes, args_ts>...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
@@ -722,8 +724,10 @@ namespace csl::wf::mp {
 
     template <typename, typename>
     constexpr bool is_chain_nothrow_invocable_v = false;
+    template <tuple_interface fs, tuple_interface args_ts>
+    constexpr bool is_chain_nothrow_invocable_v<fs, args_ts> = is_chain_nothrow_invocable_v<std::remove_cvref_t<fs>, std::remove_cvref_t<args_ts>>;
     template <typename ... fs, tuple_interface args_ts>
-    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>&&, args_ts&&> = 
+    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>, args_ts> =
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return chain_trait<fs...>::template is_nothrow_invocable<std::tuple_element_t<indexes, args_ts>...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
@@ -846,9 +850,6 @@ namespace csl::wf {
             std::move(result)
         );
     }
-    // constexpr decltype(auto) chain_invoke(auto && ...) {
-    //     static_assert([](){ return false; }(), "csl::wf::chain_invoke : invalid overload");
-    // }
 
     // todo : use to instead of requires requires { chain_invoke }
     template <typename ... Ts>
@@ -870,15 +871,12 @@ namespace csl::wf {
         {}
 
         // todo : ttps
+        #pragma region operator()
         constexpr decltype(auto) operator()(auto && ... args) &
         noexcept(noexcept(chain_invoke(
             details::make_tuple_view(storage),
             std::forward_as_tuple(fwd(args)...)
         )))
-        // requires chain_invocable<
-        //     decltype(details::make_tuple_view(std::declval<storage_type&>())),
-        //     decltype(std::forward_as_tuple(fwd(args)...))
-        // >
         requires requires {
             chain_invoke(
                 details::make_tuple_view(std::declval<storage_type&>()),
@@ -945,6 +943,7 @@ namespace csl::wf {
                 std::forward_as_tuple(fwd(args)...)
             );
         }
+        #pragma endregion
 
         template <std::size_t index>
         using node_t = std::tuple_element_t<index, storage_type>;
