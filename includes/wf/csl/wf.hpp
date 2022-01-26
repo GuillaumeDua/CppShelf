@@ -713,10 +713,8 @@ namespace csl::wf::mp {
     //    [](std::array<int, 3>){} called with (1,2) from the public interface
     template <typename, typename>
     constexpr bool is_chain_invocable_v = false;
-    // template <typename ... fs, typename ... args_ts>
-    // constexpr bool is_chain_invocable_v<std::tuple<fs...>&&, std::tuple<args_ts...>&&> = chain_trait<fs...>::template is_invocable<args_ts...>;
     template <typename ... fs, tuple_interface args_ts>
-    constexpr bool is_chain_invocable_v<std::tuple<fs...>, args_ts> = 
+    constexpr bool is_chain_invocable_v<std::tuple<fs...>&&, args_ts&&> = 
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return chain_trait<fs...>::template is_invocable<std::tuple_element_t<indexes, args_ts>...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
@@ -725,7 +723,7 @@ namespace csl::wf::mp {
     template <typename, typename>
     constexpr bool is_chain_nothrow_invocable_v = false;
     template <typename ... fs, tuple_interface args_ts>
-    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>, args_ts> = 
+    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>&&, args_ts&&> = 
         []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return chain_trait<fs...>::template is_nothrow_invocable<std::tuple_element_t<indexes, args_ts>...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
