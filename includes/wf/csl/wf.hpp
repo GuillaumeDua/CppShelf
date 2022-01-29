@@ -1272,7 +1272,7 @@ namespace csl::wf {
 // literals
 namespace csl::wf::details::literals {
     template <typename T>
-    constexpr T char_to(char value)
+    constexpr T char_to_integral(char value)
     {
         if (value < '0' or value > '9')
             throw std::out_of_range("not decimal value");
@@ -1280,9 +1280,9 @@ namespace csl::wf::details::literals {
     }
 
     template <typename T>
-    constexpr auto char_pack_to(auto ... values) -> T
+    constexpr auto char_pack_to_integral(auto ... values) -> T
     {
-        auto values_as_tuple = std::tuple{ char_to<T>(values)...};
+        auto values_as_tuple = std::tuple{ char_to_integral<T>(values)...};
 
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (
@@ -1290,6 +1290,16 @@ namespace csl::wf::details::literals {
                 std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
             ) + ...);
         }(std::make_index_sequence<sizeof...(values)>{});
+    }
+}
+namespace csl::wf::literals {
+    template <auto value>
+    using times = std::integral_constant<decltype(value), value>;
+
+    template <char... chars_values>
+    constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
+    {
+        return {};
     }
 }
 // eDSL
