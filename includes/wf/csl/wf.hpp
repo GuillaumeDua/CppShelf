@@ -15,7 +15,8 @@
 #include <array>
 #include <string_view>
 #include <tuple>
-#include <cstdio> // debug purpose
+#include <cmath>
+#include <stdexcept>
 
 // -- dev/wip/debug only
 namespace gcl::cx {
@@ -851,7 +852,7 @@ namespace csl::wf {
         );
     }
 
-    // todo : use to instead of requires requires { chain_invoke }
+    // todo : use this instead of requires requires { chain_invoke }
     template <typename ... Ts>
     concept chain_invocable = requires {
         chain_invoke(std::declval<Ts>()...);
@@ -1167,7 +1168,8 @@ namespace csl::wf {
     struct repeater_factory {
 
         template <typename F>
-        static constexpr auto make(F && arg) {
+        static constexpr auto make(F && arg)
+        {
             return repeater<times, std::remove_cvref_t<F>>{ fwd(arg) };
         }
 
@@ -1259,9 +1261,35 @@ namespace csl::wf {
     }
 
     // make_repetition
+    // todo :   3_times (user-defined literals)
+    //          times(3) tag for rt::repeater factory
+    // or : repeater(N) -> repeater<N> with implicit cast to integral constant ?
     template <auto times, typename F>
     constexpr decltype(auto) make_repetition(F && func) {
         return repeater_factory<times>::make(fwd(func));
+    }
+}
+// literals
+namespace csl::wf::details::literals {
+    template <typename T>
+    constexpr T char_to(char value)
+    {
+        if (value < '0' or value > '9')
+            throw std::out_of_range("not decimal value");
+        return value - '0';
+    }
+
+    template <typename T>
+    constexpr auto char_pack_to(auto ... values) -> T
+    {
+        auto values_as_tuple = std::tuple{ char_to<T>(values)...};
+
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (
+                (std::pow(10, indexes) * // NOLINT
+                std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
+            ) + ...);
+        }(std::make_index_sequence<sizeof...(values)>{});
     }
 }
 // eDSL
