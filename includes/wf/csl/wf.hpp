@@ -1292,14 +1292,26 @@ namespace csl::wf::details::literals {
         }(std::make_index_sequence<sizeof...(values)>{});
     }
 }
-namespace csl::wf::literals {
+// literals (compile-time) 123_times
+namespace csl::wf::literals::ct {
     template <auto value>
     using times = std::integral_constant<decltype(value), value>;
 
+    // todo : make it work with Clang (see https://godbolt.org/z/EKsn7vnxG)
     template <char... chars_values>
     constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
     {
         return {};
+    }
+}
+// literals (runtime) 123_times
+namespace csl::wf::literals::rt {
+    struct times{
+        std::size_t value;
+    };
+
+    consteval times operator"" _times(unsigned long long value) {
+        return times{value};
     }
 }
 // eDSL
