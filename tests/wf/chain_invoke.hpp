@@ -104,7 +104,7 @@ namespace test::wf::chain_::invocable {
             std::tuple<
                         nothrow_rvalue_only_node_type,
                 const   nothrow_const_lvalue_only_node_type &,
-                        rvalue_only_node_type
+                        rvalue_only_node_type // not noexcept
             >,
             std::tuple<>
         >);
@@ -146,6 +146,7 @@ namespace test::wf::chain_::invoke_ {
             rvalue_only_node_type{}
         }, std::tuple{});
 
+        // const-lvalues
         const auto const_lvalue_only_node = const_lvalue_only_node_type{};
         csl::wf::chain_invoke(std::forward_as_tuple(
             const_lvalue_only_node,

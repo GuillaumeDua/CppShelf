@@ -53,6 +53,7 @@ namespace test::wf::route_ {
 
         struct lvalue_node_type {
             void operator()() & {}
+            void operator()() const & = delete;
         };
         struct const_lvalue_node_type {
             void operator()() & = delete;
@@ -60,6 +61,7 @@ namespace test::wf::route_ {
         };
         struct rvalue_node_type {
             void operator()() && {};
+            void operator()() & = delete;
         };
         struct const_rvalue_node_type {
             void operator()() && = delete;
