@@ -1082,6 +1082,53 @@ namespace csl::wf::details {
     template <typename ... Ts>
     overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
 }
+
+# pragma region repeat
+// literals
+namespace csl::wf::details::literals {
+    template <typename T>
+    constexpr T char_to_integral(char value)
+    {
+        if (value < '0' or value > '9')
+            throw std::out_of_range("not decimal value");
+        return value - '0';
+    }
+
+    template <typename T>
+    constexpr auto char_pack_to_integral(auto ... values) -> T
+    {
+        auto values_as_tuple = std::tuple{ char_to_integral<T>(values)...};
+
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (
+                (std::pow(10, indexes) * // NOLINT
+                std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
+            ) + ...);
+        }(std::make_index_sequence<sizeof...(values)>{});
+    }
+}
+// literals (compile-time) 123_times
+namespace csl::wf::literals::ct {
+    template <auto value>
+    using times = std::integral_constant<decltype(value), value>;
+
+    // todo : make it work with Clang (see https://godbolt.org/z/EKsn7vnxG)
+    template <char... chars_values>
+    constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
+    {
+        return {};
+    }
+}
+// literals (runtime) 123_times
+namespace csl::wf::literals::rt {
+    struct times{
+        std::size_t value;
+    };
+
+    consteval times operator"" _times(unsigned long long value) {
+        return times{value};
+    }
+}
 // repeat
 // - invoke_n_times
 // - repeater
@@ -1211,6 +1258,8 @@ namespace csl::wf {
         }
     };
 }
+#pragma endregion
+
 // detections
 namespace csl::wf::details::mp::detect {
     // avoid recursive concepts
@@ -1294,51 +1343,6 @@ namespace csl::wf {
         return repeater_factory<times>::make(fwd(func));
     }
 }
-// literals
-namespace csl::wf::details::literals {
-    template <typename T>
-    constexpr T char_to_integral(char value)
-    {
-        if (value < '0' or value > '9')
-            throw std::out_of_range("not decimal value");
-        return value - '0';
-    }
-
-    template <typename T>
-    constexpr auto char_pack_to_integral(auto ... values) -> T
-    {
-        auto values_as_tuple = std::tuple{ char_to_integral<T>(values)...};
-
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (
-                (std::pow(10, indexes) * // NOLINT
-                std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
-            ) + ...);
-        }(std::make_index_sequence<sizeof...(values)>{});
-    }
-}
-// literals (compile-time) 123_times
-namespace csl::wf::literals::ct {
-    template <auto value>
-    using times = std::integral_constant<decltype(value), value>;
-
-    // todo : make it work with Clang (see https://godbolt.org/z/EKsn7vnxG)
-    template <char... chars_values>
-    constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
-    {
-        return {};
-    }
-}
-// literals (runtime) 123_times
-namespace csl::wf::literals::rt {
-    struct times{
-        std::size_t value;
-    };
-
-    consteval times operator"" _times(unsigned long long value) {
-        return times{value};
-    }
-}
 // eDSL
 namespace csl::wf::operators {
     // todo : protect injection against overload ambiguities
@@ -1370,7 +1374,7 @@ namespace csl::wf {
 
 #undef fwd
 
-// todo : function should be able to return a mp::ttps + return value
+// todo : function should be able to return a mp::ttps + return value ?
 //  route :
 //      - invoke
 //      - same for apply ?
