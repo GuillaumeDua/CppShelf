@@ -78,7 +78,8 @@ namespace gcl::cx {
 
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
-// todo : poc a cleaner design ?
+// TODO : remove unused functions
+// TODO : poc a cleaner design ?
 //  details::apply which would be unsafe but hidden
 //  apply safe, part of the API
 //  applyable as requires { apply }
@@ -581,6 +582,26 @@ namespace csl::wf::details::mp {
     using unfold_tuple_to_t = typename unfold_tuple_to<destination, T>::type;
 }
 
+#pragma region route/chain
+// unfold operators helper
+namespace csl::wf::details::invoke_unfold_operators::eval::allow_discard {
+    constexpr auto operator>>(auto && args, auto && f)
+    noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f), decltype(fwd(args))>)
+    -> csl::wf::mp::invoke_result_t<decltype(f), decltype(args)>
+    requires (csl::wf::mp::is_invocable_v<decltype(f), decltype(fwd(args))>)
+    ; // for evaluation only, never defined
+    constexpr auto operator>>(auto && args, auto && f)
+    noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
+    -> csl::wf::mp::invoke_result_t<decltype(f)>
+    requires (csl::wf::mp::is_invocable_v<decltype(f)>)
+    ; // for evaluation only, never defined
+}
+namespace csl::wf::details::invoke_unfold_operators::eval::nodiscard {
+    constexpr auto operator>>(auto && args, auto && f)
+    noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f), decltype(fwd(args))>)
+    -> csl::wf::mp::invoke_result_t<decltype(f), decltype(args)>
+    ; // for evaluation only, never defined
+}
 // mp::chain_trait
 // To match concepts::tuple_interface
 // - mp::is_chain_invocable_v
@@ -974,6 +995,8 @@ namespace csl::wf {
         return fwd(value).template at<index>();
     }
 }
+#pragma endregion
+
 // flattening utility
 // - mp::flatten_of_t<pack<...>, Ts...>
 // - mp::unfold_super_into<pack<...>, Ts...>
