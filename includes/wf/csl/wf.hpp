@@ -638,8 +638,9 @@ namespace csl::wf::details::mp {
 
 // invocation utilities
 // - apply_with_or_discard
-// - invoke_into_tuple
-// - invoke_into_tuple_result_t
+// - invoke_into_tuple(_t)
+// - node_invoke
+// - node_invoke_result(_t)
 namespace csl::wf::details {
     // todo :
     // - multiples return values => csl::wf::mp::args<...> with tuple-like storage ? (or strong-type for std::tuple...)
@@ -698,7 +699,7 @@ namespace csl::wf::details {
             return csl::wf::apply(fwd(f), fwd(args));
         });
     }
-    constexpr auto operator>>=(auto && f, concepts::tuple_interface auto &&)
+    constexpr auto node_invoke(auto && f, concepts::tuple_interface auto &&)
     noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
     requires csl::wf::mp::is_invocable_v<decltype(f)>
     {   // discard
