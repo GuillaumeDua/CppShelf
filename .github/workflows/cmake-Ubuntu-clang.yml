@@ -1,9 +1,15 @@
-name: cmake-Ubuntu-clang_13
+name: cmake-Ubuntu-clang_$relase_id
 
 on: [push, pull_request]
 
+env:
+  relase_id: 14
+  CC:   clang-14
+  CXX:  clang++-14
+  libstdcpp_release_id: 11
+
 jobs:
-  cmake-Ubuntu-clang_13_build_test:
+  cmake-Ubuntu-clang_build_test:
 
     runs-on: ubuntu-latest
 
@@ -19,13 +25,13 @@ jobs:
     - name: Initialize compiler (Clang)
       run: |
           sudo apt update
-          sudo apt install libstdc++-11-dev
+          sudo apt install libstdc++-$libstdcpp_release_id-dev
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
           sudo update-alternatives \
-            --install /usr/bin/clang clang /usr/bin/clang-13 100
+            --install /usr/bin/clang clang /usr/bin/clang-$relase_id 100
           sudo update-alternatives \
-            --install /usr/bin/clang++ clang++ /usr/bin/clang++-13 100
-          sudo apt install libc++1-13 libc++-13-dev libc++abi-13-dev libc++abi1-13
+            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$relase_id 100
+          sudo apt install libc++1-$relase_id libc++-$relase_id-dev libc++abi-$relase_id-dev libc++abi1-$relase_id
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}} - ${{matrix.STL_IMPLEMENTATION}}
       run: |
@@ -41,10 +47,6 @@ jobs:
             -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
             -S ${{github.workspace}}                                                                \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
-        
-      env:
-        CC:   clang-13
-        CXX:  clang++-13
 
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |

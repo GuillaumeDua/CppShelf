@@ -1,9 +1,14 @@
-name: cmake-Ubuntu-gcc_11
+name: cmake-Ubuntu-gcc
 
 on: [push, pull_request]
 
+env:
+  relase_id: 11
+  CC:   gcc-11
+  CXX:  g++-11
+
 jobs:
-  cmake-Ubuntu-gcc_11_build_test:
+  cmake-Ubuntu-gcc_build_test:
 
     runs-on: ubuntu-latest
 
@@ -18,11 +23,11 @@ jobs:
     - name: Initialize compiler (GCC)
       run: |
           sudo apt update
-          sudo apt install gcc-11 g++-11
+          sudo apt install gcc-$relase_id g++-$relase_id
           sudo update-alternatives \
-            --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
-            --slave /usr/bin/g++ g++  /usr/bin/g++-11 \
-            --slave /usr/bin/gcov gcov /usr/bin/gcov-11
+            --install /usr/bin/gcc gcc /usr/bin/gcc-$relase_id 100 \
+            --slave /usr/bin/g++ g++  /usr/bin/g++-$relase_id \
+            --slave /usr/bin/gcov gcov /usr/bin/gcov-$relase_id
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
@@ -37,10 +42,6 @@ jobs:
             -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
             -S ${{github.workspace}}                                                                \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
-        
-      env:
-        CC:   gcc-11
-        CXX:  g++-11
 
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
