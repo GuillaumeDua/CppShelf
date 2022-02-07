@@ -90,7 +90,10 @@ namespace gcl::cx {
 namespace csl::wf::concepts {
     template <typename T>
     concept tuple_interface = requires { std::tuple_size<std::remove_reference_t<T>>{}; };
-
+    template <typename T>
+    concept tuple_empty = tuple_interface<T> and (std::tuple_size_v<std::remove_reference_t<T>> == 0);
+    template <typename T>
+    concept tuple_not_empty = tuple_interface<T> and (std::tuple_size_v<std::remove_reference_t<T>> > 0);
     template <typename T>
     concept tuple_optional = tuple_interface<T> and (std::tuple_size_v<std::remove_reference_t<T>> <= 1);
 
@@ -693,7 +696,9 @@ namespace csl::wf::details {
     // node invocation
     constexpr auto node_invoke(auto && f, concepts::tuple_interface auto && args)
     noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(fwd(args))>)
-    requires csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>
+    requires 
+        (not csl::wf::concepts::tuple_empty<decltype(args)>) and
+        csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>
     {   // nodiscard
         return details::invoke_into_tuple([&](){
             return csl::wf::apply(fwd(f), fwd(args));
@@ -716,6 +721,12 @@ namespace csl::wf::details {
             csl::wf::mp::invoke_result_t<F>
         >
     >{};
+    template <typename F>
+    struct node_invoke_result<F, std::tuple<>> : std::type_identity<
+        csl::wf::mp::tuple_optional_t<
+            csl::wf::mp::invoke_result_t<F>
+        >
+    >{};
     template <typename F, csl::wf::concepts::tuple_interface args_ts>
     struct node_invoke_result<F, args_ts> : std::type_identity<
         csl::wf::mp::tuple_optional_t<
@@ -731,40 +742,41 @@ namespace csl::wf::details {
 }
 
 #pragma region route/chain
-// unfold operators helper
+// unfold operators helper (for evaluation only, never defined)
+// TODO : node_invoke_result_t not usefull for every operator here
+// - csl::wf::mp::tuple_optional_t<(invoke|apply)_result_t<...>>
 namespace csl::wf::details::invoke_unfold_operators::eval::allow_discard {
     // no discard
-    constexpr auto operator>>(csl::wf::concepts::tuple_interface auto && args, auto && f)
+    constexpr auto operator>>(csl::wf::concepts::tuple_not_empty auto && args, auto && f)
     noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(fwd(args))>)
     -> node_invoke_result_t<decltype(f), decltype(args)>
-    requires (csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>)
-    ; // for evaluation only, never defined
-    // discard
+    requires csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>
+    ;
+    // discard (incompatible args)
     constexpr auto operator>>(csl::wf::concepts::tuple_interface auto && args, auto && f)
     noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
     -> node_invoke_result_t<decltype(f)>
-    requires (csl::wf::mp::is_invocable_v<decltype(f)>)
-    ; // for evaluation only, never defined
+    requires csl::wf::mp::is_invocable_v<decltype(f)>
+    ;
 }
 namespace csl::wf::details::invoke_unfold_operators::eval::nodiscard {
-    constexpr auto operator>>(csl::wf::concepts::tuple_interface auto && args, auto && f)
-    noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f), decltype(fwd(args))>)
+    constexpr auto operator>>(csl::wf::concepts::tuple_not_empty auto && args, auto && f)
+    noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(fwd(args))>)
     -> node_invoke_result_t<decltype(f), decltype(args)>
-    requires (csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>)
-    ; // for evaluation only, never defined
+    requires csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>
+    ;
+    constexpr auto operator>>(csl::wf::concepts::tuple_empty auto && args, auto && f)
+    noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
+    -> node_invoke_result_t<decltype(f), decltype(args)>
+    requires (csl::wf::mp::is_invocable_v<decltype(f)>)
+    ;
 }
 namespace csl::wf::details::invoke_unfold_operators {
 
     constexpr auto operator>>=(concepts::tuple_interface auto && args, auto && f)
-    noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(fwd(args))>)
-    requires csl::wf::mp::is_applyable_v<decltype(f), decltype(fwd(args))>
+    noexcept(noexcept(node_invoke(fwd(f), fwd(args))))
+    requires requires { node_invoke(fwd(f), fwd(args)); }
     {   // nodiscard
-        return node_invoke(fwd(f), fwd(args));
-    }
-    constexpr auto operator>>=(concepts::tuple_interface auto && args, auto && f)
-    noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
-    requires csl::wf::mp::is_invocable_v<decltype(f)>
-    {   // discard
         return node_invoke(fwd(f), fwd(args));
     }
 }
