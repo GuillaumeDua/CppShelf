@@ -1,9 +1,9 @@
 #include "./invocable_traits.hpp"
 #include "./invoke_apply.hpp"
 #include "./bind_front.hpp"
-#include "./chain_trait.hpp"
-#include "./chain_invoke.hpp"
-#include "./route.hpp"
+// #include "./chain_trait.hpp"
+// #include "./chain_invoke.hpp"
+// #include "./route.hpp"
 #include "./repeat.hpp"
 
 // syntactic sugar :
@@ -14,6 +14,32 @@
 #include <csl/wf.hpp>
 #include <iostream>
 auto main() -> int {
+
+    {
+        auto func = []<typename ...>(){};
+        using func_type = decltype(func);
+
+        using namespace csl::wf::mp;
+        static_assert(is_invocable_v<func_type>);
+        static_assert(is_invocable_v<func_type, ttps<>>);
+        static_assert(is_invocable_v<func_type, ttps<>&>);
+        static_assert(is_invocable_v<func_type, ttps<int>>);
+
+        static_assert(is_applyable_v<func_type, std::tuple<>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
+
+        using trait = csl::wf::chain_trait<func_type>;
+        static_assert(trait::is_invocable<>);
+
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{}); 
+
+        // static_assert(trait::is_invocable<ttps<>>);
+        // static_assert(trait::is_invocable<ttps<>&>);
+        // static_assert(trait::is_invocable<ttps<int>>);
+    }
 
     struct lvalue_node_type {
         constexpr void operator()() &         {}
@@ -29,38 +55,52 @@ auto main() -> int {
         }, std::tuple{});
     }
     {   // lvalue route
-        auto route = csl::wf::route {
-            lvalue_node_type{},
-            lvalue_node_type{},
-            lvalue_node_type{},
-            lvalue_node_type{}
-        };
-        route();
-    }
-    {
-        auto node_1 = [](){ return 42; };
-        auto node_2 = [](int){};
-        auto node_3 = [](){};
 
-        static_assert(csl::wf::mp::chain_trait<
-            decltype(node_2), decltype(node_3)
-        >::is_invocable<int>);
-        static_assert(csl::wf::mp::chain_trait<
-            decltype(node_1), decltype(node_2), decltype(node_3)
-        >::is_invocable<>);
+        static_assert(
+            csl::wf::details::mp::is_chain_invocable_v<
+                csl::wf::mp::tuple_view_t<
+                    std::tuple<
+                        lvalue_node_type,
+                        lvalue_node_type,
+                        lvalue_node_type
+                    >
+                >,
+                decltype(std::forward_as_tuple())
+            >
+        );
 
-        csl::wf::chain_invoke(std::tuple{
-            node_1, node_2, node_3
-        }, std::tuple{});
+        // auto route = csl::wf::route {
+        //     lvalue_node_type{},
+        //     lvalue_node_type{},
+        //     lvalue_node_type{},
+        //     lvalue_node_type{}
+        // };
+        // route();
     }
-    {   // fwd arg
-        auto route = csl::wf::route {
-            [](){ return 42; },
-            [](int){  },
-            [](){}
-        };
-        route();
-    }
+    // {
+    //     auto node_1 = [](){ return 42; };
+    //     auto node_2 = [](int){};
+    //     auto node_3 = [](){};
+
+    //     static_assert(csl::wf::mp::chain_trait<
+    //         decltype(node_2), decltype(node_3)
+    //     >::is_invocable<int>);
+    //     static_assert(csl::wf::mp::chain_trait<
+    //         decltype(node_1), decltype(node_2), decltype(node_3)
+    //     >::is_invocable<>);
+
+    //     csl::wf::chain_invoke(std::tuple{
+    //         node_1, node_2, node_3
+    //     }, std::tuple{});
+    // }
+    // {   // fwd arg
+    //     auto route = csl::wf::route {
+    //         [](){ return 42; },
+    //         [](int){  },
+    //         [](){}
+    //     };
+    //     route();
+    // }
 
     // using namespace csl::wf::operators;
 
