@@ -34,11 +34,11 @@ auto main() -> int {
         static_assert(trait::is_invocable<>);
 
         csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});
-        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{}); 
+        // csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{}); 
 
-        // static_assert(trait::is_invocable<ttps<>>);
-        // static_assert(trait::is_invocable<ttps<>&>);
-        // static_assert(trait::is_invocable<ttps<int>>);
+        static_assert(trait::is_invocable<ttps<>>);
+        static_assert(trait::is_invocable<ttps<>&>);
+        static_assert(trait::is_invocable<ttps<int>>);
     }
 
     struct lvalue_node_type {
