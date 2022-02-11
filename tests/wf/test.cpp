@@ -33,8 +33,8 @@ auto main() -> int {
         using trait = csl::wf::chain_trait<func_type>;
         static_assert(trait::is_invocable<>);
 
-        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});
-        // csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{}); 
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});     // no args (invoke)
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{});  // discard (invoke)
 
         static_assert(trait::is_invocable<ttps<>>);
         static_assert(trait::is_invocable<ttps<>&>);
