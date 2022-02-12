@@ -784,7 +784,7 @@ namespace csl::wf::details {
         constexpr static auto node_invoke(auto && f, auto && args)
         noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
         requires policy::template should_invoke_v<decltype(f), decltype(args)>
-        {
+        {   // discard args
             return details::invoke_into_tuple([&](){
                 return csl::wf::invoke(fwd(f));
             });
@@ -792,6 +792,7 @@ namespace csl::wf::details {
     };
 }
 // unfold operators helper (for evaluation only, never defined)
+// TODO : ttps<...> cannot be discard
 namespace csl::wf::details::invoke_policy::allow_discard {
 
     struct identity {

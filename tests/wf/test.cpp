@@ -1,7 +1,7 @@
 #include "./invocable_traits.hpp"
 #include "./invoke_apply.hpp"
 #include "./bind_front.hpp"
-// #include "./chain_trait.hpp"
+#include "./chain_trait.hpp"
 // #include "./chain_invoke.hpp"
 // #include "./route.hpp"
 #include "./repeat.hpp"
