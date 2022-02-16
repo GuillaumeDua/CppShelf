@@ -78,7 +78,11 @@ namespace gcl::cx {
 
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
-// todo : poc a cleaner design ?
+// TODO : mp::ttps in args never discardable
+// TODO : remove unused functions
+// TODO : simplify code with std::apply(invoke<>, args),
+//        or unfold_to
+// TODO : poc a cleaner design ?
 //  details::apply which would be unsafe but hidden
 //  apply safe, part of the API
 //  applyable as requires { apply }
@@ -86,11 +90,65 @@ namespace gcl::cx {
 // however, STL's invocable is requires { std::invoke(...) }
 //  https://en.cppreference.com/w/cpp/concepts/invocable
 
-// is_(nothrow_)invocable(_r), invoke_result
-// is_(nothrow_)applyable(_before|_after)
-namespace csl::wf::mp {
+namespace csl::wf::concepts {
+    template <typename T>
+    concept tuple_interface = requires { std::tuple_size<std::remove_reference_t<T>>{}; };
+    template <typename T>
+    concept tuple_empty = tuple_interface<T> and (std::tuple_size_v<std::remove_reference_t<T>> == 0);
+    template <typename T>
+    concept tuple_not_empty = tuple_interface<T> and (std::tuple_size_v<std::remove_reference_t<T>> > 0);
+    template <typename T>
+    concept tuple_optional = tuple_interface<T> and (std::tuple_size_v<std::remove_reference_t<T>> <= 1);
 
-    // ttps -> pack of ttps
+     // tuple non-owning/view
+    template <typename T>
+    concept tuple_view = concepts::tuple_interface<T> and []<std::size_t ... indexes>(std::index_sequence<indexes...>) noexcept {
+        return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
+    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+}
+// make_tuple_subview
+namespace csl::wf::mp {
+    template <
+        std::size_t pos = 0,
+        std::size_t count = std::string_view::npos
+    >
+    constexpr concepts::tuple_interface auto make_tuple_subview(concepts::tuple_interface auto && tuple_value) noexcept
+    requires (pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>) {
+        using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
+        constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
+        return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
+            return std::tuple<
+                decltype(std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
+            >{ std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
+        }(std::make_index_sequence<length>{});
+    }
+    constexpr concepts::tuple_interface auto make_tuple_view(concepts::tuple_interface auto && tuple_value) noexcept {
+        return make_tuple_subview(std::forward<decltype(tuple_value)>(tuple_value));
+    }
+    static_assert(std::same_as<
+        std::tuple<int&&, const char &&>,
+        decltype(make_tuple_view(std::tuple<int, const char>{}))
+    >);
+
+    template <concepts::tuple_interface T>
+    using tuple_view_t = decltype(make_tuple_subview(std::declval<T>()));
+
+    template <typename T>
+    using tuple_optional_t = std::conditional_t<
+        std::is_same_v<T, void>,
+        std::tuple<>,
+        std::array<T, 1>
+    >;
+    template <concepts::tuple_optional T>
+    using tuple_optional_underlying_t = typename std::conditional_t<
+        std::is_same_v<T, std::tuple<>>,
+        std::type_identity<void>,
+        std::tuple_element<0, T>
+    >::type;
+}
+// ttps, is_ttps
+namespace csl::wf::mp {
+// ttps -> pack of ttps
     template <typename ...>
     struct ttps{};
 
@@ -100,11 +158,22 @@ namespace csl::wf::mp {
     struct is_ttps<ttps<Ts...>> : std::true_type{};
     template <typename T>
     constexpr bool is_ttps_v = is_ttps<T>::value;
+}
+// ttps
+// tupleinterface_(not_)starting_with_ttps
+namespace csl::wf::concepts {
+    template <typename T>
+    concept ttps = mp::is_ttps_v<std::remove_cvref_t<T>>;
 
-    // template <typename T>
-    // constexpr bool is_ttps_v = false;
-    // template <typename ... Ts>
-    // constexpr bool is_ttps_v<ttps<Ts...>> = true;
+    template <typename T>
+    concept tupleinterface_starting_with_ttps = tuple_not_empty<T> and ttps<std::tuple_element_t<0, std::remove_cvref_t<T>>>;
+    template <typename T>
+    concept tupleinterface_not_starting_with_ttps = tuple_interface<T> and not tupleinterface_starting_with_ttps<T>;
+}
+
+// is_(nothrow_)invocable(_r), invoke_result
+// is_(nothrow_)applyable(_before|_after)
+namespace csl::wf::mp {
 
     // is_invocable<F, [ttps<...>,] args_types...>
     template <typename F, typename... args_types>
@@ -117,6 +186,8 @@ namespace csl::wf::mp {
             std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...);
         };
     };
+    template <typename F, concepts::ttps ttps_type, typename... args_types>
+    struct is_invocable<F, ttps_type, args_types...> : is_invocable<F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename F, typename... Ts>
     constexpr bool is_invocable_v = is_invocable<F, Ts...>::value;
 
@@ -137,6 +208,8 @@ namespace csl::wf::mp {
         }();
          
     };
+    template <typename F, concepts::ttps ttps_type, typename... args_types>
+    struct is_nothrow_invocable<F, ttps_type, args_types...> : is_nothrow_invocable<F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_invocable_v = is_nothrow_invocable<F, Ts...>::value;
 
@@ -151,6 +224,8 @@ namespace csl::wf::mp {
             { std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...) } -> std::convertible_to<R>;
         };
     };
+    template <typename R, typename F, concepts::ttps ttps_type, typename... args_types>
+    struct is_invocable_r<R, F, ttps_type, args_types...> : is_invocable_r<R, F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename R, typename F, typename... Ts>
     constexpr bool is_invocable_r_v = is_invocable_r<R, F, Ts...>::value;
 
@@ -171,6 +246,8 @@ namespace csl::wf::mp {
         }();
          
     };
+    template <typename R, typename F, concepts::ttps ttps_type, typename... args_types>
+    struct is_nothrow_invocable_r<R, F, ttps_type, args_types...> : is_nothrow_invocable_r<R, F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename R, typename F, typename... Ts>
     constexpr bool is_nothrow_invocable_r_v = is_nothrow_invocable_r<R, F, Ts...>::value;
 
@@ -190,13 +267,12 @@ namespace csl::wf::mp {
             std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...)
         );
     };
+    template <typename F, concepts::ttps ttps_type, typename... args_types>
+    struct invoke_result<F, ttps_type, args_types...> : invoke_result<F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename F, typename... Ts>
     using invoke_result_t = typename invoke_result<F, Ts...>::type;
 
     // ---
-
-    template <typename T>
-    concept tuple_interface = requires { std::tuple_size<std::remove_reference_t<T>>{}; };
 
     // is_applyable
     template <typename F, typename...>
@@ -204,105 +280,143 @@ namespace csl::wf::mp {
     {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename F, typename ... ttps_args, tuple_interface tuple_type>
+    template <typename F, concepts::tuple_interface tuple_type>
+    struct is_applyable<F, tuple_type> {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return is_invocable_v<F, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+    };
+    template <typename F, typename ... ttps_args, concepts::tupleinterface_not_starting_with_ttps tuple_type>
     struct is_applyable<F, ttps<ttps_args...>, tuple_type> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_invocable_v<F, ttps<ttps_args...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
-    template <typename F, tuple_interface tuple_type>
-    struct is_applyable<F, tuple_type> : is_applyable<F, ttps<>, tuple_type>{};
+    template <typename F, concepts::ttps ttps_type, concepts::tupleinterface_not_starting_with_ttps tuple_type>
+    struct is_applyable<F, ttps_type, tuple_type> : is_applyable<F, std::remove_cvref_t<ttps_type>, tuple_type>{};
     template <typename F, typename... Ts>
     constexpr bool is_applyable_v = is_applyable<F, Ts...>::value;
 
     // is_nothrow_applyable
     template <typename F, typename...>
-    struct is_nothrow_applyable {
+    struct is_nothrow_applyable //: std::false_type{};
+    {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename F, typename ... ttps_args, tuple_interface tuple_type>
-    struct is_nothrow_applyable<F, ttps<ttps_args...>, tuple_type> {
+    template <typename F, concepts::tuple_interface tuple_type>
+    struct is_nothrow_applyable<F, tuple_type> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return is_nothrow_invocable_v<F, ttps<ttps_args...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>; // std::get to preserve cvref qualifiers
+            return is_nothrow_invocable_v<F, decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
-    template <typename F, tuple_interface tuple_type>
-    struct is_nothrow_applyable<F, tuple_type> : is_nothrow_applyable<F, ttps<>, tuple_type>{};
+    template <typename F, typename ... ttps_args, concepts::tupleinterface_not_starting_with_ttps tuple_type>
+    struct is_nothrow_applyable<F, ttps<ttps_args...>, tuple_type> {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return is_nothrow_invocable_v<F, ttps<ttps_args...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
+    };
+    template <typename F, concepts::ttps ttps_type, concepts::tupleinterface_not_starting_with_ttps tuple_type>
+    struct is_nothrow_applyable<F, ttps_type, tuple_type> : is_nothrow_applyable<F, std::remove_cvref_t<ttps_type>, tuple_type>{};
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_v = is_nothrow_applyable<F, Ts...>::value;
 
-    // is_applyable_before
+    // is_applyable_before (ttps cannot be part of tuple)
     template <typename F, typename...>
     struct is_applyable_before //: std::false_type{};
     {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tupleinterface_not_starting_with_ttps tuple_type, typename ... func_args_t>
     struct is_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
-    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_applyable_before<F, tuple_type, func_args_t...>
     : is_applyable_before<F, ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_applyable_before_v = is_applyable_before<F, Ts...>::value;
 
-    // is_nothrow_applyable_before
+    // is_nothrow_applyable_before (ttps cannot be part of tuple)
     template <typename F, typename...>
     struct is_nothrow_applyable_before {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_nothrow_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_nothrow_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
-    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_nothrow_applyable_before<F, tuple_type, func_args_t...>
     : is_nothrow_applyable_before<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_before_v = is_nothrow_applyable_before<F, Ts...>::value;
 
-    // is_applyable_after
+    // is_applyable_after (ttps cannot be part of tuple)
     template <typename F, typename...>
     struct is_applyable_after {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_applyable_after<F, ttps<f_ts...>, tuple_type, func_args_t...> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_invocable_v<F, ttps<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
-    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_applyable_after<F, tuple_type, func_args_t...>
     : is_applyable_after<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_applyable_after_v = is_applyable_after<F, Ts...>::value;
 
-    // is_nothrow_applyable_after
+    // is_nothrow_applyable_after (ttps cannot be part of tuple)
     template <typename F, typename...>
     struct is_nothrow_applyable_after {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_nothrow_applyable_after<F, ttps<f_ts...>, tuple_type, func_args_t...> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_nothrow_invocable_v<F, ttps<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
-    template <typename F, tuple_interface tuple_type, typename ... func_args_t>
+    template <typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_nothrow_applyable_after<F, tuple_type, func_args_t...>
     : is_nothrow_applyable_after<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
     constexpr bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
+
+    // apply_result
+    template <typename F, typename...>
+    struct apply_result
+    {
+        static_assert([]() constexpr { return false; }(), "invalid arguments");
+    };
+    template <typename F, concepts::tuple_interface tuple_type>
+    struct apply_result<F, tuple_type> : decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::type_identity<
+                typename mp::invoke_result_t<F, decltype(std::get<indexes>(std::declval<tuple_type>()))...>
+            >{};
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{}))
+    {};
+    template <typename F, typename ... ttps_args, concepts::tupleinterface_not_starting_with_ttps tuple_type>
+    struct apply_result<F, ttps<ttps_args...>, tuple_type> : decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::type_identity<
+                typename mp::invoke_result_t<F, ttps<ttps_args...>, decltype(std::get<indexes>(std::declval<tuple_type>()))...>
+            >{};
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{}))
+    {};
+    template <typename F, concepts::ttps ttps_type, concepts::tupleinterface_not_starting_with_ttps tuple_type>
+    struct apply_result<F, ttps_type, tuple_type> : apply_result<F, std::remove_cvref_t<ttps_type>, tuple_type>{};
+    template <typename F, typename ... Ts>
+    using apply_result_t = typename apply_result<F, Ts...>::type;
 }
 // is(_nothrow_)invocable_with
 namespace csl::wf::mp {
@@ -357,6 +471,14 @@ namespace csl::wf {
             return std::invoke(std::forward<F>(f), std::forward<args_types>(args)...);
         else return std::forward<F>(f).template operator()<ttps_args...>(std::forward<args_types>(args)...);
     }
+    template <typename ... ttps_args, typename F, typename ... args_types>
+    requires
+        mp::is_invocable_v<F&&, mp::ttps<ttps_args...>, args_types&&...>
+    constexpr decltype(auto) invoke(F && f, mp::ttps<ttps_args...>, args_types&& ... args)
+    noexcept(mp::is_nothrow_invocable_v<F&&, mp::ttps<ttps_args...>, args_types&&...>)
+    {
+        return invoke<ttps_args...>(fwd(f), fwd(args)...);
+    }
     template <typename F, typename ... args_types>
     requires
         (not mp::is_invocable_v<F&&, args_types&&...>)
@@ -368,7 +490,7 @@ namespace csl::wf {
     }
 
     // apply
-    template <typename ... f_ts, typename F, mp::tuple_interface args_as_tuple_t>
+    template <typename ... f_ts, typename F, concepts::tupleinterface_not_starting_with_ttps args_as_tuple_t>
     requires mp::is_applyable_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t>
     constexpr decltype(auto) apply(F && f, args_as_tuple_t&& args)
     noexcept(mp::is_nothrow_applyable_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t>)
@@ -377,12 +499,24 @@ namespace csl::wf {
         noexcept(mp::is_nothrow_invocable_v<F&&, mp::ttps<f_ts...>, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>)
         -> decltype(auto)
         {
-            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(std::forward<args_as_tuple_t>(args))...);
+            return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(fwd(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
+    template <typename F, concepts::tupleinterface_starting_with_ttps args_as_tuple_t>
+    constexpr decltype(auto) apply(F && f, args_as_tuple_t && args)
+    noexcept(mp::is_nothrow_applyable_v<F&&, decltype(fwd(args))>)
+    requires mp::is_applyable_v<F&&, decltype(fwd(args))>
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::is_nothrow_invocable_v<F&&, decltype(std::get<indexes>(std::declval<decltype(args)>()))...>)
+        -> decltype(auto)
+        {
+            return invoke(std::forward<F>(f), std::get<indexes>(fwd(args))...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<decltype(args)>>>{});
     }
 
     // apply_before
-    template <typename ... f_ts, typename F, mp::tuple_interface args_as_tuple_t, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple_t, typename ... func_args_t>
     requires mp::is_applyable_before_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>
     constexpr decltype(auto) apply_before(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
     noexcept(mp::is_nothrow_applyable_before_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>)
@@ -396,7 +530,7 @@ namespace csl::wf {
     }
 
     // apply_after
-    template <typename ... f_ts, typename F, mp::tuple_interface args_as_tuple_t, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple_t, typename ... func_args_t>
     requires mp::is_applyable_after_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>
     constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args)
     noexcept(mp::is_nothrow_applyable_after_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>)
@@ -568,179 +702,28 @@ namespace csl::wf::details::mp {
     using unfold_to_t = typename unfold_to<destination, from...>::type;
 
     // unfold_tuple_to
-    template <template <typename...> typename destination, csl::wf::mp::tuple_interface T>
+    template <template <typename...> typename destination, concepts::tuple_interface T>
     struct unfold_tuple_to {
         using type = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             using result_t = destination<std::tuple_element_t<indexes, T>...>;
             return std::type_identity<result_t>{};
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{}))::type;
     };
-    template <template <typename...> typename destination, csl::wf::mp::tuple_interface T>
+    template <template <typename...> typename destination, concepts::tuple_interface T>
     using unfold_tuple_to_t = typename unfold_tuple_to<destination, T>::type;
 }
-
-// mp::chain_trait
-// To match tuple_interface
-// - mp::is_chain_invocable_v
-// - mp::is_chain_nothrow_invocable_v
-namespace csl::wf::mp {
-    template <typename ...>
-    struct chain_trait;
-    template <typename node, typename next, typename ...rest>
-    requires (sizeof...(rest) not_eq 0)
-    struct chain_trait<node, next, rest...> {
-
-        template <typename ... args_type>
-        constexpr static bool is_invocable = [](){
-            if constexpr (not chain_trait<node, next>::template is_invocable<args_type...>)
-                return false;
-            else return chain_trait<rest...>::template is_invocable<
-                typename chain_trait<node, next>::template invoke_result_t<args_type...>
-            >;
-        }();
-        template <typename ... args_type>
-        constexpr static bool is_nodiscard_invocable = [](){
-            if constexpr (not chain_trait<node, next>::template is_nodiscard_invocable<args_type...>)
-                return false;
-            else return chain_trait<rest...>::template is_nodiscard_invocable<
-                typename chain_trait<node, next>::template invoke_result_t<args_type...>
-            >;
-        }();
-        template <typename ... args_type>
-        constexpr static bool is_nothrow_invocable = [](){
-            if constexpr (not chain_trait<node, next>::template is_nothrow_invocable<args_type...>)
-                return false;
-            else return chain_trait<rest...>::template is_nothrow_invocable<
-                typename chain_trait<node, next>::template invoke_result_t<args_type...>
-            >;
-        }();
-        template <typename ... args_type>
-        constexpr static bool is_nothrow_nodiscard_invocable = [](){
-            if constexpr (not chain_trait<node, next>::template is_nothrow_nodiscard_invocable<args_type...>)
-                return false;
-            else return chain_trait<rest...>::template is_nothrow_nodiscard_invocable<
-                typename chain_trait<node, next>::template invoke_result_t<args_type...>
-            >;
-        }();
-
-        template <typename ... args_type>
-        requires
-            is_invocable<args_type...> or
-            is_invocable<>
-        using invoke_result_t = typename chain_trait<rest...>::template invoke_result_t<
-            typename chain_trait<node, next>::template invoke_result_t<args_type...>
-        >;
-    };
-    template <typename node, typename next>
-    struct chain_trait<node, next> {
-
-        template <typename ... args_type>
-        constexpr static bool is_invocable = [](){
-            if constexpr (not chain_trait<node>::template is_invocable<args_type...>)
-                return false;
-            else return chain_trait<next>::template is_invocable<
-                    typename chain_trait<node>::template invoke_result_t<args_type...>
-                >
-            ;
-        }();
-        template <typename ... args_type>
-        constexpr static bool is_nodiscard_invocable = [](){
-            if constexpr (not chain_trait<node>::template is_nodiscard_invocable<args_type...>)
-                return false;
-            else return chain_trait<next>::template is_nodiscard_invocable<
-                typename chain_trait<node>::template invoke_result_t<args_type...>
-            >;
-        }();
-        template <typename ... args_type>
-        constexpr static bool is_nothrow_invocable = [](){
-            if constexpr (not chain_trait<node>::template is_nothrow_invocable<args_type...>)
-                return false;
-            else return
-                chain_trait<next>::template is_nothrow_invocable<
-                    typename chain_trait<node>::template invoke_result_t<args_type...>
-                >
-            ;
-        }();
-        template <typename ... args_type>
-        constexpr static bool is_nothrow_nodiscard_invocable = [](){
-
-            if constexpr (not chain_trait<node>::template is_nothrow_nodiscard_invocable<args_type...>)
-                return false;
-            else return chain_trait<next>::template is_nothrow_nodiscard_invocable<
-                typename chain_trait<node>::template invoke_result_t<args_type...>
-            >;
-        }();
-
-        template <typename ... args_type>
-        requires
-            is_invocable<args_type...> or
-            is_invocable<>
-        using invoke_result_t = typename chain_trait<next>::template invoke_result_t<
-            typename chain_trait<node>::template invoke_result_t<args_type...>
-        >;
-    };
-    template <typename node>
-    struct chain_trait<node> {
-
-        template <typename ... args_type>
-        constexpr static bool is_nodiscard_invocable =
-            mp::is_invocable_v<node, args_type...>;
-        template <typename ... args_type>
-        constexpr static bool is_invocable =
-            is_nodiscard_invocable<args_type...> or
-            mp::is_invocable_v<node>
-        ;
-        template <typename ... args_type>
-        constexpr static bool is_nothrow_nodiscard_invocable =
-            mp::is_nothrow_invocable_v<node, args_type...>;
-        template <typename ... args_type>
-        constexpr static bool is_nothrow_invocable =
-            is_nothrow_nodiscard_invocable<args_type...> or
-            mp::is_nothrow_invocable_v<node>
-        ;
-
-        template <typename ... args_type>
-        requires is_invocable<args_type...>
-        using invoke_result_t = typename std::conditional_t<
-            is_nodiscard_invocable<args_type...>,
-            mp::invoke_result<node, args_type...>,
-            mp::invoke_result<node>
-        >::type;
-    };
-
-    // using tuples to match chain_invoke interface
-    // todo :
-    //  - check if this cannot be by-passed/misleading
-    //    [](std::array<int, 3>){} called with (1,2) from the public interface
-    template <typename, typename>
-    constexpr bool is_chain_invocable_v = false;
-    template <tuple_interface fs, tuple_interface args_ts>
-    constexpr bool is_chain_invocable_v<fs, args_ts> = is_chain_invocable_v<std::remove_cvref_t<fs>, std::remove_cvref_t<args_ts>>;
-    template <typename ... fs, tuple_interface args_ts>
-    constexpr bool is_chain_invocable_v<std::tuple<fs...>, args_ts> = 
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return chain_trait<fs...>::template is_invocable<std::tuple_element_t<indexes, args_ts>...>;
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
-    ;
-
-    template <typename, typename>
-    constexpr bool is_chain_nothrow_invocable_v = false;
-    template <tuple_interface fs, tuple_interface args_ts>
-    constexpr bool is_chain_nothrow_invocable_v<fs, args_ts> = is_chain_nothrow_invocable_v<std::remove_cvref_t<fs>, std::remove_cvref_t<args_ts>>;
-    template <typename ... fs, tuple_interface args_ts>
-    constexpr bool is_chain_nothrow_invocable_v<std::tuple<fs...>, args_ts> =
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return chain_trait<fs...>::template is_nothrow_invocable<std::tuple_element_t<indexes, args_ts>...>;
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<args_ts>>>{});
-    ;
-}
-// route details
+// invocation utilities
+// - apply_with_or_discard
+// - invoke_into_tuple(_t)
+// - node_invoke
+// - node_invoke_result(_t)
 namespace csl::wf::details {
     // todo :
     // - multiples return values => csl::wf::mp::args<...> with tuple-like storage ? (or strong-type for std::tuple...)
 
     // apply_with_or_discard
-    template <typename F, wf::mp::tuple_interface tuple_type>
+    // TODO : remove ?
+    template <typename F, csl::wf::concepts::tuple_interface tuple_type>
     requires
         wf::mp::is_applyable_v<F&&, tuple_type&&>
     constexpr decltype(auto) apply_with_or_discard(F && functor, tuple_type && args_as_tuple)
@@ -748,7 +731,7 @@ namespace csl::wf::details {
     {
         return wf::apply(fwd(functor), fwd(args_as_tuple));
     }
-    template <typename F, wf::mp::tuple_interface tuple_type>
+    template <typename F, csl::wf::concepts::tuple_interface tuple_type>
     requires
         (not wf::mp::is_applyable_v<F&&, tuple_type&&>)
         and wf::mp::is_invocable_v<F&&>
@@ -762,6 +745,7 @@ namespace csl::wf::details {
     //     static_assert([](){ return false; }(), "csl::wf::details::apply_with_or_discard : invalid overload");
     // }
     
+    // invoke_into_tuple
     // todo : multiple returns value (including ttps<...>)
     constexpr decltype(auto) invoke_into_tuple(auto && functor, auto && ... args)
     noexcept (wf::mp::is_nothrow_invocable_v<decltype(functor), decltype(args)...>)
@@ -781,77 +765,326 @@ namespace csl::wf::details {
         invoke_into_tuple(std::declval<F>(), std::declval<args_ts...>());
     }
     using invoke_into_tuple_result_t = decltype(invoke_into_tuple(std::declval<F>(), std::declval<args_ts...>()));
-
-    // tuple utilities (non-owning/view)
-    template <typename T>
-    concept tuple_view = wf::mp::tuple_interface<T> and []<std::size_t ... indexes>(std::index_sequence<indexes...>) noexcept {
-        return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
-    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
-
-    template <
-        std::size_t pos = 0,
-        std::size_t count = std::string_view::npos
-    >
-    constexpr auto make_tuple_subview(wf::mp::tuple_interface auto && tuple_value) noexcept
-    requires (pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>) {
-        using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
-        constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
-        return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
-            return std::tuple<
-                decltype(std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
-            >{ std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
-        }(std::make_index_sequence<length>{});
-    }
-    constexpr auto make_tuple_view(wf::mp::tuple_interface auto && tuple_value) noexcept {
-        return make_tuple_subview(std::forward<decltype(tuple_value)>(tuple_value));
-    }
-    static_assert(std::same_as<
-        std::tuple<int&&, const char &&>,
-        decltype(make_tuple_view(std::tuple<int, const char>{}))
-    >);
 }
-// route
+
+#pragma region route/chain
+// invocation solver, match policy (allow_discard or nodiscard)
+namespace csl::wf::details {
+    template <typename policy>
+    struct invoke_solver {
+
+        constexpr static auto node_invoke(auto && f, auto && args)
+        noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(fwd(args))>)
+        requires policy::template should_apply_v<decltype(f), decltype(fwd(args))>
+        {
+            return details::invoke_into_tuple([&](){
+                return csl::wf::apply(fwd(f), fwd(args));
+            });
+            }
+        constexpr static auto node_invoke(auto && f, auto && args)
+        noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
+        requires policy::template should_invoke_v<decltype(f), decltype(args)>
+        {   // discard args
+            return details::invoke_into_tuple([&](){
+                return csl::wf::invoke(fwd(f));
+            });
+        }
+    };
+}
+// unfold operators helper (for evaluation only, never defined)
+// TODO : ttps<...> cannot be discard
+namespace csl::wf::details::invoke_policy::allow_discard {
+
+    struct identity {
+        template <typename F, typename args_ts>
+        constexpr static bool should_invoke_v = csl::wf::mp::is_invocable_v<F> and
+        (
+            csl::wf::concepts::tuple_empty<args_ts> or
+            (
+                csl::wf::concepts::tuple_not_empty<args_ts> and
+                (not csl::wf::mp::is_applyable_v<F, args_ts>)
+            )
+        );
+        template <typename F, typename args_ts>
+        constexpr static bool should_apply_v = csl::wf::concepts::tuple_not_empty<args_ts> and csl::wf::mp::is_applyable_v<F, args_ts>;
+    };
+
+    namespace unfold_operators::eval {
+        // evaluation only, should not be call
+        constexpr auto operator>>(auto && args, auto && f)
+        noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(args)>)
+        requires identity::template should_apply_v<decltype(f), decltype(args)>
+        {
+            return csl::wf::mp::tuple_optional_t<csl::wf::mp::apply_result_t<decltype(f), decltype(args)>>{};
+        }
+        constexpr auto operator>>(auto && args, auto && f)
+        noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
+        requires identity::template should_invoke_v<decltype(f), decltype(args)>
+        {
+            return csl::wf::mp::tuple_optional_t<csl::wf::mp::invoke_result_t<decltype(f)>>{};
+        }
+    }
+    namespace unfold_operators {
+
+        using invoke_solver_t = csl::wf::details::invoke_solver<identity>;
+
+        constexpr auto operator>>=(csl::wf::concepts::tuple_interface auto && args, auto && f)
+        noexcept(noexcept(invoke_solver_t::template node_invoke(fwd(f), fwd(args))))
+        requires requires{invoke_solver_t::template node_invoke(fwd(f), fwd(args));}
+        {
+            return invoke_solver_t::template node_invoke(fwd(f), fwd(args));
+        }
+    }
+}
+namespace csl::wf::details::invoke_policy::nodiscard {
+
+    struct identity {
+        template <typename F, typename args_ts>
+        constexpr static bool should_invoke_v = csl::wf::concepts::tuple_empty<args_ts> and csl::wf::mp::is_invocable_v<F>;
+        template <typename F, typename args_ts>
+        constexpr static bool should_apply_v = csl::wf::concepts::tuple_not_empty<args_ts> and csl::wf::mp::is_applyable_v<F, args_ts>;
+    };
+
+    namespace unfold_operators::eval {
+        // evaluation only, should not be call
+        constexpr auto operator>>(auto && args, auto && f)
+        noexcept (csl::wf::mp::is_nothrow_applyable_v<decltype(f), decltype(fwd(args))>)
+        requires identity::template should_apply_v<decltype(f), decltype(fwd(args))>
+        {
+            return csl::wf::mp::tuple_optional_t<csl::wf::mp::apply_result_t<decltype(f), decltype(args)>>{};
+        }
+        constexpr auto operator>>(auto && args, auto && f)
+        noexcept (csl::wf::mp::is_nothrow_invocable_v<decltype(f)>)
+        requires identity::template should_invoke_v<decltype(f), decltype(args)>
+        {
+            return csl::wf::mp::tuple_optional_t<csl::wf::mp::invoke_result_t<decltype(f)>>{};
+        }
+    }
+    namespace unfold_operators {
+
+        using invoke_solver_t = csl::wf::details::invoke_solver<identity>;
+
+        constexpr auto operator>>=(csl::wf::concepts::tuple_interface auto && args, auto && f)
+        noexcept(noexcept(invoke_solver_t::template node_invoke(fwd(f), fwd(args))))
+        requires requires{invoke_solver_t::template node_invoke(fwd(f), fwd(args));}
+        {
+            return invoke_solver_t::template node_invoke(fwd(f), fwd(args));
+        }
+    }
+}
+// public invoke policies
+namespace csl::wf::invoke_policy {
+    using allow_discard = csl::wf::details::invoke_policy::allow_discard::identity;
+    using nodiscard = csl::wf::details::invoke_policy::nodiscard::identity;
+}
+
+// chain traits (details)
+// - is_chain_invocable
+// - is_chain_nodiscard_invocable
+// - is_chain_nothrow_invocable
+// - is_chain_nothrow_nodiscard_invocable
+// - chain_invoke_result
+// - chain_invoke_nodiscard_result
+//
+// todo : multiple args (forward_as_tuple or args_ts<...>)
+// todo : merge expansion lambdas ?
+namespace csl::wf::details::mp {
+
+    // is_chain_invocable
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    struct is_chain_invocable {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            namespace invoke_policy = details::invoke_policy::allow_discard;
+            using namespace invoke_policy::unfold_operators::eval;
+            return requires { (std::declval<Args>() >> ... >> std::get<indexes>(std::declval<Fs>())); };
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Fs>>>{});
+    };
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    constexpr bool is_chain_invocable_v = is_chain_invocable<Fs, Args>::value;
+
+    // is_chain_nodiscard_invocable
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    struct is_chain_nodiscard_invocable {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            namespace invoke_policy = details::invoke_policy::nodiscard;
+            using namespace invoke_policy::unfold_operators::eval;
+            return requires { (std::declval<Args>() >> ... >> std::get<indexes>(std::declval<Fs>())); };
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Fs>>>{});
+    };
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    constexpr bool is_chain_nodiscard_invocable_v = is_chain_nodiscard_invocable<Fs, Args>::value;
+
+    // is_chain_nothrow_invocable
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    struct is_chain_nothrow_invocable {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            namespace invoke_policy = details::invoke_policy::allow_discard;
+            using namespace invoke_policy::unfold_operators::eval;
+            if constexpr (not is_chain_invocable_v<Fs, Args>)
+                return false;
+            else
+                return noexcept((std::declval<Args>() >> ... >> std::get<indexes>(std::declval<Fs>())));
+
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Fs>>>{});
+    };
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    constexpr bool is_chain_nothrow_invocable_v = is_chain_nothrow_invocable<Fs, Args>::value;
+
+    // is_chain_nothrow_nodiscard_invocable
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    struct is_chain_nothrow_nodiscard_invocable {
+        constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            namespace invoke_policy = details::invoke_policy::nodiscard;
+            using namespace invoke_policy::unfold_operators::eval;
+            if constexpr (not is_chain_nodiscard_invocable_v<Fs, Args>)
+                return false;
+            else
+                return noexcept((std::declval<Args>() >> ... >> std::get<indexes>(std::declval<Fs>())));
+
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Fs>>>{});
+    };
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    constexpr bool is_chain_nothrow_nodiscard_invocable_v = is_chain_nothrow_nodiscard_invocable<Fs, Args>::value;
+
+    // chain_invoke_result
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    requires is_chain_invocable_v<Fs, Args>
+    class chain_invoke_result {
+        using tuple_optional_type = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            namespace invoke_policy = details::invoke_policy::allow_discard;
+            using namespace invoke_policy::unfold_operators::eval;
+            return std::type_identity<
+                decltype((std::declval<Args>() >> ... >> std::get<indexes>(std::declval<Fs>())))
+            >{};
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Fs>>>{}))::type;
+
+    public:
+        using type = csl::wf::mp::tuple_optional_underlying_t<tuple_optional_type>;
+    };
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    using chain_invoke_result_t = typename chain_invoke_result<Fs, Args>::type;
+
+    // chain_invoke_nodiscard_result
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    requires is_chain_nodiscard_invocable_v<Fs, Args>
+    class chain_invoke_nodiscard_result {
+        using tuple_optional_type = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            namespace invoke_policy = details::invoke_policy::nodiscard;
+            using namespace invoke_policy::unfold_operators::eval;
+            return std::type_identity<
+                decltype((std::declval<Args>() >> ... >> std::get<indexes>(std::declval<Fs>())))
+            >{};
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Fs>>>{}))::type;
+    public:
+        using type = csl::wf::mp::tuple_optional_underlying_t<tuple_optional_type>;
+    };
+    template <
+        csl::wf::concepts::tuple_interface Fs,
+        csl::wf::concepts::tuple_interface Args
+    >
+    using chain_invoke_nodiscard_result_t = typename chain_invoke_nodiscard_result<Fs, Args>::type;
+}
+// chain traits
+namespace csl::wf::mp {
+    template <typename ... Fs>
+    struct chain_trait {
+
+        using types = std::tuple<std::add_rvalue_reference_t<Fs>...>;
+        static_assert(concepts::tuple_view<types>);
+
+        template <typename ... args_ts>
+        constexpr static bool is_invocable = details::mp::is_chain_invocable_v<types, std::tuple<args_ts...>>;
+        template <typename ... args_ts>
+        constexpr static bool is_nothrow_invocable = details::mp::is_chain_nothrow_invocable_v<types, std::tuple<args_ts...>>;
+        template <typename ... args_ts>
+        constexpr static bool is_nodiscard_invocable = details::mp::is_chain_nodiscard_invocable_v<types, std::tuple<args_ts...>>;
+        template <typename ... args_ts>
+        constexpr static bool is_nothrow_nodiscard_invocable = details::mp::is_chain_nothrow_nodiscard_invocable_v<types, std::tuple<args_ts...>>;
+
+        template <typename ... args_ts>
+        using invoke_result_t = details::mp::chain_invoke_result_t<types, std::tuple<args_ts...>>;
+        template <typename ... args_ts>
+        using nodiscard_invoke_result_t = details::mp::chain_invoke_nodiscard_result_t<types, std::tuple<args_ts...>>;
+    };
+}
 // chain_invoke
+// route
+//
 // todo :
 //  always owning ? mix owning and non-owning functors in storage ?
 //  if non-owning, value semantic correctness for route/binder storage
 namespace csl::wf {
 
-    // todo : ttps
-    // todo : use csl::wf::chain_trait ?
+    // TODO : ttps
+    // TODO : use csl::wf::chain_trait ?
+    // TODO : noexcept
+    // TODO : execution_policy
 
-    constexpr decltype(auto) chain_invoke(
-        mp::tuple_interface auto && functors,
-        mp::tuple_interface auto && args_as_tuple
+    constexpr auto chain_invoke(
+        csl::wf::concepts::tuple_interface auto && funcs,
+        csl::wf::concepts::tuple_interface auto && args
     )
-    noexcept(noexcept(details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple))))
-    requires
-        (std::tuple_size_v<std::remove_cvref_t<decltype(functors)>> == 1)
-        and requires{details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));}
+    noexcept(csl::wf::details::mp::is_chain_nothrow_invocable_v<decltype(funcs), decltype(args)>)
+    requires csl::wf::details::mp::is_chain_invocable_v<decltype(funcs), decltype(args)>
     {
-        return details::apply_with_or_discard(std::get<0>(fwd(functors)), fwd(args_as_tuple));
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            using namespace details::invoke_policy::allow_discard::unfold_operators;
+            concepts::tuple_optional auto result = (fwd(args) >>= ... >>= std::get<indexes>(fwd(funcs))); // Error : incompatible argument
+            
+            constexpr auto result_size = std::tuple_size_v<std::remove_cvref_t<decltype(result)>>;
+            if constexpr (result_size not_eq 0)
+                return std::get<0>(result);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(funcs)>>>{});
     }
-
-    constexpr decltype(auto) chain_invoke(
-        mp::tuple_interface auto && functors,
-        mp::tuple_interface auto && args_as_tuple
+    constexpr auto chain_invoke_nodiscard(
+        csl::wf::concepts::tuple_interface auto && funcs,
+        csl::wf::concepts::tuple_interface auto && args
     )
-    noexcept(mp::is_chain_nothrow_invocable_v<decltype(functors), decltype(args_as_tuple)>)
-    requires
-        (std::tuple_size_v<std::remove_cvref_t<decltype(functors)>> > 1) and
-        (mp::is_chain_invocable_v<decltype(functors), decltype(args_as_tuple)>)
+    noexcept(csl::wf::details::mp::is_chain_nothrow_nodiscard_invocable_v<decltype(funcs), decltype(args)>)
+    requires csl::wf::details::mp::is_chain_nodiscard_invocable_v<decltype(funcs), decltype(args)>
     {
-        auto result = details::invoke_into_tuple([](auto && ... args){
-                return details::apply_with_or_discard(fwd(args)...);
-            },
-            std::get<0>(fwd(functors)), fwd(args_as_tuple)
-        );
-        return csl::wf::chain_invoke(
-            details::make_tuple_subview<1>(fwd(functors)),
-            std::move(result)
-        );
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            using namespace details::invoke_policy::nodiscard::unfold_operators;
+            concepts::tuple_optional auto result = (fwd(args) >>= ... >>= std::get<indexes>(fwd(funcs))); // Error : incompatible argument
+            
+            constexpr auto result_size = std::tuple_size_v<std::remove_cvref_t<decltype(result)>>;
+            if constexpr (result_size not_eq 0)
+                return std::get<0>(result);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(funcs)>>>{});
     }
-
     // todo : use this instead of requires requires { chain_invoke }
     template <typename ... Ts>
     concept chain_invocable = requires {
@@ -859,7 +1092,7 @@ namespace csl::wf {
     };
 
     // todo : owning by default, non-owning (opt-out) policy ?
-    // todo : allow `sizeof...(Fs) == 0` ?
+    // todo : allow `sizeof...(Fs) == 0` ? -> with no valid operator() candidate then
     template <typename ... Fs>
     struct route {
         static_assert(sizeof...(Fs) not_eq 0,               "csl::wf::binder : binds nothing");
@@ -874,73 +1107,65 @@ namespace csl::wf {
         // todo : ttps
         #pragma region operator()
         constexpr decltype(auto) operator()(auto && ... args) &
-        noexcept(noexcept(chain_invoke(
-            details::make_tuple_view(storage),
-            std::forward_as_tuple(fwd(args)...)
-        )))
-        requires requires {
-            chain_invoke(
-                details::make_tuple_view(std::declval<storage_type&>()),
-                std::forward_as_tuple(fwd(args)...)
-            );
-        }
+        noexcept(details::mp::is_chain_nothrow_invocable_v<
+            mp::tuple_view_t<storage_type&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >)
+        requires details::mp::is_chain_invocable_v<
+            mp::tuple_view_t<storage_type&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >
         {
             return chain_invoke(
-                details::make_tuple_view(storage),
+                mp::make_tuple_view(storage),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
 
         constexpr decltype(auto) operator()(auto && ... args) &&
-        noexcept(noexcept(chain_invoke(
-            details::make_tuple_view(fwd(storage)),
-            std::forward_as_tuple(fwd(args)...)
-        )))
-        requires requires {
-            chain_invoke(
-                details::make_tuple_view(std::declval<storage_type&&>()),
-                std::forward_as_tuple(fwd(args)...)
-            );
-        }
+        noexcept(details::mp::is_chain_nothrow_invocable_v<
+            mp::tuple_view_t<storage_type &&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >)
+        requires details::mp::is_chain_invocable_v<
+            mp::tuple_view_t<storage_type &&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >
         {
             return chain_invoke(
-                details::make_tuple_view(fwd(storage)),
+                mp::make_tuple_view(fwd(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
 
         constexpr decltype(auto) operator()(auto && ... args) const &
-        noexcept(noexcept(chain_invoke(
-            details::make_tuple_view(storage),
-            std::forward_as_tuple(fwd(args)...)
-        )))
-        requires requires {
-            chain_invoke(
-                details::make_tuple_view(std::declval<const storage_type&>()),
-                std::forward_as_tuple(fwd(args)...)
-            );
-        }
+        noexcept(details::mp::is_chain_nothrow_invocable_v<
+            mp::tuple_view_t<const storage_type&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >)
+        requires details::mp::is_chain_invocable_v<
+            mp::tuple_view_t<const storage_type&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >
         {
             return chain_invoke(
-                details::make_tuple_view(static_cast<const storage_type &>(storage)),
+                mp::make_tuple_view(static_cast<const storage_type &>(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
 
         constexpr decltype(auto) operator()(auto && ... args) const &&
-        noexcept(noexcept(chain_invoke(
-            details::make_tuple_view(static_cast<const storage_type &&>(storage)),
-            std::forward_as_tuple(fwd(args)...)
-        )))
-        requires requires {
-            chain_invoke(
-                details::make_tuple_view(std::declval<const storage_type&&>()),
-                std::forward_as_tuple(fwd(args)...)
-            );
-        }
+        noexcept(details::mp::is_chain_nothrow_invocable_v<
+            mp::tuple_view_t<const storage_type&&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >)
+        requires details::mp::is_chain_invocable_v<
+            mp::tuple_view_t<const storage_type&&>,
+            decltype(std::forward_as_tuple(fwd(args)...))
+        >
         {
             return chain_invoke(
-                details::make_tuple_view(static_cast<const storage_type &&>(storage)),
+                mp::make_tuple_view(static_cast<const storage_type &&>(storage)),
                 std::forward_as_tuple(fwd(args)...)
             );
         }
@@ -963,15 +1188,14 @@ namespace csl::wf {
     template <typename ... Ts>
     route(Ts &&...) -> route<std::remove_cvref_t<Ts>...>;
 
-    // template <typename ... Fs>
-    // using route = binder<Fs...>;
-
     template <std::size_t index, typename T>
     requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
     constexpr decltype(auto) get(T && value) noexcept {
         return fwd(value).template at<index>();
     }
 }
+#pragma endregion
+
 // flattening utility
 // - mp::flatten_of_t<pack<...>, Ts...>
 // - mp::unfold_super_into<pack<...>, Ts...>
@@ -1056,6 +1280,53 @@ namespace csl::wf::details {
     };
     template <typename ... Ts>
     overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
+}
+
+#pragma region repeat
+// literals
+namespace csl::wf::details::literals {
+    template <typename T>
+    constexpr T char_to_integral(char value)
+    {
+        if (value < '0' or value > '9')
+            throw std::out_of_range("not decimal value");
+        return value - '0';
+    }
+
+    template <typename T>
+    constexpr auto char_pack_to_integral(auto ... values) -> T
+    {
+        auto values_as_tuple = std::tuple{ char_to_integral<T>(values)...};
+
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (
+                (std::pow(10, indexes) * // NOLINT
+                std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
+            ) + ...);
+        }(std::make_index_sequence<sizeof...(values)>{});
+    }
+}
+// literals (compile-time) 123_times
+namespace csl::wf::literals::ct {
+    template <auto value>
+    using times = std::integral_constant<decltype(value), value>;
+
+    // todo : make it work with Clang (see https://godbolt.org/z/EKsn7vnxG)
+    template <char... chars_values>
+    constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
+    {
+        return {};
+    }
+}
+// literals (runtime) 123_times
+namespace csl::wf::literals::rt {
+    struct times{
+        std::size_t value;
+    };
+
+    consteval times operator"" _times(unsigned long long value) {
+        return times{value};
+    }
 }
 // repeat
 // - invoke_n_times
@@ -1186,6 +1457,8 @@ namespace csl::wf {
         }
     };
 }
+#pragma endregion
+
 // detections
 namespace csl::wf::details::mp::detect {
     // avoid recursive concepts
@@ -1269,29 +1542,6 @@ namespace csl::wf {
         return repeater_factory<times>::make(fwd(func));
     }
 }
-// literals
-namespace csl::wf::details::literals {
-    template <typename T>
-    constexpr T char_to_integral(char value)
-    {
-        if (value < '0' or value > '9')
-            throw std::out_of_range("not decimal value");
-        return value - '0';
-    }
-
-    template <typename T>
-    constexpr auto char_pack_to_integral(auto ... values) -> T
-    {
-        auto values_as_tuple = std::tuple{ char_to_integral<T>(values)...};
-
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (
-                (std::pow(10, indexes) * // NOLINT
-                std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
-            ) + ...);
-        }(std::make_index_sequence<sizeof...(values)>{});
-    }
-}
 # pragma region repeat
 // literals
 namespace csl::wf::details::literals {
@@ -1354,7 +1604,7 @@ namespace csl::wf {
 
 #undef fwd
 
-// todo : function should be able to return a mp::ttps + return value
+// todo : function should be able to return a mp::ttps + return value ?
 //  route :
 //      - invoke
 //      - same for apply ?
@@ -1367,3 +1617,4 @@ namespace csl::wf {
 // - coroutines, futures
 // - async generators as entry-point for redundant calls
 // - network ?
+ 

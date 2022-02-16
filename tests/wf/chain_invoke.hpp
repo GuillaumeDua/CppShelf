@@ -30,15 +30,19 @@ namespace test::wf::chain_ {
 }
 namespace test::wf::chain_::invocable {
     consteval void is_chain_invocable() {
-        static_assert(csl::wf::mp::is_chain_invocable_v<
-            std::tuple<
+        static_assert(csl::wf::mp::chain_trait<
                 rvalue_only_node_type,
                 rvalue_only_node_type,
                 rvalue_only_node_type
-            >,
-            std::tuple<>
-        >);
-        static_assert(csl::wf::mp::is_chain_invocable_v<
+            >::is_invocable<>
+        );
+        static_assert(csl::wf::mp::chain_trait<
+                rvalue_only_node_type &&,
+                rvalue_only_node_type &&,
+                rvalue_only_node_type &&
+            >::is_invocable<>
+        );
+        static_assert(csl::wf::details::mp::is_chain_invocable_v<
             std::tuple<
                 const const_lvalue_only_node_type &,
                 const const_lvalue_only_node_type &,
@@ -46,7 +50,7 @@ namespace test::wf::chain_::invocable {
             >,
             std::tuple<>
         >);
-        static_assert(csl::wf::mp::is_chain_invocable_v<
+        static_assert(csl::wf::details::mp::is_chain_invocable_v<
             std::tuple<
                 rvalue_only_node_type,
                 const const_lvalue_only_node_type&,
@@ -54,7 +58,7 @@ namespace test::wf::chain_::invocable {
             >,
             std::tuple<>
         >);
-        static_assert(not csl::wf::mp::is_chain_invocable_v<
+        static_assert(not csl::wf::details::mp::is_chain_invocable_v<
             std::tuple<
                 rvalue_only_node_type,
                 const_lvalue_only_node_type, // not const &
@@ -63,9 +67,10 @@ namespace test::wf::chain_::invocable {
             std::tuple<>
         >);
     }
+
     consteval void is_chain_nothrow_invocable_KO() {
         // not noexcept
-        static_assert(not csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(not csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                 rvalue_only_node_type,
                 rvalue_only_node_type,
@@ -73,7 +78,7 @@ namespace test::wf::chain_::invocable {
             >,
             std::tuple<>
         >);
-        static_assert(not csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(not csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                 const const_lvalue_only_node_type &,
                 const const_lvalue_only_node_type &,
@@ -81,7 +86,7 @@ namespace test::wf::chain_::invocable {
             >,
             std::tuple<>
         >);
-        static_assert(not csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(not csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                         rvalue_only_node_type,
                 const   const_lvalue_only_node_type&,
@@ -91,7 +96,7 @@ namespace test::wf::chain_::invocable {
         >);
 
         // not even invocable
-        static_assert(not csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(not csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                 rvalue_only_node_type,
                 const_lvalue_only_node_type, // not const &
@@ -100,7 +105,7 @@ namespace test::wf::chain_::invocable {
             std::tuple<>
         >);
         // one node is not noexcept
-        static_assert(not csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(not csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                         nothrow_rvalue_only_node_type,
                 const   nothrow_const_lvalue_only_node_type &,
@@ -110,7 +115,7 @@ namespace test::wf::chain_::invocable {
         >);
     }
     consteval void is_chain_nothrow_invocable_OK() {
-        static_assert(csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                 nothrow_rvalue_only_node_type,
                 nothrow_rvalue_only_node_type,
@@ -118,7 +123,7 @@ namespace test::wf::chain_::invocable {
             >,
             std::tuple<>
         >);
-        static_assert(csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                 const nothrow_const_lvalue_only_node_type &,
                 const nothrow_const_lvalue_only_node_type &,
@@ -126,7 +131,7 @@ namespace test::wf::chain_::invocable {
             >,
             std::tuple<>
         >);
-        static_assert(csl::wf::mp::is_chain_nothrow_invocable_v<
+        static_assert(csl::wf::details::mp::is_chain_nothrow_invocable_v<
             std::tuple<
                         nothrow_rvalue_only_node_type,
                 const   nothrow_const_lvalue_only_node_type&,

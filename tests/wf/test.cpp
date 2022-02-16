@@ -18,6 +18,32 @@
 #include <iostream>
 auto main() -> int {
 
+    {
+        auto func = []<typename ...>(){};
+        using func_type = decltype(func);
+
+        using namespace csl::wf::mp;
+        static_assert(is_invocable_v<func_type>);
+        static_assert(is_invocable_v<func_type, ttps<>>);
+        static_assert(is_invocable_v<func_type, ttps<>&>);
+        static_assert(is_invocable_v<func_type, ttps<int>>);
+
+        static_assert(is_applyable_v<func_type, std::tuple<>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
+
+        using trait = csl::wf::chain_trait<func_type>;
+        static_assert(trait::is_invocable<>);
+
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});     // no args (invoke)
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{});  // discard (invoke)
+
+        static_assert(trait::is_invocable<ttps<>>);
+        static_assert(trait::is_invocable<ttps<>&>);
+        static_assert(trait::is_invocable<ttps<int>>);
+    }
+
     struct lvalue_node_type {
         constexpr void operator()() &         {}
         constexpr void operator()() &&        {}
@@ -32,6 +58,20 @@ auto main() -> int {
         }, std::tuple{});
     }
     {   // lvalue route
+
+        static_assert(
+            csl::wf::details::mp::is_chain_invocable_v<
+                csl::wf::mp::tuple_view_t<
+                    std::tuple<
+                        lvalue_node_type,
+                        lvalue_node_type,
+                        lvalue_node_type
+                    >
+                >,
+                decltype(std::forward_as_tuple())
+            >
+        );
+
         auto route = csl::wf::route {
             lvalue_node_type{},
             lvalue_node_type{},
@@ -65,27 +105,27 @@ auto main() -> int {
         route();
     }
 
-    // using namespace csl::wf::operators;
+    using namespace csl::wf::operators;
 
-    // auto route = [](){
-    //     std::cout << "A";
-    // } >>=
-    // [](){
-    //     std::cout << "B";
-    // } >>=
-    // [](){
-    //     std::cout << "C\n";
-    // };
-    // route();
-    // std::move(route)();
-    // std::as_const(route)();
-    // std::move(std::as_const(route))();
+    auto route = [](){
+        std::cout << "A";
+    } >>=
+    [](){
+        std::cout << "B";
+    } >>=
+    [](){
+        std::cout << "C\n";
+    };
+    route();
+    std::move(route)();
+    std::as_const(route)();
+    std::move(std::as_const(route))();
 
-    // std::cout << gcl::cx::type_name_v<decltype(route)> << '\n';
+    std::cout << gcl::cx::type_name_v<decltype(route)> << '\n';
 
-    // auto route_2 = std::move(route) >>= [](){
-    // // auto route_2 = route >>= [](){
-    //     std::cout << "D\n";
-    // };
-    // std::cout << gcl::cx::type_name_v<decltype(route_2)> << '\n';
+    auto route_2 = std::move(route) >>= [](){
+    // auto route_2 = route >>= [](){
+        std::cout << "D\n";
+    };
+    std::cout << gcl::cx::type_name_v<decltype(route_2)> << '\n';
 }
