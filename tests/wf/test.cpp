@@ -6,7 +6,10 @@
 #include "./route.hpp"
 #include "./repeat.hpp"
 
-// syntactic sugar :
+// syntactic sugar : literals
+#include "./literals/times.hpp"
+
+// syntactic sugar : operators
 #include "./operators/pipe_overload.hpp"
 #include "./operators/shift_equal_continuation.hpp"
 #include "./operators/star_repeat.hpp"

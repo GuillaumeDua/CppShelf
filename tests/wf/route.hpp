@@ -52,20 +52,22 @@ namespace test::wf::route_ {
 
 //     consteval void call_cvref_correctness() {
 
-//         struct lvalue_node_type {
-//             void operator()() & {}
-//         };
-//         struct const_lvalue_node_type {
-//             void operator()() & = delete;
-//             void operator()() const & {}
-//         };
-//         struct rvalue_node_type {
-//             void operator()() && {};
-//         };
-//         struct const_rvalue_node_type {
-//             void operator()() && = delete;
-//             void operator()() const && {}
-//         };
+        struct lvalue_node_type {
+            void operator()() & {}
+            void operator()() const & = delete;
+        };
+        struct const_lvalue_node_type {
+            void operator()() & = delete;
+            void operator()() const & {}
+        };
+        struct rvalue_node_type {
+            void operator()() && {};
+            void operator()() & = delete;
+        };
+        struct const_rvalue_node_type {
+            void operator()() && = delete;
+            void operator()() const && {}
+        };
 
 //         {   // lvalue route
 //             auto route = csl::wf::route {
