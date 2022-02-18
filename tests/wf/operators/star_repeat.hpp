@@ -41,4 +41,35 @@ namespace test::wf::operators::star {
         static_assert(std::array{true, true, true} == func_3_times.template operator()<int, int>());
         static_assert(std::array{false, false, false} == func_3_times.template operator()<char, int>());
     }
+
+    consteval void times_operator() {
+        using namespace csl::wf::operators;
+        using namespace csl::wf::literals;
+
+        constexpr auto result = (
+                [i = 0]() constexpr mutable { return ++i; }
+            *   3_times
+        )();
+        static_assert(result == std::array{1,2,3});
+    }
+    // repeater flattening
+    consteval void repeater_flattening() {
+        using namespace csl::wf::operators;
+        using namespace csl::wf::literals;
+
+        constexpr auto func = [](){};
+        constexpr auto value = func * 3_times * 1_times * 3_times * 1_times;
+
+        static_assert(decltype(value)::times == 9);
+        static_assert(std::same_as<decltype(value)::underlying_type, std::remove_cvref_t<decltype(func)>>);
+
+        // static_assert(std::same_as<
+        //     const csl::wf::repeater<9, std::remove_cvref_t<decltype(func)>>,
+        //     decltype(value)
+        // >);
+
+        // TODO : WTF ?
+        // with _Tp = const csl::wf::repeater<9, test::wf::operators::star::repeater_flattening::._anon_952>;
+        //      _Up = const csl::wf::repeater<9, test::wf::operators::star::repeater_flattening::._anon_952>]
+    }
 }
