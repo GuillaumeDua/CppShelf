@@ -1392,11 +1392,15 @@ namespace csl::wf {
         template <auto other_times, typename other_F>
         explicit constexpr repeater(repeater<other_times, other_F> && func)
         : storage{ std::move(func.storage) }
-        {}
+        {
+            static_assert(std::same_as<decltype(other_times), decltype(times_)>);
+        }
         template <auto other_times, typename other_F>
         explicit constexpr repeater(const repeater<other_times, other_F> & func)
         : storage{ func.storage }
-        {}
+        {
+            static_assert(std::same_as<decltype(other_times), decltype(times_)>);
+        }
     #pragma endregion
 
         template <typename ... ttps_args, typename ... args_ts>

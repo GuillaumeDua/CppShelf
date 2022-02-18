@@ -63,13 +63,9 @@ namespace test::wf::operators::star {
         static_assert(decltype(value)::times == 9);
         static_assert(std::same_as<decltype(value)::underlying_type, std::remove_cvref_t<decltype(func)>>);
 
-        // static_assert(std::same_as<
-        //     const csl::wf::repeater<9, std::remove_cvref_t<decltype(func)>>,
-        //     decltype(value)
-        // >);
-
-        // TODO : WTF ?
-        // with _Tp = const csl::wf::repeater<9, test::wf::operators::star::repeater_flattening::._anon_952>;
-        //      _Up = const csl::wf::repeater<9, test::wf::operators::star::repeater_flattening::._anon_952>]
+        static_assert(std::same_as<
+            const csl::wf::repeater<std::size_t{9}, std::remove_cvref_t<decltype(func)>>,
+            decltype(value)
+        >);
     }
 }
