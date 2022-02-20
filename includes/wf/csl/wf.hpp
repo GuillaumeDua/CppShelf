@@ -1189,7 +1189,7 @@ namespace csl::wf {
     route(Ts &&...) -> route<std::remove_cvref_t<Ts>...>;
 
     template <std::size_t index, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::route, std::remove_cvref_t<T>>
     constexpr decltype(auto) get(T && value) noexcept {
         return fwd(value).template at<index>();
     }
@@ -1220,14 +1220,27 @@ namespace csl::wf::details::mp {
     constexpr decltype(auto) unfold_super_into(T && value) {
         return destination_type<T&&>(fwd(value));
     }
-    template <template <typename ...> typename destination_type, typename ... Ts>
-    constexpr decltype(auto) unfold_super_into(destination_type<Ts...> && value) {
+    template <template <typename ...> typename destination_type, typename T>
+    requires csl::wf::details::mp::InstanceOf<destination_type, std::remove_cvref_t<T>>
+    constexpr decltype(auto) unfold_super_into(T && value) {
         return fwd(value);
         // return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
     template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
     constexpr decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
         return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
+    }
+    template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
+    constexpr decltype(auto) unfold_super_into(origin_type<Ts...> & value) {
+        return destination_type<Ts&...>(static_cast<Ts&>(value)...);
+    }
+    template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
+    constexpr decltype(auto) unfold_super_into(const origin_type<Ts...> && value) {
+        return destination_type<const Ts&&...>(static_cast<const Ts&&>(value)...);
+    }
+    template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
+    constexpr decltype(auto) unfold_super_into(const origin_type<Ts...> & value) {
+        return destination_type<const Ts&...>(static_cast<const Ts&>(value)...);
     }
 
     // make_flatten_super
@@ -1252,7 +1265,7 @@ namespace csl::wf::details::mp {
         return destination_type<T&&>{ fwd(value) };
     }
     template <template <typename...> typename destination_type, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::route, T>
+    requires csl::wf::details::mp::InstanceOf<csl::wf::route, std::remove_cvref_t<T>>
     constexpr auto fwd_nodes_into(T && value) {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return destination_type<typename T::template node_t<indexes>&&...>{
@@ -1512,7 +1525,7 @@ namespace csl::wf {
         return csl::wf::route{ fwd(nodes)... };
     }
     template <typename ... Ts>
-    requires (csl::wf::details::mp::InstanceOf<csl::wf::route, Ts> or ...)
+    requires (csl::wf::details::mp::InstanceOf<csl::wf::route, std::remove_cvref_t<Ts>> or ...)
     constexpr auto make_continuation(Ts && ... nodes) {
         auto route_elements = std::tuple_cat(
             csl::wf::details::mp::fwd_nodes_into<std::tuple>(fwd(nodes))...
@@ -1530,7 +1543,7 @@ namespace csl::wf {
         return csl::wf::details::overload { fwd(nodes)... };
     }
     template <typename ... Ts>
-    requires (csl::wf::details::mp::InstanceOf<csl::wf::details::overload, Ts> or ...)
+    requires (csl::wf::details::mp::InstanceOf<csl::wf::details::overload, std::remove_cvref_t<Ts>> or ...)
     constexpr auto make_condition(Ts && ... nodes) {
         return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
             fwd(nodes)...
