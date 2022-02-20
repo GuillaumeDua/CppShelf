@@ -1226,6 +1226,7 @@ namespace csl::wf::details::mp {
         return fwd(value);
         // return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
     }
+    // TODO : refactoring : consider merging theses function + nested lambda to deal with cvref-qualifiers
     template <template <typename ...> typename destination_type, template <typename ...> typename origin_type, typename ... Ts>
     constexpr decltype(auto) unfold_super_into(origin_type<Ts...> && value) {
         return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
