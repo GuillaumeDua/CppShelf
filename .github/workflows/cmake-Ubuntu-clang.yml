@@ -1,4 +1,4 @@
-name: cmake-Ubuntu-clang_$relase_id
+name: cmake-Ubuntu-clang
 
 on: [push, pull_request]
 
