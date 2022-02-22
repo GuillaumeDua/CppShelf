@@ -24,21 +24,6 @@ auto main() -> int {
         constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
         struct A{}; struct B{};
 
-        // std::apply
-        using namespace std::placeholders;
-        std::apply(
-            std::bind(
-                &std::remove_cvref_t<decltype(func)>::template operator()<std::string, A, B>,
-                func,
-                _1, _2
-            ), 
-            std::tuple{ A{}, B{} }
-        );
-
-        // csl::wf::apply
-        csl::wf::apply<std::string>(func, std::tuple{ A{}, B{} });
-        csl::wf::apply(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
-
         // csl::wf::apply_before
         csl::wf::apply_before<std::string>(func, std::tuple{ A{}, B{} });
         csl::wf::apply_before<std::string>(func, std::tuple{ A{} }, B{});
@@ -56,6 +41,8 @@ auto main() -> int {
         csl::wf::apply_after(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
         csl::wf::apply_after<std::string>(func, std::tuple{ A{}, B{} });
         csl::wf::apply_after<std::string>(func, std::tuple{ B{} }, A{});
+
+        // csl::wf::apply_after(func, std::tuple{ A{}, B{} }, ttps<std::string>{}); // ?
     }
 
     {
