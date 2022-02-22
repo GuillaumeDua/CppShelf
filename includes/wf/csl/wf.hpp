@@ -107,6 +107,7 @@ namespace csl::wf::concepts {
     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 }
 // make_tuple_subview
+// tuple_view_t, tuple_optional_t
 namespace csl::wf::mp {
     template <
         std::size_t pos = 0,
@@ -145,6 +146,26 @@ namespace csl::wf::mp {
         std::type_identity<void>,
         std::tuple_element<0, T>
     >::type;
+}
+// cat
+namespace csl::wf::details::mp {
+    // cat / append
+    template <typename, typename...>
+    struct cat;
+    template <
+        template <typename...> typename pack,
+        typename ... Ts,
+        typename ... Us
+    >
+    struct cat<pack<Ts...>, Us...> : std::type_identity<pack<Ts..., Us...>>{};
+    template <
+        template <typename...> typename pack,
+        typename ... Ts,
+        typename ... Us
+    >
+    struct cat<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
+    template <typename pack, typename... ttps>
+    using cat_t = cat<pack, ttps...>;
 }
 // ttps, is_ttps
 namespace csl::wf::mp {
@@ -326,12 +347,22 @@ namespace csl::wf::mp {
     {
         static_assert([]() constexpr { return false; }(), "invalid arguments");
     };
-    template <typename ... f_ts, typename F, concepts::tupleinterface_not_starting_with_ttps tuple_type, typename ... func_args_t>
+    // template <typename ... f_ts, typename F, concepts::tupleinterface_not_starting_with_ttps tuple_type, typename ... func_args_t>
+    template <typename ... f_ts, typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...> {
         constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return is_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{});
     };
+    // todo : deal with ttps concat at invoke level ?
+    //  - template <ts...> + f(ttps<us...>) => f<ts..., us...>()
+    // template <typename ... f_ts, typename F, concepts::tupleinterface_starting_with_ttps tuple_type, typename ... func_args_t>
+    // struct is_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...> {
+    //     constexpr static bool value = []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+    //         using ttps_type = details::mp::cat<std::tuple_element_t<0, tuple_type>, ttps<f_ts...>>;
+    //         return is_invocable_v<F, ttps_type, decltype(std::get<indexes + 1>(std::declval<tuple_type>()))..., func_args_t...>;
+    //     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>> - 1>{});
+    // };
     template <typename F, concepts::tuple_interface tuple_type, typename ... func_args_t>
     struct is_applyable_before<F, tuple_type, func_args_t...>
     : is_applyable_before<F, ttps<>, tuple_type, func_args_t...>
