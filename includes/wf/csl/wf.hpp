@@ -1327,50 +1327,35 @@ namespace csl::wf::details {
     overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
 }
 
-#pragma region repeat
+# pragma region repeat
 // literals
 namespace csl::wf::details::literals {
-    template <typename T>
-    constexpr T char_to_integral(char value)
+    template <std::integral T>
+    constexpr auto char_to_b10_integral(char value) -> T
     {
         if (value < '0' or value > '9')
             throw std::out_of_range("not decimal value");
         return value - '0';
     }
 
-    template <typename T>
+    template <std::integral T>
     constexpr auto char_pack_to_integral(auto ... values) -> T
     {
-        auto values_as_tuple = std::tuple{ char_to_integral<T>(values)...};
-
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (
-                (std::pow(10, indexes) * // NOLINT
-                std::get<(sizeof...(values) - indexes - 1)>(values_as_tuple) // reverse sequence order
-            ) + ...);
-        }(std::make_index_sequence<sizeof...(values)>{});
+        static_assert(std::numeric_limits<T>::digits10 > sizeof...(values), "out of numerical range");
+        T result{ 0 };
+        ((result = result * 10 + (values - '0')), ...); //NOLINT
+        return result;
     }
 }
 // literals (compile-time) 123_times
-namespace csl::wf::literals::ct {
+namespace csl::wf::literals {
     template <auto value>
     using times = std::integral_constant<decltype(value), value>;
 
-    // todo : make it work with Clang (see https://godbolt.org/z/EKsn7vnxG)
     template <char... chars_values>
     constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
     {
         return {};
-    }
-}
-// literals (runtime) 123_times
-namespace csl::wf::literals::rt {
-    struct times{
-        std::size_t value;
-    };
-
-    consteval times operator"" _times(unsigned long long value) {
-        return times{value};
     }
 }
 // repeat
@@ -1591,37 +1576,7 @@ namespace csl::wf {
         return repeater_factory<times>::make(fwd(func));
     }
 }
-# pragma region repeat
-// literals
-namespace csl::wf::details::literals {
-    template <std::integral T>
-    constexpr auto char_to_b10_integral(char value) -> T
-    {
-        if (value < '0' or value > '9')
-            throw std::out_of_range("not decimal value");
-        return value - '0';
-    }
 
-    template <std::integral T>
-    constexpr auto char_pack_to_integral(auto ... values) -> T
-    {
-        static_assert(std::numeric_limits<T>::digits10 > sizeof...(values), "out of numerical range");
-        T result{ 0 };
-        ((result = result * 10 + (values - '0')), ...); //NOLINT
-        return result;
-    }
-}
-// literals (compile-time) 123_times
-namespace csl::wf::literals {
-    template <auto value>
-    using times = std::integral_constant<decltype(value), value>;
-
-    template <char... chars_values>
-    constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
-    {
-        return {};
-    }
-}
 // eDSL
 namespace csl::wf::operators {
     // todo : protect injection against overload ambiguities
