@@ -61,6 +61,23 @@ Try it on [Godbolt here](https://godbolt.org/z/MbeqxEnG4)
 
 ### apply
 
+Similar to `std::apply`,  
+but provides two ways to pass template-type-parameters, in a similar fashion to `csl::wf::invoke`.
+
+Signatures :
+
+```cpp
+// (1) - with template-type-parameter-pack
+template <typename ... f_ts, typename F, concepts::tupleinterface_not_starting_with_ttps args_as_tuple_t>
+constexpr decltype(auto) apply(F && f, args_as_tuple_t&& args) noexcept(/**/);
+
+// (2) - with template-type-parameter-pack as first TupleType element
+template <typename F, concepts::tupleinterface_starting_with_ttps args_as_tuple_t>
+constexpr decltype(auto) apply(F && f, args_as_tuple_t && args) noexcept(/**/);
+```
+
+Examples :
+
 ```cpp
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
 
@@ -76,8 +93,8 @@ std::apply(
 );
 
 // csl::wf::apply
-csl::wf::apply<std::string>(func, std::tuple{'A', 42});
-csl::wf::apply(func, std::tuple{ ttps<std::string>{}, 'A', 42 });
+csl::wf::apply<std::string>(func, std::tuple{'A', 42});             // (1)
+csl::wf::apply(func, std::tuple{ ttps<std::string>{}, 'A', 42 });   // (2)
 
 ```
 
