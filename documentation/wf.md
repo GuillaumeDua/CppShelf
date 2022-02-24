@@ -2,7 +2,47 @@
 
 ## Invocation utilities
 
+Similar to the STL equivalents,  
+but offer two ways to pass template-type-parameters to the callable value.
+
+- As template-type-parameters to the function itself
+
+    ```cpp
+    csl::wf::invoke<std::string>(func, 42);
+    //             ^^^^^^^^^^^^^
+    ```
+
+- As an optional `csl::wf::ttps<...>` regular parameter
+
+    ```cpp
+    csl::wf::invoke(func, ttps<std::string>{}, 42);
+    //                    ^^^^^^^^^^^^^^^^^^^
+    ```
+
+The correct invocation synthax is then deduced.
+
+Note that all implementations are conditionaly enabled/disabled using proper concepts.  
+Thus, invalid synthax will result in an invalid overload-resolution.
+
 ### invoke
+
+Signatures :
+
+```cpp
+// (1) - similar to std::invoke
+template <typename F, typename ... args_types>
+constexpr decltype(auto) invoke(F && f, args_types&& ... args) noexcept(/**/);
+
+// (2) - with template-type-parameter-pack
+template <typename ... ttps_args, typename F, typename ... args_types>
+constexpr decltype(auto) invoke(F && f, args_types&& ... args) noexcept(/**/);
+
+// (3) - with template-type-parameter-pack as a function parameter of type csl::wf::mp::ttps<...>
+template <typename ... ttps_args, typename F, typename ... args_types>
+constexpr decltype(auto) invoke(F && f, mp::ttps<ttps_args...>, args_types&& ... args) noexcept(/**/);
+```
+
+Examples :
 
 ```cpp
 constexpr auto func = []<typename T>(auto && value){};
@@ -13,8 +53,8 @@ std::invoke(&std::remove_cvref_t<decltype(func)>::template operator()<std::strin
 //                                    notice the 2nd template-type-parameter here  ^^^
 
 // csl::wf::invoke
-csl::wf::invoke<std::string>(func, 42);         // template-type-parameters as invoke template-type-parameters
-csl::wf::invoke(func, ttps<std::string>{}, 42); // or as 2nd optional parameters
+csl::wf::invoke<std::string>(func, 42);         // (2) : template-type-parameters as invoke template-type-parameters
+csl::wf::invoke(func, ttps<std::string>{}, 42); // (3) : or as 2nd optional parameters
 ```
 
 Try it on [Godbolt here](https://godbolt.org/z/MbeqxEnG4)
@@ -22,7 +62,6 @@ Try it on [Godbolt here](https://godbolt.org/z/MbeqxEnG4)
 ### apply
 
 ```cpp
-
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
 
 // std::apply
@@ -43,6 +82,8 @@ csl::wf::apply(func, std::tuple{ ttps<std::string>{}, 'A', 42 });
 ```
 
 ### apply_before
+
+Apply the content
 
 ```cpp
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
