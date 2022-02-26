@@ -600,9 +600,9 @@ namespace csl::wf {
 
         using type = front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
 
+        F f;
         using bounded_args_storage_type = std::tuple<bounded_args_t...>;
         bounded_args_storage_type bounded_arguments;
-        F f;
 
     public:
 
@@ -1327,7 +1327,7 @@ namespace csl::wf::details {
     overload(Ts&&...) -> overload<std::remove_cvref_t<Ts>...>;
 }
 
-# pragma region repeat
+#pragma region repeat
 // literals
 namespace csl::wf::details::literals {
     template <std::integral T>
