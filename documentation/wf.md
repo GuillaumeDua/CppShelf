@@ -1,9 +1,20 @@
 # Documentation : csl::wf
 
+The goal of `csl::wf` is to offer convenient ways to manipulate functors & callable values in general.
+
+This library is divided in three parts :
+
+- Invocation [**functions**](#invocation-utilities) *(`invoke`, `apply`, etc.)*,  
+  and [**type-traits**](#invocation-traits) *(`is_invocable`, `is_applyable`, `is_nothrow_invocable_r`, etc.)*
+- Functors [**types**]() with specific purpose *(front_binder, overload, repeater, etc.)*
+- An [**eDSL**](#edsl) to create complexe workflow easily
+
+---
+
 ## Invocation utilities
 
-Similar to the STL equivalents,  
-but offer two ways to pass template-type-parameters to the callable value.
+> Similar to the STL equivalents,  
+> but offer two ways to pass template-type-parameters to the callable value.
 
 - As template-type-parameters to the function itself
 
@@ -24,7 +35,7 @@ The correct invocation synthax is then deduced.
 Note that all implementations are conditionaly enabled/disabled using proper concepts.  
 Thus, invalid synthax will result in an invalid overload-resolution.
 
-### invoke
+### **invoke**
 
 Signatures :
 
@@ -59,10 +70,10 @@ csl::wf::invoke(func, ttps<std::string>{}, 42); // (3) : or as 2nd optional para
 
 Try it on [Godbolt here](https://godbolt.org/z/MbeqxEnG4)
 
-### apply
+### **apply**
 
-Similar to `std::apply`,  
-but provides two ways to pass template-type-parameters, in a similar fashion to `csl::wf::invoke`.
+> Similar to `std::apply`,  
+> but provides two ways to pass template-type-parameters, in a similar fashion to `csl::wf::invoke`.
 
 Signatures :
 
@@ -100,32 +111,50 @@ csl::wf::apply(func, std::tuple{ ttps<std::string>{}, 'A', 42 });   // (2)
 
 ### apply_before
 
-Apply the content
+Apply the values contained in the tuple **before** optional additional values.
+
+Signature :
+
+```cpp
+template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple_t, typename ... func_args_t>
+constexpr decltype(auto) apply_before(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args) noexcept(/**/)
+```
+
+Examples :
 
 ```cpp
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
 
 // csl::wf::apply_before
-csl::wf::apply_before(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
-csl::wf::apply_before(func, std::tuple{ ttps<std::string>{}, A{}},  B{});
-csl::wf::apply_before(func, std::tuple{ ttps<std::string>{} }, A{}, B{} );
-
 csl::wf::apply_before<std::string>(func, std::tuple{ A{}, B{} });
 csl::wf::apply_before<std::string>(func, std::tuple{ A{} }, B{});
 csl::wf::apply_before<std::string>(func, std::tuple{}, A{}, B{});
+
+csl::wf::apply_before(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
+csl::wf::apply_before(func, std::tuple{ ttps<std::string>{}, A{}},  B{});
+csl::wf::apply_before(func, std::tuple{ ttps<std::string>{} }, A{}, B{} );
 ```
 
 ### apply_after
+
+Apply the values contained in the tuple **after** optional additional values.
+
+Signature :
+
+```cpp
+template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple_t, typename ... func_args_t>
+constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args) noexcept(/**/)
+```
 
 ```cpp
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
 
 // csl::wf::apply_after
-csl::wf::apply_after(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
-
 csl::wf::apply_after<std::string>(func, std::tuple{ A{}, B{} });
 csl::wf::apply_after<std::string>(func, std::tuple{ B{} }, A{});
 csl::wf::apply_after<std::string>(func, std::tuple{}, A{}, B{});
+
+csl::wf::apply_after(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
 ```
 
 ## Invocation traits
