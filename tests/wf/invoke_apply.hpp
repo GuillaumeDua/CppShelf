@@ -3,7 +3,7 @@
 #include <csl/wf.hpp>
 
 namespace test::invocation {
-    consteval void invocable() {
+    consteval void invoke_() {
         using namespace csl::wf;
 
         // f()
@@ -74,7 +74,7 @@ namespace test::invocation {
             static_assert(requires{ invoke<int, char>(f, 42, true, 'a'); });
         }
     }
-    consteval void applyable() {
+    consteval void apply_() {
         namespace ns = csl::wf; // stl namespace clash https://godbolt.org/z/Kz9PjMs3P
 
         // f()
@@ -174,8 +174,33 @@ namespace test::invocation {
             static_assert(noexcept(ns::apply<int, char>(f, std::tuple{'a'})));
         }
     }
+
+    struct A{}; struct B{}; struct C{};
+    constexpr auto func = []<std::same_as<C> T>(auto && arg0, auto && arg1){};
+
+    consteval void apply_before_() {
+        using namespace csl::wf;
+
+        csl::wf::apply_before<C>(func, std::tuple{ A{}, B{} });
+        csl::wf::apply_before<C>(func, std::tuple{ A{} }, B{});
+        csl::wf::apply_before<C>(func, std::tuple{}, A{}, B{});
+
+        csl::wf::apply_before(func, std::tuple{ ttps<C>{}, A{}, B{} });
+        csl::wf::apply_before(func, std::tuple{ ttps<C>{} }, A{}, B{});
+        csl::wf::apply_before(func, std::tuple{}, ttps<C>{}, A{}, B{});
+    }
+    consteval void apply_after_() {
+        using namespace csl::wf;
+
+        csl::wf::apply_after(func, std::tuple{ ttps<C>{}, A{}, B{} });
+        csl::wf::apply_after<C>(func, std::tuple{ A{}, B{} });
+        csl::wf::apply_after<C>(func, std::tuple{ B{} }, A{});
+        csl::wf::apply_after<C>(func, std::tuple{}, A{}, B{});
+
+        csl::wf::apply_after(func, std::tuple{ A{}, B{} }, ttps<C>{});
+    }
 }
-namespace tests::mp_apply_ {
+namespace test::mp_::invocation {
     struct A{}; struct B{};
 
     consteval void applyable_before() {
