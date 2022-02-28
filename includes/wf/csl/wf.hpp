@@ -570,7 +570,7 @@ namespace csl::wf {
         noexcept(mp::is_nothrow_applyable_after_v<F, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>)
         -> decltype(auto)
         {
-            return invoke<f_ts...>(std::forward<F>(f), fwd(std::get<indexes>(fwd(args)))..., fwd(func_args)...);
+            return invoke<f_ts...>(std::forward<F>(f), fwd(func_args)..., fwd(std::get<indexes>(fwd(args)))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 
