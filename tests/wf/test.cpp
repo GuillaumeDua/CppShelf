@@ -18,32 +18,6 @@
 #include <iostream>
 auto main() -> int {
 
-    {
-        auto func = []<typename ...>(){};
-        using func_type = decltype(func);
-
-        using namespace csl::wf::mp;
-        static_assert(is_invocable_v<func_type>);
-        static_assert(is_invocable_v<func_type, ttps<>>);
-        static_assert(is_invocable_v<func_type, ttps<>&>);
-        static_assert(is_invocable_v<func_type, ttps<int>>);
-
-        static_assert(is_applyable_v<func_type, std::tuple<>>);
-        static_assert(is_applyable_v<func_type, std::tuple<ttps<>>>);
-        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&>>);
-        static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
-
-        using trait = csl::wf::chain_trait<func_type>;
-        static_assert(trait::is_invocable<>);
-
-        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});     // no args (invoke)
-        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{});  // discard (invoke)
-
-        static_assert(trait::is_invocable<ttps<>>);
-        static_assert(trait::is_invocable<ttps<>&>);
-        static_assert(trait::is_invocable<ttps<int>>);
-    }
-
     struct lvalue_node_type {
         constexpr void operator()() &         {}
         constexpr void operator()() &&        {}

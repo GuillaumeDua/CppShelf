@@ -7,7 +7,7 @@ This library is divided in three parts :
 - Invocation [**functions**](#invocation-utilities) *(`invoke`, `apply`, etc.)*,  
   and [**type-traits**](#invocation-traits) *(`is_invocable`, `is_applyable`, `is_nothrow_invocable_r`, etc.)*
 - Functors [**types**]() with specific purpose *(front_binder, overload, repeater, etc.)*
-- An [**eDSL**](#edsl) to create complexe workflow easily
+- An [**eDSL**](#edsl) to create complexe workflow easily, by composing multiples functors as a unique one.
 
 ---
 
@@ -145,6 +145,8 @@ Signature :
 template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple_t, typename ... func_args_t>
 constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args) noexcept(/**/)
 ```
+
+Examples :
 
 ```cpp
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
