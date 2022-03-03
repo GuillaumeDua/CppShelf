@@ -573,7 +573,9 @@ namespace csl::wf {
             return invoke<f_ts...>(std::forward<F>(f), fwd(func_args)..., fwd(std::get<indexes>(fwd(args)))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
-
+}
+// front_bindable
+namespace csl::wf {
     // front_bindable
     template <typename T>
     concept front_bindable = 
@@ -703,6 +705,57 @@ namespace csl::wf {
             std::forward<args_t>(args)...
         };
     }
+}
+// function_ref
+namespace csl::wf {
+    // function_ref
+    // - fix to std::reference_wrapper::operator()
+    template <typename F>
+    requires std::is_reference_v<F>
+    struct function_ref {
+        
+        constexpr function_ref(F value)
+        : storage{ std::forward<F>(value) }
+        {}
+        constexpr function_ref(const function_ref & value) = default;
+        constexpr function_ref(function_ref && value) = default;
+
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) &
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v<F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(storage, args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) &&
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v<F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::move(storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const &
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<const F &, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v<const F &, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(storage, args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const &&
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<const F &&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v<const F &&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::move(storage), args...);
+        }
+
+    private:
+        F storage;
+    };
+    template <typename F>
+    function_ref(F&) -> function_ref<F&>;
+    template <typename F>
+    function_ref(F&&) -> function_ref<F&&>;
 }
 // mp::are_unique_v<Ts..>
 // mp::is_instance_of<pack<...>, T>
