@@ -1,10 +1,16 @@
+// primitives
 #include "./invocable_traits.hpp"
 #include "./invoke_apply.hpp"
+
+// types
+#include "./repeat.hpp"
 #include "./bind_front.hpp"
+#include "./function_ref.hpp"
+
+// type : chain/route
 #include "./chain_trait.hpp"
 #include "./chain_invoke.hpp"
 #include "./route.hpp"
-#include "./repeat.hpp"
 
 // syntactic sugar : literals
 #include "./literals/times.hpp"
