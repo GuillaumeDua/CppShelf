@@ -717,10 +717,17 @@ namespace csl::wf {
         using value_type = F;
 
         constexpr explicit function_ref(auto && value)
-        noexcept(std::is_nothrow_convertible_v<decltype(value), F>)
+        noexcept(std::is_nothrow_constructible_v<decltype(value), F>)
         requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
-        : storage{ std::forward<F>(value) }
+        : storage{ fwd(value) }
         {}
+        constexpr function_ref(const function_ref & other) noexcept
+        : storage{ fwd(other.storage) }
+        {}
+        constexpr function_ref(function_ref &&) noexcept = default;
+        constexpr ~function_ref() = default;
+        constexpr function_ref & operator=(function_ref &&) noexcept = default;
+        constexpr function_ref & operator=(const function_ref &) noexcept = default;
 
         template <typename ... ttps_args>
         constexpr decltype(auto) operator()(auto && ... args) const
