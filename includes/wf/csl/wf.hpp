@@ -1453,7 +1453,7 @@ namespace csl::wf {
         // flattening
     #pragma region flattening
         template <auto N, typename fun>
-        friend class repeater;
+        friend struct repeater;
 
         template <auto other_times, typename other_F>
         explicit constexpr repeater(repeater<other_times, other_F> && func)
