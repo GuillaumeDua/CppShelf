@@ -721,8 +721,6 @@ namespace csl::wf {
         requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
         : storage{ std::forward<F>(value) }
         {}
-        // constexpr function_ref(const function_ref & value) noexcept = default;
-        // constexpr function_ref(function_ref && value)      noexcept = default;
 
         template <typename ... ttps_args>
         constexpr decltype(auto) operator()(auto && ... args) const

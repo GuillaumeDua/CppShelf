@@ -32,6 +32,28 @@ namespace test::wf::function_ref_ {
         }
     };
 
+
+    consteval void construct() {
+
+        constexpr auto checks = []<typename func_ref_t>(){ 
+            static_assert(not std::is_default_constructible_v<func_ref_t>);
+            static_assert(not std::is_copy_assignable_v<func_ref_t>);
+            static_assert(not std::is_move_assignable_v<func_ref_t>);
+
+            if constexpr (not std::is_rvalue_reference_v<typename func_ref_t::value_type>) {
+                static_assert(std::is_trivially_copy_constructible_v<func_ref_t>);
+                static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
+            }
+        };
+
+        checks.template operator()<csl::wf::function_ref<functor_type&>>();
+        //checks.template operator()<csl::wf::function_ref<functor_type&&>>();
+        checks.template operator()<csl::wf::function_ref<const functor_type&>>();
+        //checks.template operator()<csl::wf::function_ref<const functor_type&&>>();
+    }
+
+
+
     consteval void cvref_qualifiers() {
 
         constexpr auto test_invoke_synthaxes = []<typename expected_type>(auto && value) {
@@ -53,7 +75,7 @@ namespace test::wf::function_ref_ {
                 decltype(csl::wf::invoke(std::forward<decltype(value)>(value), csl::wf::mp::ttps<int>{}, 'a'))
             >);
         };
-        auto test_function_ref_cvref_qualifier = [test_invoke_synthaxes]<typename expected_type>(auto && func){
+        constexpr auto test_function_ref_cvref_qualifier = [test_invoke_synthaxes]<typename expected_type>([[maybe_unused]] auto && func){
 
             auto func_ref = csl::wf::function_ref{ std::forward<decltype(func)>(func) };
 
