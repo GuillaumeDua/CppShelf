@@ -50,41 +50,44 @@ namespace test::wf::function_ref_ {
         checks.template operator()<csl::wf::function_ref<const functor_type&&>>();
     }
 
+    namespace details {
+        template <typename expected_type, typename func_ref_t>
+        constexpr void test_invoke_synthaxes() {
+
+            static_assert(std::same_as<
+                expected_type,
+                decltype(std::declval<func_ref_t>().template operator()<int>('a'))
+            >);
+            static_assert(std::same_as<
+                expected_type,
+                decltype(csl::wf::invoke<int>(std::declval<func_ref_t>(), csl::wf::mp::ttps<int>{}, 'a'))
+            >);
+            static_assert(std::same_as<
+                expected_type,
+                decltype(csl::wf::invoke<int>(std::declval<func_ref_t>(), 'a'))
+            >);
+            static_assert(std::same_as<
+                expected_type,
+                decltype(csl::wf::invoke(std::declval<func_ref_t>(), csl::wf::mp::ttps<int>{}, 'a'))
+            >);
+        };
+    }
+
     consteval void cvref_qualifiers() {
 
-        constexpr auto test_invoke_synthaxes = []<typename expected_type>(auto && value) {
+        constexpr auto test_function_ref_cvref_qualifier = []<typename expected_type>(){
 
-            static_assert(std::same_as<
-                expected_type,
-                decltype(std::forward<decltype(value)>(value).template operator()<int>('a'))
-            >);
-            static_assert(std::same_as<
-                expected_type,
-                decltype(csl::wf::invoke<int>(std::forward<decltype(value)>(value), csl::wf::mp::ttps<int>{}, 'a'))
-            >);
-            static_assert(std::same_as<
-                expected_type,
-                decltype(csl::wf::invoke<int>(std::forward<decltype(value)>(value), 'a'))
-            >);
-            static_assert(std::same_as<
-                expected_type,
-                decltype(csl::wf::invoke(std::forward<decltype(value)>(value), csl::wf::mp::ttps<int>{}, 'a'))
-            >);
-        };
-        constexpr auto test_function_ref_cvref_qualifier = [test_invoke_synthaxes]<typename expected_type>([[maybe_unused]] auto && func){
+            using func_ref_t = decltype(csl::wf::function_ref{ std::declval<expected_type>() });
 
-            auto func_ref = csl::wf::function_ref{ std::forward<decltype(func)>(func) };
-
-            test_invoke_synthaxes.template operator()<expected_type>(func_ref);
-            test_invoke_synthaxes.template operator()<expected_type>(std::as_const(func_ref));
-            test_invoke_synthaxes.template operator()<expected_type>(std::move(func_ref));
-            test_invoke_synthaxes.template operator()<expected_type>(std::move(std::as_const(func_ref)));
+            details::test_invoke_synthaxes<expected_type, func_ref_t&>();
+            details::test_invoke_synthaxes<expected_type, func_ref_t&&>();
+            details::test_invoke_synthaxes<expected_type, const func_ref_t&>();
+            details::test_invoke_synthaxes<expected_type, const func_ref_t &&>();
         };
 
-        auto func = functor_type{};
-        test_function_ref_cvref_qualifier.template operator()<functor_type&>(func);
-        test_function_ref_cvref_qualifier.template operator()<functor_type&&>(std::move(func));
-        test_function_ref_cvref_qualifier.template operator()<const functor_type&>(std::as_const(func));
-        test_function_ref_cvref_qualifier.template operator()<const functor_type&&>(std::move(std::as_const(func)));
+        test_function_ref_cvref_qualifier.template operator()<functor_type&>();
+        test_function_ref_cvref_qualifier.template operator()<functor_type&&>();
+        test_function_ref_cvref_qualifier.template operator()<const functor_type&>();
+        test_function_ref_cvref_qualifier.template operator()<const functor_type&&>();
     }
 }
