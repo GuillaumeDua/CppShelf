@@ -706,28 +706,28 @@ namespace csl::wf {
         };
     }
 }
-// function_ref
+// function_view
 namespace csl::wf {
-    // function_ref
+    // function_view
     // - improvement to std::reference_wrapper::operator()
     template <typename F>
     requires std::is_reference_v<F>
-    struct function_ref {
+    struct function_view {
         
         using value_type = F;
 
-        constexpr explicit function_ref(auto && value)
+        constexpr explicit function_view(auto && value)
         noexcept(std::is_nothrow_constructible_v<decltype(value), F>)
-        requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
+        requires (not std::same_as<function_view, std::remove_cvref_t<decltype(value)>>)
         : storage{ std::forward<value_type>(value) }
         {}
-        constexpr function_ref(const function_ref & other) noexcept
+        constexpr function_view(const function_view & other) noexcept
         : storage{ fwd(other.storage) }
         {}
-        constexpr function_ref(function_ref &&) noexcept = default;
-        constexpr ~function_ref() noexcept = default;
-        constexpr function_ref & operator=(function_ref &&) noexcept = default;
-        constexpr function_ref & operator=(const function_ref &) noexcept = default;
+        constexpr function_view(function_view &&) noexcept = default;
+        constexpr ~function_view() noexcept = default;
+        constexpr function_view & operator=(function_view &&) noexcept = default;
+        constexpr function_view & operator=(const function_view &) noexcept = default;
 
         template <typename ... ttps_args>
         constexpr decltype(auto) operator()(auto && ... args) const
@@ -755,9 +755,9 @@ namespace csl::wf {
         F storage;
     };
     template <typename F>
-    function_ref(F&) -> function_ref<F&>;
+    function_view(F&) -> function_view<F&>;
     template <typename F>
-    function_ref(F&&) -> function_ref<F&&>;
+    function_view(F&&) -> function_view<F&&>;
 }
 // mp::are_unique_v<Ts..>
 // mp::is_instance_of<pack<...>, T>

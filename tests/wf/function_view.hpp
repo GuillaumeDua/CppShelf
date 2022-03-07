@@ -33,7 +33,7 @@ namespace test::wf::function_ref_ {
     };
 
 
-    consteval void construct() {
+    consteval void constructors_and_assignements() {
 
         constexpr auto checks = []<typename func_ref_t>(){ 
             static_assert(not std::is_default_constructible_v<func_ref_t>);
@@ -44,10 +44,10 @@ namespace test::wf::function_ref_ {
             static_assert(std::is_copy_constructible_v<func_ref_t>);
         };
 
-        checks.template operator()<csl::wf::function_ref<functor_type&>>();
-        checks.template operator()<csl::wf::function_ref<functor_type&&>>();
-        checks.template operator()<csl::wf::function_ref<const functor_type&>>();
-        checks.template operator()<csl::wf::function_ref<const functor_type&&>>();
+        checks.template operator()<csl::wf::function_view<functor_type&>>();
+        checks.template operator()<csl::wf::function_view<functor_type&&>>();
+        checks.template operator()<csl::wf::function_view<const functor_type&>>();
+        checks.template operator()<csl::wf::function_view<const functor_type&&>>();
     }
 
     namespace details {
@@ -77,7 +77,7 @@ namespace test::wf::function_ref_ {
 
         constexpr auto test_function_ref_cvref_qualifier = []<typename expected_type>(){
 
-            using func_ref_t = decltype(csl::wf::function_ref{ std::declval<expected_type>() });
+            using func_ref_t = decltype(csl::wf::function_view{ std::declval<expected_type>() });
 
             details::test_invoke_synthaxes<expected_type, func_ref_t&>();
             details::test_invoke_synthaxes<expected_type, func_ref_t&&>();
