@@ -707,11 +707,11 @@ namespace csl::wf {
     }
 }
 // function_view
+// function_ref
 namespace csl::wf {
     // function_view
     // - improvement to std::reference_wrapper::operator()
-    template <typename F>
-    requires std::is_reference_v<F>
+    template <typename F> requires std::is_reference_v<F>
     struct function_view {
         
         using value_type = F;
@@ -758,6 +758,53 @@ namespace csl::wf {
     function_view(F&) -> function_view<F&>;
     template <typename F>
     function_view(F&&) -> function_view<F&&>;
+
+    template <typename F> requires std::is_reference_v<F>
+    struct function_ref {
+        
+        using value_type = F;
+
+        constexpr explicit function_ref(auto && value)
+        noexcept(std::is_nothrow_constructible_v<decltype(value), F>)
+        requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
+        : storage{ std::addressof(std::forward<F>(value)) }
+        {}
+        constexpr function_ref(const function_ref & other) noexcept = default;
+        constexpr function_ref(function_ref &&) noexcept = default;
+        constexpr ~function_ref() = default;
+        constexpr function_ref & operator=(function_ref &&) noexcept = default;
+        constexpr function_ref & operator=(const function_ref &) noexcept = default;
+
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<F>(*storage), args...);
+        }
+
+        // storage accessors
+        operator const F&() const noexcept {
+            return *storage;
+        }
+        operator F&() noexcept {
+            return *storage;
+        }
+        const F& get() const noexcept {
+            return *storage;
+        }
+        F& get() noexcept {
+            return *storage;
+        }
+
+    private:
+        using storage_type = std::remove_reference_t<F>*;
+        storage_type storage = nullptr;
+    };
+    template <typename F>
+    function_ref(F&) -> function_ref<F&>;
+    template <typename F>
+    function_ref(F&&) -> function_ref<F&&>;
 }
 // mp::are_unique_v<Ts..>
 // mp::is_instance_of<pack<...>, T>
