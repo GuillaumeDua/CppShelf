@@ -719,13 +719,13 @@ namespace csl::wf {
         constexpr explicit function_ref(auto && value)
         noexcept(std::is_nothrow_constructible_v<decltype(value), F>)
         requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
-        : storage{ fwd(value) }
+        : storage{ std::forward<value_type>(value) }
         {}
         constexpr function_ref(const function_ref & other) noexcept
         : storage{ fwd(other.storage) }
         {}
         constexpr function_ref(function_ref &&) noexcept = default;
-        constexpr ~function_ref() = default;
+        constexpr ~function_ref() noexcept = default;
         constexpr function_ref & operator=(function_ref &&) noexcept = default;
         constexpr function_ref & operator=(const function_ref &) noexcept = default;
 
@@ -735,6 +735,20 @@ namespace csl::wf {
         requires csl::wf::mp::is_invocable_v        <F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
         {
             return csl::wf::invoke<ttps_args...>(std::forward<F>(storage), args...);
+        }
+
+        // storage accessors
+        explicit operator const F&() const noexcept {
+            return storage;
+        }
+        explicit operator F&() noexcept {
+            return storage;
+        }
+        const F& get() const noexcept {
+            return storage;
+        }
+        F& get() noexcept {
+            return storage;
         }
 
     private:
