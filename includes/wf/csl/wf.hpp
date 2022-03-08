@@ -784,10 +784,10 @@ namespace csl::wf {
         }
 
         // storage accessors
-        operator const F&() const noexcept {
+        explicit operator const F&() const noexcept {
             return *storage;
         }
-        operator F&() noexcept {
+        explicit operator F&() noexcept {
             return *storage;
         }
         const F& get() const noexcept {

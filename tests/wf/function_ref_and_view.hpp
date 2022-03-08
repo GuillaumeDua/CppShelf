@@ -90,22 +90,32 @@ namespace test::wf::function_ref_and_view_ {
 
         details::check_constructors_and_assigments<csl::wf::function_view>(
             []<typename func_ref_t>(){ 
-                static_assert(not std::is_default_constructible_v<func_ref_t>);
-                static_assert(not std::is_copy_assignable_v<func_ref_t>);
-                static_assert(not std::is_move_assignable_v<func_ref_t>);
+                static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::value_type>);
 
+                static_assert(not std::is_default_constructible_v<func_ref_t>);
                 static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
+                static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
                 static_assert(std::is_copy_constructible_v<func_ref_t>);
+                static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
+
+                static_assert(not std::is_trivially_copy_assignable_v<func_ref_t>);
+                static_assert(not std::is_trivially_move_assignable_v<func_ref_t>);
             }
         );
         details::check_constructors_and_assigments<csl::wf::function_ref>(
             []<typename func_ref_t>(){ 
-                static_assert(not std::is_default_constructible_v<func_ref_t>);
-                static_assert(std::is_copy_assignable_v<func_ref_t>);
-                static_assert(std::is_move_assignable_v<func_ref_t>);
+                static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::value_type>);
 
+                static_assert(not std::is_default_constructible_v<func_ref_t>);
                 static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
-                static_assert(std::is_copy_constructible_v<func_ref_t>);
+                static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
+                static_assert(std::is_trivially_copy_constructible_v<func_ref_t>);
+                static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
+
+                static_assert(std::is_trivially_copy_assignable_v<func_ref_t>);
+                static_assert(std::is_nothrow_copy_assignable_v<func_ref_t>);
+                static_assert(std::is_trivially_move_assignable_v<func_ref_t>);
+                static_assert(std::is_nothrow_move_assignable_v<func_ref_t>);
             }
         );
     }

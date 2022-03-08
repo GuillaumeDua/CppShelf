@@ -113,7 +113,7 @@ auto main() -> int {
         route();
     }
     {
-        auto node_1 = [](){ return 42; };
+        auto node_1 = [](){ return 42; }; // NOLINT
         auto node_2 = [](int){};
         auto node_3 = [](){};
 
