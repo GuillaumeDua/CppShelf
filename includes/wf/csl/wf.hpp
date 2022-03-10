@@ -738,16 +738,16 @@ namespace csl::wf {
         }
 
         // storage accessors
-        explicit operator const F&() const noexcept {
+        constexpr explicit operator const F&() const noexcept {
             return storage;
         }
-        explicit operator F&() noexcept {
+        constexpr explicit operator F&() noexcept {
             return storage;
         }
-        const F& get() const noexcept {
+        constexpr const F& get() const noexcept {
             return storage;
         }
-        F& get() noexcept {
+        constexpr F& get() noexcept {
             return storage;
         }
 
@@ -759,41 +759,68 @@ namespace csl::wf {
     template <typename F>
     function_view(F&&) -> function_view<F&&>;
 
-    template <typename F> requires std::is_reference_v<F>
+    template <typename F> requires (not std::is_reference_v<F>)
     struct function_ref {
         
-        using value_type = F;
+        using type = F;
 
         constexpr explicit function_ref(auto && value)
-        noexcept(std::is_nothrow_constructible_v<decltype(value), F>)
+        noexcept(std::is_nothrow_constructible_v<storage_type, decltype(std::addressof(value))>)
         requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
-        : storage{ std::addressof(std::forward<F>(value)) }
-        {}
+        : storage{ std::addressof(std::forward<F&>(value)) }
+        {
+            if constexpr (std::equality_comparable_with<decltype(value), decltype(nullptr)>) {
+                if (value == nullptr)
+                    throw std::invalid_argument{"function_ref<T> : nullptr"};
+            }
+        }
         constexpr function_ref(const function_ref & other) noexcept = default;
         constexpr function_ref(function_ref &&) noexcept = default;
+        constexpr function_ref() = delete;
         constexpr ~function_ref() = default;
         constexpr function_ref & operator=(function_ref &&) noexcept = default;
         constexpr function_ref & operator=(const function_ref &) noexcept = default;
 
         template <typename ... ttps_args>
-        constexpr decltype(auto) operator()(auto && ... args) const
-        noexcept(csl::wf::mp::is_nothrow_invocable_v<F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
-        requires csl::wf::mp::is_invocable_v        <F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        constexpr decltype(auto) operator()(auto && ... args) &
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
         {
-            return csl::wf::invoke<ttps_args...>(std::forward<F>(*storage), args...);
+            return csl::wf::invoke<ttps_args...>(std::forward<F&>(*storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) &&
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<F&&>(*storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const &
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<const F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <const F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<const F&>(*storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const &&
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<const F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <const F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<const F&&>(*storage), args...);
         }
 
         // storage accessors
-        explicit operator const F&() const noexcept {
+        constexpr explicit operator const F&() const noexcept {
             return *storage;
         }
-        explicit operator F&() noexcept {
+        constexpr explicit operator F&() noexcept {
             return *storage;
         }
-        const F& get() const noexcept {
+        constexpr const F& get() const noexcept {
             return *storage;
         }
-        F& get() noexcept {
+        constexpr F& get() noexcept {
             return *storage;
         }
 
@@ -802,9 +829,9 @@ namespace csl::wf {
         storage_type storage = nullptr;
     };
     template <typename F>
-    function_ref(F&) -> function_ref<F&>;
+    function_ref(F&) -> function_ref<F>;
     template <typename F>
-    function_ref(F&&) -> function_ref<F&&>;
+    function_ref(F&&) -> function_ref<F>;
 }
 // mp::are_unique_v<Ts..>
 // mp::is_instance_of<pack<...>, T>
