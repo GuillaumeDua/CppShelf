@@ -11,6 +11,55 @@ This library is divided in three parts :
 
 ---
 
+- [Documentation : csl::wf](#documentation--cslwf)
+  - [Invocation utilities](#invocation-utilities)
+    - [**invoke**](#invoke)
+    - [**apply**](#apply)
+    - [apply_before](#apply_before)
+    - [apply_after](#apply_after)
+  - [Invocation traits](#invocation-traits)
+    - [is_invocable](#is_invocable)
+    - [is_nothrow_invocable](#is_nothrow_invocable)
+    - [is_invocable_r](#is_invocable_r)
+    - [is_nothrow_invocable_r](#is_nothrow_invocable_r)
+    - [invoke_result](#invoke_result)
+    - [is_applyable](#is_applyable)
+    - [is_nothrow_applyable](#is_nothrow_applyable)
+    - [is_applyable_before](#is_applyable_before)
+    - [is_nothrow_applyable_before](#is_nothrow_applyable_before)
+    - [is_applyable_after](#is_applyable_after)
+    - [is_nothrow_applyable_after](#is_nothrow_applyable_after)
+    - [apply_result](#apply_result)
+    - [is_invocable_with](#is_invocable_with)
+    - [is_nothrow_invocable_with](#is_nothrow_invocable_with)
+  - [bind_front](#bind_front)
+    - [front_bindable (concept)](#front_bindable-concept)
+    - [front_binder (type)](#front_binder-type)
+  - [invocation policies](#invocation-policies)
+    - [csl::wf::invoke_policy::allow_discard](#cslwfinvoke_policyallow_discard)
+    - [csl::wf::invoke_policy::nodiscard](#cslwfinvoke_policynodiscard)
+  - [chain](#chain)
+    - [`mp::chain_trait<typename ... Fs>`](#mpchain_traittypename--fs)
+    - [chain_invoke](#chain_invoke)
+    - [chain_invoke_nodiscard](#chain_invoke_nodiscard)
+    - [chain_invocable (concept)](#chain_invocable-concept)
+    - [route (type)](#route-type)
+      - [get<index>(instance_of<route>)](#getindexinstance_ofroute)
+  - [overload](#overload)
+  - [repeater](#repeater)
+  - [function_ref<T>](#function_reft)
+  - [function_view<T>](#function_viewt)
+  - [eDSL](#edsl)
+    - [_times (literals)](#_times-literals)
+    - [factories](#factories)
+      - [make_continuation](#make_continuation)
+      - [make_condition](#make_condition)
+      - [make_repetition](#make_repetition)
+    - [operators](#operators)
+      - [`operator|` (pipe operator)](#operator-pipe-operator)
+      - [`operator>>=` (right-shift-assign operator)](#operator-right-shift-assign-operator)
+      - [`operator*` (star operator)](#operator-star-operator)
+
 ## Invocation utilities
 
 > Similar to the STL equivalents,  
@@ -229,6 +278,27 @@ constexpr auto bind_front(F&& f, args_t && ... args);
 ## overload
 
 ## repeater
+
+## function_ref<T>
+
+Wraps a reference to a functor in a copyable & assignable object,  
+in a similar fashion to [std::reference_wrapper](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).
+
+However, in opposition to `std::reference_wrapper::operator()`, `function_ref<T>::operator()`-s are conditionaly generated and internally call `csl::wf::invoke` (see description hereunder).
+
+Member types
+
+| type | definition |
+| ---- | ---------- |
+| value_type | T    |
+
+Member functions
+
+| name | description |
+| ---- | ----------- |
+
+
+## function_view<T>
 
 ## eDSL
 
