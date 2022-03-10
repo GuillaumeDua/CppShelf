@@ -155,6 +155,7 @@ csl::wf::apply_after<std::string>(func, std::tuple{ B{} }, A{});
 csl::wf::apply_after<std::string>(func, std::tuple{}, A{}, B{});
 
 csl::wf::apply_after(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
+csl::wf::apply_after(func, std::tuple{ A{}, B{} }, ttps<std::string>{});
 ```
 
 ## Invocation traits

@@ -24,46 +24,8 @@
 auto main() -> int {
 
     {
-        using namespace csl::wf;
-        
-        constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
-        struct A{}; struct B{};
-
-        // csl::wf::apply_before
-        csl::wf::apply_before<std::string>(func, std::tuple{ A{}, B{} });
-        csl::wf::apply_before<std::string>(func, std::tuple{ A{} }, B{});
-        csl::wf::apply_before<std::string>(func, std::tuple{}, A{}, B{});
-
-        csl::wf::apply_before(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
-        static_assert(mp::is_invocable_v<
-            decltype(func), ttps<std::string>, A, B
-        >);
-        static_assert(mp::is_applyable_before_v<
-            decltype(func), ttps<>, std::tuple<ttps<std::string>, A, B>
-        >);
-
-        // csl::wf::apply_after
-        csl::wf::apply_after(func, std::tuple{ ttps<std::string>{}, A{}, B{} });
-        csl::wf::apply_after<std::string>(func, std::tuple{ A{}, B{} });
-        csl::wf::apply_after<std::string>(func, std::tuple{ B{} }, A{});
-
-        // csl::wf::apply_after(func, std::tuple{ A{}, B{} }, ttps<std::string>{}); // ?
-    }
-
-    {
         auto func = []<typename ...>(){};
         using func_type = decltype(func);
-
-        using namespace csl::wf::mp;
-        static_assert(is_invocable_v<func_type>);
-        static_assert(is_invocable_v<func_type, ttps<>>);
-        static_assert(is_invocable_v<func_type, ttps<>&>);
-        static_assert(is_invocable_v<func_type, ttps<int>>);
-
-        static_assert(is_applyable_v<func_type, std::tuple<>>);
-        static_assert(is_applyable_v<func_type, std::tuple<ttps<>>>);
-        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&>>);
-        static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
 
         using trait = csl::wf::chain_trait<func_type>;
         static_assert(trait::is_invocable<>);

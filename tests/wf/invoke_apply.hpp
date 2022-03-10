@@ -192,11 +192,11 @@ namespace test::invocation {
     consteval void apply_after_() {
         using namespace csl::wf;
 
-        csl::wf::apply_after(func, std::tuple{ ttps<C>{}, A{}, B{} });
         csl::wf::apply_after<C>(func, std::tuple{ A{}, B{} });
         csl::wf::apply_after<C>(func, std::tuple{ B{} }, A{});
         csl::wf::apply_after<C>(func, std::tuple{}, A{}, B{});
 
+        csl::wf::apply_after(func, std::tuple{ ttps<C>{}, A{}, B{} });
         csl::wf::apply_after(func, std::tuple{ A{}, B{} }, ttps<C>{});
     }
 }
