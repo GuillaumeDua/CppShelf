@@ -89,20 +89,44 @@ namespace test::wf::function_view_ {
 
     consteval void construct_copy_assign() {
 
-        // constexpr auto check = []<typename func_ref_t>(){ 
-        //     static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::value_type>);
+        constexpr auto check = []<typename func_ref_t>(){ 
+            static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::type>);
 
-        //     static_assert(not std::is_default_constructible_v<func_ref_t>);
-        //     static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
-        //     static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
-        //     static_assert(std::is_copy_constructible_v<func_ref_t>);
-        //     static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
+            static_assert(not std::is_default_constructible_v<func_ref_t>);
+            static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
+            static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
+            static_assert(std::is_copy_constructible_v<func_ref_t>);
+            static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
 
-        //     static_assert(not std::is_trivially_copy_assignable_v<func_ref_t>);
-        //     static_assert(not std::is_trivially_move_assignable_v<func_ref_t>);
-        // };
+            static_assert(not std::is_trivially_copy_assignable_v<func_ref_t>);
+            static_assert(not std::is_trivially_move_assignable_v<func_ref_t>);
+        };
     
-        // check.template operator()<csl::wf::function_view<functor_type>>();
-        // check.template operator()<csl::wf::function_view<const functor_type>>();
+        check.template operator()<csl::wf::function_view<functor_type>>();
+        check.template operator()<csl::wf::function_view<const functor_type>>();
+    }
+    consteval void invoke_operator() {
+        {   // T
+            using function_ref_t = csl::wf::function_view<functor_type>;
+            static_assert(std::same_as<
+                functor_type &,
+                decltype(std::declval<function_ref_t&>().template operator()<int>('a'))
+            >);
+            static_assert(std::same_as<
+                functor_type &&,
+                decltype(std::declval<function_ref_t&&>().template operator()<int>('a'))
+            >);
+        }
+        {   // const T
+            using function_ref_t = csl::wf::function_view<const functor_type>;
+            static_assert(std::same_as<
+                const functor_type &,
+                decltype(std::declval<function_ref_t&>().template operator()<int>('a'))
+            >);
+            static_assert(std::same_as<
+                const functor_type &&,
+                decltype(std::declval<function_ref_t&&>().template operator()<int>('a'))
+            >);
+        }
     }
 }
