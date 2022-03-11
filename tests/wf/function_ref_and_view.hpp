@@ -31,97 +31,78 @@ namespace test::wf::function_ref_and_view_::details {
             return std::move(*this);
         }
     };
+}
+  
+namespace test::wf::function_ref_ {
 
-    template <template <typename> typename function_wrapper_t>
-    struct test_for {
+    using functor_type = test::wf::function_ref_and_view_::details::functor_type;
 
-        consteval static void cvref_qualifiers() {
+    consteval void construct_copy_assign() {
 
-            constexpr auto test_function_view_cvref_qualifier = []<typename expected_type>(){
+        constexpr auto check = []<typename func_ref_t>(){ 
+            static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::type>);
 
-                using func_ref_t = decltype(function_wrapper_t{ std::declval<expected_type>() });
+            static_assert(not std::is_default_constructible_v<func_ref_t>);
+            static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
+            static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
+            static_assert(std::is_trivially_copy_constructible_v<func_ref_t>);
+            static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
 
-                test_invoke_synthaxes<expected_type, func_ref_t&>();
-                test_invoke_synthaxes<expected_type, func_ref_t&&>();
-                test_invoke_synthaxes<expected_type, const func_ref_t&>();
-                test_invoke_synthaxes<expected_type, const func_ref_t &&>();
-            };
-
-            test_function_view_cvref_qualifier.template operator()<functor_type&>();
-            test_function_view_cvref_qualifier.template operator()<functor_type&&>();
-            test_function_view_cvref_qualifier.template operator()<const functor_type&>();
-            test_function_view_cvref_qualifier.template operator()<const functor_type&&>();
-        }
-
-    private:
-        template <typename expected_type, typename func_ref_t>
-        constexpr static void test_invoke_synthaxes() {
-
+            static_assert(std::is_trivially_copy_assignable_v<func_ref_t>);
+            static_assert(std::is_nothrow_copy_assignable_v<func_ref_t>);
+            static_assert(std::is_trivially_move_assignable_v<func_ref_t>);
+            static_assert(std::is_nothrow_move_assignable_v<func_ref_t>);
+        };
+    
+        check.template operator()<csl::wf::function_ref<functor_type>>();
+        check.template operator()<csl::wf::function_ref<const functor_type>>();
+    }
+    consteval void invoke_operator() {
+        {   // T
+            using function_ref_t = csl::wf::function_ref<functor_type>;
             static_assert(std::same_as<
-                expected_type,
-                decltype(std::declval<func_ref_t>().template operator()<int>('a'))
+                functor_type &,
+                decltype(std::declval<function_ref_t&>().template operator()<int>('a'))
             >);
             static_assert(std::same_as<
-                expected_type,
-                decltype(csl::wf::invoke<int>(std::declval<func_ref_t>(), csl::wf::mp::ttps<int>{}, 'a'))
-            >);
-            static_assert(std::same_as<
-                expected_type,
-                decltype(csl::wf::invoke<int>(std::declval<func_ref_t>(), 'a'))
-            >);
-            static_assert(std::same_as<
-                expected_type,
-                decltype(csl::wf::invoke(std::declval<func_ref_t>(), csl::wf::mp::ttps<int>{}, 'a'))
+                functor_type &&,
+                decltype(std::declval<function_ref_t&&>().template operator()<int>('a'))
             >);
         }
-    };
-
-    template <template <typename> typename function_wrapper_t>
-    consteval void check_constructors_and_assigments(auto checks) {
-        checks.template operator()<function_wrapper_t<details::functor_type&>>();
-        checks.template operator()<function_wrapper_t<details::functor_type&&>>();
-        checks.template operator()<function_wrapper_t<const details::functor_type&>>();
-        checks.template operator()<function_wrapper_t<const details::functor_type&&>>();
+        {   // const T
+            using function_ref_t = csl::wf::function_ref<const functor_type>;
+            static_assert(std::same_as<
+                const functor_type &,
+                decltype(std::declval<function_ref_t&>().template operator()<int>('a'))
+            >);
+            static_assert(std::same_as<
+                const functor_type &&,
+                decltype(std::declval<function_ref_t&&>().template operator()<int>('a'))
+            >);
+        }
     }
 }
-namespace test::wf::function_ref_and_view_ {
+// TODO
+namespace test::wf::function_view_ {
 
-    consteval void constructors_and_assigments() {
+    using functor_type = test::wf::function_ref_and_view_::details::functor_type;
 
-        details::check_constructors_and_assigments<csl::wf::function_view>(
-            []<typename func_ref_t>(){ 
-                static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::value_type>);
+    consteval void construct_copy_assign() {
 
-                static_assert(not std::is_default_constructible_v<func_ref_t>);
-                static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
-                static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
-                static_assert(std::is_copy_constructible_v<func_ref_t>);
-                static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
+        // constexpr auto check = []<typename func_ref_t>(){ 
+        //     static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::value_type>);
 
-                static_assert(not std::is_trivially_copy_assignable_v<func_ref_t>);
-                static_assert(not std::is_trivially_move_assignable_v<func_ref_t>);
-            }
-        );
-        details::check_constructors_and_assigments<csl::wf::function_ref>(
-            []<typename func_ref_t>(){ 
-                static_assert(std::is_nothrow_constructible_v<func_ref_t, typename func_ref_t::value_type>);
+        //     static_assert(not std::is_default_constructible_v<func_ref_t>);
+        //     static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
+        //     static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
+        //     static_assert(std::is_copy_constructible_v<func_ref_t>);
+        //     static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
 
-                static_assert(not std::is_default_constructible_v<func_ref_t>);
-                static_assert(std::is_trivially_move_constructible_v<func_ref_t>);
-                static_assert(std::is_nothrow_move_constructible_v<func_ref_t>);
-                static_assert(std::is_trivially_copy_constructible_v<func_ref_t>);
-                static_assert(std::is_nothrow_copy_constructible_v<func_ref_t>);
-
-                static_assert(std::is_trivially_copy_assignable_v<func_ref_t>);
-                static_assert(std::is_nothrow_copy_assignable_v<func_ref_t>);
-                static_assert(std::is_trivially_move_assignable_v<func_ref_t>);
-                static_assert(std::is_nothrow_move_assignable_v<func_ref_t>);
-            }
-        );
-    }
-
-    consteval void cvref_qualifiers() {
-        details::test_for<csl::wf::function_ref>::cvref_qualifiers();
-        details::test_for<csl::wf::function_view>::cvref_qualifiers();
+        //     static_assert(not std::is_trivially_copy_assignable_v<func_ref_t>);
+        //     static_assert(not std::is_trivially_move_assignable_v<func_ref_t>);
+        // };
+    
+        // check.template operator()<csl::wf::function_view<functor_type>>();
+        // check.template operator()<csl::wf::function_view<const functor_type>>();
     }
 }

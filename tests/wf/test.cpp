@@ -33,6 +33,7 @@ auto main() -> int {
         csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});     // no args (invoke)
         csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{});  // discard (invoke)
 
+        using namespace csl::wf::mp;
         static_assert(trait::is_invocable<ttps<>>);
         static_assert(trait::is_invocable<ttps<>&>);
         static_assert(trait::is_invocable<ttps<int>>);
