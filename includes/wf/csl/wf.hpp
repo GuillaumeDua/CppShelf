@@ -710,31 +710,55 @@ namespace csl::wf {
 // function_ref
 namespace csl::wf {
     // function_view
-    // - improvement to std::reference_wrapper::operator()
-    template <typename F> requires std::is_reference_v<F>
+    template <typename F> requires (not std::is_reference_v<F>)
     struct function_view {
         
-        using value_type = F;
+        using type = F;
 
         constexpr explicit function_view(auto && value)
-        noexcept(std::is_nothrow_constructible_v<decltype(value), F>)
+        noexcept(std::is_nothrow_constructible_v<F, decltype(value)>)
         requires (not std::same_as<function_view, std::remove_cvref_t<decltype(value)>>)
-        : storage{ std::forward<value_type>(value) }
-        {}
-        constexpr function_view(const function_view & other) noexcept
-        : storage{ fwd(other.storage) }
-        {}
+        : storage{ std::forward<F&>(value) }
+        {
+            if constexpr (std::equality_comparable_with<decltype(value), decltype(nullptr)>) {
+                if (value == nullptr)
+                    throw std::invalid_argument{"function_view<T> : nullptr"};
+            }
+        }
+        constexpr function_view(const function_view & other) noexcept = default;
         constexpr function_view(function_view &&) noexcept = default;
-        constexpr ~function_view() noexcept = default;
+        constexpr function_view() = default;
+        constexpr ~function_view() = default;
         constexpr function_view & operator=(function_view &&) noexcept = default;
         constexpr function_view & operator=(const function_view &) noexcept = default;
 
         template <typename ... ttps_args>
-        constexpr decltype(auto) operator()(auto && ... args) const
-        noexcept(csl::wf::mp::is_nothrow_invocable_v<F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
-        requires csl::wf::mp::is_invocable_v        <F, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        constexpr decltype(auto) operator()(auto && ... args) &
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
         {
-            return csl::wf::invoke<ttps_args...>(std::forward<F>(storage), args...);
+            return csl::wf::invoke<ttps_args...>(std::forward<F&>(storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) &&
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<F&&>(storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const &
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<const F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <const F&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<const F&>(storage), args...);
+        }
+        template <typename ... ttps_args>
+        constexpr decltype(auto) operator()(auto && ... args) const &&
+        noexcept(csl::wf::mp::is_nothrow_invocable_v<const F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>)
+        requires csl::wf::mp::is_invocable_v        <const F&&, csl::wf::mp::ttps<ttps_args...>, decltype(args)...>
+        {
+            return csl::wf::invoke<ttps_args...>(std::forward<const F&&>(storage), args...);
         }
 
         // storage accessors
@@ -752,13 +776,15 @@ namespace csl::wf {
         }
 
     private:
-        F storage;
+        std::add_lvalue_reference_t<F> storage;
     };
     template <typename F>
-    function_view(F&) -> function_view<F&>;
+    function_view(F&) -> function_view<F>;
     template <typename F>
-    function_view(F&&) -> function_view<F&&>;
+    function_view(F&&) -> function_view<F>;
 
+    // function ref
+    // - improvement to std::reference_wrapper::operator()
     template <typename F> requires (not std::is_reference_v<F>)
     struct function_ref {
         
@@ -825,7 +851,7 @@ namespace csl::wf {
         }
 
     private:
-        using storage_type = std::remove_reference_t<F>*;
+        using storage_type = std::add_pointer_t<F>;
         storage_type storage = nullptr;
     };
     template <typename F>
