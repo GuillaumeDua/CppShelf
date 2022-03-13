@@ -1731,10 +1731,16 @@ namespace csl::wf {
         return repeater_factory<times>::make(fwd(func));
     }
 }
-
+// eDSL details
+namespace csl::wf::operators::details {
+    struct ref_tag_t{} constexpr ref;
+    struct view_tag_t{} constexpr view;
+}
 // eDSL
 namespace csl::wf::operators {
     // todo : protect injection against overload ambiguities
+
+    // factories ------------------------------------------
 
     // operator|
     template <typename lhs_t, typename rhs_t>
@@ -1753,6 +1759,26 @@ namespace csl::wf::operators {
     template <typename lhs_t, auto times>
     constexpr auto operator*(lhs_t && lhs, std::integral_constant<decltype(times), times>) {
         return make_repetition<times>(fwd(lhs));
+    }
+
+    // views/refs -----------------------------------------
+    template <typename F>
+    constexpr auto operator|(F && value, const details::ref_tag_t &)
+    noexcept(std::is_nothrow_constructible_v<csl::wf::function_ref<std::remove_reference_t<F>>, F&&>)
+    requires(std::is_constructible_v<csl::wf::function_ref<std::remove_reference_t<F>>, F&&>)
+    {
+        return csl::wf::function_ref{
+            std::forward<F>(value)
+        };
+    }
+    template <typename F>
+    constexpr auto operator|(F && value, const details::view_tag_t &)
+    noexcept(std::is_nothrow_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)
+    requires(std::is_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)
+    {
+        return csl::wf::function_view{
+            std::forward<F>(value)
+        };
     }
 }
 

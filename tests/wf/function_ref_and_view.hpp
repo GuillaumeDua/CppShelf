@@ -58,7 +58,7 @@ namespace test::wf::function_ref_ {
         check.template operator()<csl::wf::function_ref<const functor_type>>();
     }
     consteval void invoke_operator() {
-        {   // T
+        {   // T &, T &&
             using function_ref_t = csl::wf::function_ref<functor_type>;
             static_assert(std::same_as<
                 functor_type &,
@@ -69,7 +69,7 @@ namespace test::wf::function_ref_ {
                 decltype(std::declval<function_ref_t&&>().template operator()<int>('a'))
             >);
         }
-        {   // const T
+        {   // const T &, const T &&
             using function_ref_t = csl::wf::function_ref<const functor_type>;
             static_assert(std::same_as<
                 const functor_type &,
@@ -82,7 +82,6 @@ namespace test::wf::function_ref_ {
         }
     }
 }
-// TODO
 namespace test::wf::function_view_ {
 
     using functor_type = test::wf::function_ref_and_view_::details::functor_type;
@@ -106,7 +105,7 @@ namespace test::wf::function_view_ {
         check.template operator()<csl::wf::function_view<const functor_type>>();
     }
     consteval void invoke_operator() {
-        {   // T
+        {   // T &, T &&
             using function_ref_t = csl::wf::function_view<functor_type>;
             static_assert(std::same_as<
                 functor_type &,
@@ -117,7 +116,7 @@ namespace test::wf::function_view_ {
                 decltype(std::declval<function_ref_t&&>().template operator()<int>('a'))
             >);
         }
-        {   // const T
+        {   // const T &, const T &&
             using function_ref_t = csl::wf::function_view<const functor_type>;
             static_assert(std::same_as<
                 const functor_type &,
