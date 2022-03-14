@@ -876,8 +876,11 @@ namespace csl::wf::details::mp {
     struct is_instance_of<type, type<Ts...>>  : std::true_type{};
     template <template <typename...> typename type, typename T>
     constexpr bool is_instance_of_v = is_instance_of<type, T>::value;
-    template <template <typename...> typename type, typename T>
-    concept InstanceOf = is_instance_of_v<type, T>;
+
+    template <typename T, template <typename...> typename type>
+    concept InstanceOf = is_instance_of_v<type, std::remove_cvref_t<T>>;
+    template <typename T, template <typename...> typename type>
+    concept NotInstanceOf = not is_instance_of_v<type, std::remove_cvref_t<T>>;
 
     // unfold_to
     template <template <typename...> typename destination, typename ... Ts>
@@ -1374,8 +1377,7 @@ namespace csl::wf {
     template <typename ... Ts>
     route(Ts &&...) -> route<std::remove_cvref_t<Ts>...>;
 
-    template <std::size_t index, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::route, std::remove_cvref_t<T>>
+    template <std::size_t index, csl::wf::details::mp::InstanceOf<csl::wf::route> T>
     constexpr decltype(auto) get(T && value) noexcept {
         return fwd(value).template at<index>();
     }
@@ -1406,8 +1408,10 @@ namespace csl::wf::details::mp {
     constexpr decltype(auto) unfold_super_into(T && value) {
         return destination_type<T&&>(fwd(value));
     }
-    template <template <typename ...> typename destination_type, typename T>
-    requires csl::wf::details::mp::InstanceOf<destination_type, std::remove_cvref_t<T>>
+    template <
+        template <typename ...> typename destination_type,
+        csl::wf::details::mp::InstanceOf<destination_type> T
+    >
     constexpr decltype(auto) unfold_super_into(T && value) {
         return fwd(value);
         // return destination_type<Ts&&...>(static_cast<Ts&&>(value)...);
@@ -1451,8 +1455,10 @@ namespace csl::wf::details::mp {
     constexpr auto fwd_nodes_into(T && value) {
         return destination_type<T&&>{ fwd(value) };
     }
-    template <template <typename...> typename destination_type, typename T>
-    requires csl::wf::details::mp::InstanceOf<csl::wf::route, std::remove_cvref_t<T>>
+    template <
+        template <typename...> typename destination_type,
+        csl::wf::details::mp::InstanceOf<csl::wf::route> T
+    >
     constexpr auto fwd_nodes_into(T && value) {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return destination_type<typename T::template node_t<indexes>&&...>{
@@ -1697,7 +1703,7 @@ namespace csl::wf {
         return csl::wf::route{ fwd(nodes)... };
     }
     template <typename ... Ts>
-    requires (csl::wf::details::mp::InstanceOf<csl::wf::route, std::remove_cvref_t<Ts>> or ...)
+    requires (csl::wf::details::mp::is_instance_of_v<csl::wf::route, std::remove_cvref_t<Ts>> or ...)
     constexpr auto make_continuation(Ts && ... nodes) {
         auto route_elements = std::tuple_cat(
             csl::wf::details::mp::fwd_nodes_into<std::tuple>(fwd(nodes))...
@@ -1715,7 +1721,7 @@ namespace csl::wf {
         return csl::wf::details::overload { fwd(nodes)... };
     }
     template <typename ... Ts>
-    requires (csl::wf::details::mp::InstanceOf<csl::wf::details::overload, std::remove_cvref_t<Ts>> or ...)
+    requires (csl::wf::details::mp::is_instance_of_v<csl::wf::details::overload, std::remove_cvref_t<Ts>> or ...)
     constexpr auto make_condition(Ts && ... nodes) {
         return csl::wf::details::mp::make_flatten_super<csl::wf::details::overload>(
             fwd(nodes)...
@@ -1731,17 +1737,11 @@ namespace csl::wf {
         return repeater_factory<times>::make(fwd(func));
     }
 }
-// eDSL details
-namespace csl::wf::operators::details {
-    struct ref_tag_t{} constexpr ref;
-    struct view_tag_t{} constexpr view;
-}
 // eDSL
 namespace csl::wf::operators {
     // todo : protect injection against overload ambiguities
 
     // factories ------------------------------------------
-
     // operator|
     template <typename lhs_t, typename rhs_t>
     constexpr auto operator|(lhs_t && lhs, rhs_t && rhs) {
@@ -1762,8 +1762,11 @@ namespace csl::wf::operators {
     }
 
     // views/refs -----------------------------------------
+    struct ref_tag_t{}  constexpr ref;
+    struct view_tag_t{} constexpr view;
+
     template <typename F>
-    constexpr auto operator|(F && value, const details::ref_tag_t &)
+    constexpr auto operator|(F && value, const ref_tag_t &)
     noexcept(std::is_nothrow_constructible_v<csl::wf::function_ref<std::remove_reference_t<F>>, F&&>)
     requires(std::is_constructible_v<csl::wf::function_ref<std::remove_reference_t<F>>, F&&>)
     {
@@ -1772,7 +1775,7 @@ namespace csl::wf::operators {
         };
     }
     template <typename F>
-    constexpr auto operator|(F && value, const details::view_tag_t &)
+    constexpr auto operator|(F && value, const view_tag_t &)
     noexcept(std::is_nothrow_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)
     requires(std::is_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)
     {
