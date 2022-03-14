@@ -15,9 +15,12 @@
 #include "./literals/times.hpp"
 
 // syntactic sugar : operators
-#include "./operators/pipe_overload.hpp"
-#include "./operators/shift_equal_continuation.hpp"
-#include "./operators/star_repeat.hpp"
+#include "./operators/factories/pipe_overload.hpp"
+#include "./operators/factories/shift_equal_continuation.hpp"
+#include "./operators/factories/star_repeat.hpp"
+#include "./operators/views_refs/pipe_function_view.hpp"
+#include "./operators/views_refs/pipe_function_cref.hpp"
+#include "./operators/views_refs/pipe_function_ref.hpp"
 
 #include <csl/wf.hpp>
 #include <iostream>
