@@ -1762,26 +1762,57 @@ namespace csl::wf::operators {
     }
 
     // views/refs -----------------------------------------
-    struct ref_tag_t{}  constexpr ref;
-    struct view_tag_t{} constexpr view;
+    struct ref_tag_t{}   constexpr ref;
+    struct cref_tag_t{}  constexpr cref;
+    struct view_tag_t{}  constexpr view;
 
-    template <typename F>
+    // ref
+    template <details::mp::NotInstanceOf<csl::wf::function_ref> F>
     constexpr auto operator|(F && value, const ref_tag_t &)
     noexcept(std::is_nothrow_constructible_v<csl::wf::function_ref<std::remove_reference_t<F>>, F&&>)
     requires(std::is_constructible_v<csl::wf::function_ref<std::remove_reference_t<F>>, F&&>)
     {
-        return csl::wf::function_ref{
+        return csl::wf::function_ref<std::remove_reference_t<F>>{
             std::forward<F>(value)
         };
     }
-    template <typename F>
+    template <
+        details::mp::InstanceOf<csl::wf::function_ref> F,
+        typename reference_tag_t
+    >
+    constexpr auto operator|(F && value, const reference_tag_t &) noexcept
+    requires (
+        std::same_as<reference_tag_t, ref_tag_t> or
+        std::same_as<reference_tag_t, cref_tag_t>
+    )
+    {
+        return csl::wf::function_ref{ std::forward<F>(value) };
+    }
+
+    // cref
+    template <details::mp::NotInstanceOf<csl::wf::function_ref> F>
+    constexpr auto operator|(F && value, const cref_tag_t &)
+    noexcept(std::is_nothrow_constructible_v<csl::wf::function_ref<const std::remove_reference_t<F>>, const F&&>)
+    requires(std::is_constructible_v<csl::wf::function_ref<const std::remove_reference_t<F>>, const F&&>)
+    {
+        return csl::wf::function_ref<const std::remove_reference_t<F>>{
+            std::forward<const F>(value)
+        };
+    }
+
+    template <details::mp::NotInstanceOf<csl::wf::function_view> F>
     constexpr auto operator|(F && value, const view_tag_t &)
     noexcept(std::is_nothrow_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)
     requires(std::is_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)
     {
-        return csl::wf::function_view{
+        return csl::wf::function_view<std::remove_reference_t<F>>{
             std::forward<F>(value)
         };
+    }
+    template <details::mp::InstanceOf<csl::wf::function_view> F>
+    constexpr auto operator|(F && value, const view_tag_t &) noexcept
+    {
+        return csl::wf::function_view{ std::forward<F>(value) };
     }
 }
 
