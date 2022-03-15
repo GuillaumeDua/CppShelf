@@ -785,6 +785,7 @@ namespace csl::wf {
 
     // function ref
     // - improvement to std::reference_wrapper::operator()
+    // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0792r2.html
     template <typename F> requires (not std::is_reference_v<F>)
     struct function_ref {
         
@@ -804,8 +805,13 @@ namespace csl::wf {
         constexpr function_ref(function_ref &&) noexcept = default;
         constexpr function_ref() = delete;
         constexpr ~function_ref() = default;
+
         constexpr function_ref & operator=(function_ref &&) noexcept = default;
         constexpr function_ref & operator=(const function_ref &) noexcept = default;
+
+        constexpr void swap(function_ref & other) noexcept {
+            std::swap(storage, other.storage);
+        }
 
         template <typename ... ttps_args>
         constexpr decltype(auto) operator()(auto && ... args) &
@@ -858,6 +864,11 @@ namespace csl::wf {
     function_ref(F&) -> function_ref<F>;
     template <typename F>
     function_ref(F&&) -> function_ref<F>;
+
+    template <typename F>
+    constexpr void swap(function_ref<F> & lhs, function_ref<F> & rhs) {
+        lhs.swap(rhs);
+    }
 }
 // mp::are_unique_v<Ts..>
 // mp::is_instance_of<pack<...>, T>
