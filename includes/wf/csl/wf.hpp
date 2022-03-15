@@ -1800,6 +1800,7 @@ namespace csl::wf::operators {
         };
     }
 
+    // view
     template <details::mp::NotInstanceOf<csl::wf::function_view> F>
     constexpr auto operator|(F && value, const view_tag_t &)
     noexcept(std::is_nothrow_constructible_v<csl::wf::function_view<std::remove_reference_t<F>>, F&&>)

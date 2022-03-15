@@ -46,6 +46,5 @@ namespace test::wf::operators::pipe_function_ref_ {
             decltype(std::move(std::as_const(func)) | ref | ref),
             csl::wf::function_ref<const decltype(func)>
         >);
-
     }
 }

@@ -48,7 +48,4 @@ namespace test::wf::operators::pipe_function_view_ {
         >);
 
     }
-
-
-
 }
