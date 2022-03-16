@@ -1,22 +1,48 @@
+// primitives
 #include "./invocable_traits.hpp"
 #include "./invoke_apply.hpp"
+
+// types
+#include "./repeat.hpp"
 #include "./bind_front.hpp"
+#include "./function_ref_and_view.hpp"
+// type : chain/route
 #include "./chain_trait.hpp"
 #include "./chain_invoke.hpp"
 #include "./route.hpp"
-#include "./repeat.hpp"
 
 // syntactic sugar : literals
 #include "./literals/times.hpp"
 
 // syntactic sugar : operators
-#include "./operators/pipe_overload.hpp"
-#include "./operators/shift_equal_continuation.hpp"
-#include "./operators/star_repeat.hpp"
+#include "./operators/factories/pipe_overload.hpp"
+#include "./operators/factories/shift_equal_continuation.hpp"
+#include "./operators/factories/star_repeat.hpp"
+#include "./operators/views_refs/pipe_function_view.hpp"
+#include "./operators/views_refs/pipe_function_cref.hpp"
+#include "./operators/views_refs/pipe_function_ref.hpp"
 
 #include <csl/wf.hpp>
 #include <iostream>
+
+
 auto main() -> int {
+
+    {
+        auto func = []<typename ...>(){};
+        using func_type = decltype(func);
+
+        using trait = csl::wf::chain_trait<func_type>;
+        static_assert(trait::is_invocable<>);
+
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<>{});     // no args (invoke)
+        csl::wf::chain_invoke(std::forward_as_tuple(func), std::tuple<int>{});  // discard (invoke)
+
+        using namespace csl::wf::mp;
+        static_assert(trait::is_invocable<ttps<>>);
+        static_assert(trait::is_invocable<ttps<>&>);
+        static_assert(trait::is_invocable<ttps<int>>);
+    }
 
     struct lvalue_node_type {
         constexpr void operator()() &         {}
@@ -55,7 +81,7 @@ auto main() -> int {
         route();
     }
     {
-        auto node_1 = [](){ return 42; };
+        auto node_1 = [](){ return 42; }; // NOLINT
         auto node_2 = [](int){};
         auto node_3 = [](){};
 

@@ -179,6 +179,28 @@ namespace test {
 
         }
     }
+
+    consteval void ttps_cvref_qualifiers() {
+        auto func = []<typename ...>(){};
+        using func_type = decltype(func);
+
+        using namespace csl::wf::mp;
+        static_assert(is_invocable_v<func_type>);
+        static_assert(is_invocable_v<func_type, ttps<>>);
+        static_assert(is_invocable_v<func_type, ttps<int>>);
+        static_assert(is_invocable_v<func_type, ttps<>&>);
+        static_assert(is_invocable_v<func_type, ttps<>&&>);
+        static_assert(is_invocable_v<func_type, const ttps<>&>);
+        static_assert(is_invocable_v<func_type, const ttps<>&&>);
+
+        static_assert(is_applyable_v<func_type, std::tuple<>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&&>>);
+        static_assert(is_applyable_v<func_type, std::tuple<const ttps<>&>>);
+        static_assert(is_applyable_v<func_type, std::tuple<const ttps<>&&>>);
+    }
 }
 
 namespace test::details_mp {

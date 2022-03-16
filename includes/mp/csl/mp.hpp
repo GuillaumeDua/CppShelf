@@ -390,7 +390,7 @@ namespace csl::mp {
 
     // reverse
     template <typename>
-    struct reverse;
+    class reverse;
     template <template <typename ...> typename pack_type, typename ... Ts>
     class reverse<pack_type<Ts...>> {
         constexpr static auto impl() {
@@ -485,7 +485,7 @@ namespace csl::mp {
     };
 
     template <typename T>
-    struct deduplicate;
+    class deduplicate;
     template <template <typename...> typename type_pack, typename ... Ts>
     class deduplicate<type_pack<Ts...>> {
 
