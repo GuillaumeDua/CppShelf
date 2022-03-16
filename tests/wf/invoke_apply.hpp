@@ -585,4 +585,25 @@ namespace test::mp_::invocation {
             static_assert(mp::is_nothrow_applyable_after_v<decltype(func), const std::tuple<B>&&, A>);
         }
     }
+
+    consteval void invoke_ttps_cvref_qualifiers() {
+        auto func = []<typename ...>(){};
+        using func_type = decltype(func);
+
+        using namespace csl::wf::mp;
+        static_assert(is_invocable_v<func_type>);
+        static_assert(is_invocable_v<func_type, ttps<>>);
+        static_assert(is_invocable_v<func_type, ttps<>&>);
+        static_assert(is_invocable_v<func_type, ttps<int>>);
+    }
+    consteval void apply_ttps_cvref_qualifiers() {
+        auto func = []<typename ...>(){};
+        using func_type = decltype(func);
+        
+        using namespace csl::wf::mp;
+        static_assert(is_applyable_v<func_type, std::tuple<>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<>&>>);
+        static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
+    }
 }

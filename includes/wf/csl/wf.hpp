@@ -7,11 +7,8 @@
 
 #include <utility>
 #include <type_traits>
-#include <variant>
 #include <concepts>
 #include <functional>
-//#include <ranges>
-#include <vector>
 #include <array>
 #include <string_view>
 #include <tuple>
@@ -102,9 +99,11 @@ namespace csl::wf::concepts {
 
      // tuple non-owning/view
     template <typename T>
-    concept tuple_view = concepts::tuple_interface<T> and []<std::size_t ... indexes>(std::index_sequence<indexes...>) noexcept {
-        return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
-    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+    concept tuple_view = concepts::tuple_interface<T> and
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept { // NOLINT
+            return ((std::is_reference_v<std::tuple_element_t<indexes, std::remove_cvref_t<T>>> && ...));
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{})
+    ;
 }
 // make_tuple_subview
 // tuple_view_t, tuple_optional_t
@@ -1240,10 +1239,8 @@ namespace csl::wf::mp {
         using nodiscard_invoke_result_t = details::mp::chain_invoke_nodiscard_result_t<types, std::tuple<args_ts...>>;
     };
 }
-// chain_invoke
-// route
-//
-// todo :
+// chain_invoke / route
+// TODO :
 //  always owning ? mix owning and non-owning functors in storage ?
 //  if non-owning, value semantic correctness for route/binder storage
 namespace csl::wf {
