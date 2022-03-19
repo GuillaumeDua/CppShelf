@@ -7,11 +7,12 @@ This library is divided in three parts :
 - Invocation [**functions**](#invocation-utilities) *(`invoke`, `apply`, etc.)*,  
   and [**type-traits**](#invocation-traits) *(`is_invocable`, `is_applyable`, `is_nothrow_invocable_r`, etc.)*
 - Functors [**types**]() with specific purpose *(front_binder, overload, repeater, etc.)*
-- An [**eDSL**](#edsl) to create complexe workflow easily, by composing multiples functors as a unique one.
+- An [**eDSL**](#edsl) to create complexe workflow easily
 
 ---
 
 - [Documentation : csl::wf](#documentation--cslwf)
+  - [Philosophy](#philosophy)
   - [Invocation utilities](#invocation-utilities)
     - [**invoke**](#invoke)
     - [**apply**](#apply)
@@ -57,8 +58,14 @@ This library is divided in three parts :
       - [make_repetition](#make_repetition)
     - [operators](#operators)
       - [`operator|` (pipe operator)](#operator-pipe-operator)
+        - [F1 | F2](#f1--f2)
+        - [F | ref](#f--ref)
+        - [F | cref](#f--cref)
+        - [F | view](#f--view)
       - [`operator>>=` (right-shift-assign operator)](#operator-right-shift-assign-operator)
       - [`operator*` (star operator)](#operator-star-operator)
+
+## Philosophy
 
 ## Invocation utilities
 
@@ -195,8 +202,6 @@ template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple
 constexpr decltype(auto) apply_after(F && f, args_as_tuple_t&& args, func_args_t&& ... func_args) noexcept(/**/)
 ```
 
-Examples :
-
 ```cpp
 constexpr auto func = []<typename T>(auto && arg0, auto && arg1){};
 
@@ -283,24 +288,66 @@ constexpr auto bind_front(F&& f, args_t && ... args);
 
 ## function_ref<T>
 
-Wraps a reference to a functor in a copyable & assignable object,  
-in a similar fashion to [std::reference_wrapper](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).
+Wraps a reference to a value which might be a functor,  
+in a similar fashion to [std::reference_wrapper](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
+However, in opposition to `std::reference_wrapper::operator()`, `function_ref<T>::operator()`-s are conditionaly generated and internally call `csl::wf::invoke` with a similar signature (see description hereunder).
 
-However, in opposition to `std::reference_wrapper::operator()`, `function_ref<T>::operator()`-s are conditionaly generated and internally call `csl::wf::invoke` (see description hereunder).
+In opposition to [`function_view<T>`](#function_viewt), a `function_ref<T>` value si copyable and reassignable using its `operator=` or `swap` member-functions.
 
-Member types
+> This is somehow similar to the [std::function_ref proposal](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0792r5.html),  
+> but designed & implemented according to `csl::wf` philosophy.  
+> See [](#philosophy) and [](#invocation-utilities) sections.
+
+To avoid any dangling reference, a `function_ref<T>` value's lifetime must be greater than the underlying data it refers to.
+
+**Member types**
 
 | type | definition |
 | ---- | ---------- |
-| value_type | T    |
+| type | T          |
 
-Member functions
+**Member functions - constructors**
 
 | name | description |
 | ---- | ----------- |
+| `constexpr explicit function_ref(auto && value) noexcept` | by-value constructor<br>If `value` is a pointer, then it can't be equal to `nullptr` | 
+| `constexpr function_ref(const function_ref & other) noexcept = default;` | copy-constructor |
+| `constexpr function_ref(function_ref &&) noexcept = default;` | move-constructor |
+| `constexpr function_ref() = delete;` | default constructor |
+| `constexpr ~function_ref() = default;` | default destructor |
 
+**Member functions - assign**
+
+| name | description |
+| ---- | ----------- |
+| `constexpr function_ref & operator=(function_ref &&) noexcept = default;` | move-assign |
+| `constexpr function_ref & operator=(const function_ref &) noexcept = default;` | copy-assign |
+| `constexpr void swap(function_ref & other) noexcept` | swap | 
+
+**Member functions - accessors**
+
+| name | description |
+| ---- | ----------- |
+| `constexpr explicit operator /*cv-qualifier*/ type&() /*cv-qualifier*/ noexcept` | Underlying value |
+| `constexpr /*cv-qualifier*/ F& get() /*cv-qualifier*/ noexcept` | Underlying value |
+
+**Member functions - operations**
+
+> The following `operator()` overload are conditionaly generated.
+
+| name | description |
+| ---- | ----------- |
+| `template <typename ... ttps_args>`<br>`constexpr decltype(auto) operator()(auto && ... args) /*cv-ref-qualifiers*/` | Forward parameters to [`csl::wf::invoke`](#invoke), and returns the invocation's result.  |
+
+**Non-member functions**
+
+| name | description |
+| ---- | ----------- |
+| `template <typename F>`<br>`constexpr void swap(function_ref<F> & lhs, function_ref<F> & rhs)` | swap |
 
 ## function_view<T>
+
+Same as [`function_ref<T>`](#function_reft), but **not** reassignable.
 
 ## eDSL
 
@@ -317,6 +364,20 @@ Member functions
 ### operators
 
 #### `operator|` (pipe operator)
+
+##### F1 | F2
+
+##### F | ref
+
+Returns a value of type [`function_ref<T>`](#function_reft).
+
+##### F | cref
+
+Returns a value of type [`function_ref<const T>`](#function_reft), where type is const-qualified.
+
+##### F | view
+
+Returns a value of type [`function_view<T>`](#function_viewt).
 
 #### `operator>>=` (right-shift-assign operator)
 
