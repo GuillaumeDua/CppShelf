@@ -67,6 +67,17 @@ This library is divided in three parts :
 
 ## Philosophy
 
+The key idea of this library is to provide a convenient way to deal with functors which `operator()` are conditionaly-generated, have multiple overloads, or simply have template-parameters.
+
+> As-is, only template-type parameters are supported.
+
+Such design is in opposition to STL's `<functional>`, where types like `std::function` provides a type-erasure restrained by a unique function signature.
+
+To allow multiples templates-parameters-pack in signatures, to represent for instance in one hand template-type-parameters and generic-parameters on the other,  
+a type named `ttps<...>` is used to ease deduction.
+
+it also provides a precise support to `operator()` cvref-qualifiers.
+
 ## Invocation utilities
 
 > Similar to the STL equivalents,  
