@@ -231,6 +231,43 @@ Available either as type-traits, or constexpr template-variable.
 
 ### is_invocable
 
+Similar to [std::is_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but `F` can be a functor with multiples `operator()` overload, and supports template-type-parameters.
+
+Signature : `is_invocable<F, [ttps<...>,] args_types...>`
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | template-type-parameters |
+| `args_types` | parameters types |
+
+> Note : `ttps<...>` can be **cvref-qualified**. If so, the behavior remain the same.
+
+```cpp
+auto func = [](){};
+
+using F = decltype(func);
+using namespace csl::wf;
+
+static_assert(mp::is_invocable_v<F>);                   // evaluate func()
+static_assert(mp::is_invocable_v<F, ttps<>>);           // evaluate func()
+static_assert(mp::is_invocable_v<F, const ttps<> &&>);  // evaluate func()
+```
+
+```cpp
+auto func = []<typename ... Ts>(auto && ... args){};
+
+using F = decltype(func);
+using namespace csl::wf;
+
+static_assert(mp::is_invocable_v<F, int>);              // evaluate func(int{})
+static_assert(mp::is_invocable_v<F, int, char>);        // evaluate func(int{}, char{})
+
+static_assert(mp::is_invocable_v<F, ttps<>>);           // evaluate func<>()
+static_assert(mp::is_invocable_v<F, ttps<>, int>);      // evaluate func<>(int{})
+static_assert(mp::is_invocable_v<F, ttps<char>, int>);  // evaluate func<char>(int{})
+```
+
 ### is_nothrow_invocable
 
 ### is_invocable_r
