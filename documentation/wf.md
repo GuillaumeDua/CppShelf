@@ -270,6 +270,30 @@ static_assert(mp::is_invocable_v<F, ttps<char>, int>);  // evaluate func<char>(i
 
 ### is_nothrow_invocable
 
+Similar to [std::is_nothrow_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but in a fashion similar to `csl::wf::mp::is_invocable`.
+
+```cpp
+struct F {
+    template <typename ...>
+    void operator()() const & {}
+    void operator()() & noexcept {}
+};
+
+using namespace csl::wf;
+
+static_assert(not mp::is_invocable<F&, int>);
+static_assert(not mp::is_nothrow_invocable<F&, int>);
+
+static_assert(mp::is_invocable<const F&>);
+static_assert(mp::is_invocable<const F&, ttps<>>);
+static_assert(not mp::is_nothrow_invocable<const F&>);
+
+static_assert(mp::is_invocable<F&>);
+static_assert(mp::is_invocable<F&, ttps<>>);
+static_assert(mp::is_nothrow_invocable<F&>);
+static_assert(mp::is_nothrow_invocable<F&, ttps<>>);
+```
+
 ### is_invocable_r
 
 ### is_nothrow_invocable_r
