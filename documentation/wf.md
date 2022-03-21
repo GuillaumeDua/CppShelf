@@ -12,7 +12,7 @@ This library is divided in three parts :
 ---
 
 - [Documentation : csl::wf](#documentation--cslwf)
-  - [Philosophy](#philosophy)
+  - [Philosophy & design choices](#philosophy--design-choices)
   - [Invocation utilities](#invocation-utilities)
     - [**invoke**](#invoke)
     - [**apply**](#apply)
@@ -65,7 +65,7 @@ This library is divided in three parts :
       - [`operator>>=` (right-shift-assign operator)](#operator-right-shift-assign-operator)
       - [`operator*` (star operator)](#operator-star-operator)
 
-## Philosophy
+## Philosophy & design choices
 
 The key idea of this library is to provide a convenient way to deal with functors which `operator()` are conditionaly-generated, have multiple overloads, or simply have template-parameters.
 
@@ -76,7 +76,7 @@ Such design is in opposition to STL's `<functional>`, where types like `std::fun
 To allow multiples templates-parameters-pack in signatures, to represent for instance in one hand template-type-parameters and generic-parameters on the other,  
 a type named `ttps<...>` is used to ease deduction.
 
-it also provides a precise support to `operator()` cvref-qualifiers.
+It also provides a precise support to `operator()` cvref-qualifiers.
 
 ## Invocation utilities
 
@@ -227,13 +227,15 @@ csl::wf::apply_after(func, std::tuple{ A{}, B{} }, ttps<std::string>{});
 
 ## Invocation traits
 
-Available either as type-traits, or constexpr template-variable.
+Available either as type-traits, or constexpr template-variable with `_v` prefix.
 
 ### is_invocable
 
-Similar to [std::is_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but `F` can be a functor with multiples `operator()` overload, and supports template-type-parameters.
+```cpp
+is_invocable<F, [ttps<...>,] args_types...>
+```
 
-Signature : `is_invocable<F, [ttps<...>,] args_types...>`
+Similar to [std::is_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but `F` can be a functor with multiples `operator()` overload, and supports template-type-parameters.
 
 | parameter | description |
 | --------- | ----------- |
@@ -270,6 +272,10 @@ static_assert(mp::is_invocable_v<F, ttps<char>, int>);  // evaluate func<char>(i
 
 ### is_nothrow_invocable
 
+```cpp
+is_nothrow_invocable<F, [ttps<...>,] args_types...>
+```
+
 Similar to [std::is_nothrow_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but in a fashion similar to `csl::wf::mp::is_invocable`.
 
 ```cpp
@@ -296,7 +302,43 @@ static_assert(mp::is_nothrow_invocable<F&, ttps<>>);
 
 ### is_invocable_r
 
+```cpp
+is_invocable_r<R, F, [ttps<...>,] args_types...>
+```
+
+Similar to [std::is_invocable_r]([std::is_invocable_r](https://en.cppreference.com/w/cpp/types/is_invocable)), but an additional non-mandatory `ttps<...>` parameter to pass template-type-parameters. 
+Determines whether 
+- `F` can be invoked with non-mandatory template-type-parameter `ttps<...>`
+- and arguments `args_types...`, to yield a result that is convertible to `R`
+
+Like its STL counterpart, if `R` is `void`, then the result can be any type.  
+
+```cpp
+auto func = []<typename ... Ts>(auto && value){ return std::common_type_t<decltype(value), Ts...>(); }
+using F = decltype(func);
+
+static_assert(csl::wf::mp::is_invocable_r_v<
+  int,              // return type must be convertible to `int`
+  F,                // functor type
+  ttps<char, int>,  // ttps
+  bool              // args
+>);
+```
+
 ### is_nothrow_invocable_r
+
+```cpp
+is_nothrow_invocable_r<F, [ttps<...>,] args_types...>
+```
+
+Same as [is_invocable_r](#is_invocable_r), but an additional non-mandatory `ttps<...>` parameter to pass template-type-parameters. 
+Determines whether 
+- `F` can be invoked with non-mandatory template-type-parameter `ttps<...>`
+- and arguments `args_types...`, to yield a result that is convertible to `R`
+- and that call is known **not** to throw any exception (`noexcept`).
+
+Like its STL counterpart, if `R` is `void`, then the result can be any type.  
+The conversion of the parameters and the call itself still has to be known **not** to throw any exceptions.
 
 ### invoke_result
 
@@ -368,7 +410,7 @@ In opposition to [`function_view<T>`](#function_viewt), a `function_ref<T>` valu
 
 > This is somehow similar to the [std::function_ref proposal](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0792r5.html),  
 > but designed & implemented according to `csl::wf` philosophy.  
-> See [](#philosophy) and [](#invocation-utilities) sections.
+> See [](#philosophy--design-choices) and [](#invocation-utilities) sections.
 
 To avoid any dangling reference, a `function_ref<T>` value's lifetime must be greater than the underlying data it refers to.
 

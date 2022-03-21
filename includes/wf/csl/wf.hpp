@@ -249,7 +249,7 @@ namespace csl::wf::mp {
     template <typename R, typename F, typename... Ts>
     constexpr bool is_invocable_r_v = is_invocable_r<R, F, Ts...>::value;
 
-    // is_nothrow_invocable_r<F, [ttps<...>,] args_types...>
+    // is_nothrow_invocable_r<R, F, [ttps<...>,] args_types...>
     template <typename R, typename F, typename... args_types>
     struct is_nothrow_invocable_r : std::is_nothrow_invocable_r<R, F, args_types...>{};
     template <typename R, typename F, typename ... args_types>
