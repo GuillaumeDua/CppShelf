@@ -235,13 +235,18 @@ Available either as type-traits, or constexpr template-variable with `_v` prefix
 is_invocable<F, [ttps<...>,] args_types...>
 ```
 
-Similar to [std::is_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but `F` can be a functor with multiples `operator()` overload, and supports template-type-parameters.
-
 | parameter | description |
 | --------- | ----------- |
 | `F`       | A type, most likely a functor |
 | `ttps<...>`  | template-type-parameters |
 | `args_types` | parameters types |
+
+Similar to [std::is_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but `F` can be a functor with multiples `operator()` overload, and supports template-type-parameters.
+An additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter can be used to pass template-type-parameters. 
+
+Determines whether 
+- `F` can be invoked with non-mandatory template-type-parameter `ttps<...>`
+- and arguments `args_types...`
 
 > Note : `ttps<...>` can be **cvref-qualified**. If so, the behavior remain the same.
 
@@ -276,6 +281,12 @@ static_assert(mp::is_invocable_v<F, ttps<char>, int>);  // evaluate func<char>(i
 is_nothrow_invocable<F, [ttps<...>,] args_types...>
 ```
 
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | template-type-parameters |
+| `args_types` | parameters types |
+
 Similar to [std::is_nothrow_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but in a fashion similar to `csl::wf::mp::is_invocable`.
 
 ```cpp
@@ -305,6 +316,13 @@ static_assert(mp::is_nothrow_invocable<F&, ttps<>>);
 ```cpp
 is_invocable_r<R, F, [ttps<...>,] args_types...>
 ```
+
+| parameter | description |
+| --------- | ----------- |
+| `R`       | Type that the invocation result's value must be convertible to |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | template-type-parameters |
+| `args_types` | parameters types |
 
 Similar to [std::is_invocable_r]([std::is_invocable_r](https://en.cppreference.com/w/cpp/types/is_invocable)), but with an additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter to pass template-type-parameters. 
 Determines whether 
@@ -350,6 +368,14 @@ static_assert(csl::wf::mp::is_invocable_r_v<
 ```cpp
 is_nothrow_invocable_r<F, [ttps<...>,] args_types...>
 ```
+
+| parameter | description |
+| --------- | ----------- |
+| `R`       | Type that the invocation result's value must be convertible to |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | template-type-parameters |
+| `args_types` | parameters types |
+
 
 Same as [is_invocable_r](#is_invocable_r), but with an additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter to pass template-type-parameters. 
 Determines whether 
