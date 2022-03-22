@@ -306,10 +306,22 @@ static_assert(mp::is_nothrow_invocable<F&, ttps<>>);
 is_invocable_r<R, F, [ttps<...>,] args_types...>
 ```
 
-Similar to [std::is_invocable_r]([std::is_invocable_r](https://en.cppreference.com/w/cpp/types/is_invocable)), but an additional non-mandatory `ttps<...>` parameter to pass template-type-parameters. 
+Similar to [std::is_invocable_r]([std::is_invocable_r](https://en.cppreference.com/w/cpp/types/is_invocable)), but with an additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter to pass template-type-parameters. 
 Determines whether 
 - `F` can be invoked with non-mandatory template-type-parameter `ttps<...>`
 - and arguments `args_types...`, to yield a result that is convertible to `R`
+
+In a nutshell, 
+- if `ttps<...>` is missing, or its template-type-parameters sequence is empty,  
+then the behavior is strictly identical to a regular call to `std::is_invocable_r`.  
+- if `ttps<...>` template-type-parameters **is not** empty,  
+  then this will check if the type of the following expression is convertible to `R` :
+
+```cpp
+std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...)
+```
+
+---
 
 Like its STL counterpart, if `R` is `void`, then the result can be any type.  
 
@@ -323,6 +335,14 @@ static_assert(csl::wf::mp::is_invocable_r_v<
   ttps<char, int>,  // ttps
   bool              // args
 >);
+
+static_assert(csl::wf::mp::is_invocable_r_v<
+  int,              // return type must be convertible to `int`
+  F,                // functor type
+                    // no ttps
+  bool              // args
+>);
+
 ```
 
 ### is_nothrow_invocable_r
@@ -331,7 +351,7 @@ static_assert(csl::wf::mp::is_invocable_r_v<
 is_nothrow_invocable_r<F, [ttps<...>,] args_types...>
 ```
 
-Same as [is_invocable_r](#is_invocable_r), but an additional non-mandatory `ttps<...>` parameter to pass template-type-parameters. 
+Same as [is_invocable_r](#is_invocable_r), but with an additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter to pass template-type-parameters. 
 Determines whether 
 - `F` can be invoked with non-mandatory template-type-parameter `ttps<...>`
 - and arguments `args_types...`, to yield a result that is convertible to `R`
@@ -339,6 +359,68 @@ Determines whether
 
 Like its STL counterpart, if `R` is `void`, then the result can be any type.  
 The conversion of the parameters and the call itself still has to be known **not** to throw any exceptions.
+
+In a nutshell, 
+- if `ttps<...>` is missing, or its template-type-parameters sequence is empty,  
+then the behavior is strictly identical to a regular call to `std::is_invocable_r`.  
+- if `ttps<...>` template-type-parameters **is not** empty,  
+  then this will check if the type of the following expression is convertible to `R` :
+
+```cpp
+struct A{}; struct B{}; struct C{};
+struct functor {
+  auto operator()()    const          -> A { return {} };
+  auto operator()(int) const noexcept -> B { return {} };
+
+  template <typename T>
+  auto operator()() const noexcept(std::same_as<T, C>) -> C { return {} };
+};
+
+// invocation is not noexcept
+static_assert(not csl::wf::mp::is_nothrow_invocable_r<
+  A,
+  const functor
+>);
+static_assert(not csl::wf::mp::is_nothrow_invocable_r<
+  A,
+  const functor,
+  ttps<>  // can be cvref-qualified
+>);
+
+// invocation's result type is not convertible to `A` (returns B)
+static_assert(not csl::wf::mp::is_nothrow_invocable_r<
+  A,
+  const functor,
+  int,
+>);
+// ok
+static_assert(csl::wf::mp::is_nothrow_invocable_r<
+  B,
+  const functor,
+  int,
+>);
+// same as before
+static_assert(csl::wf::mp::is_nothrow_invocable_r<
+  B,
+  const functor,
+  ttps<>
+  int,
+>);
+
+// ok
+static_assert(csl::wf::mp::is_nothrow_invocable_r<
+  C,
+  const functor,
+  ttps<C>
+>);
+// not noexcept because of `noexcept(std::same_as<T, C>)`, where T = A
+static_assert(not csl::wf::mp::is_nothrow_invocable_r<
+  C,
+  const functor,
+  ttps<A>
+>);
+
+```
 
 ### invoke_result
 
