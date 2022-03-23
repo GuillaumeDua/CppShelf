@@ -239,7 +239,9 @@ is_invocable<F, [ttps<...>,] args_types...>
 | --------- | ----------- |
 | `F`       | A type, most likely a functor |
 | `ttps<...>`  | template-type-parameters |
-| `args_types` | parameters types |
+| `args_types` | Parameters types.<br>Must be complete types usable in an unevaluated context. |
+
+---
 
 Similar to [std::is_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but `F` can be a functor with multiples `operator()` overload, and supports template-type-parameters.
 An additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter can be used to pass template-type-parameters. 
@@ -285,7 +287,9 @@ is_nothrow_invocable<F, [ttps<...>,] args_types...>
 | --------- | ----------- |
 | `F`       | A type, most likely a functor |
 | `ttps<...>`  | template-type-parameters |
-| `args_types` | parameters types |
+| `args_types` | Parameters types.<br>Must be complete types usable in an unevaluated context. |
+
+---
 
 Similar to [std::is_nothrow_invocable](https://en.cppreference.com/w/cpp/types/is_invocable), but in a fashion similar to `csl::wf::mp::is_invocable`.
 
@@ -322,7 +326,9 @@ is_invocable_r<R, F, [ttps<...>,] args_types...>
 | `R`       | Type that the invocation result's value must be convertible to |
 | `F`       | A type, most likely a functor |
 | `ttps<...>`  | template-type-parameters |
-| `args_types` | parameters types |
+| `args_types` | Parameters types.<br>Must be complete types usable in an unevaluated context. |
+
+---
 
 Similar to [std::is_invocable_r]([std::is_invocable_r](https://en.cppreference.com/w/cpp/types/is_invocable)), but with an additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter to pass template-type-parameters. 
 Determines whether 
@@ -374,8 +380,9 @@ is_nothrow_invocable_r<F, [ttps<...>,] args_types...>
 | `R`       | Type that the invocation result's value must be convertible to |
 | `F`       | A type, most likely a functor |
 | `ttps<...>`  | template-type-parameters |
-| `args_types` | parameters types |
+| `args_types` | Parameters types.<br>Must be complete types usable in an unevaluated context. |
 
+---
 
 Same as [is_invocable_r](#is_invocable_r), but with an additional non-mandatory (possibly cv-ref-qualified) `ttps<...>` parameter to pass template-type-parameters. 
 Determines whether 
@@ -449,6 +456,30 @@ static_assert(not csl::wf::mp::is_nothrow_invocable_r<
 ```
 
 ### invoke_result
+
+```cpp
+invoke_result<F, [ttps<...>,] args_types...>
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | Template-type-parameters |
+| `args_types` | Parameters types.<br>Must be complete types usable in an unevaluated context. |
+
+| member-type | description |
+| ----------- | ----------- |
+| type        | deduced type of an invoke expression |
+
+---
+
+Deduce the return type yield by an invoke expression, at compile time.
+
+Similar to its STL counterpat [std::invoke_result](https://en.cppreference.com/w/cpp/types/result_of), or [std::result_of](https://en.cppreference.com/w/cpp/types/result_of) for previous standards, but with an additiona non-mandatory template-parameter-type which is a possibly cvref-qualified `ttps<...>`, meant to pass template-type-parameters to the functors in order to build the invoke expression.
+
+If the invoke expression is not valid, then the member-type `type` is not defined.
+
+
 
 ### is_applyable
 
