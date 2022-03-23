@@ -11,6 +11,6 @@ Collection of - Single-Header, header-only, C++ libraries files
 
 A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
-## [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/wf/csl/wf.hpp)
+## [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/documentation/wf.md)
 
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
