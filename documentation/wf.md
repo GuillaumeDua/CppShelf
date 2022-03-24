@@ -483,7 +483,46 @@ If the invoke expression is not valid, then the member-type `type` is not define
 
 ### is_applyable
 
+```cpp
+is_applyable<F, [ttps<...>,] tuple_type>
+is_applyable<F, tuple_type<[ttps<...>,] ...> >
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | Template-type-parameters |
+| `tuple_type` | Tuple-like type, containing invocation parameters.<br>Must meet the `csl::wf::concepts::tuple_interface` concept requirements |
+
+---
+
+Similar to [is_invocable](#is_invocable), but detects if the callable object F is invocable using a tuple of argument.
+
+Those can be passed in two different way, either as :
+
+- Second non-mandatory template-type-parameter,  
+  `is_applyable<F, [ttps<...>,] tuple_type>`
+- First template-type-parameter of the tuple_type itself,  
+  `is_applyable<F, tuple_type<ttps<...>, ...> >`
+
 ### is_nothrow_applyable
+
+```cpp
+is_nothrow_applyable<F, [ttps<...>,] tuple_type>
+is_nothrow_applyable<F, tuple_type<[ttps<...>,] ...> >
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | Template-type-parameters |
+| `tuple_type` | Tuple-like type, containing invocation parameters.<br>Must meet the `csl::wf::concepts::tuple_interface` concept requirements |
+
+---
+
+Similar to [is_nothrow_invocable](#is_nothrow_invocable), but detects if :
+- the callable object F is invocable using a tuple of argument
+- **and** is not known to throw any exception
 
 ### is_applyable_before
 
