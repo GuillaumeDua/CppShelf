@@ -27,6 +27,11 @@ This library is divided in three parts :
     - [is_applyable](#is_applyable)
     - [is_nothrow_applyable](#is_nothrow_applyable)
     - [is_applyable_before](#is_applyable_before)
+    - [is_nothrow_applyable_after](#is_nothrow_applyable_after)
+    - [apply_result](#apply_result)
+    - [is_invocable_with](#is_invocable_with)
+    - [is_nothrow_invocable_with](#is_nothrow_invocable_with)
+  - [bind_front](#bind_front)
     - [front_bindable (concept)](#front_bindable-concept)
     - [front_binder (type)](#front_binder-type)
   - [invocation policies](#invocation-policies)
@@ -550,7 +555,18 @@ so the evaluated invocation expression must NOT be known to throw.
 
 ### is_applyable_after
 
+Same as [is_applyable_before](#is_applyable_before), but parameters contained in the tuple-like type are expand **after** `func_args_t`.
+
+Internally use `is_invocable` to detect if such expression is true :
+
+- ```cpp
+  is_invocable_v<F, ttps<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
+  ```
+
 ### is_nothrow_applyable_after
+
+Same as [is_applyable_after](#is_applyable_after), but internally use [is_nothrow_invocable](#is_nothrow_invocable) instead of [is_invocable](#is_invocable),  
+so the evaluated invocation expression must NOT be known to throw.
 
 ### apply_result
 
