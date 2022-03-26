@@ -673,6 +673,31 @@ static_assert(is_applyable_after_v<F, ttps<>, std::tuple<A, B>>);
 Same as [is_applyable_after](#is_applyable_after), but internally use [is_nothrow_invocable](#is_nothrow_invocable) instead of [is_invocable](#is_invocable),  
 so the evaluated invocation expression must NOT be known to throw.
 
+---
+
+Example
+
+```cpp
+auto f = [](A, B) noexcept {};
+using F = decltype(f);
+
+static_assert(is_applyable_after_v<F, std::tuple<>, A, B>);
+static_assert(is_applyable_after_v<F, std::tuple<B>, A>);
+static_assert(is_applyable_after_v<F, std::tuple<A, B>>);
+
+static_assert(is_applyable_after_v<F, ttps<>, std::tuple<>, A, B>);
+static_assert(is_applyable_after_v<F, ttps<>, std::tuple<B>, A>);
+static_assert(is_applyable_after_v<F, ttps<>, std::tuple<A, B>>);
+
+static_assert(is_nothrow_applyable_after_v<F, std::tuple<>, A, B>);
+static_assert(is_nothrow_applyable_after_v<F, std::tuple<B>, A>);
+static_assert(is_nothrow_applyable_after_v<F, std::tuple<A, B>>);
+
+static_assert(is_nothrow_applyable_after_v<F, ttps<>, std::tuple<>, A, B>);
+static_assert(is_nothrow_applyable_after_v<F, ttps<>, std::tuple<B>, A>);
+static_assert(is_nothrow_applyable_after_v<F, ttps<>, std::tuple<A, B>>);
+```
+
 ### apply_result
 
 ### is_invocable_with
