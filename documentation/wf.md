@@ -27,13 +27,6 @@ This library is divided in three parts :
     - [is_applyable](#is_applyable)
     - [is_nothrow_applyable](#is_nothrow_applyable)
     - [is_applyable_before](#is_applyable_before)
-    - [is_nothrow_applyable_before](#is_nothrow_applyable_before)
-    - [is_applyable_after](#is_applyable_after)
-    - [is_nothrow_applyable_after](#is_nothrow_applyable_after)
-    - [apply_result](#apply_result)
-    - [is_invocable_with](#is_invocable_with)
-    - [is_nothrow_invocable_with](#is_nothrow_invocable_with)
-  - [bind_front](#bind_front)
     - [front_bindable (concept)](#front_bindable-concept)
     - [front_binder (type)](#front_binder-type)
   - [invocation policies](#invocation-policies)
@@ -526,7 +519,34 @@ Similar to [is_nothrow_invocable](#is_nothrow_invocable), but detects if :
 
 ### is_applyable_before
 
+```cpp
+// definitions
+is_applyable_before<typename F, typename...>;
+// specialization
+is_applyable_before<F, ttps<f_ts...>, tuple_type, func_args_t...>;
+is_applyable_before<F, tuple_type, func_args_t...>;
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | Template-type-parameters |
+| `tuple_type` | Tuple-like type, containing invocation parameters.<br>Must meet the `csl::wf::concepts::tuple_interface` concept requirements |
+
+---
+
+Same as [is_applyable](#is_applyable), but provide the opportunity for the user to add extra parameters to the underlying functor invocation.
+Nb : the parameters contained in the tuple-like type `tuple_type` are expand **before** `func_args_t` in the signature.
+
+Internally use `is_invocable` to detect if such expression is true :
+- ```cpp
+  is_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
+  ```
+
 ### is_nothrow_applyable_before
+
+Same as [is_applyable_before](#is_applyable_before), but internally use [is_nothrow_invocable](#is_nothrow_invocable) instead of [is_invocable](#is_invocable),  
+so the evaluated invocation expression must NOT be known to throw.
 
 ### is_applyable_after
 
