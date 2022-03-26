@@ -27,6 +27,8 @@ This library is divided in three parts :
     - [is_applyable](#is_applyable)
     - [is_nothrow_applyable](#is_nothrow_applyable)
     - [is_applyable_before](#is_applyable_before)
+    - [is_nothrow_applyable_before](#is_nothrow_applyable_before)
+    - [is_applyable_after](#is_applyable_after)
     - [is_nothrow_applyable_after](#is_nothrow_applyable_after)
     - [apply_result](#apply_result)
     - [is_invocable_with](#is_invocable_with)
@@ -477,8 +479,6 @@ Similar to its STL counterpat [std::invoke_result](https://en.cppreference.com/w
 
 If the invoke expression is not valid, then the member-type `type` is not defined.
 
-
-
 ### is_applyable
 
 ```cpp
@@ -503,6 +503,24 @@ Those can be passed in two different way, either as :
 - First template-type-parameter of the tuple_type itself,  
   `is_applyable<F, tuple_type<ttps<...>, ...> >`
 
+---
+
+Example
+
+```cpp
+{
+  auto func = [](A, B){};
+  using F = decltype(func);
+  static_assert(mp::is_applyable_v<F,         std::tuple<A, B>>);
+  static_assert(mp::is_applyable_v<F, ttps<>, std::tuple<A, B>>);
+}
+{
+  auto func = []<typename>(A, B){};
+  using F = decltype(func);
+  static_assert(mp::is_applyable_v<F, ttps<int>, std::tuple<A, B>>);
+}
+```
+
 ### is_nothrow_applyable
 
 ```cpp
@@ -522,6 +540,24 @@ Similar to [is_nothrow_invocable](#is_nothrow_invocable), but detects if :
 - the callable object F is invocable using a tuple of argument
 - **and** is not known to throw any exception
 
+---
+
+Example
+
+```cpp
+{
+  struct F {
+    void operator()(A, B){} // 1
+    template <typename>
+    void operator()(A, B) noexcept {} // 2
+  };
+
+  static_assert(not mp::is_applyable_v<F,         std::tuple<A, B>>);     // 1
+  static_assert(not mp::is_applyable_v<F, ttps<>, std::tuple<A, B>>);     // 1
+  static_assert(    mp::is_applyable_v<F, ttps<int>, std::tuple<A, B>>);  // 2
+}
+```
+
 ### is_applyable_before
 
 ```cpp
@@ -537,6 +573,7 @@ is_applyable_before<F, tuple_type, func_args_t...>;
 | `F`       | A type, most likely a functor |
 | `ttps<...>`  | Template-type-parameters |
 | `tuple_type` | Tuple-like type, containing invocation parameters.<br>Must meet the `csl::wf::concepts::tuple_interface` concept requirements |
+| `func_args_t`| Additional template-type-parameters.<br>Expanded **after** `tuple_type` |
 
 ---
 
@@ -548,12 +585,63 @@ Internally use `is_invocable` to detect if such expression is true :
   is_invocable_v<F, ttps<f_ts...>, decltype(std::get<indexes>(std::declval<tuple_type>()))..., func_args_t...>;
   ```
 
+---
+
+Example
+
+```cpp
+auto f = [](B, A){};
+using F = decltype(f);
+
+static_assert(is_applyable_before_v<F, std::tuple<>, B, A>);
+static_assert(is_applyable_before_v<F, std::tuple<B>, A>);
+static_assert(is_applyable_before_v<F, std::tuple<B, A>>);
+
+static_assert(is_applyable_before_v<F, ttps<>, std::tuple<>, B, A>);
+static_assert(is_applyable_before_v<F, ttps<>, std::tuple<B>, A>);
+static_assert(is_applyable_before_v<F, ttps<>, std::tuple<B, A>>);
+```
+
 ### is_nothrow_applyable_before
 
 Same as [is_applyable_before](#is_applyable_before), but internally use [is_nothrow_invocable](#is_nothrow_invocable) instead of [is_invocable](#is_invocable),  
 so the evaluated invocation expression must NOT be known to throw.
 
+---
+
+Example
+
+```cpp
+auto f = []<typename T>(T) noexcept {};
+using F = decltype(f);
+
+static_assert(is_applyable_before_v<F, std::tuple<>, B>);
+static_assert(is_applyable_before_v<F, std::tuple<B>>);
+static_assert(is_applyable_before_v<F, ttps<>, std::tuple<>, B>);
+static_assert(is_applyable_before_v<F, ttps<B>, std::tuple<B>>);
+
+static_assert(is_nothrow_applyable_before_v<F, std::tuple<>, B>);
+static_assert(is_nothrow_applyable_before_v<F, std::tuple<B>>);
+static_assert(is_nothrow_applyable_before_v<F, ttps<>, std::tuple<>, B>);
+static_assert(is_nothrow_applyable_before_v<F, ttps<B>, std::tuple<B>>);
+```
+
 ### is_applyable_after
+
+```cpp
+// definitions
+is_applyable_after<typename F, typename...>;
+// specialization
+is_applyable_after<F, ttps<f_ts...>, tuple_type, func_args_t...>;
+is_applyable_after<F, tuple_type, func_args_t...>;
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | Template-type-parameters |
+| `tuple_type` | Tuple-like type, containing invocation parameters.<br>Must meet the `csl::wf::concepts::tuple_interface` concept requirements |
+| `func_args_t`| Additional template-type-parameters.<br>Expanded **before** `tuple_type` |
 
 Same as [is_applyable_before](#is_applyable_before), but parameters contained in the tuple-like type are expand **after** `func_args_t`.
 
@@ -562,6 +650,23 @@ Internally use `is_invocable` to detect if such expression is true :
 - ```cpp
   is_invocable_v<F, ttps<f_ts...>, func_args_t..., decltype(std::get<indexes>(std::declval<tuple_type>()))...>;
   ```
+
+---
+
+Example
+
+```cpp
+auto f = [](A, B){};
+using F = decltype(f);
+
+static_assert(is_applyable_after_v<F, std::tuple<>, A, B>);
+static_assert(is_applyable_after_v<F, std::tuple<B>, A>);
+static_assert(is_applyable_after_v<F, std::tuple<A, B>>);
+
+static_assert(is_applyable_after_v<F, ttps<>, std::tuple<>, A, B>);
+static_assert(is_applyable_after_v<F, ttps<>, std::tuple<B>, A>);
+static_assert(is_applyable_after_v<F, ttps<>, std::tuple<A, B>>);
+```
 
 ### is_nothrow_applyable_after
 
