@@ -479,6 +479,35 @@ Similar to its STL counterpat [std::invoke_result](https://en.cppreference.com/w
 
 If the invoke expression is not valid, then the member-type `type` is not defined.
 
+---
+
+Example :
+
+```cpp
+{
+  auto func = [](char) -> int { return {}; };
+  using F = decltype(func);
+
+  static_assert(std::is_same_v<
+    int,
+    invoke_result<F, char>
+  >);
+}
+{
+  auto func = []<typename...>(char) -> int { return {}; };
+  using F = decltype(func);
+
+  static_assert(std::is_same_v<
+    int,
+    invoke_result<F, ttps<>, char>
+  >);
+  static_assert(std::is_same_v<
+    int,
+    invoke_result<F, ttps<double, float>, char>
+  >);
+}
+```
+
 ### is_applyable
 
 ```cpp
