@@ -729,6 +729,34 @@ static_assert(is_nothrow_applyable_after_v<F, ttps<>, std::tuple<A, B>>);
 
 ### apply_result
 
+```cpp
+// definition
+struct apply_result<typename F, typename...>;
+// specializations
+struct apply_result<F, tuple_type>; // 1
+struct apply_result<F, ttps_type, tuple_type>; // 2
+struct apply_result<F, ttps<ttps_args...>, concepts::tupleinterface_not_starting_with_ttps>; // 3
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>`  | Template-type-parameters |
+| `tuple_type` | Tuple-like type, containing invocation parameters.<br>Must meet the `csl::wf::concepts::tuple_interface` concept requirements |
+
+---
+
+Deduces the type yield by an [apply](#apply) expression, in a similar way in which [invoke_result](#invoke_result) deduce the type of an [invoke](#invoke) expression.
+
+Non-mandatory additional parameter `ttps<...>` can be pass to represents template-type-paramters for the underlying functor value call, either as an :
+
+- Additional `ttps<...>` template-parameter, using (2) specialization.
+- Additional first tuple element of `tuple_type`, using (3) specialization.
+
+Note that both way to pass `ttps<...>` can't be used at the same time.
+
+---
+
 ### is_invocable_with
 
 ### is_nothrow_invocable_with
