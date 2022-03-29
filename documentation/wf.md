@@ -757,6 +757,28 @@ Note that both way to pass `ttps<...>` can't be used at the same time.
 
 ---
 
+Example
+
+```cpp
+struct A{}; struct B{};
+auto func = []<typename ... Ts>(A, B) -> std::common_type_t<Ts...> { return {}; };
+using F = decltype(func);
+
+static_assert(std::is_same_v<
+  int,
+  apply_result_t<F, std::tuple<A, B>>
+>); // error : invalid use of incomplete type std::common_type<Ts...> where [ Ts = ] (empty)
+
+static_assert(std::is_same_v<
+  int,
+  apply_result_t<F, ttps<char, bool, int>, std::tuple<A, B>>
+>);
+static_assert(std::is_same_v<
+  int,
+  apply_result_t<F, std::tuple<ttps<char, bool, int>, A, B>>
+>);
+```
+
 ### is_invocable_with
 
 ### is_nothrow_invocable_with
