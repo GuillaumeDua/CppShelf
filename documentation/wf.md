@@ -73,8 +73,9 @@ The key idea of this library is to provide a convenient way to deal with functor
 
 Such design is in opposition to STL's `<functional>`, where types like `std::function` provides a type-erasure restrained by a unique function signature.
 
-To allow multiples templates-parameters-pack in signatures, to represent for instance in one hand template-type-parameters and generic-parameters on the other,  
-a type named `ttps<...>` is used to ease deduction.
+To allow multiples templates-parameters-pack in signatures, and represent for instance in one hand template-type-parameters and generic-parameters on the other,  
+a type named `ttps<...>` is used to ease deduction.  
+For some specific corner-cases, a type named `arg<...>` is also used to wrap `parameters`'s types in the same way.
 
 It also provides a precise support to `operator()` cvref-qualifiers.
 
@@ -781,7 +782,32 @@ static_assert(std::is_same_v<
 
 ### is_invocable_with
 
+```cpp
+// definition
+struct is_invocable_with<typename F, typename ...>;
+// specializations
+template <typename F, typename ... ttps_args, typename ... args_types>
+struct is_invocable_with<F, ttps<ttps_args...>, args<args_types...>>
+```
+
+| parameter | description |
+| --------- | ----------- |
+| `F`       | A type, most likely a functor |
+| `ttps<...>` | Template-type-parameters |
+| `args<...>` | Parameters |
+
+---
+
+Similar to [is_invocable](#is_invocable)/[is_applyable](#is_applyable), but wraps both template-type-parameters and parameters respectively as `ttps` and `args` template-type-parameters.  
+
+More convenient for pack_traits - *like filtering* - applications
+
+Less restrictive than `is_applyable`, as `args<...>` is **NOT** requiered to match `TupleInterface`.  
+Also, easier to handle types that does not fit in `std::tuple`, `array` and `paires`, like `void`.
+
 ### is_nothrow_invocable_with
+
+Similar to [is_invocable_with](#is_invocable_with), but the underlying detected call must not be known to throw any exception.
 
 ## bind_front
 
