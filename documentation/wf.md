@@ -805,9 +805,42 @@ More convenient for pack_traits - *like filtering* - applications
 Less restrictive than `is_applyable`, as `args<...>` is **NOT** requiered to match `TupleInterface`.  
 Also, easier to handle types that does not fit in `std::tuple`, `array` and `paires`, like `void`.
 
+---
+
+Example :
+
+```cpp
+struct F {
+  template <typename ...>
+  void operator()(){}
+  template <typename T>
+  void operator()(int) const noexcept {}
+};
+
+static_assert(invocable_with<F, ttps<>, args<>>);
+static_assert(invocable_with<F, ttps<char, bool>, args<>>);
+static_assert(invocable_with<const F, ttps<char>, args<int>>);
+```
+
 ### is_nothrow_invocable_with
 
 Similar to [is_invocable_with](#is_invocable_with), but the underlying detected call must not be known to throw any exception.
+
+---
+
+Example :
+
+```cpp
+struct F {
+  template <typename ...>
+  void operator()(){}
+  template <typename T>
+  void operator()(int) const noexcept {}
+};
+
+static_assert(not nothrow_invocable_with<F, ttps<>, args<>>);
+static_assert(nothrow_invocable_with<const F, ttps<char>, args<int>>);
+```
 
 ## bind_front
 
