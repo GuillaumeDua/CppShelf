@@ -616,7 +616,7 @@ namespace csl::wf {
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {
-            static_assert(sizeof...(ttps_bounded_args_t) == 0);
+            //static_assert(sizeof...(ttps_bounded_args_t) == 0);
         }
 
         template <typename ... ttps, typename ... parameters_t>

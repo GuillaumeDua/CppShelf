@@ -3,7 +3,7 @@
 #include <csl/wf.hpp>
 
 namespace test {
-    consteval void front_binding() {
+    consteval void bind_front_() {
         auto func = []<typename ... Ts>() noexcept { return std::tuple<Ts...>{}; };
 
         using namespace csl::wf;
@@ -52,4 +52,30 @@ namespace test {
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_front<int>(func)), mp::ttps<char>>>);
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_front(func)), mp::ttps<int, char>>>);
     }
+}
+namespace test::front_binder_ {
+
+    constexpr auto func = []<typename T, typename U>(int args_0, char args_1) constexpr {
+        static_assert(std::same_as<void, T>);
+        static_assert(std::same_as<void, U>);
+        return args_0 + args_1;
+    };
+    using F = decltype(func);
+    using namespace csl::wf;
+
+    consteval void declare_construct() {
+        {
+            using type = front_binder<F, mp::ttps<void, void>, int>;
+            {
+                constexpr auto value = type{ func, mp::ttps<void, void>{}, 42}; // (1)
+                static_assert(value('A') == 107);
+            }
+            // [[maybe_unused]] auto value = type{ func, mp::ttps<>{}, 42}; // no
+            {
+                constexpr auto value = type{ func, 42}; // (2)
+                static_assert(value('A') == 107);
+            }
+        }
+    }
+
 }
