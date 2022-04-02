@@ -77,5 +77,15 @@ namespace test::front_binder_ {
             }
         }
     }
+    consteval void deduce() {
+        constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+        using type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+        static_assert(std::same_as<
+            decltype(value),
+            const type
+        >);
+    }
+    consteval void copy() {
 
+    }
 }
