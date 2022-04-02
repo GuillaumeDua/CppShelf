@@ -612,6 +612,7 @@ namespace csl::wf {
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
         constexpr explicit front_binder(auto && f_arg, auto && ... args)
+        requires (sizeof...(args) == sizeof...(bounded_args_t))
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {
