@@ -687,9 +687,9 @@ namespace csl::wf {
         // }
     };
     template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
-    front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
+    front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_bounded_args_t...>, std::decay_t<bounded_args_t>...>;
     template <typename F, typename ... bounded_args_t>
-    front_binder(F&&, bounded_args_t&&...) -> front_binder<F, mp::ttps<>, bounded_args_t...>;
+    front_binder(F&&, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, std::decay_t<bounded_args_t>...>;
 
     // binder_front
     //  same as `std::bind_front`, but also bound/allow ttps
