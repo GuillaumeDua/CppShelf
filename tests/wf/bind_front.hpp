@@ -1,6 +1,7 @@
 #pragma once
 
 #include <csl/wf.hpp>
+#include <memory>
 
 namespace test {
     consteval void bind_front_() {
@@ -79,13 +80,26 @@ namespace test::front_binder_ {
     }
     consteval void deduce() {
         constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
-        using type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+        using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
         static_assert(std::same_as<
             decltype(value),
-            const type
+            const expected_type
         >);
     }
     consteval void copy() {
+        {   // trivial, nothrow
+            constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
 
+            static_assert(std::is_copy_constructible_v<decltype(value)>);
+            static_assert(std::is_trivially_copy_constructible_v<decltype(value)>);
+            static_assert(std::is_nothrow_copy_constructible_v<decltype(value)>);
+
+            constexpr auto copy_value = value;
+            using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+            static_assert(std::same_as<
+                decltype(copy_value),
+                const expected_type
+            >);
+        }
     }
 }

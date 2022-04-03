@@ -582,10 +582,6 @@ namespace csl::wf {
         and std::is_move_constructible_v<std::decay_t<T>>
     ;
     // front_binder
-    //  todo :  copy, move constructors
-    //          operator=
-    //          operator==, operator not_eq
-    //  todo :  member-variables binding ?
     template <
         wf::front_bindable F,
         typename ttps_pack_type,
