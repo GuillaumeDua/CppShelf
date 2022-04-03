@@ -101,5 +101,28 @@ namespace test::front_binder_ {
                 const expected_type
             >);
         }
+        {
+            struct not_copyable_func {
+                constexpr not_copyable_func() = default;
+                constexpr not_copyable_func(const not_copyable_func&) = delete;
+                constexpr not_copyable_func(not_copyable_func&&) = delete;
+                constexpr not_copyable_func & operator=(const not_copyable_func&) = delete;
+                constexpr not_copyable_func & operator=(not_copyable_func&&) = delete;
+                constexpr ~not_copyable_func() = default;
+                void operator()(){}
+            };
+            constexpr auto value = front_binder{ not_copyable_func{} };
+
+            static_assert(std::is_copy_constructible_v<decltype(value)>);
+            static_assert(std::is_trivially_copy_constructible_v<decltype(value)>);
+            static_assert(std::is_nothrow_copy_constructible_v<decltype(value)>);
+
+            constexpr auto copy_value = value;
+            using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+            static_assert(std::same_as<
+                decltype(copy_value),
+                const expected_type
+            >);
+        }
     }
 }

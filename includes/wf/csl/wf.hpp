@@ -579,7 +579,7 @@ namespace csl::wf {
     template <typename T>
     concept front_bindable = 
         std::is_constructible_v<std::decay_t<T>, T>
-        and std::is_move_constructible_v<std::decay_t<T>>
+        or std::is_move_constructible_v<std::decay_t<T>>
     ;
     // front_binder
     template <
@@ -603,11 +603,11 @@ namespace csl::wf {
 
     public:
 
-        constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
+        constexpr front_binder(wf::front_bindable auto && f_arg, mp::ttps<ttps_bounded_args_t...>, wf::front_bindable auto && ... args)
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
-        constexpr explicit front_binder(auto && f_arg, auto && ... args)
+        constexpr explicit front_binder(wf::front_bindable auto && f_arg, wf::front_bindable auto && ... args)
         requires (sizeof...(args) == sizeof...(bounded_args_t))
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
@@ -682,9 +682,9 @@ namespace csl::wf {
         //     static_assert([](){ return false; }(), "front_binder::operator() : no overload candidates matched");
         // }
     };
-    template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
+    template <front_bindable F, typename ... ttps_bounded_args_t, front_bindable ... bounded_args_t>
     front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_bounded_args_t...>, std::decay_t<bounded_args_t>...>;
-    template <typename F, typename ... bounded_args_t>
+    template <front_bindable F, front_bindable ... bounded_args_t>
     front_binder(F&&, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, std::decay_t<bounded_args_t>...>;
 
     // binder_front
