@@ -487,7 +487,6 @@ namespace csl::wf::mp {
 }
 // invoke
 // apply(,_after,_before)
-// front_binder, bind_front
 namespace csl::wf {
 
     // invoke
@@ -574,12 +573,14 @@ namespace csl::wf {
     }
 }
 // front_bindable
+// front_binder
+// bind_front
 namespace csl::wf {
     // front_bindable
     template <typename T>
-    concept front_bindable = 
-        std::copy_constructible<T> or
-        std::move_constructible<T>
+    concept front_bindable = std::constructible_from<T, T&&>
+        // std::copy_constructible<T> or
+        // std::move_constructible<T>
     ;
     // front_binder
     // TODO : ttps_pack_type as non-mandatory parameter ?

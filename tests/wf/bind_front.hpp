@@ -101,10 +101,10 @@ namespace test::front_binder_ {
                 const expected_type
             >);
         }
-        {   // trivial, throw
+        {   // can throw, non-trivial copy
             struct copy_and_move_can_throw {
                 constexpr copy_and_move_can_throw() = default;
-                constexpr copy_and_move_can_throw(const copy_and_move_can_throw&) {}
+                constexpr copy_and_move_can_throw(const copy_and_move_can_throw&) {}; // NOLINT
                 constexpr copy_and_move_can_throw(copy_and_move_can_throw&&) = default;
                 constexpr copy_and_move_can_throw & operator=(const copy_and_move_can_throw&) = delete;
                 constexpr copy_and_move_can_throw & operator=(copy_and_move_can_throw&&) = delete;
@@ -121,6 +121,28 @@ namespace test::front_binder_ {
             using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>>;
             static_assert(std::same_as<
                 decltype(copy_value),
+                const expected_type
+            >);
+        }
+        {   // not_copiable, non-trivial move
+            struct not_copyable {
+                constexpr not_copyable() = default;
+                constexpr not_copyable(const not_copyable&) = delete;
+                constexpr not_copyable(not_copyable&&) = default;
+                constexpr not_copyable & operator=(const not_copyable&) = delete;
+                constexpr not_copyable & operator=(not_copyable&&) = delete;
+                constexpr ~not_copyable() = default;
+                void operator()(){}
+            };
+            constexpr auto value = front_binder{ not_copyable{} };
+
+            static_assert(not std::is_copy_constructible_v<decltype(value)>);
+            static_assert(not std::is_trivially_copy_constructible_v<decltype(value)>);
+            static_assert(not std::is_nothrow_copy_constructible_v<decltype(value)>);
+
+            using expected_type = front_binder<not_copyable, mp::ttps<>>;
+            static_assert(std::same_as<
+                decltype(value),
                 const expected_type
             >);
         }
