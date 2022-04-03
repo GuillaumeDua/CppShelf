@@ -101,24 +101,24 @@ namespace test::front_binder_ {
                 const expected_type
             >);
         }
-        {
-            struct not_copyable_func {
-                constexpr not_copyable_func() = default;
-                constexpr not_copyable_func(const not_copyable_func&) = delete;
-                constexpr not_copyable_func(not_copyable_func&&) = delete;
-                constexpr not_copyable_func & operator=(const not_copyable_func&) = delete;
-                constexpr not_copyable_func & operator=(not_copyable_func&&) = delete;
-                constexpr ~not_copyable_func() = default;
+        {   // trivial, throw
+            struct copy_and_move_can_throw {
+                constexpr copy_and_move_can_throw() = default;
+                constexpr copy_and_move_can_throw(const copy_and_move_can_throw&) {}
+                constexpr copy_and_move_can_throw(copy_and_move_can_throw&&) = default;
+                constexpr copy_and_move_can_throw & operator=(const copy_and_move_can_throw&) = delete;
+                constexpr copy_and_move_can_throw & operator=(copy_and_move_can_throw&&) = delete;
+                constexpr ~copy_and_move_can_throw() = default;
                 void operator()(){}
             };
-            constexpr auto value = front_binder{ not_copyable_func{} };
+            constexpr auto value = front_binder{ copy_and_move_can_throw{} };
 
             static_assert(std::is_copy_constructible_v<decltype(value)>);
-            static_assert(std::is_trivially_copy_constructible_v<decltype(value)>);
-            static_assert(std::is_nothrow_copy_constructible_v<decltype(value)>);
+            static_assert(not std::is_trivially_copy_constructible_v<decltype(value)>);
+            static_assert(not std::is_nothrow_copy_constructible_v<decltype(value)>);
 
             constexpr auto copy_value = value;
-            using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+            using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>>;
             static_assert(std::same_as<
                 decltype(copy_value),
                 const expected_type

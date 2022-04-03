@@ -578,10 +578,11 @@ namespace csl::wf {
     // front_bindable
     template <typename T>
     concept front_bindable = 
-        std::is_constructible_v<std::decay_t<T>, T>
-        or std::is_move_constructible_v<std::decay_t<T>>
+        std::copy_constructible<T> or
+        std::move_constructible<T>
     ;
     // front_binder
+    // TODO : ttps_pack_type as non-mandatory parameter ?
     template <
         wf::front_bindable F,
         typename ttps_pack_type,
