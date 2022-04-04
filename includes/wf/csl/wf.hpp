@@ -606,16 +606,44 @@ namespace csl::wf {
     public:
 
         constexpr front_binder(wf::front_bindable auto && f_arg, mp::ttps<ttps_bounded_args_t...>, wf::front_bindable auto && ... args)
+        requires (
+            sizeof...(args) == sizeof...(bounded_args_t) and
+            std::constructible_from<F, decltype(f_arg)> and
+            std::constructible_from<bounded_args_storage_type, decltype(args)...>
+        )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
         constexpr explicit front_binder(wf::front_bindable auto && f_arg, wf::front_bindable auto && ... args)
-        requires (sizeof...(args) == sizeof...(bounded_args_t))
+        requires (
+            sizeof...(args) == sizeof...(bounded_args_t) and
+            std::constructible_from<F, decltype(f_arg)> and
+            std::constructible_from<bounded_args_storage_type, decltype(args)...>
+        )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {
             //static_assert(sizeof...(ttps_bounded_args_t) == 0);
         }
+
+        constexpr front_binder(front_binder&&) noexcept(
+            std::is_nothrow_move_constructible_v<F> and
+            std::is_nothrow_move_constructible_v<bounded_args_storage_type>
+        ) = default;
+        constexpr front_binder(const front_binder&)
+        noexcept(
+            std::is_nothrow_copy_constructible_v<F> and
+            std::is_nothrow_copy_constructible_v<bounded_args_storage_type>
+        ) = default;
+        constexpr front_binder & operator=(front_binder &&) noexcept(
+            std::is_nothrow_move_assignable_v<F> and
+            std::is_nothrow_move_assignable_v<bounded_args_storage_type>
+        ) = default;
+        constexpr front_binder & operator=(const front_binder &) noexcept(
+            std::is_nothrow_copy_assignable_v<F> and
+            std::is_nothrow_copy_assignable_v<bounded_args_storage_type>
+        ) = default;
+        constexpr ~front_binder() noexcept(std::is_nothrow_destructible_v<front_binder>) = default;
 
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
