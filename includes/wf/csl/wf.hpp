@@ -578,7 +578,7 @@ namespace csl::wf {
 namespace csl::wf {
     // front_bindable
     template <typename T>
-    concept front_bindable = std::constructible_from<T, T&&>
+    concept front_bindable = std::constructible_from<std::decay_t<T>, T&&>
         // std::copy_constructible<T> or
         // std::move_constructible<T>
     ;
@@ -626,24 +626,11 @@ namespace csl::wf {
             //static_assert(sizeof...(ttps_bounded_args_t) == 0);
         }
 
-        constexpr front_binder(front_binder&&) noexcept(
-            std::is_nothrow_move_constructible_v<F> and
-            std::is_nothrow_move_constructible_v<bounded_args_storage_type>
-        ) = default;
-        constexpr front_binder(const front_binder&)
-        noexcept(
-            std::is_nothrow_copy_constructible_v<F> and
-            std::is_nothrow_copy_constructible_v<bounded_args_storage_type>
-        ) = default;
-        constexpr front_binder & operator=(front_binder &&) noexcept(
-            std::is_nothrow_move_assignable_v<F> and
-            std::is_nothrow_move_assignable_v<bounded_args_storage_type>
-        ) = default;
-        constexpr front_binder & operator=(const front_binder &) noexcept(
-            std::is_nothrow_copy_assignable_v<F> and
-            std::is_nothrow_copy_assignable_v<bounded_args_storage_type>
-        ) = default;
-        constexpr ~front_binder() noexcept(std::is_nothrow_destructible_v<front_binder>) = default;
+        constexpr front_binder(front_binder&&) = default;
+        constexpr front_binder(const front_binder&) = default;
+        constexpr front_binder & operator=(front_binder &&) = default;
+        constexpr front_binder & operator=(const front_binder &)  = default;
+        constexpr ~front_binder() = default;
 
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
