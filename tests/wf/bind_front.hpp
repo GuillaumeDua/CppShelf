@@ -105,23 +105,27 @@ namespace test::front_binder_ {
             struct copy_and_move_can_throw {
                 constexpr copy_and_move_can_throw() = default;
                 constexpr copy_and_move_can_throw(const copy_and_move_can_throw&) {}; // NOLINT
-                constexpr copy_and_move_can_throw(copy_and_move_can_throw&&) = default;
+                constexpr copy_and_move_can_throw(copy_and_move_can_throw&&) {}; // NOLINT
                 constexpr copy_and_move_can_throw & operator=(const copy_and_move_can_throw&) = delete;
                 constexpr copy_and_move_can_throw & operator=(copy_and_move_can_throw&&) = delete;
                 constexpr ~copy_and_move_can_throw() = default;
                 void operator()(){}
             };
             constexpr auto value = front_binder{ copy_and_move_can_throw{} };
+            using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>>;
+            static_assert(std::same_as<
+                decltype(value),
+                const expected_type
+            >);
 
             static_assert(std::is_copy_constructible_v<decltype(value)>);
             static_assert(not std::is_trivially_copy_constructible_v<decltype(value)>);
             static_assert(not std::is_nothrow_copy_constructible_v<decltype(value)>);
 
             constexpr auto copy_value = value;
-            using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>>;
             static_assert(std::same_as<
                 decltype(copy_value),
-                const expected_type
+                decltype(value)
             >);
         }
         {   // not_copiable, non-trivial move
@@ -144,6 +148,46 @@ namespace test::front_binder_ {
             static_assert(std::same_as<
                 decltype(value),
                 const expected_type
+            >);
+        }
+    }
+    consteval void move() {
+        {   // trivial, nothrow
+            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+
+            static_assert(std::is_move_constructible_v<decltype(value)>);
+            static_assert(not std::is_trivially_move_constructible_v<decltype(value)>);
+            static_assert(std::is_nothrow_move_constructible_v<decltype(value)>);
+
+            auto move_value = std::move(value);
+            static_assert(std::same_as<
+                decltype(move_value),
+                decltype(value)
+            >);
+        }
+        {
+            // TODO : move to tests/details/semantic_types.hpp
+            struct not_moveable {
+                constexpr not_moveable() = default;
+                constexpr not_moveable(const not_moveable&) = default;
+                constexpr not_moveable(not_moveable&&) noexcept = delete;
+                constexpr not_moveable & operator=(const not_moveable&) = default;
+                constexpr not_moveable & operator=(not_moveable&&) noexcept = delete;
+                constexpr ~not_moveable() = default;
+                void operator()(){}
+            };
+
+            auto f = not_moveable{};
+            auto value = front_binder{ f, mp::ttps<void, void>{}, f };
+
+            static_assert(std::is_move_constructible_v<decltype(value)>);
+            static_assert(std::is_trivially_move_constructible_v<decltype(value)>);
+            static_assert(std::is_nothrow_move_constructible_v<decltype(value)>);
+
+            auto move_value = std::move(value);
+            static_assert(std::same_as<
+                decltype(move_value),
+                decltype(value)
             >);
         }
     }
