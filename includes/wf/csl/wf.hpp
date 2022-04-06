@@ -620,9 +620,9 @@ namespace csl::wf {
             //static_assert(sizeof...(ttps_bounded_args_t) == 0);
         }
 
-        constexpr front_binder(front_binder&&) = default;
+        constexpr front_binder(front_binder&&) noexcept = default;
         constexpr front_binder(const front_binder&) = default;
-        constexpr front_binder & operator=(front_binder &&) = default;
+        constexpr front_binder & operator=(front_binder &&) noexcept = default;
         constexpr front_binder & operator=(const front_binder &)  = default;
         constexpr ~front_binder() = default;
 
