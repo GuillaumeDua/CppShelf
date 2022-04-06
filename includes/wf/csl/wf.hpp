@@ -572,28 +572,22 @@ namespace csl::wf {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 }
-// front_bindable
 // front_binder
 // bind_front
 namespace csl::wf {
-    // front_bindable
-    template <typename T>
-    concept front_bindable = std::constructible_from<std::decay_t<T>, T&&>
-        // std::copy_constructible<T> or
-        // std::move_constructible<T>
-    ;
     // front_binder
     // TODO : ttps_pack_type as non-mandatory parameter ?
+    // TODO : maybe not decay, but remove_reference instead ?
     template <
-        wf::front_bindable F,
+        typename F,
         typename ttps_pack_type,
-        wf::front_bindable ... bounded_args_t
+        typename ... bounded_args_t
     >
     class front_binder;
     template <
-        wf::front_bindable F,
+        typename F,
         typename ... ttps_bounded_args_t,
-        wf::front_bindable ... bounded_args_t
+        typename ... bounded_args_t
     >
     class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
 
@@ -605,7 +599,7 @@ namespace csl::wf {
 
     public:
 
-        constexpr front_binder(wf::front_bindable auto && f_arg, mp::ttps<ttps_bounded_args_t...>, wf::front_bindable auto && ... args)
+        constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
         requires (
             sizeof...(args) == sizeof...(bounded_args_t) and
             std::constructible_from<F, decltype(f_arg)> and
@@ -614,7 +608,7 @@ namespace csl::wf {
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
-        constexpr explicit front_binder(wf::front_bindable auto && f_arg, wf::front_bindable auto && ... args)
+        constexpr explicit front_binder(auto && f_arg, auto && ... args)
         requires (
             sizeof...(args) == sizeof...(bounded_args_t) and
             std::constructible_from<F, decltype(f_arg)> and
@@ -699,9 +693,9 @@ namespace csl::wf {
         //     static_assert([](){ return false; }(), "front_binder::operator() : no overload candidates matched");
         // }
     };
-    template <front_bindable F, typename ... ttps_bounded_args_t, front_bindable ... bounded_args_t>
+    template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
     front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_bounded_args_t...>, std::decay_t<bounded_args_t>...>;
-    template <front_bindable F, front_bindable ... bounded_args_t>
+    template <typename F, typename ... bounded_args_t>
     front_binder(F&&, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, std::decay_t<bounded_args_t>...>;
 
     // binder_front
