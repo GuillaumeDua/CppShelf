@@ -2,6 +2,7 @@
 
 #include <csl/wf.hpp>
 #include <memory>
+#include <utils/semantic_types.hpp>
 
 namespace test {
     consteval void bind_front_() {
@@ -129,15 +130,7 @@ namespace test::front_binder_ {
             >);
         }
         {   // not_copiable, non-trivial move
-            struct not_copyable {
-                constexpr not_copyable() = default;
-                constexpr not_copyable(const not_copyable&) = delete;
-                constexpr not_copyable(not_copyable&&) = default;
-                constexpr not_copyable & operator=(const not_copyable&) = delete;
-                constexpr not_copyable & operator=(not_copyable&&) = delete;
-                constexpr ~not_copyable() = default;
-                void operator()(){}
-            };
+            using not_copyable = tests::details::utils::not_copyable;
             constexpr auto value = front_binder{ not_copyable{} };
 
             static_assert(not std::is_copy_constructible_v<decltype(value)>);
@@ -166,17 +159,7 @@ namespace test::front_binder_ {
             >);
         }
         {
-            // TODO : move to tests/details/semantic_types.hpp
-            struct not_moveable {
-                constexpr not_moveable() = default;
-                constexpr not_moveable(const not_moveable&) = default;
-                constexpr not_moveable(not_moveable&&) noexcept = delete;
-                constexpr not_moveable & operator=(const not_moveable&) = default;
-                constexpr not_moveable & operator=(not_moveable&&) noexcept = delete;
-                constexpr ~not_moveable() = default;
-                void operator()(){}
-            };
-
+            using not_moveable = tests::details::utils::not_moveable;
             auto f = not_moveable{};
             auto value = front_binder{ f, mp::ttps<void, void>{}, f };
 
