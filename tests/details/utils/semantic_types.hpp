@@ -8,12 +8,14 @@ namespace tests::details::utils {
         constexpr not_copyable(const not_copyable&) = delete;
         constexpr not_copyable(not_copyable&&) = default;
         constexpr not_copyable & operator=(const not_copyable&) = delete;
-        constexpr not_copyable & operator=(not_copyable&&) = delete;
+        constexpr not_copyable & operator=(not_copyable&&) = default;
         constexpr ~not_copyable() = default;
         void operator()(){}
     };
     static_assert(not std::is_copy_constructible_v<not_copyable>);
     static_assert(not std::is_copy_assignable_v<not_copyable>);
+    static_assert(std::is_move_constructible_v<not_copyable>);
+    static_assert(std::is_move_assignable_v<not_copyable>);
 
     struct not_moveable {
         constexpr not_moveable() = default;
@@ -24,6 +26,8 @@ namespace tests::details::utils {
         constexpr ~not_moveable() = default;
         void operator()(){}
     };
+    static_assert(std::is_copy_constructible_v<not_moveable>);
+    static_assert(std::is_copy_assignable_v<not_moveable>);
     static_assert(not std::is_move_constructible_v<not_moveable>);
     static_assert(not std::is_move_assignable_v<not_moveable>);
 }
