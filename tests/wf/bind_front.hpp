@@ -176,24 +176,41 @@ namespace test::front_binder_ {
     }
 
     consteval void assign_copy() {
-        auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+        {   // copyable
+            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
 
-        static_assert(std::is_copy_assignable_v<decltype(value)>);
-        static_assert(not std::is_trivially_copy_assignable_v<decltype(value)>);
-        static_assert(std::is_nothrow_copy_assignable_v<decltype(value)>);
+            static_assert(std::is_copy_assignable_v<decltype(value)>);
+            static_assert(not std::is_trivially_copy_assignable_v<decltype(value)>);
+            static_assert(std::is_nothrow_copy_assignable_v<decltype(value)>);
 
-        std::remove_cvref_t<decltype(value)> other = value;
-        other = value;
+            std::remove_cvref_t<decltype(value)> other = value;
+            other = value;
+        }
+        {   // not copyable
+            using not_copyable = tests::details::utils::not_copyable;
+            auto value = front_binder{ not_copyable{}, mp::ttps<>{} };
+
+            static_assert(not std::is_copy_assignable_v<decltype(value)>);
+        }
     }
 
     consteval void assign_move() {
-        auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+        {   // moveable
+            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
 
-        static_assert(std::is_move_assignable_v<decltype(value)>);
-        static_assert(not std::is_trivially_move_assignable_v<decltype(value)>);
-        static_assert(std::is_nothrow_move_assignable_v<decltype(value)>);
+            static_assert(std::is_move_assignable_v<decltype(value)>);
+            static_assert(not std::is_trivially_move_assignable_v<decltype(value)>);
+            static_assert(std::is_nothrow_move_assignable_v<decltype(value)>);
 
-        std::remove_cvref_t<decltype(value)> other = value;
-        other = std::move(value);
+            std::remove_cvref_t<decltype(value)> other = value;
+            other = std::move(value);
+        }
+        {   // not moveable
+            using not_moveable = tests::details::utils::not_moveable;
+            auto f = not_moveable{};
+            auto value = front_binder{ f, mp::ttps<>{} };
+
+            static_assert(std::is_move_assignable_v<decltype(value)>); // involve not_moveable copy
+        }
     }
 }
