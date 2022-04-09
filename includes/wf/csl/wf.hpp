@@ -623,7 +623,7 @@ namespace csl::wf {
         constexpr front_binder(front_binder&&) noexcept = default;
         constexpr front_binder(const front_binder&) = default;
         constexpr front_binder & operator=(front_binder &&) noexcept = default;
-        constexpr front_binder & operator=(const front_binder &)  = default;
+        constexpr front_binder & operator=(const front_binder &) = default;
         constexpr ~front_binder() = default;
 
         template <typename ... ttps, typename ... parameters_t>
