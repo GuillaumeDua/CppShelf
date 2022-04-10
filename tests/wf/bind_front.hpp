@@ -149,7 +149,11 @@ namespace test::front_binder_ {
             auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
 
             static_assert(std::is_move_constructible_v<decltype(value)>);
-            static_assert(not std::is_trivially_move_constructible_v<decltype(value)>);
+            #ifdef __GLIBCXX__
+                static_assert(not std::is_trivially_move_constructible_v<decltype(value)>);
+            #else
+                static_assert(std::is_trivially_move_constructible_v<decltype(value)>);
+            #endif
             static_assert(std::is_nothrow_move_constructible_v<decltype(value)>);
 
             auto move_value = std::move(value);
@@ -163,6 +167,7 @@ namespace test::front_binder_ {
             auto f = not_moveable{};
             auto value = front_binder{ f, mp::ttps<void, void>{}, f };
 
+            // implicit copies
             static_assert(std::is_move_constructible_v<decltype(value)>);
             static_assert(std::is_trivially_move_constructible_v<decltype(value)>);
             static_assert(std::is_nothrow_move_constructible_v<decltype(value)>);
