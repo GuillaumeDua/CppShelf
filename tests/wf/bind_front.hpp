@@ -87,6 +87,7 @@ namespace test::front_binder_ {
             const expected_type
         >);
     }
+    
     consteval void copy() {
         {   // trivial, nothrow
             constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
@@ -198,7 +199,6 @@ namespace test::front_binder_ {
             static_assert(not std::is_copy_assignable_v<decltype(value)>);
         }
     }
-
     consteval void assign_move() {
         {   // moveable
             auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
@@ -216,6 +216,24 @@ namespace test::front_binder_ {
             auto value = front_binder{ f, mp::ttps<>{} };
 
             static_assert(std::is_move_assignable_v<decltype(value)>); // involve not_moveable copy
+        }
+    }
+
+    consteval void compare() {
+        {   // comparable F
+            struct comparable_functor {
+                constexpr void operator()(int, int){}
+                constexpr auto operator==(const comparable_functor & other) const noexcept -> bool {
+                    return std::addressof(other) == this;
+                }
+            };
+            constexpr auto value = front_binder{ comparable_functor{}, 42 };
+            static_assert(std::equality_comparable<decltype(value)>);
+            static_assert(value == value);
+        }
+        {   // not comparable F
+            constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+            static_assert(not std::equality_comparable<decltype(value)>);
         }
     }
 }

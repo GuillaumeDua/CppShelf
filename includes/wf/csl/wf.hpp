@@ -626,6 +626,8 @@ namespace csl::wf {
         constexpr front_binder & operator=(const front_binder &) = default;
         constexpr ~front_binder() = default;
 
+        constexpr auto operator==(const front_binder & other) const noexcept -> bool = default;
+
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
             F&,
