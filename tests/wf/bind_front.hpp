@@ -230,6 +230,7 @@ namespace test::front_binder_ {
             constexpr auto value = front_binder{ comparable_functor{}, 42 };
             static_assert(std::equality_comparable<decltype(value)>);
             static_assert(value == value);
+            static_assert(not (value not_eq value));
         }
         {   // not comparable F
             constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
