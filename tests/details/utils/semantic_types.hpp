@@ -12,7 +12,7 @@ namespace tests::details::utils {
         constexpr not_copyable & operator=(not_copyable&&) = default;
         constexpr ~not_copyable() = default;
 
-        constexpr auto operator==(const not_copyable & other) const noexcept -> bool = default;
+        constexpr auto operator==(const not_copyable & other) const noexcept -> bool = default; // fix GCC issue : tuple(Ts &&...) involves get<I>(lhs) == get<I>(rhs) for some reasons ...
 
         void operator()(){}
     };
@@ -30,7 +30,7 @@ namespace tests::details::utils {
         constexpr not_moveable & operator=(not_moveable&&) noexcept = delete;
         constexpr ~not_moveable() = default;
 
-        constexpr auto operator==(const not_moveable & other) const noexcept -> bool = default;
+        constexpr auto operator==(const not_moveable & other) const noexcept -> bool = default; // fix GCC issue : tuple(Ts &&...) involves get<I>(lhs) == get<I>(rhs) for some reasons ...
 
         void operator()(){}
     };

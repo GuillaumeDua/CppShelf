@@ -599,6 +599,10 @@ namespace csl::wf {
     public:
 
         constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
+        noexcept(
+            std::is_nothrow_constructible_v<F, decltype(f_arg)> and
+            std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
+        )
         requires (
             sizeof...(args) == sizeof...(bounded_args_t) and
             std::constructible_from<F, decltype(f_arg)> and
@@ -608,6 +612,10 @@ namespace csl::wf {
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
         constexpr explicit front_binder(auto && f_arg, auto && ... args)
+        noexcept(
+            std::is_nothrow_constructible_v<F, decltype(f_arg)> and
+            std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
+        )
         requires (
             sizeof...(args) == sizeof...(bounded_args_t) and
             std::constructible_from<F, decltype(f_arg)> and

@@ -79,6 +79,28 @@ namespace test::front_binder_ {
             }
         }
     }
+    consteval void noexcept_construct() {
+        struct F_noexcept {};
+        {
+            constexpr auto value = front_binder{ F_noexcept{} };
+            static_assert(std::is_nothrow_constructible_v<decltype(value), F_noexcept&&>);
+        }
+        struct F_can_throw { // NOLINT
+            constexpr F_can_throw() = default;
+            constexpr F_can_throw(F_can_throw&&) noexcept(false) {}
+
+            constexpr auto operator==(const F_can_throw & other) const noexcept -> bool = default; // fix GCC issue : tuple(Ts &&...) involves get<I>(lhs) == get<I>(rhs) for some reasons ...
+        };
+        {
+            constexpr auto value = front_binder{ F_can_throw{} };
+            static_assert(not std::is_nothrow_constructible_v<decltype(value), F_can_throw&&>);
+        }
+        {
+            constexpr auto value = front_binder{ F_noexcept{}, F_can_throw{} };
+            static_assert(not std::is_nothrow_constructible_v<decltype(value), F_noexcept&&, F_can_throw&&>);
+        }
+    }
+
     consteval void deduce() {
         constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
         using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
