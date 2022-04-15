@@ -27,7 +27,6 @@
 
 
 auto main() -> int {
-
     {
         auto func = []<typename ...>(){};
         using func_type = decltype(func);

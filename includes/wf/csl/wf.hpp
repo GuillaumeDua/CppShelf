@@ -487,7 +487,6 @@ namespace csl::wf::mp {
 }
 // invoke
 // apply(,_after,_before)
-// front_binder, bind_front
 namespace csl::wf {
 
     // invoke
@@ -573,29 +572,21 @@ namespace csl::wf {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 }
-// front_bindable
+// front_binder
+// bind_front
 namespace csl::wf {
-    // front_bindable
-    template <typename T>
-    concept front_bindable = 
-        std::is_constructible_v<std::decay_t<T>, T>
-        and std::is_move_constructible_v<std::decay_t<T>>
-    ;
     // front_binder
-    //  todo :  copy, move constructors
-    //          operator=
-    //          operator==, operator not_eq
-    //  todo :  member-variables binding ?
+    // TODO : ttps_pack_type as non-mandatory parameter ?
     template <
-        wf::front_bindable F,
+        typename F,
         typename ttps_pack_type,
-        wf::front_bindable ... bounded_args_t
+        typename ... bounded_args_t
     >
     class front_binder;
     template <
-        wf::front_bindable F,
+        typename F,
         typename ... ttps_bounded_args_t,
-        wf::front_bindable ... bounded_args_t
+        typename ... bounded_args_t
     >
     class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
 
@@ -608,15 +599,42 @@ namespace csl::wf {
     public:
 
         constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
+        noexcept(
+            std::is_nothrow_constructible_v<F, decltype(f_arg)> and
+            std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
+        )
+        requires (
+            sizeof...(args) == sizeof...(bounded_args_t) and
+            std::constructible_from<F, decltype(f_arg)> and
+            std::constructible_from<bounded_args_storage_type, decltype(args)...>
+        )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
         constexpr explicit front_binder(auto && f_arg, auto && ... args)
+        noexcept(
+            std::is_nothrow_constructible_v<F, decltype(f_arg)> and
+            std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
+        )
+        requires (
+            sizeof...(args) == sizeof...(bounded_args_t) and
+            std::constructible_from<F, decltype(f_arg)> and
+            std::constructible_from<bounded_args_storage_type, decltype(args)...>
+        )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {
-            static_assert(sizeof...(ttps_bounded_args_t) == 0);
+            //static_assert(sizeof...(ttps_bounded_args_t) == 0);
         }
+
+        constexpr front_binder() = delete;
+        constexpr front_binder(front_binder&&) noexcept = default;
+        constexpr front_binder(const front_binder&) = default;
+        constexpr front_binder & operator=(front_binder &&) noexcept = default;
+        constexpr front_binder & operator=(const front_binder &) = default;
+        constexpr ~front_binder() = default;
+
+        constexpr auto operator==(const front_binder & other) const noexcept -> bool = default;
 
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
@@ -686,9 +704,9 @@ namespace csl::wf {
         // }
     };
     template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
-    front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
+    front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_bounded_args_t...>, std::decay_t<bounded_args_t>...>;
     template <typename F, typename ... bounded_args_t>
-    front_binder(F&&, bounded_args_t&&...) -> front_binder<F, mp::ttps<>, bounded_args_t...>;
+    front_binder(F&&, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, std::decay_t<bounded_args_t>...>;
 
     // binder_front
     //  same as `std::bind_front`, but also bound/allow ttps
