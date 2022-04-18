@@ -589,7 +589,7 @@ namespace csl::wf {
     >
     class front_binder<F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>> {
 
-        using type = front_binder<F, mp::ttps<ttps_bounded_ts...>, args_bounded_ts...>;
+        using type = front_binder<F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>>;
 
         F f;
         using bounded_args_storage_type = std::tuple<args_bounded_ts...>;
