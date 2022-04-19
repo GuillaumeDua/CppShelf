@@ -67,9 +67,9 @@ namespace test::front_binder_ {
 
     consteval void declare_construct() {
         {
-            using type = front_binder<F, mp::ttps<void, void>, int>;
+            using type = front_binder<F, mp::ttps<void, void>, mp::args<int>>;
             {
-                constexpr auto value = type{ func, mp::ttps<void, void>{}, 42}; // (1)
+                constexpr auto value = type{ func, mp::ttps<void, void>{}, 42 }; // (1)
                 static_assert(value('A') == 107);
             }
             // [[maybe_unused]] auto value = type{ func, mp::ttps<>{}, 42}; // no
@@ -103,7 +103,7 @@ namespace test::front_binder_ {
 
     consteval void deduce() {
         constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
-        using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+        using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, mp::args<int>>;
         static_assert(std::same_as<
             decltype(value),
             const expected_type
@@ -119,7 +119,7 @@ namespace test::front_binder_ {
             static_assert(std::is_nothrow_copy_constructible_v<decltype(value)>);
 
             constexpr auto copy_value = value;
-            using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, int>;
+            using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, mp::args<int>>;
             static_assert(std::same_as<
                 decltype(copy_value),
                 const expected_type
@@ -136,7 +136,7 @@ namespace test::front_binder_ {
                 void operator()(){}
             };
             constexpr auto value = front_binder{ copy_and_move_can_throw{} };
-            using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>>;
+            using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>, mp::args<>>;
             static_assert(std::same_as<
                 decltype(value),
                 const expected_type
@@ -160,7 +160,7 @@ namespace test::front_binder_ {
             static_assert(not std::is_trivially_copy_constructible_v<decltype(value)>);
             static_assert(not std::is_nothrow_copy_constructible_v<decltype(value)>);
 
-            using expected_type = front_binder<not_copyable, mp::ttps<>>;
+            using expected_type = front_binder<not_copyable, mp::ttps<>, mp::args<>>;
             static_assert(std::same_as<
                 decltype(value),
                 const expected_type
@@ -169,7 +169,7 @@ namespace test::front_binder_ {
     }
     consteval void move() {
         {   // trivial, nothrow
-            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 }; // NOLINT
 
             static_assert(std::is_move_constructible_v<decltype(value)>);
             #ifdef __GLIBCXX__
