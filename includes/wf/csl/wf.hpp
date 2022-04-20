@@ -575,6 +575,40 @@ namespace csl::wf {
 // front_binder
 // bind_front
 namespace csl::wf {
+
+    // TODO : ttps
+    struct front_binding_policy {
+        template <typename ... bounded_args_ts>
+        static constexpr decltype(auto) invoke(auto && f, std::tuple<bounded_args_ts...> & bounded_args, auto && ... args)
+        noexcept(mp::is_nothrow_invocable_v<decltype(f), bounded_args_ts..., decltype(args)...>)
+        requires(mp::is_invocable_v<decltype(f), bounded_args_ts..., decltype(args)...>)
+        {
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return wf::invoke(
+                    std::forward<decltype(f)>(f),
+                    std::get<indexes>(bounded_args)...,
+                    std::forward<decltype(args)>(args)...
+                );
+            }(std::make_index_sequence<sizeof...(bounded_args_ts)>{});
+        }
+    };
+    struct back_binding_policy {
+        template <typename ... bounded_args_ts>
+        static constexpr decltype(auto) invoke(auto && f, std::tuple<bounded_args_ts...> & bounded_args, auto && ... args)
+        noexcept(mp::is_nothrow_invocable_v<decltype(f), decltype(args)..., bounded_args_ts...>)
+        requires(mp::is_invocable_v<decltype(f), decltype(args)..., bounded_args_ts...>)
+        {
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return wf::invoke(
+                    std::forward<decltype(f)>(f),
+                    std::forward<decltype(args)>(args)...,
+                    std::get<indexes>(bounded_args)...
+                );
+            }(std::make_index_sequence<sizeof...(bounded_args_ts)>{});
+        }
+    };
+
+
     // front_binder
     template <
         typename F,
