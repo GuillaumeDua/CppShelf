@@ -167,8 +167,9 @@ namespace csl::wf::details::mp {
     using cat_t = cat<pack, ttps...>;
 }
 // ttps, is_ttps
+// args, is_args
 namespace csl::wf::mp {
-// ttps -> pack of ttps
+    // ttps -> pack of ttps
     template <typename ...>
     struct ttps{};
 
@@ -178,12 +179,25 @@ namespace csl::wf::mp {
     struct is_ttps<ttps<Ts...>> : std::true_type{};
     template <typename T>
     constexpr bool is_ttps_v = is_ttps<T>::value;
+
+    // args -> pack of args
+    template <typename ...>
+    struct args{};
+
+    template <typename T>
+    struct is_args : std::false_type{};
+    template <typename ... Ts>
+    struct is_args<args<Ts...>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_args_v = is_args<T>::value;
 }
 // ttps
 // tupleinterface_(not_)starting_with_ttps
 namespace csl::wf::concepts {
     template <typename T>
     concept ttps = mp::is_ttps_v<std::remove_cvref_t<T>>;
+    template <typename T>
+    concept args = mp::is_args_v<std::remove_cvref_t<T>>;
 
     template <typename T>
     concept tupleinterface_starting_with_ttps = tuple_not_empty<T> and ttps<std::tuple_element_t<0, std::remove_cvref_t<T>>>;
@@ -455,9 +469,6 @@ namespace csl::wf::mp {
     //
     // Less restrictive than `is_applyable`, as `args` does not match TupleInterface.
     // Also, easier to handle types that does not fit in std::tuple, array and paires, like `void`.
-
-    template <typename ...>
-    struct args{};
 
     // invocable_with<F, ttps<...>, args<...>>
     template <typename F, typename...>
