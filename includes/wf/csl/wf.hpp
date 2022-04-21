@@ -572,11 +572,15 @@ namespace csl::wf {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 }
+// binder
 // front_binder
+// back_binder
 // bind_front
+// bind_back
 namespace csl::wf {
 
     // TODO : ttps
+    // TODO : concept (+cvref qualifiers)
     struct front_binding_policy {
         template <typename ... bounded_args_ts>
         static constexpr decltype(auto) invoke(auto && f, std::tuple<bounded_args_ts...> & bounded_args, auto && ... args)
@@ -608,22 +612,23 @@ namespace csl::wf {
         }
     };
 
-
-    // front_binder
+    // binder
     template <
+        typename invoke_policy,
         typename F,
         typename ttps_bounded_ts,
         typename args_bounded_ts
     >
-    class front_binder;
+    class binder;
     template <
+        typename invoke_policy,
         typename F,
         typename ... ttps_bounded_ts,
         typename ... args_bounded_ts
     >
-    class front_binder<F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>> {
+    class binder<invoke_policy, F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>> {
 
-        using type = front_binder<F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>>;
+        using type = binder<invoke_policy, F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>>;
 
         F f;
         using bounded_args_storage_type = std::tuple<args_bounded_ts...>;
@@ -631,7 +636,7 @@ namespace csl::wf {
 
     public:
 
-        constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_ts...>, auto && ... args)
+        constexpr binder(invoke_policy, auto && f_arg, mp::ttps<ttps_bounded_ts...>, auto && ... args)
         noexcept(
             std::is_nothrow_constructible_v<F, decltype(f_arg)> and
             std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
@@ -644,7 +649,7 @@ namespace csl::wf {
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
-        constexpr explicit front_binder(auto && f_arg, auto && ... args)
+        constexpr explicit binder(auto && f_arg, auto && ... args)
         noexcept(
             std::is_nothrow_constructible_v<F, decltype(f_arg)> and
             std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
@@ -656,19 +661,18 @@ namespace csl::wf {
         )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
-        {
-            //static_assert(sizeof...(ttps_bounded_ts) == 0);
-        }
+        {}
 
-        constexpr front_binder() = delete;
-        constexpr front_binder(front_binder&&) noexcept = default;
-        constexpr front_binder(const front_binder&) = default;
-        constexpr front_binder & operator=(front_binder &&) noexcept = default;
-        constexpr front_binder & operator=(const front_binder &) = default;
-        constexpr ~front_binder() = default;
+        constexpr binder() = delete;
+        constexpr binder(binder&&) noexcept = default;
+        constexpr binder(const binder&) = default;
+        constexpr binder & operator=(binder &&) noexcept = default;
+        constexpr binder & operator=(const binder &) = default;
+        constexpr ~binder() = default;
 
-        constexpr auto operator==(const front_binder & other) const noexcept -> bool = default;
+        constexpr auto operator==(const binder & other) const noexcept -> bool = default;
 
+        #pragma region operator()
         template <typename ... ttps, typename ... parameters_t>
         requires mp::is_applyable_before_v<
             F&,
@@ -735,17 +739,42 @@ namespace csl::wf {
         // constexpr decltype(auto) operator()(parameters_t && ... parameters) {
         //     static_assert([](){ return false; }(), "front_binder::operator() : no overload candidates matched");
         // }
+        #pragma endregion
     };
     template <
+        typename invoke_policy,
         typename F,
         typename ... ttps_bounded_ts,
         typename ... args_bounded_ts
     >
-    front_binder(F&&, mp::ttps<ttps_bounded_ts...>, args_bounded_ts&&...)
-    -> front_binder<std::decay_t<F>, mp::ttps<ttps_bounded_ts...>, mp::args<std::decay_t<args_bounded_ts>...>>;
-    template <typename F, typename ... args_bounded_ts>
-    front_binder(F&&, args_bounded_ts&&...)
-    -> front_binder<std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_bounded_ts>...>>;
+    binder(invoke_policy, F&&, mp::ttps<ttps_bounded_ts...>, args_bounded_ts&&...)
+    -> binder<invoke_policy, std::decay_t<F>, mp::ttps<ttps_bounded_ts...>, mp::args<std::decay_t<args_bounded_ts>...>>;
+    template <
+        typename invoke_policy,
+        typename F,
+        typename ... args_bounded_ts
+    >
+    binder(invoke_policy, F&&, args_bounded_ts&&...)
+    -> binder<invoke_policy, std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_bounded_ts>...>>;
+
+    // front_binder
+    template <typename F, typename ttps_ts, typename args_ts>
+    struct front_binder : binder<front_binding_policy, F, ttps_ts, args_ts>{
+        using binder_type = binder<front_binding_policy, F, ttps_ts, args_ts>;
+        explicit constexpr front_binder(auto && ... args)
+        : binder_type{ std::forward<decltype(args)>(args)... }
+        {}
+    };
+    template <
+        typename F, 
+        typename ... ttps_ts,
+        typename ... args_ts
+    >
+    front_binder(F&&, mp::ttps<ttps_ts...>&&, args_ts&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_ts...>, mp::args<std::decay_t<args_ts>...>>;
+    template <typename F, typename ... args_ts>
+    front_binder(F&&, args_ts&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_ts>...>>;
+
+    // back_binder
 
     // binder_front
     //  same as `std::bind_front`, but also bound/allow ttps
@@ -765,6 +794,8 @@ namespace csl::wf {
             std::forward<args_bounded_ts>(args)...
         };
     }
+    // bind_back
+    // TODO
 }
 // function_view
 // function_ref
