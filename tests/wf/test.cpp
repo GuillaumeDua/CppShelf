@@ -97,7 +97,7 @@ auto main() -> int {
     }
     {   // fwd arg
         auto route = csl::wf::route {
-            [](){ return 42; },
+            [](){ return 42; }, // NOLINT
             [](int){  },
             [](){}
         };
