@@ -817,6 +817,26 @@ namespace csl::wf {
     front_binder(F&&, args_ts&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_ts>...>>;
 
     // back_binder
+    template <
+        typename F,
+        concepts::ttps ttps_ts,
+        concepts::args args_ts
+    >
+    struct back_binder : binder<back_binding_policy, F, ttps_ts, args_ts>{
+        using binder_type = binder<back_binding_policy, F, ttps_ts, args_ts>;
+        explicit constexpr back_binder(auto && ... args)
+        noexcept(std::is_nothrow_constructible_v<binder_type, decltype(args)...>)
+        : binder_type{ std::forward<decltype(args)>(args)... }
+        {}
+    };
+    template <
+        typename F, 
+        typename ... ttps_ts,
+        typename ... args_ts
+    >
+    back_binder(F&&, mp::ttps<ttps_ts...>, args_ts&&...) -> back_binder<std::decay_t<F>, mp::ttps<ttps_ts...>, mp::args<std::decay_t<args_ts>...>>;
+    template <typename F, typename ... args_ts>
+    back_binder(F&&, args_ts&&...) -> back_binder<std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_ts>...>>;
 
     // binder_front
     //  same as `std::bind_front`, but also bound/allow ttps
@@ -836,7 +856,23 @@ namespace csl::wf {
         };
     }
     // bind_back
-    // TODO
+    //  same as `std::bind_back`, but also bound/allow ttps
+    //  (waiting for proposal p1985 to extend this to nttps ...)
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_back(F&& f, args_bounded_ts && ... args) {
+        // back_binder factory.
+        // produces the same behavior as std::bind_back (cvref-qualifiers correctness)
+        using bind_back_t = back_binder<
+            std::remove_cvref_t<F>,
+            mp::ttps<ttps_bounded_ts...>,
+            mp::args<std::remove_cvref_t<args_bounded_ts>...>
+        >;
+        return bind_back_t{
+            std::forward<F>(f),
+            std::forward<args_bounded_ts>(args)...
+        };
+    }
+ 
 }
 // function_view
 // function_ref
