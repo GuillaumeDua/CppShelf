@@ -192,7 +192,9 @@ namespace test::front_binder_ {
 
             // implicit copies
             static_assert(std::is_move_constructible_v<decltype(value)>);
+            #if defined(__clang__)
             static_assert(std::is_trivially_move_constructible_v<decltype(value)>);
+            #endif
             static_assert(std::is_nothrow_move_constructible_v<decltype(value)>);
 
             auto move_value = std::move(value);
