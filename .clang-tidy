@@ -17,7 +17,8 @@ Checks: '-boost-*,
         performance-*,
         readability-*,
             -readability-braces-around-statements,
-            -readability-named-parameter
+            -readability-named-parameter,
+            -readability-identifier-length
         '
 
 # WarningsAsErrors: '*'
