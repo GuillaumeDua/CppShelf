@@ -5,6 +5,7 @@
 // types
 #include "./repeat.hpp"
 #include "./bind_front.hpp"
+#include "./bind_back.hpp"
 #include "./function_ref_and_view.hpp"
 // type : chain/route
 #include "./chain_trait.hpp"
