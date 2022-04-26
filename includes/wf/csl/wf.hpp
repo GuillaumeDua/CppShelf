@@ -723,65 +723,74 @@ namespace csl::wf {
 
         #pragma region operator()
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
             F&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             bounded_args_storage_type&, parameters_t&&...
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) &
-        noexcept(mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
             F&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             bounded_args_storage_type&, parameters_t&&...
         >)
         {
-            return apply_before<ttps_bounded_ts..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
+            return invoke_policy::template invoke<
+                ttps_bounded_ts..., ttps...
+            >(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
 
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
             const F&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             const bounded_args_storage_type&, parameters_t&&...
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) const &
-        noexcept (mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
             const F&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             const bounded_args_storage_type&, parameters_t&&...
         >)
         {
-            return apply_before<ttps_bounded_ts..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
+            return invoke_policy::template invoke<
+                ttps_bounded_ts..., ttps...
+            >(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
         }
 
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
             F&&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             bounded_args_storage_type&&, parameters_t&&...
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) &&
-        noexcept (mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
             F&&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             bounded_args_storage_type&&, parameters_t&&...
-        >) {
-            return apply_before<ttps_bounded_ts..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
+        >)
+        {
+            return invoke_policy::template invoke<
+                ttps_bounded_ts..., ttps...
+            >(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
 
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
             const F&&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             const bounded_args_storage_type&&, parameters_t&&...
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) const &&
-        noexcept(mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
             const F&&,
             mp::ttps<ttps_bounded_ts..., ttps...>,
             const bounded_args_storage_type&&, parameters_t&&...
         >) {
-            return apply_before<ttps_bounded_ts..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
+            return invoke_policy::template invoke<
+                ttps_bounded_ts..., ttps...
+            >(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
         }
 
         // template <typename ... ttps, typename ... parameters_t>
