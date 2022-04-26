@@ -714,7 +714,12 @@ namespace csl::wf {
         constexpr binder & operator=(const binder &) = default;
         constexpr ~binder() = default;
 
-        constexpr auto operator==(const binder & other) const noexcept -> bool = default;
+        // Fix GCC illed evaluation or `std::get<0>(value) == std::get<0>(other)`
+        // constexpr auto operator==(const binder & other) const noexcept -> bool = default;
+        constexpr auto operator==(const binder & other) const noexcept -> bool 
+        requires std::equality_comparable<F> and std::equality_comparable<bounded_args_storage_type> {
+            return f == other.f and bounded_arguments == other.bounded_arguments;
+        };
 
         #pragma region operator()
         template <typename ... ttps, typename ... parameters_t>
