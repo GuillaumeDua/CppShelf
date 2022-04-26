@@ -593,33 +593,40 @@ namespace csl::wf {
     // TODO : ttps
     // TODO : concept (+cvref qualifiers)
     struct front_binding_policy {
-        template <typename ... bounded_args_ts>
-        static constexpr decltype(auto) invoke(auto && f, std::tuple<bounded_args_ts...> & bounded_args, auto && ... args)
-        noexcept(mp::is_nothrow_invocable_v<decltype(f), bounded_args_ts..., decltype(args)...>)
-        requires(mp::is_invocable_v<decltype(f), bounded_args_ts..., decltype(args)...>)
+
+        template <typename ... Ts>
+        constexpr static bool is_invocable_v = mp::is_applyable_before_v<Ts...>;
+        template <typename ... Ts>
+        constexpr static bool is_nothrow_invocable_v = mp::is_nothrow_applyable_before_v<Ts...>;
+
+        template <typename ... f_ts>
+        static constexpr decltype(auto) invoke(auto && ... args)
+        noexcept(noexcept(csl::wf::apply_before<f_ts...>(fwd(args)...)))
+        requires requires{ csl::wf::apply_before<f_ts...>(fwd(args)...); }
         {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return wf::invoke(
-                    std::forward<decltype(f)>(f),
-                    std::get<indexes>(bounded_args)...,
-                    std::forward<decltype(args)>(args)...
-                );
-            }(std::make_index_sequence<sizeof...(bounded_args_ts)>{});
+            return csl::wf::apply_before<f_ts...>(fwd(args)...);
         }
     };
     struct back_binding_policy {
-        template <typename ... bounded_args_ts>
-        static constexpr decltype(auto) invoke(auto && f, std::tuple<bounded_args_ts...> & bounded_args, auto && ... args)
-        noexcept(mp::is_nothrow_invocable_v<decltype(f), decltype(args)..., bounded_args_ts...>)
-        requires(mp::is_invocable_v<decltype(f), decltype(args)..., bounded_args_ts...>)
+        template <typename ... Ts>
+        constexpr static bool is_invocable_v = mp::is_applyable_after_v<Ts...>;
+        template <typename ... Ts>
+        constexpr static bool is_nothrow_invocable_v = mp::is_nothrow_applyable_after_v<Ts...>;
+
+        // template <typename ... f_ts, typename F, concepts::tuple_interface args_as_tuple_t, typename ... func_args_t>
+        // static constexpr decltype(auto) invoke(F && f, args_as_tuple_t && bounded_args, func_args_t && ... args)
+        // noexcept(is_nothrow_invocable_v<F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>)
+        // requires is_invocable_v        <F&&, mp::ttps<f_ts...>, args_as_tuple_t, func_args_t...>
+        // {
+        //     return csl::wf::apply_after<f_ts...>(fwd(f), fwd(bounded_args), fwd(args)...);
+        // }
+
+        template <typename ... f_ts>
+        static constexpr decltype(auto) invoke(auto && ... args)
+        noexcept(noexcept(csl::wf::apply_after<f_ts...>(fwd(args)...)))
+        requires requires{ csl::wf::apply_after<f_ts...>(fwd(args)...); }
         {
-            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return wf::invoke(
-                    std::forward<decltype(f)>(f),
-                    std::forward<decltype(args)>(args)...,
-                    std::get<indexes>(bounded_args)...
-                );
-            }(std::make_index_sequence<sizeof...(bounded_args_ts)>{});
+            return csl::wf::apply_after<f_ts...>(fwd(args)...);
         }
     };
 
