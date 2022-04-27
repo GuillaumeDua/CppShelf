@@ -164,7 +164,7 @@ namespace csl::wf::details::mp {
     >
     struct cat<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
     template <typename pack, typename... ttps>
-    using cat_t = cat<pack, ttps...>;
+    using cat_t = typename cat<pack, ttps...>::type;
 }
 // ttps, is_ttps
 // args, is_args
