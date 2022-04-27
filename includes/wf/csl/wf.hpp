@@ -542,6 +542,18 @@ namespace csl::wf {
             return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(fwd(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
+    template <concepts::ttps ttps, typename F, concepts::tupleinterface_not_starting_with_ttps args_as_tuple_t>
+    requires mp::is_applyable_v<F&&, ttps, args_as_tuple_t>
+    constexpr decltype(auto) apply(F && f, ttps, args_as_tuple_t&& args)
+    noexcept(mp::is_nothrow_applyable_v<F&&, ttps, args_as_tuple_t>)
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::is_nothrow_invocable_v<F&&, ttps, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>)
+        -> decltype(auto)
+        {
+            return invoke(std::forward<F>(f), ttps{}, std::get<indexes>(fwd(args))...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
     template <typename F, concepts::tupleinterface_starting_with_ttps args_as_tuple_t>
     constexpr decltype(auto) apply(F && f, args_as_tuple_t && args)
     noexcept(mp::is_nothrow_applyable_v<F&&, decltype(fwd(args))>)
