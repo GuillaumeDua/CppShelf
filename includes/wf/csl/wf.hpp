@@ -147,6 +147,7 @@ namespace csl::wf::mp {
     >::type;
 }
 // cat
+// is_same_pack_as
 namespace csl::wf::details::mp {
     // cat / append
     template <typename, typename...>
@@ -165,6 +166,17 @@ namespace csl::wf::details::mp {
     struct cat<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
     template <typename pack, typename... ttps>
     using cat_t = typename cat<pack, ttps...>::type;
+
+    template <typename T, typename U>
+    struct is_same_ttp : std::false_type{};
+    template <
+        template <typename...> typename pack,
+        typename ... Ts,
+        typename ... Us
+    >
+    struct is_same_ttp<pack<Ts...>, pack<Us...>> : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool is_same_ttp_v = is_same_ttp<T, U>::value;
 }
 // ttps, is_ttps
 // args, is_args
@@ -193,7 +205,9 @@ namespace csl::wf::mp {
 }
 // ttps
 // tupleinterface_(not_)starting_with_ttps
+// same_ttp_as
 namespace csl::wf::concepts {
+
     template <typename T>
     concept ttps = mp::is_ttps_v<std::remove_cvref_t<T>>;
     template <typename T>
@@ -203,6 +217,9 @@ namespace csl::wf::concepts {
     concept tupleinterface_starting_with_ttps = tuple_not_empty<T> and ttps<std::tuple_element_t<0, std::remove_cvref_t<T>>>;
     template <typename T>
     concept tupleinterface_not_starting_with_ttps = tuple_interface<T> and not tupleinterface_starting_with_ttps<T>;
+
+    template <typename T, typename U>
+    concept same_ttp_as = details::mp::is_same_ttp_v<T, U>;
 }
 
 // is_(nothrow_)invocable(_r), invoke_result
