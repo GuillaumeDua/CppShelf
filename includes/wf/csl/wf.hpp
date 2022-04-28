@@ -113,7 +113,10 @@ namespace csl::wf::mp {
         std::size_t count = std::string_view::npos
     >
     constexpr concepts::tuple_interface auto make_tuple_subview(concepts::tuple_interface auto && tuple_value) noexcept
-    requires (pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>) {
+    requires (
+        pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>> or
+        concepts::tuple_empty<decltype(tuple_value)>
+    ) {
         using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
         constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
         return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
@@ -658,7 +661,7 @@ namespace csl::wf {
         constexpr static bool is_invocable_v = csl::wf::mp::is_applyable_v<
             F,
             typename ttps_binding_policy::template fold_t<bounded_ttps, ttps>,
-            typename args_binding_policy::template fold_t<bounded_args, args>
+            typename args_binding_policy::template fold_t<mp::tuple_view_t<bounded_args>, args>
         >;
 
         template <
@@ -669,7 +672,7 @@ namespace csl::wf {
         constexpr static bool is_nothrow_invocable_v = csl::wf::mp::is_nothrow_applyable_v<
             F,
             typename ttps_binding_policy::template fold_t<bounded_ttps, ttps>,
-            typename args_binding_policy::template fold_t<bounded_args, args>
+            typename args_binding_policy::template fold_t<mp::tuple_view_t<bounded_args>, args>
         >;
 
         template <csl::wf::concepts::ttps bounded_ttps, csl::wf::concepts::ttps ttps>
