@@ -221,7 +221,7 @@ namespace test {
         static_assert(std::is_same_v<decltype(bind_back(func)()), std::tuple<>>);
         static_assert(std::is_same_v<decltype(bind_back<int>(func)()), std::tuple<int>>);
         static_assert(std::is_same_v<decltype(bind_back<int, char>(func)()), std::tuple<int, char>>);
-        static_assert(std::is_same_v<decltype(bind_back<int>(func).template operator()<char>()), std::tuple<int, char>>);
+        static_assert(std::is_same_v<decltype(bind_back<char>(func).template operator()<int>()), std::tuple<int, char>>);
         static_assert(std::is_same_v<decltype(bind_back(func).template operator()<int, char>()), std::tuple<int, char>>);
 
         namespace mp = csl::wf::mp;
@@ -258,7 +258,7 @@ namespace test {
         static_assert(std::same_as<std::tuple<>,             mp::invoke_result_t<decltype(bind_back(func))>>);
         static_assert(std::same_as<std::tuple<int>,          mp::invoke_result_t<decltype(bind_back<int>(func))>>);
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<int, char>(func))>>);
-        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<int>(func)), mp::ttps<char>>>);
+        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<char>(func)), mp::ttps<int>>>);
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back(func)), mp::ttps<int, char>>>);
     }
 }
