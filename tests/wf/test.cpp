@@ -2,6 +2,9 @@
 #include "./invocable_traits.hpp"
 #include "./invoke_apply.hpp"
 
+// mp
+#include "./mp/tuple_view.hpp"
+
 // types
 #include "./repeat.hpp"
 #include "./bind_front.hpp"

@@ -113,25 +113,20 @@ namespace csl::wf::mp {
         std::size_t count = std::string_view::npos
     >
     constexpr concepts::tuple_interface auto make_tuple_subview(concepts::tuple_interface auto && tuple_value) noexcept
-    requires (
-        pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>> or
-        concepts::tuple_empty<decltype(tuple_value)>
-    ) {
+    requires (pos <= std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>)
+    {
         using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
-        constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
+        constexpr auto tuple_size = std::tuple_size_v<remove_cvref_tuple_type>;
+        constexpr auto length = std::min(count, tuple_size - pos);
         return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
             return std::tuple<
                 decltype(std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
-            >{ std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
+            >{           std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
         }(std::make_index_sequence<length>{});
     }
     constexpr concepts::tuple_interface auto make_tuple_view(concepts::tuple_interface auto && tuple_value) noexcept {
         return make_tuple_subview(std::forward<decltype(tuple_value)>(tuple_value));
     }
-    static_assert(std::same_as<
-        std::tuple<int&&, const char &&>,
-        decltype(make_tuple_view(std::tuple<int, const char>{}))
-    >);
 
     template <concepts::tuple_interface T>
     using tuple_view_t = decltype(make_tuple_subview(std::declval<T>()));
