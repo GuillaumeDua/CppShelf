@@ -839,13 +839,13 @@ namespace csl::wf {
         requires invoke_policy::template is_invocable_v<
             mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             const F&&,
-            const bounded_args_storage_type&&, parameters_t&&...
+            const bounded_args_storage_type&&, std::tuple<parameters_t&&...>
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) const &&
         noexcept(invoke_policy::template is_nothrow_invocable_v<
             mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             const F&&,
-            const bounded_args_storage_type&&, parameters_t&&...
+            const bounded_args_storage_type&&, std::tuple<parameters_t&&...>
         >) {
             return invoke_policy::template invoke<
                 mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>
