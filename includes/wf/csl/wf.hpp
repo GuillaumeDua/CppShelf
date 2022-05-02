@@ -779,7 +779,10 @@ namespace csl::wf {
             return f == other.f and bounded_arguments == other.bounded_arguments;
         };
 
-        // todo : swap
+        constexpr void swap(type && other) noexcept {
+            std::swap(f, other.f);
+            std::swap(bounded_arguments, other.bounded_arguments);
+        }
 
         #pragma endregion
 

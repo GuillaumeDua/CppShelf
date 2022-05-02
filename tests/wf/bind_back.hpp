@@ -168,6 +168,13 @@ namespace test::back_binder_ {
             >);
         }
     }
+    consteval void swap() {
+        using not_moveable = tests::details::utils::not_moveable;
+        auto f = not_moveable{};
+        auto value = back_binder{ f, mp::ttps<void, void>{}, f };
+
+        static_assert(std::is_nothrow_swappable_v<decltype(value)>);
+    }
 
     consteval void assign_copy() {
         {   // copyable
