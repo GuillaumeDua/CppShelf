@@ -778,6 +778,9 @@ namespace csl::wf {
         requires std::equality_comparable<F> and std::equality_comparable<bounded_args_storage_type> {
             return f == other.f and bounded_arguments == other.bounded_arguments;
         };
+
+        // todo : swap
+
         #pragma endregion
 
         #pragma region operator()
@@ -857,6 +860,8 @@ namespace csl::wf {
         //     static_assert([](){ return false; }(), "front_binder::operator() : no overload candidates matched");
         // }
         #pragma endregion
+    
+        constexpr const auto &  underlying_function() const noexcept { return f; }
     };
     template <
         typename invoke_policy,

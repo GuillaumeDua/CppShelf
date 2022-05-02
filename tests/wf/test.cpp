@@ -28,9 +28,10 @@
 
 #include <csl/wf.hpp>
 #include <iostream>
-
+#include <cassert>
 
 auto main() -> int {
+
     {
         auto func = []<typename ...>(){};
         using func_type = decltype(func);

@@ -28,6 +28,21 @@ namespace test::back_binder_ {
             }
         }
     }
+
+    struct user_defined_functor {
+        constexpr int operator()(int args_0, char args_1) const noexcept {
+            return args_0 + args_1 + storage;
+        };
+        int storage = 0;
+    };
+
+    consteval void underlying_function() {
+
+        using type = back_binder<user_defined_functor, mp::ttps<>, mp::args<int>>;
+
+        constexpr auto value = type{ user_defined_functor{1}, 2 };
+        static_assert(value.underlying_function()(2, 39) == 42);
+    }
     consteval void noexcept_construct() {
         struct F_noexcept {};
         {
