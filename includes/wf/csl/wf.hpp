@@ -947,6 +947,10 @@ namespace csl::wf {
             std::forward<args_bounded_ts>(args)...
         };
     }
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_front(F&& f, mp::ttps<ttps_bounded_ts...>, args_bounded_ts && ... args) {
+        return bind_front<ttps_bounded_ts...>(fwd(f), fwd(args)...);
+    }
     // bind_back
     //  same as `std::bind_back`, but also bound/allow ttps
     //  (waiting for proposal p1985 to extend this to nttps ...)
@@ -964,7 +968,10 @@ namespace csl::wf {
             std::forward<args_bounded_ts>(args)...
         };
     }
- 
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_back(F&& f, mp::ttps<ttps_bounded_ts...>, args_bounded_ts && ... args) {
+        return bind_back<ttps_bounded_ts...>(fwd(f), fwd(args)...);
+    }    
 }
 // function_view
 // function_ref
