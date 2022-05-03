@@ -779,7 +779,15 @@ namespace csl::wf {
             return f == other.f and bounded_arguments == other.bounded_arguments;
         };
 
-        constexpr void swap(type && other) noexcept {
+        constexpr void swap(type && other)
+        noexcept (
+            std::is_nothrow_swappable_v<decltype(f)> and
+            std::is_nothrow_swappable_v<decltype(bounded_arguments)>
+        )
+        requires
+            std::is_swappable_v<decltype(f)> and
+            std::is_swappable_v<decltype(bounded_arguments)>
+        {
             std::swap(f, other.f);
             std::swap(bounded_arguments, other.bounded_arguments);
         }
