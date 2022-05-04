@@ -233,8 +233,8 @@ namespace test::back_binder_ {
         }
     }
 }
-namespace test {
-    consteval void bind_back_() {
+namespace test::bind_back_ {
+    consteval void type_correctness() {
         auto func = []<typename ... Ts>() noexcept { return std::tuple<Ts...>{}; };
 
         using namespace csl::wf;
@@ -282,5 +282,34 @@ namespace test {
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<int, char>(func))>>);
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<char>(func)), mp::ttps<int>>>);
         static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back(func)), mp::ttps<int, char>>>);
+    }
+    consteval void usage_synthaxes() {
+        using namespace tests::details::utils;
+        using namespace csl::wf;
+
+        auto f = []<typename T, typename U> (strong_of<int> i, strong_of<char> c){
+            static_assert(std::same_as<T, void>);
+            static_assert(std::same_as<U, int>);
+            return i + c;
+        };
+        auto binder_1 = bind_back<int>(f, strong_of<char>{'A'});
+        auto binder_2 = bind_back(f, mp::ttps<int>{}, strong_of<char>{'A'});
+        invoke<void>(binder_1, strong_of<int>{-23});
+        invoke<void>(binder_2, strong_of<int>{-23});
+        
+        auto binder_3 = back_binder{ f, mp::ttps<int>{}, strong_of<char>{'A'}};
+        binder_3.template operator()<void>(strong_of<int>{-23});
+
+        [[maybe_unused]] auto binder_4 = back_binder<std::remove_cvref_t<decltype(f)>, mp::ttps<int>, mp::args<strong_of<char>>> {
+            f, mp::ttps<int>{}, strong_of<char>{'A'}
+        };
+        [[maybe_unused]] auto binder_5 = back_binder<std::remove_cvref_t<decltype(f)>, mp::ttps<int>, mp::args<strong_of<char>>> {
+            f, strong_of<char>{'A'}
+        };
+
+        // return
+        //     binder_1.template operator()<void>(strong_of<int>{-23}) == 42 and
+        //     binder_2.template operator()<void>(strong_of<int>{-23}) == 42
+        // ;
     }
 }
