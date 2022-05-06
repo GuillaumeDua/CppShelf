@@ -39,4 +39,12 @@ namespace tests::details::utils {
     static_assert(not std::is_move_constructible_v<not_moveable>);
     static_assert(not std::is_move_assignable_v<not_moveable>);
     static_assert(std::equality_comparable<not_moveable>);
+
+    template <typename T>
+    struct strong_of {
+        explicit constexpr strong_of(T arg) noexcept : value{arg} {};
+        constexpr /* not explicit on purpose*/ operator T() const noexcept { return value; };
+    private:
+        T value;
+    };
 }

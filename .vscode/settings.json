@@ -53,5 +53,7 @@
         "bitset": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
-    "debug.terminal.clearBeforeReusing": true
+    "debug.terminal.clearBeforeReusing": true,
+    "clang-tidy.buildPath": "./build/"
+    // "clang-tidy.buildPath": "${workspaceFolder}/build"
 }

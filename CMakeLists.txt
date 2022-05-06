@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # top-level project
 project(csl LANGUAGES CXX)
 set(PROJECT_VERSION 0.1.0)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}] : In-source build not recommended")

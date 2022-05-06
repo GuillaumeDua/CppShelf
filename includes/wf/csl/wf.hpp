@@ -113,22 +113,20 @@ namespace csl::wf::mp {
         std::size_t count = std::string_view::npos
     >
     constexpr concepts::tuple_interface auto make_tuple_subview(concepts::tuple_interface auto && tuple_value) noexcept
-    requires (pos < std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>) {
+    requires (pos <= std::tuple_size_v<std::remove_cvref_t<decltype(tuple_value)>>)
+    {
         using remove_cvref_tuple_type = std::remove_cvref_t<decltype(tuple_value)>;
-        constexpr auto length = std::min(count, std::tuple_size_v<remove_cvref_tuple_type> - pos);
+        constexpr auto tuple_size = std::tuple_size_v<remove_cvref_tuple_type>;
+        constexpr auto length = std::min(count, tuple_size - pos);
         return [&tuple_value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr noexcept {
             return std::tuple<
                 decltype(std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value)))...
-            >{ std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
+            >{           std::get<pos + indexes>(std::forward<decltype(tuple_value)>(tuple_value))... };
         }(std::make_index_sequence<length>{});
     }
     constexpr concepts::tuple_interface auto make_tuple_view(concepts::tuple_interface auto && tuple_value) noexcept {
         return make_tuple_subview(std::forward<decltype(tuple_value)>(tuple_value));
     }
-    static_assert(std::same_as<
-        std::tuple<int&&, const char &&>,
-        decltype(make_tuple_view(std::tuple<int, const char>{}))
-    >);
 
     template <concepts::tuple_interface T>
     using tuple_view_t = decltype(make_tuple_subview(std::declval<T>()));
@@ -147,6 +145,7 @@ namespace csl::wf::mp {
     >::type;
 }
 // cat
+// is_same_pack_as
 namespace csl::wf::details::mp {
     // cat / append
     template <typename, typename...>
@@ -164,11 +163,23 @@ namespace csl::wf::details::mp {
     >
     struct cat<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
     template <typename pack, typename... ttps>
-    using cat_t = cat<pack, ttps...>;
+    using cat_t = typename cat<pack, ttps...>::type;
+
+    template <typename T, typename U>
+    struct is_same_ttp : std::false_type{};
+    template <
+        template <typename...> typename pack,
+        typename ... Ts,
+        typename ... Us
+    >
+    struct is_same_ttp<pack<Ts...>, pack<Us...>> : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool is_same_ttp_v = is_same_ttp<T, U>::value;
 }
 // ttps, is_ttps
+// args, is_args
 namespace csl::wf::mp {
-// ttps -> pack of ttps
+    // ttps -> pack of ttps
     template <typename ...>
     struct ttps{};
 
@@ -178,17 +189,35 @@ namespace csl::wf::mp {
     struct is_ttps<ttps<Ts...>> : std::true_type{};
     template <typename T>
     constexpr bool is_ttps_v = is_ttps<T>::value;
+
+    // args -> pack of args
+    template <typename ...>
+    struct args{};
+
+    template <typename T>
+    struct is_args : std::false_type{};
+    template <typename ... Ts>
+    struct is_args<args<Ts...>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_args_v = is_args<T>::value;
 }
 // ttps
 // tupleinterface_(not_)starting_with_ttps
+// same_ttp_as
 namespace csl::wf::concepts {
+
     template <typename T>
     concept ttps = mp::is_ttps_v<std::remove_cvref_t<T>>;
+    template <typename T>
+    concept args = mp::is_args_v<std::remove_cvref_t<T>>;
 
     template <typename T>
     concept tupleinterface_starting_with_ttps = tuple_not_empty<T> and ttps<std::tuple_element_t<0, std::remove_cvref_t<T>>>;
     template <typename T>
     concept tupleinterface_not_starting_with_ttps = tuple_interface<T> and not tupleinterface_starting_with_ttps<T>;
+
+    template <typename T, typename U>
+    concept same_ttp_as = details::mp::is_same_ttp_v<T, U>;
 }
 
 // is_(nothrow_)invocable(_r), invoke_result
@@ -456,9 +485,6 @@ namespace csl::wf::mp {
     // Less restrictive than `is_applyable`, as `args` does not match TupleInterface.
     // Also, easier to handle types that does not fit in std::tuple, array and paires, like `void`.
 
-    template <typename ...>
-    struct args{};
-
     // invocable_with<F, ttps<...>, args<...>>
     template <typename F, typename...>
     struct is_invocable_with{
@@ -531,6 +557,18 @@ namespace csl::wf {
             return invoke<f_ts...>(std::forward<F>(f), std::get<indexes>(fwd(args))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
+    template <concepts::ttps ttps, typename F, concepts::tupleinterface_not_starting_with_ttps args_as_tuple_t>
+    requires mp::is_applyable_v<F&&, ttps, args_as_tuple_t>
+    constexpr decltype(auto) apply(F && f, ttps, args_as_tuple_t&& args)
+    noexcept(mp::is_nothrow_applyable_v<F&&, ttps, args_as_tuple_t>)
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>)
+        noexcept(mp::is_nothrow_invocable_v<F&&, ttps, decltype(std::get<indexes>(std::declval<args_as_tuple_t&&>()))...>)
+        -> decltype(auto)
+        {
+            return invoke(std::forward<F>(f), ttps{}, std::get<indexes>(fwd(args))...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
+    }
     template <typename F, concepts::tupleinterface_starting_with_ttps args_as_tuple_t>
     constexpr decltype(auto) apply(F && f, args_as_tuple_t && args)
     noexcept(mp::is_nothrow_applyable_v<F&&, decltype(fwd(args))>)
@@ -572,156 +610,376 @@ namespace csl::wf {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<args_as_tuple_t>>>{});
     }
 }
-// front_binder
-// bind_front
-namespace csl::wf {
-    // front_binder
-    // TODO : ttps_pack_type as non-mandatory parameter ?
-    template <
-        typename F,
-        typename ttps_pack_type,
-        typename ... bounded_args_t
-    >
-    class front_binder;
-    template <
-        typename F,
-        typename ... ttps_bounded_args_t,
-        typename ... bounded_args_t
-    >
-    class front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...> {
+namespace csl::wf::fold_policy {
+    struct right {
+        template <typename T, csl::wf::concepts::same_ttp_as<T> U>
+        using fold_t = csl::wf::details::mp::cat_t<T, U>;
 
-        using type = front_binder<F, mp::ttps<ttps_bounded_args_t...>, bounded_args_t...>;
+        constexpr static decltype(auto) fold_values(
+            csl::wf::concepts::tuple_interface auto && lhs,
+            csl::wf::concepts::tuple_interface auto && rhs
+        )
+        {
+            return std::tuple_cat(fwd(lhs), fwd(rhs));
+        }
+    };
+    struct left {
+        template <typename T, csl::wf::concepts::same_ttp_as<T> U>
+        using fold_t = csl::wf::details::mp::cat_t<U, T>;
+
+        constexpr static decltype(auto) fold_values(
+            csl::wf::concepts::tuple_interface auto && lhs,
+            csl::wf::concepts::tuple_interface auto && rhs
+        )
+        {
+            return std::tuple_cat(fwd(rhs), fwd(lhs));
+        }
+    };
+}
+// binder
+// front_binder
+// back_binder
+// bind_front
+// bind_back
+namespace csl::wf {
+
+    template <
+        typename ttps_binding_policy,
+        typename args_binding_policy = ttps_binding_policy
+    >
+    struct binding_policy {
+        template <
+            csl::wf::concepts::ttps bounded_ttps, csl::wf::concepts::ttps ttps,
+            typename F,
+            csl::wf::concepts::tuple_interface bounded_args, csl::wf::concepts::tuple_interface args
+        >
+        constexpr static bool is_invocable_v = csl::wf::mp::is_applyable_v<
+            F,
+            typename ttps_binding_policy::template fold_t<bounded_ttps, ttps>,
+            typename args_binding_policy::template fold_t<mp::tuple_view_t<bounded_args>, args>
+        >;
+
+        template <
+            csl::wf::concepts::ttps bounded_ttps, csl::wf::concepts::ttps ttps,
+            typename F,
+            csl::wf::concepts::tuple_interface bounded_args, csl::wf::concepts::tuple_interface args
+        >
+        constexpr static bool is_nothrow_invocable_v = csl::wf::mp::is_nothrow_applyable_v<
+            F,
+            typename ttps_binding_policy::template fold_t<bounded_ttps, ttps>,
+            typename args_binding_policy::template fold_t<mp::tuple_view_t<bounded_args>, args>
+        >;
+
+        template <csl::wf::concepts::ttps bounded_ttps, csl::wf::concepts::ttps ttps>
+        constexpr static decltype(auto) invoke(
+            auto f,
+            csl::wf::concepts::tuple_interface auto bounded_args,
+            csl::wf::concepts::tuple_interface auto args
+        ){
+            return csl::wf::apply(
+                fwd(f),
+                typename ttps_binding_policy::template fold_t<bounded_ttps, ttps>{},
+                args_binding_policy::fold_values(fwd(bounded_args), fwd(args))
+            );
+        }
+    };
+
+    using front_binding_policy = binding_policy<fold_policy::right>;
+    using back_binding_policy = binding_policy<fold_policy::left>;
+
+    // binder
+    template <
+        typename invoke_policy,
+        typename F,
+        concepts::ttps ttps_bounded_ts,
+        concepts::args args_bounded_ts
+    >
+    class binder;
+    template <
+        typename invoke_policy,
+        typename F,
+        typename ... ttps_bounded_ts,
+        typename ... args_bounded_ts
+    >
+    class binder<invoke_policy, F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>> {
+
+        using type = binder<invoke_policy, F, mp::ttps<ttps_bounded_ts...>, mp::args<args_bounded_ts...>>;
 
         F f;
-        using bounded_args_storage_type = std::tuple<bounded_args_t...>;
+        using bounded_args_storage_type = std::tuple<args_bounded_ts...>;
         bounded_args_storage_type bounded_arguments;
 
     public:
 
-        constexpr front_binder(auto && f_arg, mp::ttps<ttps_bounded_args_t...>, auto && ... args)
+        #pragma region basics
+        constexpr binder(invoke_policy, auto && f_arg, mp::ttps<ttps_bounded_ts...>, auto && ... args)
         noexcept(
             std::is_nothrow_constructible_v<F, decltype(f_arg)> and
             std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
         )
         requires (
-            sizeof...(args) == sizeof...(bounded_args_t) and
+            sizeof...(args) == sizeof...(args_bounded_ts) and
             std::constructible_from<F, decltype(f_arg)> and
             std::constructible_from<bounded_args_storage_type, decltype(args)...>
         )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
         {}
-        constexpr explicit front_binder(auto && f_arg, auto && ... args)
+        constexpr binder(invoke_policy, auto && f_arg, auto && ... args)
         noexcept(
             std::is_nothrow_constructible_v<F, decltype(f_arg)> and
             std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
         )
         requires (
-            sizeof...(args) == sizeof...(bounded_args_t) and
+            sizeof...(args) == sizeof...(args_bounded_ts) and
             std::constructible_from<F, decltype(f_arg)> and
             std::constructible_from<bounded_args_storage_type, decltype(args)...>
         )
         : f{std::forward<decltype(f_arg)>(f_arg)}
         , bounded_arguments{std::forward<decltype(args)>(args)...}
+        {}
+        constexpr binder(auto && f_arg, mp::ttps<ttps_bounded_ts...>, auto && ... args)
+        noexcept(
+            std::is_nothrow_constructible_v<F, decltype(f_arg)> and
+            std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
+        )
+        requires (
+            sizeof...(args) == sizeof...(args_bounded_ts) and
+            std::constructible_from<F, decltype(f_arg)> and
+            std::constructible_from<bounded_args_storage_type, decltype(args)...>
+        )
+        : f{std::forward<decltype(f_arg)>(f_arg)}
+        , bounded_arguments{std::forward<decltype(args)>(args)...}
+        {}
+        constexpr explicit binder(auto && f_arg, auto && ... args)
+        noexcept(
+            std::is_nothrow_constructible_v<F, decltype(f_arg)> and
+            std::is_nothrow_constructible_v<bounded_args_storage_type, decltype(args)...>
+        )
+        requires (
+            sizeof...(args) == sizeof...(args_bounded_ts) and
+            std::constructible_from<F, decltype(f_arg)> and
+            std::constructible_from<bounded_args_storage_type, decltype(args)...>
+        )
+        : f{std::forward<decltype(f_arg)>(f_arg)}
+        , bounded_arguments{std::forward<decltype(args)>(args)...}
+        {}
+
+        constexpr binder() = delete;
+        constexpr binder(binder&&) noexcept = default;
+        constexpr binder(const binder&) = default;
+        constexpr binder & operator=(binder &&) noexcept = default;
+        constexpr binder & operator=(const binder &) = default;
+        constexpr ~binder() = default;
+
+        // Fix GCC illed evaluation or `std::get<0>(value) == std::get<0>(other)`
+        // constexpr auto operator==(const binder & other) const noexcept -> bool = default;
+        constexpr auto operator==(const binder & other) const noexcept -> bool 
+        requires std::equality_comparable<F> and std::equality_comparable<bounded_args_storage_type> {
+            return f == other.f and bounded_arguments == other.bounded_arguments;
+        };
+
+        constexpr void swap(type && other)
+        noexcept (
+            std::is_nothrow_swappable_v<decltype(f)> and
+            std::is_nothrow_swappable_v<decltype(bounded_arguments)>
+        )
+        requires
+            std::is_swappable_v<decltype(f)> and
+            std::is_swappable_v<decltype(bounded_arguments)>
         {
-            //static_assert(sizeof...(ttps_bounded_args_t) == 0);
+            std::swap(f, other.f);
+            std::swap(bounded_arguments, other.bounded_arguments);
         }
 
-        constexpr front_binder() = delete;
-        constexpr front_binder(front_binder&&) noexcept = default;
-        constexpr front_binder(const front_binder&) = default;
-        constexpr front_binder & operator=(front_binder &&) noexcept = default;
-        constexpr front_binder & operator=(const front_binder &) = default;
-        constexpr ~front_binder() = default;
+        #pragma endregion
 
-        constexpr auto operator==(const front_binder & other) const noexcept -> bool = default;
-
+        #pragma region operator()
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             F&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            bounded_args_storage_type&, parameters_t&&...
+            bounded_args_storage_type&, std::tuple<parameters_t&&...>
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) &
-        noexcept(mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             F&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            bounded_args_storage_type&, parameters_t&&...
+            bounded_args_storage_type&, std::tuple<parameters_t&&...>
         >)
         {
-            return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
+            return invoke_policy::template invoke<
+                mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>
+            >(f, bounded_arguments, std::forward_as_tuple(std::forward<decltype(parameters)>(parameters)...));
         }
 
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             const F&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            const bounded_args_storage_type&, parameters_t&&...
+            const bounded_args_storage_type&, std::tuple<parameters_t&&...>
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) const &
-        noexcept (mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             const F&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            const bounded_args_storage_type&, parameters_t&&...
+            const bounded_args_storage_type&, std::tuple<parameters_t&&...>
         >)
         {
-            return apply_before<ttps_bounded_args_t..., ttps...>(f, bounded_arguments, std::forward<decltype(parameters)>(parameters)...);
+            return invoke_policy::template invoke<
+                mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>
+            >(f, bounded_arguments, std::forward_as_tuple(std::forward<decltype(parameters)>(parameters)...));
         }
 
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             F&&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            bounded_args_storage_type&&, parameters_t&&...
+            bounded_args_storage_type&&, std::tuple<parameters_t&&...>
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) &&
-        noexcept (mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             F&&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            bounded_args_storage_type&&, parameters_t&&...
-        >) {
-            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
+            bounded_args_storage_type&&, std::tuple<parameters_t&&...>
+        >)
+        {
+            return invoke_policy::template invoke<
+                mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>
+            >(std::move(f), std::move(bounded_arguments), std::forward_as_tuple(std::forward<decltype(parameters)>(parameters)...));
         }
 
         template <typename ... ttps, typename ... parameters_t>
-        requires mp::is_applyable_before_v<
+        requires invoke_policy::template is_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             const F&&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            const bounded_args_storage_type&&, parameters_t&&...
+            const bounded_args_storage_type&&, std::tuple<parameters_t&&...>
         >
         constexpr decltype(auto) operator()(parameters_t && ... parameters) const &&
-        noexcept(mp::is_nothrow_applyable_before_v<
+        noexcept(invoke_policy::template is_nothrow_invocable_v<
+            mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>,
             const F&&,
-            mp::ttps<ttps_bounded_args_t..., ttps...>,
-            const bounded_args_storage_type&&, parameters_t&&...
+            const bounded_args_storage_type&&, std::tuple<parameters_t&&...>
         >) {
-            return apply_before<ttps_bounded_args_t..., ttps...>(std::move(f), std::move(bounded_arguments), std::forward<decltype(parameters)>(parameters)...);
+            return invoke_policy::template invoke<
+                mp::ttps<ttps_bounded_ts...>, mp::ttps<ttps...>
+            >(std::move(f), std::move(bounded_arguments), std::forward_as_tuple(std::forward<decltype(parameters)>(parameters)...));
         }
 
         // template <typename ... ttps, typename ... parameters_t>
         // constexpr decltype(auto) operator()(parameters_t && ... parameters) {
         //     static_assert([](){ return false; }(), "front_binder::operator() : no overload candidates matched");
         // }
+        #pragma endregion
+    
+        constexpr const auto &  underlying_function() const noexcept { return f; }
     };
-    template <typename F, typename ... ttps_bounded_args_t, typename ... bounded_args_t>
-    front_binder(F&&, mp::ttps<ttps_bounded_args_t...>, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_bounded_args_t...>, std::decay_t<bounded_args_t>...>;
-    template <typename F, typename ... bounded_args_t>
-    front_binder(F&&, bounded_args_t&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, std::decay_t<bounded_args_t>...>;
+    template <
+        typename invoke_policy,
+        typename F,
+        typename ... ttps_bounded_ts,
+        typename ... args_bounded_ts
+    >
+    binder(invoke_policy, F&&, mp::ttps<ttps_bounded_ts...>, args_bounded_ts&&...)
+    -> binder<invoke_policy, std::decay_t<F>, mp::ttps<ttps_bounded_ts...>, mp::args<std::decay_t<args_bounded_ts>...>>;
+    template <
+        typename invoke_policy,
+        typename F,
+        typename ... args_bounded_ts
+    >
+    binder(invoke_policy, F&&, args_bounded_ts&&...)
+    -> binder<invoke_policy, std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_bounded_ts>...>>;
+
+    // front_binder
+    template <
+        typename F,
+        concepts::ttps ttps_ts,
+        concepts::args args_ts
+    >
+    struct front_binder : binder<front_binding_policy, F, ttps_ts, args_ts>{
+        using binder_type = binder<front_binding_policy, F, ttps_ts, args_ts>;
+        explicit constexpr front_binder(auto && ... args)
+        noexcept(std::is_nothrow_constructible_v<binder_type, decltype(args)...>)
+        : binder_type{ std::forward<decltype(args)>(args)... }
+        {}
+
+        using binder_type::operator();
+    };
+    template <
+        typename F, 
+        typename ... ttps_ts,
+        typename ... args_ts
+    >
+    front_binder(F&&, mp::ttps<ttps_ts...>, args_ts&&...) -> front_binder<std::decay_t<F>, mp::ttps<ttps_ts...>, mp::args<std::decay_t<args_ts>...>>;
+    template <typename F, typename ... args_ts>
+    front_binder(F&&, args_ts&&...) -> front_binder<std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_ts>...>>;
+
+    // back_binder
+    template <
+        typename F,
+        concepts::ttps ttps_ts,
+        concepts::args args_ts
+    >
+    struct back_binder : binder<back_binding_policy, F, ttps_ts, args_ts>{
+        using binder_type = binder<back_binding_policy, F, ttps_ts, args_ts>;
+        explicit constexpr back_binder(auto && ... args)
+        noexcept(std::is_nothrow_constructible_v<binder_type, decltype(args)...>)
+        : binder_type{ std::forward<decltype(args)>(args)... }
+        {}
+
+        using binder_type::operator();
+    };
+    template <
+        typename F, 
+        typename ... ttps_ts,
+        typename ... args_ts
+    >
+    back_binder(F&&, mp::ttps<ttps_ts...>, args_ts&&...) -> back_binder<std::decay_t<F>, mp::ttps<ttps_ts...>, mp::args<std::decay_t<args_ts>...>>;
+    template <typename F, typename ... args_ts>
+    back_binder(F&&, args_ts&&...) -> back_binder<std::decay_t<F>, mp::ttps<>, mp::args<std::decay_t<args_ts>...>>;
 
     // binder_front
     //  same as `std::bind_front`, but also bound/allow ttps
     //  (waiting for proposal p1985 to extend this to nttps ...)
-    template <typename ... ttps_bounded_args_t, typename F, typename ... args_t>
-    constexpr auto bind_front(F&& f, args_t && ... args) {
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_front(F&& f, args_bounded_ts && ... args) {
         // front_binder factory.
         // produces the same behavior as std::bind_front (cvref-qualifiers correctness)
-        using bind_front_t = front_binder<std::remove_cvref_t<F>, mp::ttps<ttps_bounded_args_t...>, std::remove_cvref_t<args_t>...>;
+        using bind_front_t = front_binder<
+            std::remove_cvref_t<F>,
+            mp::ttps<ttps_bounded_ts...>,
+            mp::args<std::remove_cvref_t<args_bounded_ts>...>
+        >;
         return bind_front_t{
             std::forward<F>(f),
-            mp::ttps<ttps_bounded_args_t...>{},
-            std::forward<args_t>(args)...
+            std::forward<args_bounded_ts>(args)...
         };
     }
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_front(F&& f, mp::ttps<ttps_bounded_ts...>, args_bounded_ts && ... args) {
+        return bind_front<ttps_bounded_ts...>(fwd(f), fwd(args)...);
+    }
+    // bind_back
+    //  same as `std::bind_back`, but also bound/allow ttps
+    //  (waiting for proposal p1985 to extend this to nttps ...)
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_back(F&& f, args_bounded_ts && ... args) {
+        // back_binder factory.
+        // produces the same behavior as std::bind_back (cvref-qualifiers correctness)
+        using bind_back_t = back_binder<
+            std::remove_cvref_t<F>,
+            mp::ttps<ttps_bounded_ts...>,
+            mp::args<std::remove_cvref_t<args_bounded_ts>...>
+        >;
+        return bind_back_t{
+            std::forward<F>(f),
+            std::forward<args_bounded_ts>(args)...
+        };
+    }
+    template <typename ... ttps_bounded_ts, typename F, typename ... args_bounded_ts>
+    constexpr auto bind_back(F&& f, mp::ttps<ttps_bounded_ts...>, args_bounded_ts && ... args) {
+        return bind_back<ttps_bounded_ts...>(fwd(f), fwd(args)...);
+    }    
 }
 // function_view
 // function_ref

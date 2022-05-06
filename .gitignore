@@ -1,7 +1,9 @@
 # CMake
-
 build/
 Testing/
+
+# LLVM
+.cache/clangd
 
 # MSVC
 *.vs

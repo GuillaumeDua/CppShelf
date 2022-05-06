@@ -4,7 +4,7 @@
 #include <memory>
 #include <utils/semantic_types.hpp>
 
-namespace test::front_binder_ {
+namespace test::back_binder_ {
 
     constexpr auto func = []<typename T, typename U>(int args_0, char args_1) constexpr {
         static_assert(std::same_as<void, T>);
@@ -16,7 +16,7 @@ namespace test::front_binder_ {
 
     consteval void declare_construct() {
         {
-            using type = front_binder<F, mp::ttps<void, void>, mp::args<int>>;
+            using type = back_binder<F, mp::ttps<void, void>, mp::args<int>>;
             {
                 constexpr auto value = type{ func, mp::ttps<void, void>{}, 42 }; // (1)
                 static_assert(value('A') == 107);
@@ -28,10 +28,25 @@ namespace test::front_binder_ {
             }
         }
     }
+
+    struct user_defined_functor {
+        constexpr int operator()(int args_0, char args_1) const noexcept {
+            return args_0 + args_1 + storage;
+        };
+        int storage = 0;
+    };
+
+    consteval void underlying_function() {
+
+        using type = back_binder<user_defined_functor, mp::ttps<>, mp::args<int>>;
+
+        constexpr auto value = type{ user_defined_functor{1}, 2 };
+        static_assert(value.underlying_function()(2, 39) == 42);
+    }
     consteval void noexcept_construct() {
         struct F_noexcept {};
         {
-            constexpr auto value = front_binder{ F_noexcept{} };
+            constexpr auto value = back_binder{ F_noexcept{} };
             static_assert(std::is_nothrow_constructible_v<decltype(value), F_noexcept&&>);
         }
         struct F_can_throw { // NOLINT
@@ -41,18 +56,18 @@ namespace test::front_binder_ {
             constexpr auto operator==(const F_can_throw & other) const noexcept -> bool = default; // fix GCC issue : tuple(Ts &&...) involves get<I>(lhs) == get<I>(rhs) for some reasons ...
         };
         {
-            constexpr auto value = front_binder{ F_can_throw{} };
+            constexpr auto value = back_binder{ F_can_throw{} };
             static_assert(not std::is_nothrow_constructible_v<decltype(value), F_can_throw&&>);
         }
         {
-            constexpr auto value = front_binder{ F_noexcept{}, F_can_throw{} };
+            constexpr auto value = back_binder{ F_noexcept{}, F_can_throw{} };
             static_assert(not std::is_nothrow_constructible_v<decltype(value), F_noexcept&&, F_can_throw&&>);
         }
     }
 
     consteval void deduce() {
-        constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
-        using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, mp::args<int>>;
+        constexpr auto value = back_binder{ func, mp::ttps<void, void>{}, 42 };
+        using expected_type = back_binder<std::decay_t<F>, mp::ttps<void, void>, mp::args<int>>;
         static_assert(std::same_as<
             decltype(value),
             const expected_type
@@ -61,14 +76,14 @@ namespace test::front_binder_ {
     
     consteval void copy() {
         {   // trivial, nothrow
-            constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+            constexpr auto value = back_binder{ func, mp::ttps<void, void>{}, 42 };
 
             static_assert(std::is_copy_constructible_v<decltype(value)>);
             static_assert(std::is_trivially_copy_constructible_v<decltype(value)>);
             static_assert(std::is_nothrow_copy_constructible_v<decltype(value)>);
 
             constexpr auto copy_value = value;
-            using expected_type = front_binder<std::decay_t<F>, mp::ttps<void, void>, mp::args<int>>;
+            using expected_type = back_binder<std::decay_t<F>, mp::ttps<void, void>, mp::args<int>>;
             static_assert(std::same_as<
                 decltype(copy_value),
                 const expected_type
@@ -84,8 +99,8 @@ namespace test::front_binder_ {
                 constexpr ~copy_and_move_can_throw() = default;
                 void operator()(){}
             };
-            constexpr auto value = front_binder{ copy_and_move_can_throw{} };
-            using expected_type = front_binder<copy_and_move_can_throw, mp::ttps<>, mp::args<>>;
+            constexpr auto value = back_binder{ copy_and_move_can_throw{} };
+            using expected_type = back_binder<copy_and_move_can_throw, mp::ttps<>, mp::args<>>;
             static_assert(std::same_as<
                 decltype(value),
                 const expected_type
@@ -103,13 +118,13 @@ namespace test::front_binder_ {
         }
         {   // not_copiable, non-trivial move
             using not_copyable = tests::details::utils::not_copyable;
-            constexpr auto value = front_binder{ not_copyable{} };
+            constexpr auto value = back_binder{ not_copyable{} };
 
             static_assert(not std::is_copy_constructible_v<decltype(value)>);
             static_assert(not std::is_trivially_copy_constructible_v<decltype(value)>);
             static_assert(not std::is_nothrow_copy_constructible_v<decltype(value)>);
 
-            using expected_type = front_binder<not_copyable, mp::ttps<>, mp::args<>>;
+            using expected_type = back_binder<not_copyable, mp::ttps<>, mp::args<>>;
             static_assert(std::same_as<
                 decltype(value),
                 const expected_type
@@ -118,7 +133,7 @@ namespace test::front_binder_ {
     }
     consteval void move() {
         {   // trivial, nothrow
-            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 }; // NOLINT
+            auto value = back_binder{ func, mp::ttps<void, void>{}, 42 }; // NOLINT
 
             static_assert(std::is_move_constructible_v<decltype(value)>);
             #ifdef __GLIBCXX__
@@ -137,7 +152,7 @@ namespace test::front_binder_ {
         {   // not_moveable
             using not_moveable = tests::details::utils::not_moveable;
             auto f = not_moveable{};
-            auto value = front_binder{ f, mp::ttps<void, void>{}, f };
+            auto value = back_binder{ f, mp::ttps<void, void>{}, f };
 
             // implicit copies
             static_assert(std::is_move_constructible_v<decltype(value)>);
@@ -153,10 +168,17 @@ namespace test::front_binder_ {
             >);
         }
     }
+    consteval void swap() {
+        using not_moveable = tests::details::utils::not_moveable;
+        auto f = not_moveable{};
+        auto value = back_binder{ f, mp::ttps<void, void>{}, f };
+
+        static_assert(std::is_nothrow_swappable_v<decltype(value)>);
+    }
 
     consteval void assign_copy() {
         {   // copyable
-            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+            auto value = back_binder{ func, mp::ttps<void, void>{}, 42 };
 
             static_assert(std::is_copy_assignable_v<decltype(value)>);
             static_assert(not std::is_trivially_copy_assignable_v<decltype(value)>);
@@ -167,14 +189,14 @@ namespace test::front_binder_ {
         }
         {   // not copyable
             using not_copyable = tests::details::utils::not_copyable;
-            auto value = front_binder{ not_copyable{}, mp::ttps<>{} };
+            auto value = back_binder{ not_copyable{}, mp::ttps<>{} };
 
             static_assert(not std::is_copy_assignable_v<decltype(value)>);
         }
     }
     consteval void assign_move() {
         {   // moveable
-            auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+            auto value = back_binder{ func, mp::ttps<void, void>{}, 42 };
 
             static_assert(std::is_move_assignable_v<decltype(value)>);
             static_assert(not std::is_trivially_move_assignable_v<decltype(value)>);
@@ -186,7 +208,7 @@ namespace test::front_binder_ {
         {   // not moveable
             using not_moveable = tests::details::utils::not_moveable;
             auto f = not_moveable{};
-            auto value = front_binder{ f, mp::ttps<>{} };
+            auto value = back_binder{ f, mp::ttps<>{} };
 
             static_assert(std::is_move_assignable_v<decltype(value)>); // involve not_moveable copy
         }
@@ -200,65 +222,94 @@ namespace test::front_binder_ {
                     return std::addressof(other) == this;
                 }
             };
-            constexpr auto value = front_binder{ comparable_functor{}, 42 };
+            constexpr auto value = back_binder{ comparable_functor{}, 42 };
             static_assert(std::equality_comparable<decltype(value)>);
             static_assert(value == value);
             static_assert(not (value not_eq value));
         }
         {   // not comparable F
-            constexpr auto value = front_binder{ func, mp::ttps<void, void>{}, 42 };
+            constexpr auto value = back_binder{ func, mp::ttps<void, void>{}, 42 };
             static_assert(not std::equality_comparable<decltype(value)>);
         }
     }
 }
-namespace test {
-    consteval void bind_front_() {
+namespace test::bind_back_ {
+    consteval void type_correctness() {
         auto func = []<typename ... Ts>() noexcept { return std::tuple<Ts...>{}; };
 
         using namespace csl::wf;
 
         // operator()
-        static_assert(std::is_same_v<decltype(bind_front(func)()), std::tuple<>>);
-        static_assert(std::is_same_v<decltype(bind_front<int>(func)()), std::tuple<int>>);
-        static_assert(std::is_same_v<decltype(bind_front<int, char>(func)()), std::tuple<int, char>>);
-        static_assert(std::is_same_v<decltype(bind_front<int>(func).template operator()<char>()), std::tuple<int, char>>);
-        static_assert(std::is_same_v<decltype(bind_front(func).template operator()<int, char>()), std::tuple<int, char>>);
+        static_assert(std::is_same_v<decltype(bind_back(func)()), std::tuple<>>);
+        static_assert(std::is_same_v<decltype(bind_back<int>(func)()), std::tuple<int>>);
+        static_assert(std::is_same_v<decltype(bind_back<int, char>(func)()), std::tuple<int, char>>);
+        static_assert(std::is_same_v<decltype(bind_back<char>(func).template operator()<int>()), std::tuple<int, char>>);
+        static_assert(std::is_same_v<decltype(bind_back(func).template operator()<int, char>()), std::tuple<int, char>>);
 
         namespace mp = csl::wf::mp;
 
         // is_invocable
-        static_assert(mp::is_invocable_v<decltype(bind_front(func))>);
-        static_assert(mp::is_invocable_v<decltype(bind_front<int>(func))>);
-        static_assert(mp::is_invocable_v<decltype(bind_front<int, char>(func))>);
-        static_assert(mp::is_invocable_v<decltype(bind_front<int>(func)), mp::ttps<char>>);
-        static_assert(mp::is_invocable_v<decltype(bind_front(func)), mp::ttps<int, char>>);
+        static_assert(mp::is_invocable_v<decltype(bind_back(func))>);
+        static_assert(mp::is_invocable_v<decltype(bind_back<int>(func))>);
+        static_assert(mp::is_invocable_v<decltype(bind_back<int, char>(func))>);
+        static_assert(mp::is_invocable_v<decltype(bind_back<int>(func)), mp::ttps<char>>);
+        static_assert(mp::is_invocable_v<decltype(bind_back(func)), mp::ttps<int, char>>);
 
         // is_nothrow_invocable
-        static_assert(mp::is_nothrow_invocable_v<decltype(bind_front(func))>);
-        static_assert(mp::is_nothrow_invocable_v<decltype(bind_front<int>(func))>);
-        static_assert(mp::is_nothrow_invocable_v<decltype(bind_front<int, char>(func))>);
-        static_assert(mp::is_nothrow_invocable_v<decltype(bind_front<int>(func)), mp::ttps<char>>);
-        static_assert(mp::is_nothrow_invocable_v<decltype(bind_front(func)), mp::ttps<int, char>>);
+        static_assert(mp::is_nothrow_invocable_v<decltype(bind_back(func))>);
+        static_assert(mp::is_nothrow_invocable_v<decltype(bind_back<int>(func))>);
+        static_assert(mp::is_nothrow_invocable_v<decltype(bind_back<int, char>(func))>);
+        static_assert(mp::is_nothrow_invocable_v<decltype(bind_back<int>(func)), mp::ttps<char>>);
+        static_assert(mp::is_nothrow_invocable_v<decltype(bind_back(func)), mp::ttps<int, char>>);
 
         // is_invocable_r_v
-        static_assert(mp::is_invocable_r_v<std::tuple<>,             decltype(bind_front(func))>);
-        static_assert(mp::is_invocable_r_v<std::tuple<int>,          decltype(bind_front<int>(func))>);
-        static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_front<int, char>(func))>);
-        static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_front<int>(func)), mp::ttps<char>>);
-        static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_front(func)), mp::ttps<int, char>>);
+        static_assert(mp::is_invocable_r_v<std::tuple<>,             decltype(bind_back(func))>);
+        static_assert(mp::is_invocable_r_v<std::tuple<int>,          decltype(bind_back<int>(func))>);
+        static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_back<int, char>(func))>);
+        static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_back<int>(func)), mp::ttps<char>>);
+        static_assert(mp::is_invocable_r_v<std::tuple<int, char>,    decltype(bind_back(func)), mp::ttps<int, char>>);
 
         // is_nothrow_invocable_r_v
-        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<>,             decltype(bind_front(func))>);
-        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int>,          decltype(bind_front<int>(func))>);
-        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int, char>,    decltype(bind_front<int, char>(func))>);
-        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int, char>,    decltype(bind_front<int>(func)), mp::ttps<char>>);
-        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int, char>,    decltype(bind_front(func)), mp::ttps<int, char>>);
+        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<>,             decltype(bind_back(func))>);
+        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int>,          decltype(bind_back<int>(func))>);
+        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int, char>,    decltype(bind_back<int, char>(func))>);
+        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int, char>,    decltype(bind_back<int>(func)), mp::ttps<char>>);
+        static_assert(mp::is_nothrow_invocable_r_v<std::tuple<int, char>,    decltype(bind_back(func)), mp::ttps<int, char>>);
 
         // same_as<return_type, r>
-        static_assert(std::same_as<std::tuple<>,             mp::invoke_result_t<decltype(bind_front(func))>>);
-        static_assert(std::same_as<std::tuple<int>,          mp::invoke_result_t<decltype(bind_front<int>(func))>>);
-        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_front<int, char>(func))>>);
-        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_front<int>(func)), mp::ttps<char>>>);
-        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_front(func)), mp::ttps<int, char>>>);
+        static_assert(std::same_as<std::tuple<>,             mp::invoke_result_t<decltype(bind_back(func))>>);
+        static_assert(std::same_as<std::tuple<int>,          mp::invoke_result_t<decltype(bind_back<int>(func))>>);
+        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<int, char>(func))>>);
+        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back<char>(func)), mp::ttps<int>>>);
+        static_assert(std::same_as<std::tuple<int, char>,    mp::invoke_result_t<decltype(bind_back(func)), mp::ttps<int, char>>>);
+    }
+    consteval void usage_synthaxes() {
+        using namespace tests::details::utils;
+        using namespace csl::wf;
+
+        auto f = []<typename T, typename U> (strong_of<int> i, strong_of<char> c){
+            static_assert(std::same_as<T, void>);
+            static_assert(std::same_as<U, int>);
+            return i + c;
+        };
+        auto binder_1 = bind_back<int>(f, strong_of<char>{'A'});
+        auto binder_2 = bind_back(f, mp::ttps<int>{}, strong_of<char>{'A'});
+        invoke<void>(binder_1, strong_of<int>{-23});
+        invoke<void>(binder_2, strong_of<int>{-23});
+        
+        auto binder_3 = back_binder{ f, mp::ttps<int>{}, strong_of<char>{'A'}};
+        binder_3.template operator()<void>(strong_of<int>{-23});
+
+        [[maybe_unused]] auto binder_4 = back_binder<std::remove_cvref_t<decltype(f)>, mp::ttps<int>, mp::args<strong_of<char>>> {
+            f, mp::ttps<int>{}, strong_of<char>{'A'}
+        };
+        [[maybe_unused]] auto binder_5 = back_binder<std::remove_cvref_t<decltype(f)>, mp::ttps<int>, mp::args<strong_of<char>>> {
+            f, strong_of<char>{'A'}
+        };
+
+        // return
+        //     binder_1.template operator()<void>(strong_of<int>{-23}) == 42 and
+        //     binder_2.template operator()<void>(strong_of<int>{-23}) == 42
+        // ;
     }
 }
