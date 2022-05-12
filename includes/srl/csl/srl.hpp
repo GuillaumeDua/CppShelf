@@ -7,6 +7,7 @@
 #include <string_view>
 #include <iostream>
 #include <sstream>
+#include <concepts>
 
 // ---
 
@@ -93,73 +94,230 @@ constexpr auto type_name_hash_v = hash_type::hash(gcl::cx::type_name_v<T>);
 
 // ---
 
-namespace csl::srl {
-    
-    template <typename T>
-    struct binary_formatter {
-        static void write(std::ostream & os, T && data)
-        {
-            using type = std::remove_cvref_t<T>;
-            os << type_name_hash_v<type>;
-            os << "\t[";
-            os.write(reinterpret_cast<const char *>(&data), sizeof(type));
-            os << "]\n";
-        }
-    };
-
-    template <typename T>
-    struct type_descriptor; // customization point (opt-in)
-
-    template <typename T>
-    struct formatter : binary_formatter<T>{}; // customization point (opt-out)
-
-    template <typename T>
-    requires requires { type_descriptor<T>::description; } // TODO : tuple_like (get), concept "is_valid type_descriptor"
-    struct formatter<T> {
-        static void write(std::ostream & os, T && data)
-        {
-            using type = std::remove_cvref_t<T>;
-            using description_type = std::remove_cvref_t<decltype(type_descriptor<type>::description)>;
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                ((typename binary_formatter<std::tuple_element_t<indexes, description_type>>::write(
-                    os,
-                    std::invoke(
-                        std::get<indexes>(type_descriptor<T>::description),
-                        data
-                    )
-                )), ...);
-            }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
-            os << '\n';
-        }
-    };
-}
+// TODO : versioning, compatibility
+// TODO : cross-compiler
+// TODO : cvref-qualifiers : can read a T         and store it into a `const T`
+//                           can read a `const T` and store it into a `T`
 
 // ---
 
 namespace csl::srl {
-    void write(std::ostream & os, auto && value) {
+    template <typename T>
+    struct type_descriptor; // customization point (opt-in) / projections
+}
+
+namespace csl::srl::concepts {
+
+    template <typename T>
+    concept IsTuple =
+        requires { std::tuple_size<T>::value; }
+        and ( // issue with point-of-instanciation
+            true
+            // std::tuple_size_v<T> == 0
+            // or []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            //     return (... and std::common_reference_with<
+            //         decltype(get<indexes>(std::declval<T>())),
+            //         typename std::tuple_element<indexes, T>::type
+            //     >);
+            // }(std::make_index_sequence<std::tuple_size<T>::value>{})
+        )
+    ;
+
+    template <typename T>
+    concept Described = requires {
+        csl::srl::type_descriptor<T>::description;
+    } and IsTuple<std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>>
+    ;
+
+    template <typename T>
+    concept ConstructibleFromDescription =
+        Described<T> and
+        // std::is_aggregate_v<T>;
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            using description_type = std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>;
+            return std::constructible_from<
+                T,
+                std::invoke_result_t<
+                    std::tuple_element_t<indexes, description_type>,
+                    T
+                >...
+            >;
+        }(std::tuple_size_v<std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>>)
+    ;
+
+    template <typename T>
+    concept Readable =
+        not std::is_reference_v<T> and
+        not std::is_const_v<T> and
+        (
+            ConstructibleFromDescription<T> or
+            (std::is_default_constructible_v<T> and std::is_standard_layout_v<T>)
+        )
+    ;
+    template <typename T>
+    concept ReadableTo =
+        ConstructibleFromDescription<T> or
+        std::is_default_constructible_v<T>
+    ;
+
+    template <typename T>
+    concept BinaryFormattable =
+        not std::is_reference_v<T> and
+        not std::is_const_v<T> and
+        std::is_standard_layout_v<T>
+    ;
+
+    // TODO : input, output (writable/readable)
+}
+
+namespace csl::srl {
+
+    // internal API
+    template <template <typename> typename formatter>
+    void write(auto & os, auto && data) {
+        using type = std::remove_cvref_t<decltype(data)>;
+        using formatter_t = formatter<type>;
+        formatter_t::write(os, std::forward<decltype(data)>(data));
+    }
+    template <template <typename> typename formatter, concepts::Readable T>
+    T read(auto & is) {
+        using type = std::remove_cvref_t<T>;
+        using formatter_t = formatter<type>;
+        return formatter_t::read(is);
+    }
+    template <template <typename> typename formatter>
+    void read_to(auto & is, auto && data) {
+        using type = std::remove_cvref_t<decltype(data)>;
+        using formatter_t = formatter<type>;
+        formatter_t::read_to(is, std::forward<type>(data));
+    }
+
+    // formatter : binary (fallback)
+    template <concepts::BinaryFormattable T>
+    struct binary_formatter {
+        template <typename ostream_type>
+        static void write(ostream_type & os, auto && data)
+        {
+            using type = std::remove_cvref_t<T>;
+            os.write(reinterpret_cast<const typename ostream_type::char_type *>(std::addressof(data)), sizeof(type));
+        }
+        template <typename istream_type>
+        static T read(istream_type & is)
+        {
+            using type = std::remove_cvref_t<T>;
+            T data;
+            is.read(reinterpret_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
+            return data;
+        }
+        template <typename istream_type>
+        static void read_to(istream_type & is, auto && data)
+        {
+            using type = std::remove_cvref_t<T>;
+            is.read(reinterpret_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
+        }
+    };
+
+    template <typename T>
+    struct formatter;
+
+    template <concepts::BinaryFormattable T>
+    requires (not concepts::Described<T>)
+    struct formatter<T> : binary_formatter<T>{}; // fallback, customization point (opt-out)
+
+    // todo : merge cvref-qualified T types
+    template <concepts::Described T>
+    // requires requires { type_descriptor<T>::description; } // TODO : tuple_like (get), concept "described"
+    struct formatter<T> {
+
+        static void write(auto & os, auto && data)
+        {
+            using type = std::remove_cvref_t<T>;
+            using description_type = std::remove_cvref_t<decltype(type_descriptor<type>::description)>;
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                ((csl::srl::write<formatter>(
+                    os,
+                    std::invoke(
+                        std::get<indexes>(type_descriptor<T>::description),
+                        std::forward<decltype(data)>(data)
+                    )
+                )), ...);
+            }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
+        }
+        static void read_to(auto & is, auto && data)
+        {
+            using type = std::remove_cvref_t<T>;
+            using description_type = std::remove_cvref_t<decltype(type_descriptor<type>::description)>;
+
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                if constexpr ((std::same_as<
+                    std::tuple_element<indexes, description_type>,
+                    T
+                > or ...)) static_assert([](){ return false; }(), "[csl::srl] likely infinite-recursivity detected");
+                ((csl::srl::read_to<formatter>(
+                    is,
+                    std::invoke(
+                        std::get<indexes>(type_descriptor<T>::description),
+                        std::forward<decltype(data)>(data)
+                    )
+                )), ...);
+            }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
+        }
+    };
+
+    // TODO : raw-pointers formatter
+
+    // TODO : STL formatter (in separate file to include, so users can opt-in ?)
+    // formatter<std::string>
+    // formatter<std::tuple>
+    // formatter<std::(const_)reference_wrapper>
+    // formatter<std::(unique/shared)_ptr>
+}
+
+// ---
+// public API :
+
+namespace csl::srl {
+    void write(auto & os, auto && value) {
         using type = std::remove_cvref_t<decltype(value)>;
-        using formatter_t = csl::srl::formatter<type>;
-        formatter_t::write(os, std::forward<decltype(value)>(value));
+        using formatter_t = typename csl::srl::formatter<type>;
+        formatter_t::template write(os, std::forward<decltype(value)>(value));
+    }
+    void read_to(auto & is, auto && value) {
+        using type = std::remove_cvref_t<decltype(value)>;
+        using formatter_t = typename csl::srl::formatter<type>;
+        formatter_t::template read_to(is, std::forward<decltype(value)>(value));
+    }
+    template <typename T>
+    auto read(auto & is) -> T {
+        static_assert(not std::is_reference_v<T>);
+        static_assert(not std::is_const_v<T>);
+        using type = std::remove_cvref_t<T>;
+        using formatter_t = csl::srl::formatter<T>;
+        return formatter_t::template read<type>(is);
     }
 }
 
 // ---
 
-struct toto { int i = 65; char c = 'c'; };
-struct titi {
-    int i;
-    char c;
-};
+// dispatch each read value to constructor
+// TODO : switch according to customization
+// TODO : recursivity
+template <typename T>
+auto read_then_construct(auto && is) {
 
-namespace csl::srl {
-    template <>
-    struct type_descriptor<titi> {
-        constexpr static auto description = std::tuple{
-            &titi::i,
-            &titi::i,
-            &titi::c,
-            &titi::i
+    using description_type = std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>;
+
+    return [&]<std::size_t ...indexes>(std::index_sequence<indexes...>){
+        return T{
+            csl::srl::read<
+                csl::srl::binary_formatter,
+                std::remove_cvref_t<
+                    std::invoke_result_t<
+                        std::tuple_element_t<indexes, description_type>,
+                        T
+                    >
+                >
+            >(is)...
         };
-    };
+    }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
 }
