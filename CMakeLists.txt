@@ -17,6 +17,7 @@ endif()
 set(CSL_COMPONENT_LIST
     mp
     wf
+    srl
 )
 
 ### Components - tests
