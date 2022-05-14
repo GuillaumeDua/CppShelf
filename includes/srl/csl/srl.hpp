@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <concepts>
+#include <bit>
 
 // ---
 
@@ -279,20 +280,20 @@ namespace csl::srl {
         static decltype(auto) write(ostream_type & os, auto && data)
         {
             static_assert(std::convertible_to<T, std::remove_cvref_t<decltype(data)>>);
-            os.write(reinterpret_cast<const typename ostream_type::char_type *>(std::addressof(data)), sizeof(type));
+            os.write(std::bit_cast<const typename ostream_type::char_type *>(std::addressof(data)), sizeof(type));
         }
         template <typename istream_type>
         static decltype(auto) read_to(istream_type & is, auto && data)
         {
             static_assert(std::convertible_to<T, std::remove_cvref_t<decltype(data)>>);
-            is.read(reinterpret_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
+            is.read(std::bit_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
         }
         template <typename istream_type>
         static auto read(istream_type & is) -> type
         {
             using type = std::remove_cvref_t<T>;
             type data;
-            is.read(reinterpret_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
+            is.read(std::bit_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
             return data;
         }
     };
