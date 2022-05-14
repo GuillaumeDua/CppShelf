@@ -96,8 +96,6 @@ constexpr auto type_name_hash_v = hash_type::hash(gcl::cx::type_name_v<T>);
 
 // TODO : versioning, compatibility
 // TODO : cross-compiler
-// TODO : cvref-qualifiers : can read a T         and store it into a `const T`
-//                           can read a `const T` and store it into a `T`
 // TODO : best default initialization : is_aggregate ? aggregate_initialization : binary
 
 // ---
@@ -157,9 +155,42 @@ namespace csl::srl::details::concepts {
 namespace csl::srl::concepts {
 
     template <typename T>
+    concept Unqualified =
+        // [csl::srl] cvref-qualified
+        not std::is_reference_v<T> and
+        not std::is_const_v<T> and
+        not std::is_volatile_v<T> and
+        // [csl::srl] not raw-pointers
+        not std::is_pointer_v<T>
+    ;
+
+    template <typename T>
+    concept BinaryFormattable =
+        Unqualified<T> and
+        std::is_standard_layout_v<T>
+    ;
+
+    // todo : description for qualified type are invalid
+
+    template <typename T>
     concept Described =
+        Unqualified<T> and
+        // [csl::srl] not defined description type
         requires { typename csl::srl::description<T>::type; } and
-        mp::is_allowed_description_type_v<typename csl::srl::description<T>::type>
+        // [csl::srl] not allowed description type
+        mp::is_allowed_description_type_v<typename csl::srl::description<T>::type> // and
+        // GCC 12.1 : ICE, Clang : undefined `typename csl::srl::description<T>::type`
+        // [csl::srl] accessor is not invocable with T
+        // []<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+        //     return ((std::invocable<decltype(accessors), T> or ...));
+        // }(typename csl::srl::description<T>::type{}) and
+        // // [csl::srl] likely infinite-recursivity detected
+        // []<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+        //     return not ((std::same_as<
+        //         std::remove_cvref_t<std::invoke_result_t<decltype(accessors), T>>,
+        //         T
+        //     > or ...));
+        // }(typename csl::srl::description<T>::type{})
     ;
 
     template <typename T>
@@ -167,6 +198,7 @@ namespace csl::srl::concepts {
         Described<T> and
         mp::is_constructor_initialization_v<typename csl::srl::description<T>::type> and
         []<auto ... accessors>(descriptions::constructor_initialization<accessors...>){
+            // [csl::srl] Warning : Clang does not implement P0960 yet (Parenthesized initialization of aggregate)
             return std::constructible_from<
                 T,
                 std::invoke_result_t<decltype(accessors), T>...
@@ -197,75 +229,55 @@ namespace csl::srl::concepts {
         }(typename csl::srl::description<T>::type{})
     ;
 
-    template <typename T>
-    concept Readable =
-        not std::is_reference_v<T> and
-        not std::is_const_v<T> and
-        (
-            DescribedConstructible<T> or
-            (std::is_default_constructible_v<T> and std::is_standard_layout_v<T>)
-        )
-    ;
-    template <typename T>
-    concept ReadableTo =
-        DescribedConstructible<T> or
-        std::is_default_constructible_v<T>
-    ;
-
-    template <typename T>
-    concept BinaryFormattable =
-        not std::is_reference_v<T> and
-        not std::is_const_v<T> and
-        std::is_standard_layout_v<T>
-    ;
-
     // TODO : input, output (writable/readable)
 }
 
 namespace csl::srl {
 
     // internal API
-    template <template <typename> typename formatter>
+    template <template <typename> typename formatter_t>
     void write(auto & os, auto && data) {
         using type = std::remove_cvref_t<decltype(data)>;
-        using formatter_t = formatter<type>;
-        formatter_t::write(os, std::forward<decltype(data)>(data));
+        using formatter_type = formatter_t<type>;
+        formatter_type::write(os, std::forward<decltype(data)>(data));
     }
-    template <template <typename> typename formatter, concepts::Readable T>
+    template <template <typename> typename formatter_t, concepts::Unqualified T>
     T read(auto & is) {
-        using type = std::remove_cvref_t<T>;
-        using formatter_t = formatter<type>;
-        return formatter_t::read(is);
+        using formatter_type = formatter_t<T>;
+        return formatter_type::read(is);
     }
-    template <template <typename> typename formatter>
+    template <template <typename> typename formatter_t>
     void read_to(auto & is, auto && data) {
         using type = std::remove_cvref_t<decltype(data)>;
-        using formatter_t = formatter<type>;
-        formatter_t::read_to(is, std::forward<type>(data));
+        using formatter_type = formatter_t<type>;
+        formatter_type::read_to(is, std::forward<type>(data));
     }
 
     // formatter : binary (fallback)
     template <concepts::BinaryFormattable T>
     struct binary_formatter {
+
+        using type = std::remove_cvref_t<T>;
+
         template <typename ostream_type>
-        static void write(ostream_type & os, auto && data)
+        static decltype(auto) write(ostream_type & os, auto && data)
         {
-            using type = std::remove_cvref_t<T>;
+            static_assert(std::convertible_to<T, std::remove_cvref_t<decltype(data)>>);
             os.write(reinterpret_cast<const typename ostream_type::char_type *>(std::addressof(data)), sizeof(type));
         }
         template <typename istream_type>
-        static T read(istream_type & is)
+        static decltype(auto) read_to(istream_type & is, auto && data)
         {
-            using type = std::remove_cvref_t<T>;
-            T data;
+            static_assert(std::convertible_to<T, std::remove_cvref_t<decltype(data)>>);
             is.read(reinterpret_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
-            return data;
         }
         template <typename istream_type>
-        static void read_to(istream_type & is, auto && data)
+        static auto read(istream_type & is) -> type
         {
             using type = std::remove_cvref_t<T>;
+            type data;
             is.read(reinterpret_cast<typename istream_type::char_type *>(std::addressof(data)), sizeof(type));
+            return data;
         }
     };
 
@@ -276,13 +288,15 @@ namespace csl::srl {
     requires (not concepts::Described<T>)
     struct formatter<T> : binary_formatter<T>{}; // fallback, customization point (opt-out)
 
-    // todo : merge cvref-qualified T types
     template <concepts::Described T>
     struct formatter<T> {
 
+        using type = T;
+
         static void write(auto & os, auto && data)
         {
-            using type = std::remove_cvref_t<T>;
+            static_assert(std::convertible_to<T, std::remove_cvref_t<decltype(data)>>);
+
             [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
                 ((csl::srl::write<formatter>(
                     os,
@@ -295,22 +309,75 @@ namespace csl::srl {
         }
         static void read_to(auto & is, auto && data)
         {
-            using type = std::remove_cvref_t<T>;
-            using description_type = std::remove_cvref_t<decltype(description<type>::value)>;
+            static_assert(std::convertible_to<T, std::remove_cvref_t<decltype(data)>>);
 
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                if constexpr ((std::same_as<
-                    std::tuple_element<indexes, description_type>,
-                    T
-                > or ...)) static_assert([](){ return false; }(), "[csl::srl] likely infinite-recursivity detected");
+            [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+                
                 ((csl::srl::read_to<formatter>(
                     is,
                     std::invoke(
-                        std::get<indexes>(description<T>::value),
+                        accessors,
                         std::forward<decltype(data)>(data)
                     )
                 )), ...);
-            }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
+            }(typename csl::srl::description<type>::type{});
+        }
+
+        // dispatch each read value to aggregate|constructor|defered
+        // TODO : switch according to concept
+        // TODO : proposer recursivity (not necessarely binary)
+        static auto read(auto && is) -> type
+        requires csl::srl::concepts::DescribedAggregate<T>
+        {
+            return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+                return type{
+                    csl::srl::read<
+                        csl::srl::binary_formatter,
+                        std::remove_cvref_t<
+                            std::invoke_result_t<
+                                decltype(accessors),
+                                T
+                            >
+                        >
+                    >(is)...
+                };
+            }(typename csl::srl::description<T>::type{});
+        }
+        static auto read(auto && is) -> type
+        requires csl::srl::concepts::DescribedConstructible<T>
+        {
+            return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+                return type(
+                    csl::srl::read<
+                        csl::srl::binary_formatter,
+                        std::remove_cvref_t<
+                            std::invoke_result_t<
+                                decltype(accessors),
+                                T
+                            >
+                        >
+                    >(is)...
+                );
+            }(typename csl::srl::description<T>::type{});
+        }
+        static auto read(auto && is) -> type
+        requires csl::srl::concepts::DescribedDefered<T>
+        {
+            return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+                type value;
+                ((
+                    std::invoke(accessors, value) = csl::srl::read<
+                        csl::srl::binary_formatter,
+                        std::remove_cvref_t<
+                            std::invoke_result_t<
+                                decltype(accessors),
+                                T
+                            >
+                        >
+                    >(is)
+                ), ...);
+                return value;
+            }(typename csl::srl::description<T>::type{});
         }
     };
 
@@ -337,33 +404,15 @@ namespace csl::srl {
         using formatter_t = typename csl::srl::formatter<type>;
         formatter_t::template read_to(is, std::forward<decltype(value)>(value));
     }
-    template <typename T>
+    template <csl::srl::concepts::Described T>
     auto read(auto & is) -> T {
-        static_assert(not std::is_reference_v<T>);
-        static_assert(not std::is_const_v<T>);
-        using type = std::remove_cvref_t<T>;
-        using formatter_t = csl::srl::formatter<T>;
-        return formatter_t::template read<type>(is);
+        using formatter_t = typename csl::srl::formatter<T>;
+        return formatter_t::template read(is);
     }
-}
-
-// dispatch each read value to aggregate|constructor
-// TODO : switch according to concept
-// TODO : proposer recursivity (not necessarely binary)
-template <csl::srl::concepts::DescribedAggregate T>
-auto read_then_aggregate_initialize(auto && is) {
-
-    return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
-        return T{
-            csl::srl::read<
-                csl::srl::binary_formatter,
-                std::remove_cvref_t<
-                    std::invoke_result_t<
-                        decltype(accessors),
-                        T
-                    >
-                >
-            >(is)...
-        };
-    }(typename csl::srl::description<T>::type{});
+    template <csl::srl::concepts::BinaryFormattable T>
+    requires (not csl::srl::concepts::Described<T>)
+    auto read(auto & is) -> T {
+        using formatter_t = csl::srl::binary_formatter<T>;
+        return formatter_t::template read(is);
+    }
 }
