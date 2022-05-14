@@ -7,26 +7,26 @@
 // temporarly, runtime quick-test are written here
 // until #49 is complete
 
+// Not described aggregate
 struct toto { int i; char c; };
-
+// Described (defered)
 struct titi {
     int i;
     char c;
     titi * not_serialize_to_avoid_recursivity; // TODO
 };
-
 namespace csl::srl {
     template <>
-    struct type_descriptor<titi> {
-        constexpr static auto description = std::tuple{
+    struct description<titi> {
+        using type = csl::srl::descriptions::defered_initialization<
             &titi::i,
             &titi::i,
             &titi::c,
             &titi::i
-        };
+        >;
     };
 }
-
+// Described (aggregate)
 struct tutu {
 
     tutu(int i_arg, char c_arg)
@@ -48,14 +48,14 @@ static_assert(not std::is_standard_layout_v<tutu>);
 
 namespace csl::srl {
     template <>
-    struct type_descriptor<tutu> {
-        constexpr static auto description = std::tuple{
+    struct description<tutu> {
+        using type = csl::srl::descriptions::aggregate_initialization<
             &tutu::get_i,
             &tutu::get_c
-        };
+        >;
     };
 }
-// static_assert(csl::srl::concepts::Described<tutu>);
+// TODO : Described (constructor)
 
 auto main() -> int {
 
@@ -78,7 +78,7 @@ auto main() -> int {
     }
     {
         csl::srl::write(ss, tutu{42, 'A'});
-        auto value = read_then_construct<tutu>(ss);
+        auto value = read_then_aggregate_initialize<tutu>(ss);
 
         assert(value.get_i() == 42);
         assert(value.get_c() == 'A');

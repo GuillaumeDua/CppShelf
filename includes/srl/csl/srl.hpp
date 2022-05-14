@@ -98,51 +98,103 @@ constexpr auto type_name_hash_v = hash_type::hash(gcl::cx::type_name_v<T>);
 // TODO : cross-compiler
 // TODO : cvref-qualifiers : can read a T         and store it into a `const T`
 //                           can read a `const T` and store it into a `T`
+// TODO : best default initialization : is_aggregate ? aggregate_initialization : binary
 
 // ---
 
 namespace csl::srl {
     template <typename T>
-    struct type_descriptor; // customization point (opt-in) / projections
+    struct description; // customization point (opt-in)
+}
+namespace csl::srl::descriptions {
+// allowed types for `typename description<T>::type`
+    template <auto ...>
+    struct constructor_initialization{};
+    template <auto ...>
+    struct aggregate_initialization{};
+    template <auto ...>
+    struct defered_initialization{};
+}
+namespace csl::srl::mp {
+
+    // is_specific description type
+    template <typename T>
+    struct is_constructor_initialization : std::false_type{};
+    template <auto ... nttps>
+    struct is_constructor_initialization<descriptions::constructor_initialization<nttps...>> : std::true_type{};
+    template <typename T>
+    struct is_aggregate_initialization : std::false_type{};
+    template <auto ... nttps>
+    struct is_aggregate_initialization<descriptions::aggregate_initialization<nttps...>> : std::true_type{};
+    template <typename T>
+    struct is_defered_initialization : std::false_type{};
+    template <auto ... nttps>
+    struct is_defered_initialization<descriptions::defered_initialization<nttps...>> : std::true_type{};
+
+    template <typename T>
+    constexpr bool is_constructor_initialization_v = is_constructor_initialization<T>::value;
+    template <typename T>
+    constexpr bool is_aggregate_initialization_v = is_aggregate_initialization<T>::value;
+    template <typename T>
+    constexpr bool is_defered_initialization_v = is_defered_initialization<T>::value;
+
+    // is_allowed_description_type
+    template <typename T>
+    struct is_allowed_description_type : std::bool_constant<
+        is_constructor_initialization_v<T> or
+        is_aggregate_initialization_v<T> or
+        is_defered_initialization_v<T>
+    >{};
+    template <typename T>
+    constexpr bool is_allowed_description_type_v = is_allowed_description_type<T>::value;
+}
+
+namespace csl::srl::details::concepts {
+    template <typename T, typename ... args_ts>
+    concept AggregateInitializable = requires { T{ std::declval<args_ts>()... }; };
 }
 
 namespace csl::srl::concepts {
 
     template <typename T>
-    concept IsTuple =
-        requires { std::tuple_size<T>::value; }
-        and ( // issue with point-of-instanciation
-            true
-            // std::tuple_size_v<T> == 0
-            // or []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            //     return (... and std::common_reference_with<
-            //         decltype(get<indexes>(std::declval<T>())),
-            //         typename std::tuple_element<indexes, T>::type
-            //     >);
-            // }(std::make_index_sequence<std::tuple_size<T>::value>{})
-        )
+    concept Described =
+        requires { typename csl::srl::description<T>::type; } and
+        mp::is_allowed_description_type_v<typename csl::srl::description<T>::type>
     ;
 
     template <typename T>
-    concept Described = requires {
-        csl::srl::type_descriptor<T>::description;
-    } and IsTuple<std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>>
-    ;
-
-    template <typename T>
-    concept ConstructibleFromDescription =
+    concept DescribedConstructible =
         Described<T> and
-        // std::is_aggregate_v<T>;
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            using description_type = std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>;
+        mp::is_constructor_initialization_v<typename csl::srl::description<T>::type> and
+        []<auto ... accessors>(descriptions::constructor_initialization<accessors...>){
             return std::constructible_from<
                 T,
-                std::invoke_result_t<
-                    std::tuple_element_t<indexes, description_type>,
-                    T
-                >...
+                std::invoke_result_t<decltype(accessors), T>...
             >;
-        }(std::tuple_size_v<std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>>)
+        }(typename csl::srl::description<T>::type{})
+    ;
+    template <typename T>
+    concept DescribedAggregate =
+        Described<T> and
+        mp::is_aggregate_initialization_v<typename csl::srl::description<T>::type> and
+        []<auto ... accessors>(descriptions::aggregate_initialization<accessors...>){
+            return details::concepts::AggregateInitializable<
+                T,
+                std::invoke_result_t<decltype(accessors), T>...
+            >;
+        }(typename csl::srl::description<T>::type{})
+    ;
+    template <typename T>
+    concept DescribedDefered =
+        Described<T> and
+        mp::is_defered_initialization_v<typename csl::srl::description<T>::type> and
+        std::is_default_constructible_v<T> and
+        []<auto ... accessors>(descriptions::defered_initialization<accessors...>){
+            return (... and std::is_assignable_v<
+                std::invoke_result_t<decltype(accessors), T&>,
+                std::invoke_result_t<decltype(accessors), T>
+            >);
+        }(typename csl::srl::description<T>::type{})
     ;
 
     template <typename T>
@@ -150,13 +202,13 @@ namespace csl::srl::concepts {
         not std::is_reference_v<T> and
         not std::is_const_v<T> and
         (
-            ConstructibleFromDescription<T> or
+            DescribedConstructible<T> or
             (std::is_default_constructible_v<T> and std::is_standard_layout_v<T>)
         )
     ;
     template <typename T>
     concept ReadableTo =
-        ConstructibleFromDescription<T> or
+        DescribedConstructible<T> or
         std::is_default_constructible_v<T>
     ;
 
@@ -226,27 +278,25 @@ namespace csl::srl {
 
     // todo : merge cvref-qualified T types
     template <concepts::Described T>
-    // requires requires { type_descriptor<T>::description; } // TODO : tuple_like (get), concept "described"
     struct formatter<T> {
 
         static void write(auto & os, auto && data)
         {
             using type = std::remove_cvref_t<T>;
-            using description_type = std::remove_cvref_t<decltype(type_descriptor<type>::description)>;
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
                 ((csl::srl::write<formatter>(
                     os,
                     std::invoke(
-                        std::get<indexes>(type_descriptor<T>::description),
+                        accessors,
                         std::forward<decltype(data)>(data)
                     )
                 )), ...);
-            }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
+            }(typename csl::srl::description<type>::type{});
         }
         static void read_to(auto & is, auto && data)
         {
             using type = std::remove_cvref_t<T>;
-            using description_type = std::remove_cvref_t<decltype(type_descriptor<type>::description)>;
+            using description_type = std::remove_cvref_t<decltype(description<type>::value)>;
 
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 if constexpr ((std::same_as<
@@ -256,7 +306,7 @@ namespace csl::srl {
                 ((csl::srl::read_to<formatter>(
                     is,
                     std::invoke(
-                        std::get<indexes>(type_descriptor<T>::description),
+                        std::get<indexes>(description<T>::value),
                         std::forward<decltype(data)>(data)
                     )
                 )), ...);
@@ -297,27 +347,23 @@ namespace csl::srl {
     }
 }
 
-// ---
+// dispatch each read value to aggregate|constructor
+// TODO : switch according to concept
+// TODO : proposer recursivity (not necessarely binary)
+template <csl::srl::concepts::DescribedAggregate T>
+auto read_then_aggregate_initialize(auto && is) {
 
-// dispatch each read value to constructor
-// TODO : switch according to customization
-// TODO : recursivity
-template <typename T>
-auto read_then_construct(auto && is) {
-
-    using description_type = std::remove_cvref_t<decltype(csl::srl::type_descriptor<T>::description)>;
-
-    return [&]<std::size_t ...indexes>(std::index_sequence<indexes...>){
+    return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
         return T{
             csl::srl::read<
                 csl::srl::binary_formatter,
                 std::remove_cvref_t<
                     std::invoke_result_t<
-                        std::tuple_element_t<indexes, description_type>,
+                        decltype(accessors),
                         T
                     >
                 >
             >(is)...
         };
-    }(std::make_index_sequence<std::tuple_size_v<description_type>>{});
+    }(typename csl::srl::description<T>::type{});
 }
