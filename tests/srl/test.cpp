@@ -97,6 +97,15 @@ auto main() -> int {
     // Described - Aggregate
     {
         csl::srl::write(ss, tutu{42, 'A'});
+        tutu value{0,0};
+        // csl::srl::read_to(ss, value); // todo
+
+        // assert(value.get_i() == 42);
+        // assert(value.get_c() == 'A');
+        // assert(value.result == 107);
+    }
+    {
+        csl::srl::write(ss, tutu{42, 'A'});
         auto value = csl::srl::read<tutu>(ss);
 
         assert(value.get_i() == 42);

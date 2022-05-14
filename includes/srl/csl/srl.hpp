@@ -150,9 +150,12 @@ namespace csl::srl::mp {
 namespace csl::srl::details::concepts {
     template <typename T, typename ... args_ts>
     concept AggregateInitializable = requires { T{ std::declval<args_ts>()... }; };
-}
 
-namespace csl::srl::concepts {
+    template <typename T, typename target>
+    concept AccessorOf = 
+        std::invocable<T, target> and
+        not std::same_as<void, std::invoke_result_t<T, target>>
+    ;
 
     template <typename T>
     concept Unqualified =
@@ -165,37 +168,15 @@ namespace csl::srl::concepts {
     ;
 
     template <typename T>
-    concept BinaryFormattable =
-        Unqualified<T> and
-        std::is_standard_layout_v<T>
-    ;
-
-    // todo : description for qualified type are invalid
-
-    template <typename T>
-    concept Described =
-        Unqualified<T> and
+    concept HasDescription = // might still not be a valid/allowed one
+        details::concepts::Unqualified<T> and
         // [csl::srl] not defined description type
-        requires { typename csl::srl::description<T>::type; } and
-        // [csl::srl] not allowed description type
-        mp::is_allowed_description_type_v<typename csl::srl::description<T>::type> // and
-        // GCC 12.1 : ICE, Clang : undefined `typename csl::srl::description<T>::type`
-        // [csl::srl] accessor is not invocable with T
-        // []<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
-        //     return ((std::invocable<decltype(accessors), T> or ...));
-        // }(typename csl::srl::description<T>::type{}) and
-        // // [csl::srl] likely infinite-recursivity detected
-        // []<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
-        //     return not ((std::same_as<
-        //         std::remove_cvref_t<std::invoke_result_t<decltype(accessors), T>>,
-        //         T
-        //     > or ...));
-        // }(typename csl::srl::description<T>::type{})
+        requires { typename csl::srl::description<T>::type; }
     ;
 
     template <typename T>
     concept DescribedConstructible =
-        Described<T> and
+        HasDescription<T> and
         mp::is_constructor_initialization_v<typename csl::srl::description<T>::type> and
         []<auto ... accessors>(descriptions::constructor_initialization<accessors...>){
             // [csl::srl] Warning : Clang does not implement P0960 yet (Parenthesized initialization of aggregate)
@@ -207,7 +188,7 @@ namespace csl::srl::concepts {
     ;
     template <typename T>
     concept DescribedAggregate =
-        Described<T> and
+        HasDescription<T> and
         mp::is_aggregate_initialization_v<typename csl::srl::description<T>::type> and
         []<auto ... accessors>(descriptions::aggregate_initialization<accessors...>){
             return details::concepts::AggregateInitializable<
@@ -218,7 +199,7 @@ namespace csl::srl::concepts {
     ;
     template <typename T>
     concept DescribedDefered =
-        Described<T> and
+        HasDescription<T> and
         mp::is_defered_initialization_v<typename csl::srl::description<T>::type> and
         std::is_default_constructible_v<T> and
         []<auto ... accessors>(descriptions::defered_initialization<accessors...>){
@@ -228,6 +209,41 @@ namespace csl::srl::concepts {
             >);
         }(typename csl::srl::description<T>::type{})
     ;
+}
+
+namespace csl::srl::concepts {
+
+    template <typename T>
+    concept BinaryFormattable =
+        details::concepts::Unqualified<T> and
+        std::is_standard_layout_v<T>
+    ;
+
+    template <typename T>
+    concept Described =
+        (
+            details::concepts::DescribedAggregate<T> or
+            details::concepts::DescribedConstructible<T> or
+            details::concepts::DescribedDefered<T>
+        ) and
+        // [csl::srl] not allowed description type
+        mp::is_allowed_description_type_v<typename csl::srl::description<T>::type> and
+        // GCC 12.1 : ICE, Clang : undefined `typename csl::srl::description<T>::type`
+        // [csl::srl] accessor is not invocable with T
+        []<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+            return ((std::invocable<decltype(accessors), T> or ...));
+        }(typename csl::srl::description<T>::type{}) and
+        // [csl::srl] likely infinite-recursivity detected
+        []<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
+            return not ((std::same_as<
+                std::remove_cvref_t<std::invoke_result_t<decltype(accessors), T>>,
+                T
+            > or ...));
+        }(typename csl::srl::description<T>::type{})
+    ;
+
+    template <typename T>
+    concept Formattable = Described<T> or BinaryFormattable<T>;
 
     // TODO : input, output (writable/readable)
 }
@@ -241,7 +257,7 @@ namespace csl::srl {
         using formatter_type = formatter_t<type>;
         formatter_type::write(os, std::forward<decltype(data)>(data));
     }
-    template <template <typename> typename formatter_t, concepts::Unqualified T>
+    template <template <typename> typename formatter_t, details::concepts::Unqualified T>
     T read(auto & is) {
         using formatter_type = formatter_t<T>;
         return formatter_type::read(is);
@@ -250,7 +266,7 @@ namespace csl::srl {
     void read_to(auto & is, auto && data) {
         using type = std::remove_cvref_t<decltype(data)>;
         using formatter_type = formatter_t<type>;
-        formatter_type::read_to(is, std::forward<type>(data));
+        formatter_type::read_to(is, std::forward<decltype(data)>(data));
     }
 
     // formatter : binary (fallback)
@@ -327,7 +343,7 @@ namespace csl::srl {
         // TODO : switch according to concept
         // TODO : proposer recursivity (not necessarely binary)
         static auto read(auto && is) -> type
-        requires csl::srl::concepts::DescribedAggregate<T>
+        requires details::concepts::DescribedAggregate<T>
         {
             return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
                 return type{
@@ -344,7 +360,7 @@ namespace csl::srl {
             }(typename csl::srl::description<T>::type{});
         }
         static auto read(auto && is) -> type
-        requires csl::srl::concepts::DescribedConstructible<T>
+        requires details::concepts::DescribedConstructible<T>
         {
             return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
                 return type(
@@ -361,7 +377,7 @@ namespace csl::srl {
             }(typename csl::srl::description<T>::type{});
         }
         static auto read(auto && is) -> type
-        requires csl::srl::concepts::DescribedDefered<T>
+        requires details::concepts::DescribedDefered<T>
         {
             return [&]<template <auto...> typename description_t, auto ... accessors>(description_t<accessors...>){
                 type value;
