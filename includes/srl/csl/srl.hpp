@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include <utility>
 #include <tuple>
 #include <functional>
@@ -98,6 +99,9 @@ constexpr auto type_name_hash_v = hash_type::hash(gcl::cx::type_name_v<T>);
 // TODO : versioning, compatibility
 // TODO : cross-compiler
 // TODO : best default initialization : is_aggregate ? aggregate_initialization : binary
+// TODO : Different description for write and read
+//        read  : std::invocable<accessor_t, T> and std::assignable_from<std::invoke_result_t<accessor_t, T>, std::invoke_result_t<accessor_t, T>>
+//        write : std::invocable<accessor_t, T> and invoke_result not void
 
 // ---
 
@@ -165,8 +169,12 @@ namespace csl::srl::details::concepts {
         not std::is_const_v<T> and
         not std::is_volatile_v<T> and
         // [csl::srl] not raw-pointers
-        not std::is_pointer_v<T>
-    ;
+        not std::is_pointer_v<T> and
+        // [csl::srl] not unions
+        not std::is_union_v<T> and
+        // [csl::srl] no empty type (?)
+        not std::is_empty_v<T>
+    ;   // what about is_polymorphic_v ?
 
     template <typename T>
     concept HasDescription = // might still not be a valid/allowed one
