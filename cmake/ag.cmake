@@ -39,9 +39,9 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     file(APPEND
         ${ag_as_tuple_impl_specialization_filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-auto as_tuple_impl(concepts\:\:Allowed auto && value) {
+auto as_tuple_impl(concepts\:\:aggregate auto && value) {
 \tauto & [ ${IDENTITY_LIST} ] = value;
-\treturn std::tie(${IDENTITY_LIST});
+\treturn fwd_tie<decltype(value)>(${IDENTITY_LIST});
 }\n"
     )
 endforeach()

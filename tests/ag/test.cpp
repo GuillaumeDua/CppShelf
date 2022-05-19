@@ -9,6 +9,8 @@ struct toto{ int i; char c; };
 auto main() -> int {
     using namespace csl::ag;
 
+    // TODO : wrap that in a test function
+
     auto value = toto{};
     auto as_tuple = csl::ag::as_tuple(value);
 
