@@ -731,4 +731,6 @@ namespace csl::ag {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::as_tuple_impl<fields_count<type>>(std::forward<decltype(value)>(value));
     }
+
+	// todo : get<index>(aggregate auto && value)
 }
