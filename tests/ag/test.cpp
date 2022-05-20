@@ -30,7 +30,7 @@ auto main() -> int {
     // TODO : wrap that in a test function
 
     auto value = toto{ 42, 'A' }; // NOLINT
-    auto as_tuple = csl::ag::as_tuple(value);
+    auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
 
     static_assert(std::same_as<
         int&,
@@ -40,6 +40,9 @@ auto main() -> int {
         char&,
         std::tuple_element_t<1, std::remove_cvref_t<decltype(as_tuple)>>
     >);
+
+    /*static_*/assert(csl::ag::get<0>(value) == 42);
+    /*static_*/assert(csl::ag::get<1>(value) == 'A');
 
     assert(
         std::addressof(std::get<0>(as_tuple)) ==
