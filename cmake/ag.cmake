@@ -89,7 +89,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         "template <std::size_t N, concepts::aggregate T>\n
         requires (fields_count<T> == ${ID})\n
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = std::declval<T>();
+            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = declval<T&>();
             // return std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(DECLTYPE_IDS)>(CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS));
             return std::tuple_element<
                 N,
