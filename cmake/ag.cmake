@@ -54,7 +54,7 @@ file(APPEND
 ## Generates `as_tuple_impl` ...
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma region as_tuple_impl\n \
+    "#pragma region as_tuple_impl
     #define IDS(EXPR) EXPR\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
@@ -70,7 +70,39 @@ constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
 endforeach()
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#undef F\n \
+    "#undef IDS
+    #pragma endregion\n"
+)
+
+## Generates `element<N, T>` specializations ...
+
+file(APPEND
+    ${ag_as_tuple_impl_specialization_filepath}
+    "#pragma region element<N, T>
+    #define IDS(EXPR) EXPR
+    #define DECLTYPE_IDS(EXPR) decltype(EXPR)\n"
+)
+foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
+
+    file(APPEND
+        ${ag_as_tuple_impl_specialization_filepath}
+        "template <std::size_t N, concepts::aggregate T>\n
+        requires (fields_count<T> == ${ID})\n
+        struct element<N, T> : decltype([]() -> decltype(auto) {
+            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = std::declval<T>();
+            // return std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(DECLTYPE_IDS)>(CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS));
+            return std::tuple_element<
+                N,
+                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(DECLTYPE_IDS)>
+            >{};
+        }()){};
+    "
+    )
+endforeach()
+file(APPEND
+    ${ag_as_tuple_impl_specialization_filepath}
+    "#undef IDS\n \
+    #undef DECLTYPE_IDS\n \
     #pragma endregion\n"
 )
 

@@ -54,4 +54,19 @@ auto main() -> int {
     );
 
     print(value);
+
+    struct qwe{ int i; char & c; bool && b; };
+    static_assert(csl::ag::size<qwe>::value == 3);
+    static_assert(std::same_as<
+        int,
+        csl::ag::element<0, qwe>::type
+    >);
+    static_assert(std::same_as<
+        char &,
+        csl::ag::element<1, qwe>::type
+    >);
+    static_assert(std::same_as<
+        bool &&,
+        csl::ag::element<2, qwe>::type
+    >);
 }
