@@ -3,7 +3,8 @@ if (NOT EXISTS ${csl_ag_hpp})
     message(FATAL "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : missing file ${csl_ag_hpp}")
 endif()
 
-# Generate "partial" specializations for `as_tuple_impl<N, T>`
+# Generates "partial" specializations for `as_tuple_impl<N, T>`,
+#                                     and `element<N, T>`
 # According to the following template :
 #
 # template <std::size_t N> requires (N == /* 0..AG_MAX_FIELDS_COUNT */)
@@ -22,29 +23,56 @@ endif()
 set(AG_MAX_FIELDS_COUNT ${AG_MAX_FIELDS_COUNT_OPTION})
 
 # Generates specialization as a file ...
-
 set(ag_as_tuple_impl_specialization_filepath ${PROJECT_SOURCE_DIR}/build/generated/ag_as_tuple_impl_specialization.hpp)
 file(WRITE
     ${ag_as_tuple_impl_specialization_filepath}
     ""
 )
 
-set(IDENTITY_LIST "i1")
+## Generates `CSL_AG_UNFOLD_IDENTITIES_WITH_` (expansions macros) ...
+file(APPEND
+    ${ag_as_tuple_impl_specialization_filepath}
+    "#pragma region CSL_AG_UNFOLD_IDENTITIES_WITH_N\n
+    #define CSL_AG_UNFOLD_IDENTITIES_WITH_1(F) F(v0) // NOLINT\n"
+)
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
+    math(EXPR ID_MINUS_ONE "${ID}-1")
+
     if (NOT ${ID} EQUAL 1)
-        set(IDENTITY_LIST "${IDENTITY_LIST}, i${ID}")
+    file(APPEND
+        ${ag_as_tuple_impl_specialization_filepath}
+        "#define CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(F) F(v${ID_MINUS_ONE}), CSL_AG_UNFOLD_IDENTITIES_WITH_${ID_MINUS_ONE}(F) // NOLINT\n"
+    )
     endif()
+endforeach()
+file(APPEND
+    ${ag_as_tuple_impl_specialization_filepath}
+    "#pragma endregion\n"
+)
+
+## Generates `as_tuple_impl` ...
+file(APPEND
+    ${ag_as_tuple_impl_specialization_filepath}
+    "#pragma region as_tuple_impl\n \
+    #define IDS(EXPR) EXPR\n"
+)
+foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
     file(APPEND
         ${ag_as_tuple_impl_specialization_filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
 constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
-\tauto && [ ${IDENTITY_LIST} ] = value;
-\treturn fwd_tie<decltype(value)>(${IDENTITY_LIST});
+\tauto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = value;
+\treturn fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS));
 }\n"
     )
 endforeach()
+file(APPEND
+    ${ag_as_tuple_impl_specialization_filepath}
+    "#undef F\n \
+    #pragma endregion\n"
+)
 
 # injects into ag/csl/ag.hpp
 
