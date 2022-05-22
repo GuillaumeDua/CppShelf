@@ -86,11 +86,10 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
     file(APPEND
         ${ag_as_tuple_impl_specialization_filepath}
-        "template <std::size_t N, concepts::aggregate T>\n
-        requires (fields_count<T> == ${ID})\n
+        "template <std::size_t N, concepts::aggregate T>
+        requires (fields_count<T> == ${ID})
         struct element<N, T> : decltype([]() -> decltype(auto) {
             auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = declval<T&>();
-            // return std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(DECLTYPE_IDS)>(CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS));
             return std::tuple_element<
                 N,
                 std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(DECLTYPE_IDS)>
