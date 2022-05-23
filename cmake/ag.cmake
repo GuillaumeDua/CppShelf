@@ -33,8 +33,7 @@ file(WRITE
 set(identities "v0")
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma region as_tuple_impl
-    #define IDS(EXPR) EXPR\n"
+    "#pragma region as_tuple_impl<N,T>\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
@@ -58,19 +57,19 @@ set(identities "v0")
 set(identities_decltype "decltype(v0)")
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma region element<N, T>\n"
+    "#pragma region element<N, T>\n\t"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
     file(APPEND
         ${ag_as_tuple_impl_specialization_filepath}
         "template <std::size_t N, concepts::aggregate T>
-        requires (fields_count<T> == ${ID})
-        struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ ${identities} ] = declval<T&>();
-            using tuple_type = std::tuple<${identities_decltype}>;
-            return std::tuple_element<N, tuple_type>{};
-        }()){};
+    requires (fields_count<T> == ${ID})
+    struct element<N, T> : decltype([]() -> decltype(auto) {
+        auto && [ ${identities} ] = declval<T&>();
+        using tuple_type = std::tuple<${identities_decltype}>;
+        return std::tuple_element<N, tuple_type>{};
+    }()){};
     "
     )
     string(APPEND identities ",v${ID}")
