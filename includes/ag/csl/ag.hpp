@@ -91,1939 +91,1547 @@ namespace csl::ag::details {
 
 #pragma region as_tuple_impl<N,T>
 // GENERATED CONTENT, DO NOT EDIT MANUALLY !
-#pragma region CSL_AG_UNFOLD_IDENTITIES_WITH_N
-
-    #define CSL_AG_UNFOLD_IDENTITIES_WITH_1(F) F(v0) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_2(F) F(v1), CSL_AG_UNFOLD_IDENTITIES_WITH_1(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_3(F) F(v2), CSL_AG_UNFOLD_IDENTITIES_WITH_2(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_4(F) F(v3), CSL_AG_UNFOLD_IDENTITIES_WITH_3(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_5(F) F(v4), CSL_AG_UNFOLD_IDENTITIES_WITH_4(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_6(F) F(v5), CSL_AG_UNFOLD_IDENTITIES_WITH_5(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_7(F) F(v6), CSL_AG_UNFOLD_IDENTITIES_WITH_6(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_8(F) F(v7), CSL_AG_UNFOLD_IDENTITIES_WITH_7(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_9(F) F(v8), CSL_AG_UNFOLD_IDENTITIES_WITH_8(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_10(F) F(v9), CSL_AG_UNFOLD_IDENTITIES_WITH_9(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_11(F) F(v10), CSL_AG_UNFOLD_IDENTITIES_WITH_10(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_12(F) F(v11), CSL_AG_UNFOLD_IDENTITIES_WITH_11(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_13(F) F(v12), CSL_AG_UNFOLD_IDENTITIES_WITH_12(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_14(F) F(v13), CSL_AG_UNFOLD_IDENTITIES_WITH_13(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_15(F) F(v14), CSL_AG_UNFOLD_IDENTITIES_WITH_14(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_16(F) F(v15), CSL_AG_UNFOLD_IDENTITIES_WITH_15(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_17(F) F(v16), CSL_AG_UNFOLD_IDENTITIES_WITH_16(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_18(F) F(v17), CSL_AG_UNFOLD_IDENTITIES_WITH_17(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_19(F) F(v18), CSL_AG_UNFOLD_IDENTITIES_WITH_18(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_20(F) F(v19), CSL_AG_UNFOLD_IDENTITIES_WITH_19(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_21(F) F(v20), CSL_AG_UNFOLD_IDENTITIES_WITH_20(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_22(F) F(v21), CSL_AG_UNFOLD_IDENTITIES_WITH_21(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_23(F) F(v22), CSL_AG_UNFOLD_IDENTITIES_WITH_22(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_24(F) F(v23), CSL_AG_UNFOLD_IDENTITIES_WITH_23(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_25(F) F(v24), CSL_AG_UNFOLD_IDENTITIES_WITH_24(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_26(F) F(v25), CSL_AG_UNFOLD_IDENTITIES_WITH_25(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_27(F) F(v26), CSL_AG_UNFOLD_IDENTITIES_WITH_26(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_28(F) F(v27), CSL_AG_UNFOLD_IDENTITIES_WITH_27(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_29(F) F(v28), CSL_AG_UNFOLD_IDENTITIES_WITH_28(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_30(F) F(v29), CSL_AG_UNFOLD_IDENTITIES_WITH_29(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_31(F) F(v30), CSL_AG_UNFOLD_IDENTITIES_WITH_30(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_32(F) F(v31), CSL_AG_UNFOLD_IDENTITIES_WITH_31(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_33(F) F(v32), CSL_AG_UNFOLD_IDENTITIES_WITH_32(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_34(F) F(v33), CSL_AG_UNFOLD_IDENTITIES_WITH_33(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_35(F) F(v34), CSL_AG_UNFOLD_IDENTITIES_WITH_34(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_36(F) F(v35), CSL_AG_UNFOLD_IDENTITIES_WITH_35(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_37(F) F(v36), CSL_AG_UNFOLD_IDENTITIES_WITH_36(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_38(F) F(v37), CSL_AG_UNFOLD_IDENTITIES_WITH_37(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_39(F) F(v38), CSL_AG_UNFOLD_IDENTITIES_WITH_38(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_40(F) F(v39), CSL_AG_UNFOLD_IDENTITIES_WITH_39(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_41(F) F(v40), CSL_AG_UNFOLD_IDENTITIES_WITH_40(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_42(F) F(v41), CSL_AG_UNFOLD_IDENTITIES_WITH_41(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_43(F) F(v42), CSL_AG_UNFOLD_IDENTITIES_WITH_42(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_44(F) F(v43), CSL_AG_UNFOLD_IDENTITIES_WITH_43(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_45(F) F(v44), CSL_AG_UNFOLD_IDENTITIES_WITH_44(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_46(F) F(v45), CSL_AG_UNFOLD_IDENTITIES_WITH_45(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_47(F) F(v46), CSL_AG_UNFOLD_IDENTITIES_WITH_46(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_48(F) F(v47), CSL_AG_UNFOLD_IDENTITIES_WITH_47(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_49(F) F(v48), CSL_AG_UNFOLD_IDENTITIES_WITH_48(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_50(F) F(v49), CSL_AG_UNFOLD_IDENTITIES_WITH_49(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_51(F) F(v50), CSL_AG_UNFOLD_IDENTITIES_WITH_50(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_52(F) F(v51), CSL_AG_UNFOLD_IDENTITIES_WITH_51(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_53(F) F(v52), CSL_AG_UNFOLD_IDENTITIES_WITH_52(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_54(F) F(v53), CSL_AG_UNFOLD_IDENTITIES_WITH_53(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_55(F) F(v54), CSL_AG_UNFOLD_IDENTITIES_WITH_54(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_56(F) F(v55), CSL_AG_UNFOLD_IDENTITIES_WITH_55(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_57(F) F(v56), CSL_AG_UNFOLD_IDENTITIES_WITH_56(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_58(F) F(v57), CSL_AG_UNFOLD_IDENTITIES_WITH_57(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_59(F) F(v58), CSL_AG_UNFOLD_IDENTITIES_WITH_58(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_60(F) F(v59), CSL_AG_UNFOLD_IDENTITIES_WITH_59(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_61(F) F(v60), CSL_AG_UNFOLD_IDENTITIES_WITH_60(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_62(F) F(v61), CSL_AG_UNFOLD_IDENTITIES_WITH_61(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_63(F) F(v62), CSL_AG_UNFOLD_IDENTITIES_WITH_62(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_64(F) F(v63), CSL_AG_UNFOLD_IDENTITIES_WITH_63(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_65(F) F(v64), CSL_AG_UNFOLD_IDENTITIES_WITH_64(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_66(F) F(v65), CSL_AG_UNFOLD_IDENTITIES_WITH_65(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_67(F) F(v66), CSL_AG_UNFOLD_IDENTITIES_WITH_66(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_68(F) F(v67), CSL_AG_UNFOLD_IDENTITIES_WITH_67(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_69(F) F(v68), CSL_AG_UNFOLD_IDENTITIES_WITH_68(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_70(F) F(v69), CSL_AG_UNFOLD_IDENTITIES_WITH_69(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_71(F) F(v70), CSL_AG_UNFOLD_IDENTITIES_WITH_70(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_72(F) F(v71), CSL_AG_UNFOLD_IDENTITIES_WITH_71(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_73(F) F(v72), CSL_AG_UNFOLD_IDENTITIES_WITH_72(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_74(F) F(v73), CSL_AG_UNFOLD_IDENTITIES_WITH_73(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_75(F) F(v74), CSL_AG_UNFOLD_IDENTITIES_WITH_74(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_76(F) F(v75), CSL_AG_UNFOLD_IDENTITIES_WITH_75(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_77(F) F(v76), CSL_AG_UNFOLD_IDENTITIES_WITH_76(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_78(F) F(v77), CSL_AG_UNFOLD_IDENTITIES_WITH_77(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_79(F) F(v78), CSL_AG_UNFOLD_IDENTITIES_WITH_78(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_80(F) F(v79), CSL_AG_UNFOLD_IDENTITIES_WITH_79(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_81(F) F(v80), CSL_AG_UNFOLD_IDENTITIES_WITH_80(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_82(F) F(v81), CSL_AG_UNFOLD_IDENTITIES_WITH_81(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_83(F) F(v82), CSL_AG_UNFOLD_IDENTITIES_WITH_82(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_84(F) F(v83), CSL_AG_UNFOLD_IDENTITIES_WITH_83(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_85(F) F(v84), CSL_AG_UNFOLD_IDENTITIES_WITH_84(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_86(F) F(v85), CSL_AG_UNFOLD_IDENTITIES_WITH_85(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_87(F) F(v86), CSL_AG_UNFOLD_IDENTITIES_WITH_86(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_88(F) F(v87), CSL_AG_UNFOLD_IDENTITIES_WITH_87(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_89(F) F(v88), CSL_AG_UNFOLD_IDENTITIES_WITH_88(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_90(F) F(v89), CSL_AG_UNFOLD_IDENTITIES_WITH_89(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_91(F) F(v90), CSL_AG_UNFOLD_IDENTITIES_WITH_90(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_92(F) F(v91), CSL_AG_UNFOLD_IDENTITIES_WITH_91(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_93(F) F(v92), CSL_AG_UNFOLD_IDENTITIES_WITH_92(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_94(F) F(v93), CSL_AG_UNFOLD_IDENTITIES_WITH_93(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_95(F) F(v94), CSL_AG_UNFOLD_IDENTITIES_WITH_94(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_96(F) F(v95), CSL_AG_UNFOLD_IDENTITIES_WITH_95(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_97(F) F(v96), CSL_AG_UNFOLD_IDENTITIES_WITH_96(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_98(F) F(v97), CSL_AG_UNFOLD_IDENTITIES_WITH_97(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_99(F) F(v98), CSL_AG_UNFOLD_IDENTITIES_WITH_98(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_100(F) F(v99), CSL_AG_UNFOLD_IDENTITIES_WITH_99(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_101(F) F(v100), CSL_AG_UNFOLD_IDENTITIES_WITH_100(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_102(F) F(v101), CSL_AG_UNFOLD_IDENTITIES_WITH_101(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_103(F) F(v102), CSL_AG_UNFOLD_IDENTITIES_WITH_102(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_104(F) F(v103), CSL_AG_UNFOLD_IDENTITIES_WITH_103(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_105(F) F(v104), CSL_AG_UNFOLD_IDENTITIES_WITH_104(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_106(F) F(v105), CSL_AG_UNFOLD_IDENTITIES_WITH_105(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_107(F) F(v106), CSL_AG_UNFOLD_IDENTITIES_WITH_106(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_108(F) F(v107), CSL_AG_UNFOLD_IDENTITIES_WITH_107(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_109(F) F(v108), CSL_AG_UNFOLD_IDENTITIES_WITH_108(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_110(F) F(v109), CSL_AG_UNFOLD_IDENTITIES_WITH_109(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_111(F) F(v110), CSL_AG_UNFOLD_IDENTITIES_WITH_110(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_112(F) F(v111), CSL_AG_UNFOLD_IDENTITIES_WITH_111(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_113(F) F(v112), CSL_AG_UNFOLD_IDENTITIES_WITH_112(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_114(F) F(v113), CSL_AG_UNFOLD_IDENTITIES_WITH_113(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_115(F) F(v114), CSL_AG_UNFOLD_IDENTITIES_WITH_114(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_116(F) F(v115), CSL_AG_UNFOLD_IDENTITIES_WITH_115(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_117(F) F(v116), CSL_AG_UNFOLD_IDENTITIES_WITH_116(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_118(F) F(v117), CSL_AG_UNFOLD_IDENTITIES_WITH_117(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_119(F) F(v118), CSL_AG_UNFOLD_IDENTITIES_WITH_118(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_120(F) F(v119), CSL_AG_UNFOLD_IDENTITIES_WITH_119(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_121(F) F(v120), CSL_AG_UNFOLD_IDENTITIES_WITH_120(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_122(F) F(v121), CSL_AG_UNFOLD_IDENTITIES_WITH_121(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_123(F) F(v122), CSL_AG_UNFOLD_IDENTITIES_WITH_122(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_124(F) F(v123), CSL_AG_UNFOLD_IDENTITIES_WITH_123(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_125(F) F(v124), CSL_AG_UNFOLD_IDENTITIES_WITH_124(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_126(F) F(v125), CSL_AG_UNFOLD_IDENTITIES_WITH_125(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_127(F) F(v126), CSL_AG_UNFOLD_IDENTITIES_WITH_126(F) // NOLINT
-#define CSL_AG_UNFOLD_IDENTITIES_WITH_128(F) F(v127), CSL_AG_UNFOLD_IDENTITIES_WITH_127(F) // NOLINT
-#pragma endregion
 #pragma region as_tuple_impl
     #define IDS(EXPR) EXPR
 template <std::size_t N> requires (N == 1) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_1(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_1(IDS));
+	auto && [ v0 ] = value;
+	return fwd_tie<decltype(value)>(v0);
 }
 template <std::size_t N> requires (N == 2) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_2(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_2(IDS));
+	auto && [ v0,v1 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1);
 }
 template <std::size_t N> requires (N == 3) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_3(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_3(IDS));
+	auto && [ v0,v1,v2 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2);
 }
 template <std::size_t N> requires (N == 4) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_4(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_4(IDS));
+	auto && [ v0,v1,v2,v3 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3);
 }
 template <std::size_t N> requires (N == 5) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_5(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_5(IDS));
+	auto && [ v0,v1,v2,v3,v4 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4);
 }
 template <std::size_t N> requires (N == 6) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_6(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_6(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5);
 }
 template <std::size_t N> requires (N == 7) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_7(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_7(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6);
 }
 template <std::size_t N> requires (N == 8) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_8(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_8(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7);
 }
 template <std::size_t N> requires (N == 9) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_9(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_9(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8);
 }
 template <std::size_t N> requires (N == 10) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_10(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_10(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9);
 }
 template <std::size_t N> requires (N == 11) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_11(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_11(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10);
 }
 template <std::size_t N> requires (N == 12) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_12(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_12(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11);
 }
 template <std::size_t N> requires (N == 13) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_13(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_13(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12);
 }
 template <std::size_t N> requires (N == 14) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_14(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_14(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13);
 }
 template <std::size_t N> requires (N == 15) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_15(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_15(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14);
 }
 template <std::size_t N> requires (N == 16) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_16(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_16(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15);
 }
 template <std::size_t N> requires (N == 17) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_17(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_17(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16);
 }
 template <std::size_t N> requires (N == 18) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_18(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_18(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17);
 }
 template <std::size_t N> requires (N == 19) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_19(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_19(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18);
 }
 template <std::size_t N> requires (N == 20) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_20(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_20(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19);
 }
 template <std::size_t N> requires (N == 21) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_21(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_21(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20);
 }
 template <std::size_t N> requires (N == 22) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_22(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_22(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21);
 }
 template <std::size_t N> requires (N == 23) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_23(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_23(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22);
 }
 template <std::size_t N> requires (N == 24) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_24(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_24(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23);
 }
 template <std::size_t N> requires (N == 25) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_25(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_25(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24);
 }
 template <std::size_t N> requires (N == 26) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_26(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_26(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25);
 }
 template <std::size_t N> requires (N == 27) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_27(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_27(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26);
 }
 template <std::size_t N> requires (N == 28) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_28(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_28(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27);
 }
 template <std::size_t N> requires (N == 29) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_29(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_29(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28);
 }
 template <std::size_t N> requires (N == 30) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_30(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_30(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29);
 }
 template <std::size_t N> requires (N == 31) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_31(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_31(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30);
 }
 template <std::size_t N> requires (N == 32) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_32(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_32(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31);
 }
 template <std::size_t N> requires (N == 33) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_33(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_33(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32);
 }
 template <std::size_t N> requires (N == 34) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_34(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_34(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33);
 }
 template <std::size_t N> requires (N == 35) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_35(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_35(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34);
 }
 template <std::size_t N> requires (N == 36) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_36(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_36(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35);
 }
 template <std::size_t N> requires (N == 37) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_37(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_37(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36);
 }
 template <std::size_t N> requires (N == 38) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_38(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_38(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37);
 }
 template <std::size_t N> requires (N == 39) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_39(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_39(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38);
 }
 template <std::size_t N> requires (N == 40) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_40(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_40(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39);
 }
 template <std::size_t N> requires (N == 41) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_41(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_41(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40);
 }
 template <std::size_t N> requires (N == 42) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_42(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_42(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41);
 }
 template <std::size_t N> requires (N == 43) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_43(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_43(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42);
 }
 template <std::size_t N> requires (N == 44) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_44(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_44(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43);
 }
 template <std::size_t N> requires (N == 45) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_45(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_45(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44);
 }
 template <std::size_t N> requires (N == 46) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_46(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_46(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45);
 }
 template <std::size_t N> requires (N == 47) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_47(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_47(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46);
 }
 template <std::size_t N> requires (N == 48) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_48(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_48(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47);
 }
 template <std::size_t N> requires (N == 49) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_49(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_49(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48);
 }
 template <std::size_t N> requires (N == 50) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_50(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_50(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49);
 }
 template <std::size_t N> requires (N == 51) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_51(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_51(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50);
 }
 template <std::size_t N> requires (N == 52) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_52(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_52(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51);
 }
 template <std::size_t N> requires (N == 53) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_53(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_53(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52);
 }
 template <std::size_t N> requires (N == 54) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_54(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_54(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53);
 }
 template <std::size_t N> requires (N == 55) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_55(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_55(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54);
 }
 template <std::size_t N> requires (N == 56) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_56(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_56(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55);
 }
 template <std::size_t N> requires (N == 57) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_57(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_57(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56);
 }
 template <std::size_t N> requires (N == 58) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_58(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_58(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57);
 }
 template <std::size_t N> requires (N == 59) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_59(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_59(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58);
 }
 template <std::size_t N> requires (N == 60) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_60(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_60(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59);
 }
 template <std::size_t N> requires (N == 61) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_61(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_61(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60);
 }
 template <std::size_t N> requires (N == 62) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_62(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_62(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61);
 }
 template <std::size_t N> requires (N == 63) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_63(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_63(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62);
 }
 template <std::size_t N> requires (N == 64) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_64(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_64(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63);
 }
 template <std::size_t N> requires (N == 65) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_65(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_65(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64);
 }
 template <std::size_t N> requires (N == 66) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_66(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_66(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65);
 }
 template <std::size_t N> requires (N == 67) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_67(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_67(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66);
 }
 template <std::size_t N> requires (N == 68) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_68(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_68(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67);
 }
 template <std::size_t N> requires (N == 69) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_69(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_69(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68);
 }
 template <std::size_t N> requires (N == 70) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_70(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_70(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69);
 }
 template <std::size_t N> requires (N == 71) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_71(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_71(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70);
 }
 template <std::size_t N> requires (N == 72) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_72(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_72(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71);
 }
 template <std::size_t N> requires (N == 73) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_73(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_73(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72);
 }
 template <std::size_t N> requires (N == 74) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_74(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_74(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73);
 }
 template <std::size_t N> requires (N == 75) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_75(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_75(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74);
 }
 template <std::size_t N> requires (N == 76) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_76(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_76(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75);
 }
 template <std::size_t N> requires (N == 77) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_77(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_77(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76);
 }
 template <std::size_t N> requires (N == 78) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_78(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_78(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77);
 }
 template <std::size_t N> requires (N == 79) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_79(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_79(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78);
 }
 template <std::size_t N> requires (N == 80) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_80(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_80(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79);
 }
 template <std::size_t N> requires (N == 81) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_81(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_81(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80);
 }
 template <std::size_t N> requires (N == 82) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_82(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_82(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81);
 }
 template <std::size_t N> requires (N == 83) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_83(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_83(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82);
 }
 template <std::size_t N> requires (N == 84) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_84(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_84(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83);
 }
 template <std::size_t N> requires (N == 85) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_85(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_85(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84);
 }
 template <std::size_t N> requires (N == 86) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_86(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_86(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85);
 }
 template <std::size_t N> requires (N == 87) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_87(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_87(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86);
 }
 template <std::size_t N> requires (N == 88) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_88(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_88(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87);
 }
 template <std::size_t N> requires (N == 89) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_89(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_89(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88);
 }
 template <std::size_t N> requires (N == 90) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_90(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_90(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89);
 }
 template <std::size_t N> requires (N == 91) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_91(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_91(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90);
 }
 template <std::size_t N> requires (N == 92) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_92(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_92(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91);
 }
 template <std::size_t N> requires (N == 93) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_93(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_93(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92);
 }
 template <std::size_t N> requires (N == 94) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_94(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_94(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93);
 }
 template <std::size_t N> requires (N == 95) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_95(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_95(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94);
 }
 template <std::size_t N> requires (N == 96) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_96(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_96(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95);
 }
 template <std::size_t N> requires (N == 97) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_97(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_97(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96);
 }
 template <std::size_t N> requires (N == 98) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_98(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_98(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97);
 }
 template <std::size_t N> requires (N == 99) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_99(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_99(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98);
 }
 template <std::size_t N> requires (N == 100) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_100(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_100(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99);
 }
 template <std::size_t N> requires (N == 101) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_101(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_101(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100);
 }
 template <std::size_t N> requires (N == 102) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_102(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_102(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101);
 }
 template <std::size_t N> requires (N == 103) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_103(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_103(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102);
 }
 template <std::size_t N> requires (N == 104) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_104(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_104(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103);
 }
 template <std::size_t N> requires (N == 105) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_105(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_105(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104);
 }
 template <std::size_t N> requires (N == 106) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_106(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_106(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105);
 }
 template <std::size_t N> requires (N == 107) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_107(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_107(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106);
 }
 template <std::size_t N> requires (N == 108) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_108(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_108(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107);
 }
 template <std::size_t N> requires (N == 109) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_109(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_109(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108);
 }
 template <std::size_t N> requires (N == 110) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_110(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_110(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109);
 }
 template <std::size_t N> requires (N == 111) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_111(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_111(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110);
 }
 template <std::size_t N> requires (N == 112) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_112(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_112(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111);
 }
 template <std::size_t N> requires (N == 113) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_113(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_113(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112);
 }
 template <std::size_t N> requires (N == 114) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_114(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_114(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113);
 }
 template <std::size_t N> requires (N == 115) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_115(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_115(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114);
 }
 template <std::size_t N> requires (N == 116) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_116(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_116(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115);
 }
 template <std::size_t N> requires (N == 117) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_117(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_117(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116);
 }
 template <std::size_t N> requires (N == 118) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_118(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_118(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117);
 }
 template <std::size_t N> requires (N == 119) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_119(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_119(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118);
 }
 template <std::size_t N> requires (N == 120) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_120(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_120(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119);
 }
 template <std::size_t N> requires (N == 121) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_121(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_121(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120);
 }
 template <std::size_t N> requires (N == 122) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_122(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_122(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121);
 }
 template <std::size_t N> requires (N == 123) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_123(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_123(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122);
 }
 template <std::size_t N> requires (N == 124) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_124(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_124(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123);
 }
 template <std::size_t N> requires (N == 125) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_125(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_125(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124);
 }
 template <std::size_t N> requires (N == 126) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_126(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_126(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125);
 }
 template <std::size_t N> requires (N == 127) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_127(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_127(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125,v126 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125,v126);
 }
 template <std::size_t N> requires (N == 128) // NOLINT
  constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
-	auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_128(IDS) ] = value;
-	return fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_128(IDS));
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125,v126,v127 ] = value;
+	return fwd_tie<decltype(value)>(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125,v126,v127);
 }
-#undef IDS
-    #pragma endregion
+#pragma endregion
 #pragma region element<N, T>
-    #define IDS(EXPR) EXPR
-    #define DECLTYPE_IDS(EXPR) decltype(EXPR)
 template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 1)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_1(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_1(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 2)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_2(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_2(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 3)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_3(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_3(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 4)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_4(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_4(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 5)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_5(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_5(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 6)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_6(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_6(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 7)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_7(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_7(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 8)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_8(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_8(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 9)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_9(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_9(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 10)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_10(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_10(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 11)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_11(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_11(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 12)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_12(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_12(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 13)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_13(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_13(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 14)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_14(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_14(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 15)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_15(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_15(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 16)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_16(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_16(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 17)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_17(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_17(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 18)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_18(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_18(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 19)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_19(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_19(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 20)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_20(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_20(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 21)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_21(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_21(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 22)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_22(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_22(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 23)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_23(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_23(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 24)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_24(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_24(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 25)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_25(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_25(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 26)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_26(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_26(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 27)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_27(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_27(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 28)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_28(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_28(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 29)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_29(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_29(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 30)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_30(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_30(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 31)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_31(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_31(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 32)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_32(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_32(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 33)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_33(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_33(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 34)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_34(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_34(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 35)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_35(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_35(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 36)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_36(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_36(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 37)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_37(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_37(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 38)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_38(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_38(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 39)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_39(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_39(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 40)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_40(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_40(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 41)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_41(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_41(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 42)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_42(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_42(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 43)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_43(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_43(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 44)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_44(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_44(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 45)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_45(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_45(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 46)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_46(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_46(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 47)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_47(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_47(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 48)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_48(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_48(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 49)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_49(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_49(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 50)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_50(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_50(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 51)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_51(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_51(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 52)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_52(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_52(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 53)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_53(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_53(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 54)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_54(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_54(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 55)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_55(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_55(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 56)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_56(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_56(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 57)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_57(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_57(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 58)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_58(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_58(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 59)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_59(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_59(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 60)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_60(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_60(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 61)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_61(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_61(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 62)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_62(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_62(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 63)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_63(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_63(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 64)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_64(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_64(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 65)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_65(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_65(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 66)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_66(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_66(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 67)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_67(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_67(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 68)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_68(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_68(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 69)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_69(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_69(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 70)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_70(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_70(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 71)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_71(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_71(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 72)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_72(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_72(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 73)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_73(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_73(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 74)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_74(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_74(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 75)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_75(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_75(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 76)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_76(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_76(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 77)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_77(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_77(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 78)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_78(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_78(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 79)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_79(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_79(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 80)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_80(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_80(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 81)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_81(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_81(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 82)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_82(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_82(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 83)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_83(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_83(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 84)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_84(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_84(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 85)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_85(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_85(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 86)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_86(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_86(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 87)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_87(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_87(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 88)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_88(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_88(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 89)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_89(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_89(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 90)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_90(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_90(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 91)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_91(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_91(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 92)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_92(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_92(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 93)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_93(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_93(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 94)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_94(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_94(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 95)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_95(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_95(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 96)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_96(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_96(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 97)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_97(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_97(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 98)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_98(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_98(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 99)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_99(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_99(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 100)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_100(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_100(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 101)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_101(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_101(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 102)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_102(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_102(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 103)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_103(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_103(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 104)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_104(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_104(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 105)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_105(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_105(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 106)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_106(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_106(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 107)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_107(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_107(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 108)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_108(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_108(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 109)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_109(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_109(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 110)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_110(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_110(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 111)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_111(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_111(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 112)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_112(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_112(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 113)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_113(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_113(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 114)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_114(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_114(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 115)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_115(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_115(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 116)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_116(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_116(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 117)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_117(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_117(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 118)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_118(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_118(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 119)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_119(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_119(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 120)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_120(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_120(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 121)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_121(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_121(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 122)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_122(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_122(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 123)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_123(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_123(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121),decltype(v122)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 124)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_124(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_124(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121),decltype(v122),decltype(v123)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 125)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_125(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_125(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121),decltype(v122),decltype(v123),decltype(v124)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 126)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_126(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_126(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121),decltype(v122),decltype(v123),decltype(v124),decltype(v125)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 127)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_127(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_127(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125,v126 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121),decltype(v122),decltype(v123),decltype(v124),decltype(v125),decltype(v126)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == 128)
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_128(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_128(DECLTYPE_IDS)>
-            >{};
+            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31,v32,v33,v34,v35,v36,v37,v38,v39,v40,v41,v42,v43,v44,v45,v46,v47,v48,v49,v50,v51,v52,v53,v54,v55,v56,v57,v58,v59,v60,v61,v62,v63,v64,v65,v66,v67,v68,v69,v70,v71,v72,v73,v74,v75,v76,v77,v78,v79,v80,v81,v82,v83,v84,v85,v86,v87,v88,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v99,v100,v101,v102,v103,v104,v105,v106,v107,v108,v109,v110,v111,v112,v113,v114,v115,v116,v117,v118,v119,v120,v121,v122,v123,v124,v125,v126,v127 ] = declval<T&>();
+            using tuple_type = std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31),decltype(v32),decltype(v33),decltype(v34),decltype(v35),decltype(v36),decltype(v37),decltype(v38),decltype(v39),decltype(v40),decltype(v41),decltype(v42),decltype(v43),decltype(v44),decltype(v45),decltype(v46),decltype(v47),decltype(v48),decltype(v49),decltype(v50),decltype(v51),decltype(v52),decltype(v53),decltype(v54),decltype(v55),decltype(v56),decltype(v57),decltype(v58),decltype(v59),decltype(v60),decltype(v61),decltype(v62),decltype(v63),decltype(v64),decltype(v65),decltype(v66),decltype(v67),decltype(v68),decltype(v69),decltype(v70),decltype(v71),decltype(v72),decltype(v73),decltype(v74),decltype(v75),decltype(v76),decltype(v77),decltype(v78),decltype(v79),decltype(v80),decltype(v81),decltype(v82),decltype(v83),decltype(v84),decltype(v85),decltype(v86),decltype(v87),decltype(v88),decltype(v89),decltype(v90),decltype(v91),decltype(v92),decltype(v93),decltype(v94),decltype(v95),decltype(v96),decltype(v97),decltype(v98),decltype(v99),decltype(v100),decltype(v101),decltype(v102),decltype(v103),decltype(v104),decltype(v105),decltype(v106),decltype(v107),decltype(v108),decltype(v109),decltype(v110),decltype(v111),decltype(v112),decltype(v113),decltype(v114),decltype(v115),decltype(v116),decltype(v117),decltype(v118),decltype(v119),decltype(v120),decltype(v121),decltype(v122),decltype(v123),decltype(v124),decltype(v125),decltype(v126),decltype(v127)>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
-    #undef IDS
-     #undef DECLTYPE_IDS
-     #pragma endregion
+    #pragma endregion
 // END OF GENERATED CONTENT
 #pragma endregion
 

@@ -29,29 +29,8 @@ file(WRITE
     ""
 )
 
-## Generates `CSL_AG_UNFOLD_IDENTITIES_WITH_` (expansions macros) ...
-file(APPEND
-    ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma region CSL_AG_UNFOLD_IDENTITIES_WITH_N\n
-    #define CSL_AG_UNFOLD_IDENTITIES_WITH_1(F) F(v0) // NOLINT\n"
-)
-foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
-
-    math(EXPR ID_MINUS_ONE "${ID}-1")
-
-    if (NOT ${ID} EQUAL 1)
-    file(APPEND
-        ${ag_as_tuple_impl_specialization_filepath}
-        "#define CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(F) F(v${ID_MINUS_ONE}), CSL_AG_UNFOLD_IDENTITIES_WITH_${ID_MINUS_ONE}(F) // NOLINT\n"
-    )
-    endif()
-endforeach()
-file(APPEND
-    ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma endregion\n"
-)
-
 ## Generates `as_tuple_impl` ...
+set(identities "v0")
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
     "#pragma region as_tuple_impl
@@ -63,24 +42,23 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         ${ag_as_tuple_impl_specialization_filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
 constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
-\tauto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = value;
-\treturn fwd_tie<decltype(value)>(CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS));
+\tauto && [ ${identities} ] = value;
+\treturn fwd_tie<decltype(value)>(${identities});
 }\n"
     )
+    string(APPEND identities ",v${ID}")
 endforeach()
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#undef IDS
-    #pragma endregion\n"
+    "#pragma endregion\n"
 )
 
 ## Generates `element<N, T>` specializations ...
-
+set(identities "v0")
+set(identities_decltype "decltype(v0)")
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma region element<N, T>
-    #define IDS(EXPR) EXPR
-    #define DECLTYPE_IDS(EXPR) decltype(EXPR)\n"
+    "#pragma region element<N, T>\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
@@ -89,20 +67,18 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         "template <std::size_t N, concepts::aggregate T>
         requires (fields_count<T> == ${ID})
         struct element<N, T> : decltype([]() -> decltype(auto) {
-            auto && [ CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(IDS) ] = declval<T&>();
-            return std::tuple_element<
-                N,
-                std::tuple<CSL_AG_UNFOLD_IDENTITIES_WITH_${ID}(DECLTYPE_IDS)>
-            >{};
+            auto && [ ${identities} ] = declval<T&>();
+            using tuple_type = std::tuple<${identities_decltype}>;
+            return std::tuple_element<N, tuple_type>{};
         }()){};
     "
     )
+    string(APPEND identities ",v${ID}")
+    string(APPEND identities_decltype ",decltype(v${ID})")
 endforeach()
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#undef IDS\n \
-    #undef DECLTYPE_IDS\n \
-    #pragma endregion\n"
+    "#pragma endregion\n"
 )
 
 # injects into ag/csl/ag.hpp
