@@ -1,11 +1,16 @@
 # C++ Shelf
 
-Collection of - Single-Header, header-only, C++ libraries files
+[![cmake-Ubuntu-clang](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml)
+[![cmake-Ubuntu-gcc](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml)
+[![GitHub license](https://img.shields.io/github/license/GuillaumeDua/CppShelf)](https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/GuillaumeDua/CppShelf)
 
-| Profile             | Build + tests badges |
-| ------------------- | -------------------- |
-| cmake-Ubuntu-gcc_11 | [![](https://github-actions.40ants.com/GuillaumeDua/CppShelf/matrix.svg?only=cmake-Ubuntu-gcc)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml) |
-| cmake-Ubuntu-clang_13 | [![](https://github-actions.40ants.com/GuillaumeDua/CppShelf/matrix.svg?only=cmake-Ubuntu-clang)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml) |
+---
+
+Collection of - ***S**ingle-**He**ader, header-only, C++ **l**ibraries **f**iles*.  
+Personal incubator for various library ideas and experiences, and perhaps a hint of serendipity.
+
+The libraries here could, once mature enough, become self-contained on a separate repository.
 
 ## [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
 
