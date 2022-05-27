@@ -441,3 +441,52 @@ namespace csl::srl {
         return formatter_t::template read(is);
     }
 }
+
+// ---
+// Automated serialization
+
+namespace gcl::cx
+{
+    template <typename Key, typename Value, std::size_t N>
+    struct unordered_map {
+
+        using key_type = Key;
+        using mapped_type = Value;
+        using type = unordered_map<Key, Value, N>;
+        using value_type = std::pair<const key_type, mapped_type>;
+
+        constexpr static auto size = N;
+
+        consteval unordered_map(auto && ... args)
+            : storage{ value_type{ get<0>(args), get<1>(args) }... }
+        {}
+
+        [[nodiscard]] consteval auto & at(const key_type & arg) const
+        {
+            auto it = std::find_if(
+                std::cbegin(storage), std::cend(storage),
+                [&arg](const auto& element) constexpr { return element.first == arg; }
+            );
+            if (it == std::cend(storage))
+                throw std::out_of_range{ "gcl::cx::unordered_map::at" };
+            return it->second;
+        }
+
+        constexpr decltype(auto) begin()        { return std::begin(storage); }
+        constexpr decltype(auto) end()          { return std::end(storage); }
+        constexpr decltype(auto) begin()  const { return std::begin(storage); }
+        constexpr decltype(auto) end()    const { return std::end(storage); }
+        constexpr decltype(auto) cbegin() const { return std::cbegin(storage); }
+        constexpr decltype(auto) cend()   const { return std::cend(storage); }
+
+    private:
+        using storage_type = std::array<value_type, N>;
+        const storage_type storage;
+    };
+
+    unordered_map(auto &&... args) -> unordered_map<
+        std::common_type_t<decltype(get<0>(args))...>,
+        std::common_type_t<decltype(get<1>(args))...>,
+        sizeof...(args)
+    >;
+}
