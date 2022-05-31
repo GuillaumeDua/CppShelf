@@ -4,14 +4,24 @@ on:
   push:
     branches:
       - main
-
+permissions: 
+  contents: write
 jobs:
   docs_to_gh_pages:
+
     concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
 
     steps:
-    - uses: JamesIves/github-pages-deploy-action@v4.3.3
-      with:
-          branch: main
-          folder: gh-pages
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Generates Doxygen documentation
+      # TODO
+
+      - name: Deploy 🚀 
+        uses: JamesIves/github-pages-deploy-action@v4.3.3
+        with:
+            branch: main
+            folder: gh-pages
