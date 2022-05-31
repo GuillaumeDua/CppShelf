@@ -15,7 +15,7 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 ---
 
-<img src="./documentation/images/Shelf_icons_created_by_juicy_fish_Flaticon.png" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
+<img src="./docs/images/Shelf_icons_created_by_juicy_fish_Flaticon.png" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
 
 ## Components - nested librairies
 
