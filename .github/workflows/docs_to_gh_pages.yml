@@ -17,11 +17,17 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
-      #- name: Generates Doxygen documentation
-      # TODO
+      - name: Doxygen installation
+        run: |
+          sudo apt update
+          sudo apt install -y doxygen graphviz
+
+      - name: Doxygen generate documentation
+        run: |
+          sudo doxygen docs/details/wf.Doxyfile
 
       - name: Deploy 🚀 
         uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
             branch: gh-pages
-            folder: gh-pages
+            folder: docs

@@ -15,13 +15,13 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 ---
 
-<img src="./docs/images/Shelf_icons_created_by_juicy_fish_Flaticon.png" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
+<img src="./docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
 
 ## Components - nested librairies
 
 <br>
 
-### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/documentation/wf.md)
+### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/markdown/wf.md)
 
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
 
