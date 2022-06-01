@@ -21,7 +21,7 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 <br>
 
-### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/markdown/wf.md)
+### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
 
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
 
