@@ -27,6 +27,10 @@ jobs:
           sudo mkdir -p docs/output/wf/
           sudo doxygen docs/details/wf.Doxyfile
 
+      - name: Copy README to docs
+        run: |
+          cp README.md docs/
+
       - name: Deploy 🚀 
         uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
