@@ -1,4 +1,4 @@
-# 🌊 **csl::wf**
+# 🌊 csl::wf
 
 The goal of `csl::wf` is to offer convenient ways to manipulate functors & callable values in general.
 
