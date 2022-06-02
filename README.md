@@ -8,8 +8,6 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/GuillaumeDua/CppShelf)
 [![GitHub issues](https://img.shields.io/github/issues/GuillaumeDua/CppShelf)](https://github.com/GuillaumeDua/CppShelf/issues)
 
-<br>
-
 ---
 
 Collection of - ***S**ingle-**He**ader, header-only, C++ **l**ibraries **f**iles*.  
@@ -19,11 +17,9 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 ---
 
-<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
+<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="26" height="26" style="Padding: 5px"/>
 
 ## Components - nested librairies
-
-<br>
 
 ### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
 
