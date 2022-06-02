@@ -30,7 +30,7 @@ jobs:
       - name: Generates host page (README)
         run: |
           cp README.md docs/
-          cp docs/details/_config.yml .
+          cp docs/details/_config.yml docs/
 
       - name: Deploy 🚀 
         uses: JamesIves/github-pages-deploy-action@v4.3.3
