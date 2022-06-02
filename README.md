@@ -6,6 +6,7 @@
 
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/GuillaumeDua/CppShelf)
 [![GitHub issues](https://img.shields.io/github/issues/GuillaumeDua/CppShelf)](https://github.com/GuillaumeDua/CppShelf/issues)
+
 ---
 
 Collection of - ***S**ingle-**He**ader, header-only, C++ **l**ibraries **f**iles*.  
@@ -15,7 +16,7 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 ---
 
-<img src="./docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
+<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
 
 ## Components - nested librairies
 
@@ -25,7 +26,9 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
 
-Project's [dashboard here](https://github.com/GuillaumeDua/CppShelf/projects/1)
+See project's
+[documentation](https://guillaumedua.github.io/CppShelf/output/wf/), 
+[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
 ### 🧙‍♂️ [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
 

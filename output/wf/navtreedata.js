@@ -23,7 +23,7 @@ for the JavaScript code in this file
 var NAVTREE =
 [
   [ "csl::wf", "index.html", [
-    [ "🌊 <strong>csl::wf</strong>", "index.html", [
+    [ "🌊 csl::wf", "index.html", [
       [ "Philosophy & design choices", "index.html#autotoc_md1", null ]
     ] ],
     [ "Classes", "annotated.html", [
