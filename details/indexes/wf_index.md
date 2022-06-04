@@ -1,4 +1,4 @@
-# 🌊 csl::wf
+# Overall presentation
 
 The goal of `csl::wf` is to offer convenient ways to manipulate functors & callable values in general.
 
@@ -6,7 +6,7 @@ This library is divided in three parts :
 
 - Invocation [**functions**](#invocation-utilities) *(`invoke`, `apply`, etc.)*,  
   and [**type-traits**](#invocation-traits) *(`is_invocable`, `is_applyable`, `is_nothrow_invocable_r`, etc.)*
-- Functors [**types**]() with specific purpose *(front_binder, overload, repeater, etc.)*
+- Functors **types** with specific purpose *(front_binder, overload, repeater, etc.)*
 - An [**eDSL**](#edsl) to create complexe workflow easily
 
 ## Philosophy & design choices
@@ -22,3 +22,7 @@ a type named `ttps<...>` is used to ease deduction.
 For some specific corner-cases, a type named `arg<...>` is also used to wrap `parameters`'s types in the same way.
 
 It also provides a precise support to `operator()` cvref-qualifiers.
+
+## Old documentation
+
+... is still available as a Markdown file on Github [here](https://github.com/GuillaumeDua/CppShelf/blob/gh-pages/details/markdown/wf.md).

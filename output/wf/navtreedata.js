@@ -22,9 +22,10 @@ for the JavaScript code in this file
 */
 var NAVTREE =
 [
-  [ "csl::wf", "index.html", [
-    [ "🌊 csl::wf", "index.html", [
-      [ "Philosophy & design choices", "index.html#autotoc_md1", null ]
+  [ "🌊 csl::wf", "index.html", [
+    [ "Overall presentation", "index.html", [
+      [ "Philosophy & design choices", "index.html#autotoc_md1", null ],
+      [ "Old documentation", "index.html#autotoc_md2", null ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
