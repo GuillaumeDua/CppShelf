@@ -35,7 +35,7 @@ See project's
 
 A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
-Project's [dashboard here](https://github.com/GuillaumeDua/CppShelf/projects/2)
+Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/2)
 
 ---
 

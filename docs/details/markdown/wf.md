@@ -6,7 +6,7 @@ This library is divided in three parts :
 
 - Invocation [**functions**](#invocation-utilities) *(`invoke`, `apply`, etc.)*,  
   and [**type-traits**](#invocation-traits) *(`is_invocable`, `is_applyable`, `is_nothrow_invocable_r`, etc.)*
-- Functors [**types**]() with specific purpose *(front_binder, overload, repeater, etc.)*
+- Functors **types** with specific purpose *(front_binder, overload, repeater, etc.)*
 - An [**eDSL**](#edsl) to create complexe workflow easily
 
 ---
