@@ -1644,8 +1644,7 @@ namespace csl::ag {
         return details::as_tuple_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
 
-	// tuple-like
-	// TODO : std::get/std::tuple_size/std::tuple_element
+	// tuple-like interface
 	// size
     template <concepts::aggregate T>
     using size = std::integral_constant<std::size_t, details::fields_count<T>>;
