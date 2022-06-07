@@ -62,12 +62,16 @@ namespace gcl::cx {
     constexpr inline auto value_name_v = value_name<value>();
 }
 
+template <typename T>
+struct is_std_array : std::false_type{};
+template <typename T, std::size_t N>
+struct is_std_array<std::array<T, N>> : std::true_type{};
+
 void print_impl(auto && value, std::size_t depth) {
     std::cout
         << gcl::cx::type_name_v<decltype(value)> << " : " << value << '\n'
     ;
 }
-
 void print_impl(csl::ag::concepts::tuplelike auto && value, std::size_t depth) {
 
     using value_type = std::remove_cvref_t<decltype(value)>;
@@ -86,7 +90,9 @@ void print_impl(csl::ag::concepts::tuplelike auto && value, std::size_t depth) {
         << "}\n"
     ;
 }
-void print_impl(csl::ag::concepts::aggregate auto && value, std::size_t depth) {
+void print_impl(csl::ag::concepts::aggregate auto && value, std::size_t depth)
+requires (not is_std_array<std::remove_cvref_t<decltype(value)>>::value)
+{
     using value_type = std::remove_cvref_t<decltype(value)>;
 
     std::cout << gcl::cx::type_name_v<decltype(value)> << " : {\n";
@@ -140,15 +146,9 @@ void print(csl::ag::concepts::aggregate auto && value) {
 
 struct toto{ int i = 0; char c = 'a'; };
 struct titi{ char c = 'c'; toto t; };
-struct tata{ bool b = true; titi t; std::tuple<int, char> tu = { 2, 'b'}; std::pair<int, int> p = { 42, 43 }; };
+struct tata{ bool b = true; titi t; std::tuple<int, char> tu = { 2, 'b'}; std::array<char, 3> a = {'a', 'b', 'c'}; std::pair<int, int> p = { 42, 43 }; };
 
 auto main() -> int {
-
-    {
-        auto value = toto{ 42, 'a' };
-        [[maybe_unused]] auto && [ v0, v1 ] = value;
-        print(value);
-    }
 
     std::puts("-------");
     print(toto{});
@@ -157,6 +157,12 @@ auto main() -> int {
     std::puts("-------");
     print(tata{});
     std::puts("-------");
+
+    {
+        auto value = toto{ 42, 'a' };
+        [[maybe_unused]] auto && [ v0, v1 ] = value;
+        print(value);
+    }
 
     auto value = toto{ 42, 'A' }; // NOLINT
     auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
