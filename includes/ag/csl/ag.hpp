@@ -1,6 +1,5 @@
 #pragma once
 
-#include <any>
 #include <array>
 #include <concepts>
 #include <functional>
@@ -1637,6 +1636,12 @@ template <std::size_t N> requires (N == 128) // NOLINT
         static_assert([](){ return false; }(), "[srl] exceed maxmimum members count");
     }
 }
+
+// tuple-like interface
+//  N4606 [namespace.std]/1 :
+//  A program may add a template specialization for any standard library template to namespace std
+//  only if the declaration depends on a user-defined type 
+//  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 namespace csl::ag {
 
     constexpr auto as_tuple(auto && value) {
@@ -1644,10 +1649,6 @@ namespace csl::ag {
         return details::as_tuple_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
 
-	// tuple-like interface
-	// size
-    template <concepts::aggregate T>
-    using size = std::integral_constant<std::size_t, details::fields_count<T>>;
 	// get
     template <std::size_t N>
     constexpr decltype(auto) get(concepts::aggregate auto && value) {
@@ -1656,4 +1657,27 @@ namespace csl::ag {
 	// element
     template <std::size_t N, concepts::aggregate T>
     using element = typename details::element<N, T>;
+    // size
+    template <csl::ag::concepts::aggregate T>
+    struct tuple_size : std::integral_constant<std::size_t, details::fields_count<T>>{};
+}
+namespace std {
+
+    // template <csl::ag::concepts::aggregate T>
+    // struct tuple_size<T> : std::integral_constant<std::size_t, csl::ag::details::fields_count<T>>{};
+
+    template <std::size_t N>
+    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) {
+        return std::get<N>(as_tuple(std::forward<decltype(value)>(value)));
+    }
+
+    template <std::size_t N, ::csl::ag::concepts::aggregate T>
+    struct tuple_element<N, T> : ::csl::ag::details::element<N, T>{};
+}
+namespace csl::ag::concepts {
+
+    template <typename T>
+    concept tuplelike =
+        requires { std::tuple_size<std::remove_reference_t<T>>{}; }
+    ;
 }

@@ -64,32 +64,72 @@ namespace gcl::cx {
 
 void print_impl(auto && value, std::size_t depth) {
     std::cout
-        << std::setw(3 * depth) << ""
         << gcl::cx::type_name_v<decltype(value)> << " : " << value << '\n'
     ;
 }
-// TODO : unqualified get : csl::ag, std::(tuple_interface), etc.
-//  agnostic from csl::ag, std, etc. : it's the user responsibility to provide adequats ns to lookup to ?
-void print_impl(csl::ag::concepts::aggregate auto && value, std::size_t depth) {
 
-    std::cout
-        << std::setw(3 * depth) << ""
-        << gcl::cx::type_name_v<decltype(value)> << " : {\n"
-    ;
+void print_impl(csl::ag::concepts::tuplelike auto && value, std::size_t depth) {
 
-    auto as_tuple = csl::ag::as_tuple(std::forward<decltype(value)>(value));
-    using as_tuple_t = std::remove_cvref_t<decltype(as_tuple)>;
+    using value_type = std::remove_cvref_t<decltype(value)>;
+
+    std::cout << gcl::cx::type_name_v<decltype(value)> << " : {\n";
+
     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
         ((
-            print_impl(std::get<indexes>(std::forward<decltype(as_tuple)>(as_tuple)), depth + 1)
+            std::cout << std::setw(3 * (depth + 1)) << "" << '[' << indexes << "] ",
+            print_impl(std::get<indexes>(std::forward<decltype(value)>(value)), depth + 1)
         ), ...);  
-    }(std::make_index_sequence<std::tuple_size_v<as_tuple_t>>{});
+    }(std::make_index_sequence<std::tuple_size<value_type>::value>{});
 
     std::cout
         << std::setw(3 * depth) << ""
         << "}\n"
     ;
 }
+void print_impl(csl::ag::concepts::aggregate auto && value, std::size_t depth) {
+    using value_type = std::remove_cvref_t<decltype(value)>;
+
+    std::cout << gcl::cx::type_name_v<decltype(value)> << " : {\n";
+
+    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        using csl::ag::get;
+        ((
+            std::cout << std::setw(3 * (depth + 1)) << "" << '[' << indexes << "] ",
+            print_impl(get<indexes>(std::forward<decltype(value)>(value)), depth + 1)
+        ), ...);  
+    }(std::make_index_sequence<csl::ag::tuple_size<value_type>::value>{});
+
+    std::cout
+        << std::setw(3 * depth) << ""
+        << "}\n"
+    ;
+}
+
+// void print_impl(csl::ag::concepts::tuplelike auto && value, std::size_t depth) {
+//
+//     using value_type = std::remove_cvref_t<decltype(value)>;
+//     std::cout << gcl::cx::type_name_v<decltype(value)> << " : {\n";
+//     // if constexpr (csl::ag::concepts::aggregate<value_type>) {
+//     // using tuple_size = std::conditional<
+//     //     csl::ag::concepts::aggregate<value_type>,
+//     //     csl::ag::tuple_size
+//     // >;
+//     // using namespace csl::ag;
+//
+//         // using tuple_size = typename csl::ag::tuple_size<value_type>;
+//         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+//             using std::get;
+//             ((
+//                 std::cout << std::setw(3 * (depth + 1)) << "" << '[' << indexes << "] ",
+//                 print_impl(get<indexes>(std::forward<decltype(value)>(value)), depth + 1)
+//             ), ...);  
+//         }(std::make_index_sequence<std::tuple_size<value_type>::value>{});
+//
+//     std::cout
+//         << std::setw(3 * depth) << ""
+//         << "}\n"
+//     ;
+// }
 
 
 // interface
@@ -98,17 +138,25 @@ void print(csl::ag::concepts::aggregate auto && value) {
     print_impl(std::forward<decltype(value)>(value), 0);
 }
 
-struct toto{ int i; char c; };
-struct titi{ char c = 'c'; toto t = { 1, 'a'}; };
-struct tata{ bool b = true; titi t; };
+struct toto{ int i = 0; char c = 'a'; };
+struct titi{ char c = 'c'; toto t; };
+struct tata{ bool b = true; titi t; std::tuple<int, char> tu = { 2, 'b'}; std::pair<int, int> p = { 42, 43 }; };
 
 auto main() -> int {
-    using namespace csl::ag;
 
+    {
+        auto value = toto{ 42, 'a' };
+        [[maybe_unused]] auto && [ v0, v1 ] = value;
+        print(value);
+    }
+
+    std::puts("-------");
+    print(toto{});
+    std::puts("-------");
     print(titi{});
+    std::puts("-------");
     print(tata{});
-
-    // TODO : wrap that in a test function
+    std::puts("-------");
 
     auto value = toto{ 42, 'A' }; // NOLINT
     auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
@@ -122,8 +170,8 @@ auto main() -> int {
         std::tuple_element_t<1, std::remove_cvref_t<decltype(as_tuple)>>
     >);
 
-    /*static_*/assert(csl::ag::get<0>(value) == 42);
-    /*static_*/assert(csl::ag::get<1>(value) == 'A');
+    // /*static_*/assert(csl::ag::get<0>(value) == 42);
+    // /*static_*/assert(csl::ag::get<1>(value) == 'A');
 
     assert(
         std::addressof(std::get<0>(as_tuple)) ==
@@ -134,10 +182,10 @@ auto main() -> int {
         std::addressof(value.c)
     );
 
-    print(value);
+    // // print(value);
 
     struct qwe{ int i; char & c; bool && b; };
-    static_assert(csl::ag::size<qwe>::value == 3);
+    // static_assert(std::tuple_size<qwe>::value == 3);
     static_assert(std::same_as<
         int,
         csl::ag::element<0, qwe>::type
