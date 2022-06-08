@@ -61,6 +61,8 @@ namespace csl::ag::concepts {
     concept tuplelike =
         requires { std::tuple_size<std::remove_reference_t<T>>{}; }
     ;
+	template <typename T>
+	concept structured_bindable = tuplelike<T> or aggregate<T>;
 }
 namespace csl::ag::details {
 
@@ -765,7 +767,7 @@ namespace csl::ag {
 //  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 namespace std { // NOLINT(cert-dcl58-cpp)
 
-	// screw-up the ADL (aggregate structured-binding vs tuplelike)
+	// // screw-up the ADL (aggregate structured-binding vs tuplelike)
     // template <csl::ag::concepts::aggregate T>
     // struct tuple_size<T> : std::integral_constant<std::size_t, csl::ag::details::fields_count<T>>{};
 

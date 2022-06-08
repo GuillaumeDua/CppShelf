@@ -6,6 +6,8 @@
 #include <memory>
 #include <string_view>
 
+// TODO : fix for carrays/function-ptrs
+//  const char (&)[7
 namespace gcl::cx {
     template <typename T>
     static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
@@ -62,56 +64,62 @@ namespace gcl::cx {
     constexpr inline auto value_name_v = value_name<value>();
 }
 
-template <typename T>
-struct is_std_array : std::false_type{};
-template <typename T, std::size_t N>
-struct is_std_array<std::array<T, N>> : std::true_type{};
+namespace csl::ag::io::details {
 
-void print_impl(auto && value, std::size_t depth) {
-    std::cout
-        << gcl::cx::type_name_v<decltype(value)> << " : " << value << '\n'
-    ;
+    struct indent {
+        std::size_t depth;
+        friend std::ostream & operator<<(std::ostream & os, const indent & op) {
+            return os << std::setw(3 * op.depth) << ""; // NOLINT
+        }
+    };
+
+    void print_impl(std::ostream & os, auto && value, std::size_t) {
+        os << gcl::cx::type_name_v<decltype(value)> << " : " << value << '\n';
+    }
+    void print_impl(std::ostream & os, csl::ag::concepts::structured_bindable auto && value, std::size_t depth) {
+
+        using value_type = std::remove_cvref_t<decltype(value)>;
+
+        constexpr auto size = []() constexpr { // work-around for ADL issue
+            if constexpr (csl::ag::concepts::tuplelike<value_type>)
+                return std::tuple_size_v<value_type>;
+            else if constexpr (csl::ag::concepts::aggregate<value_type>)
+                return csl::ag::size_v<value_type>;
+            else
+                static_assert(sizeof(value_type) and false, "csl::ag::print : invalid type"); // NOLINT
+        }();
+
+        os << gcl::cx::type_name_v<decltype(value)> << " : {\n";
+
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((
+                os << indent{depth + 1} << '[' << indexes << "] ",
+                print_impl(os, std::get<indexes>(std::forward<decltype(value)>(value)), depth + 1)
+            ), ...);  
+        }(std::make_index_sequence<size>{});
+
+        os << indent{depth} << "" << "}\n";
+    }
 }
 
-template <typename T>
-concept structured_bindable = 
-    csl::ag::concepts::tuplelike<T> or
-    csl::ag::concepts::aggregate<T>
-;
+namespace csl::ag::io {
 
-void print_impl(structured_bindable auto && value, std::size_t depth) {
+    template <typename T, typename = void>
+    struct ostream_shiftable : std::false_type{};
+    template <typename T>
+    struct ostream_shiftable<
+        T,
+        std::void_t<decltype(std::declval<std::ostream&>() << std::declval<T>())>
+    > : std::true_type{};
 
-    using value_type = std::remove_cvref_t<decltype(value)>;
-
-    constexpr auto size = []() constexpr {
-        if constexpr (csl::ag::concepts::tuplelike<value_type>)
-            return std::tuple_size_v<value_type>;
-        else if constexpr (csl::ag::concepts::aggregate<value_type>)
-            return csl::ag::size_v<value_type>;
-        else
-            static_assert(sizeof(value_type) and false, "csl::ag::print : invalid type");
-    }();
-
-    std::cout << gcl::cx::type_name_v<decltype(value)> << " : {\n";
-
-    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        ((
-            std::cout << std::setw(3 * (depth + 1)) << "" << '[' << indexes << "] ",
-            print_impl(std::get<indexes>(std::forward<decltype(value)>(value)), depth + 1)
-        ), ...);  
-    }(std::make_index_sequence<size>{});
-
-    std::cout
-        << std::setw(3 * depth) << ""
-        << "}\n"
-    ;
-}
-
-
-// interface
-// TODO : default std::formatter
-void print(csl::ag::concepts::aggregate auto && value) {
-    print_impl(std::forward<decltype(value)>(value), 0);
+    // interface
+    // TODO : std::formatter
+    std::ostream & operator<<(std::ostream & os, csl::ag::concepts::aggregate auto && value)
+    requires (not ostream_shiftable<decltype(value)>::value)
+    {
+        details::print_impl(os, std::forward<decltype(value)>(value), 0);
+        return os;
+    }
 }
 
 struct toto{ int i = 0; char c = 'a'; };
@@ -120,12 +128,13 @@ struct tata{ bool b = true; titi t; std::tuple<int, char> tu = { 2, 'b'}; std::a
 
 auto main() -> int {
 
-    print(toto{});
-    std::puts("-------");
-    print(titi{});
-    std::puts("-------");
-    print(tata{});
-    std::puts("-------");
+    using namespace csl::ag::io;
+
+    std::cout
+        << toto{} << "-----\n"
+        << titi{} << "-----\n"
+        << tata{} << "-----\n"
+    ;
 
     // {
     //     auto value = toto{ 42, 'a' };
