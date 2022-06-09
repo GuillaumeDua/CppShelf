@@ -120,20 +120,33 @@ namespace csl::ag::io {
         details::print_impl(os, std::forward<decltype(value)>(value), 0);
         return os;
     }
+    std::ostream & operator<<(std::ostream & os, csl::ag::concepts::tuplelike auto && value)
+    requires (not ostream_shiftable<decltype(value)>::value)
+    {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        os << gcl::cx::type_name_v<decltype(value)> << " : {\n";
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((
+                os << "\t[" << indexes << "] " << std::get<indexes>(std::forward<decltype(value)>(value)) << '\n'
+            ), ...);  
+        }(std::make_index_sequence<std::tuple_size_v<value_type>>{});
+        return os << "}\n";
+    }
 }
 
-struct toto{ int i = 0; char c = 'a'; };
-struct titi{ char c = 'c'; toto t; };
-struct tata{ bool b = true; titi t; std::tuple<int, char> tu = { 2, 'b'}; std::array<char, 3> a = {'a', 'b', 'c'}; std::pair<int, int> p = { 42, 43 }; };
+struct type_0{ int i = 0; char c = 'a'; };
+struct type_1{ char c = 'c'; type_0 t; };
+struct type_2{ bool b = true; type_1 t; std::tuple<int, char> tu = { 2, 'b'}; std::array<char, 3> a = {'a', 'b', 'c'}; std::pair<int, int> p = { 42, 43 }; };
 
 auto main() -> int {
 
     using namespace csl::ag::io;
 
     std::cout
-        << toto{} << "-----\n"
-        << titi{} << "-----\n"
-        << tata{} << "-----\n"
+        << type_0{} << "-----\n"
+        << type_1{} << "-----\n"
+        << type_2{} << "-----\n"
+        << std::tuple{42, 'a'} << "-----\n"
     ;
 
     // {
