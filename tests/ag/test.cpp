@@ -113,7 +113,8 @@ namespace csl::ag::io {
     > : std::true_type{};
 
     // interface
-    // TODO : std::formatter
+    //  GCC >= 11.1 : constraint depends on itself (might be same issue as https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99599)
+    //  TODO : std::formatter
     std::ostream & operator<<(std::ostream & os, csl::ag::concepts::aggregate auto && value)
     requires (not ostream_shiftable<decltype(value)>::value)
     {
@@ -131,6 +132,31 @@ namespace csl::ag::io {
             ), ...);  
         }(std::make_index_sequence<std::tuple_size_v<value_type>>{});
         return os << "}\n";
+    }
+
+    // WIP : indent
+    // todo : stack/queue : depth -> count
+    struct indent_type {
+        std::ostream & os;
+        std::size_t depth;
+
+        auto & operator<<(const auto & value) {
+            os << std::setw(depth * 3) << "" << value;
+            return *this;
+        }
+    };
+
+    struct indent {
+        struct increase{};
+        struct decrease{};
+        std::size_t depth = 0;
+    };
+    auto operator<<(std::ostream & os, indent && value) {
+        return indent_type{ os, value.depth };
+    }
+    auto & operator<<(indent_type & value, indent::increase) {
+        value.depth += 1;
+        return value;
     }
 }
 
