@@ -766,6 +766,7 @@ namespace csl::ag {
 //  only if the declaration depends on a user-defined type 
 //  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 namespace std { // NOLINT(cert-dcl58-cpp)
+// TODO : as opt-in, so aggregate are not necessarily tuplelike
 
 	// // screw-up the ADL (aggregate structured-binding vs tuplelike)
     // template <csl::ag::concepts::aggregate T>
