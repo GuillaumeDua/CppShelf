@@ -6,29 +6,40 @@
 #include <memory>
 #include <string_view>
 
-// TODO : fix for carrays/function-ptrs
-//  const char (&)[7
+namespace gcl::cx::details {
+    struct type_prefix_tag { constexpr static std::string_view value = "T = "; };
+    struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
+
+    template <typename prefix_tag_t>
+    static constexpr auto parse_mangling(std::string_view value, std::string_view function) {
+        value.remove_prefix(value.find(function) + function.size());
+    #if defined(__GNUC__) or defined(__clang__)
+            value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
+        #if defined(__clang__)
+            value.remove_suffix(value.length() - value.rfind(']'));
+        #elif defined(__GNUC__) // GCC
+            value.remove_suffix(value.length() - value.find(';'));
+        #endif
+    #elif defined(_MSC_VER)
+        if (auto enum_token_pos = value.find("enum "); enum_token_pos == 0)
+            value.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
+        value.remove_suffix(value.length() - value.rfind(">(void)"));
+    #endif
+        return value;
+    }
+}
 namespace gcl::cx {
     template <typename T>
     static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
-        std::string_view str_view = __PRETTY_FUNCTION__;
-        str_view.remove_prefix(str_view.find(__FUNCTION__) + sizeof(__FUNCTION__));
-        constexpr std::string_view prefix = "T = ";
-        str_view.remove_prefix(str_view.find(prefix) + prefix.length());
-        str_view.remove_suffix(str_view.length() - str_view.find_first_of(";]"));
+        return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
     #elif defined(_MSC_VER)
-        std::string_view str_view = __FUNCSIG__;
-        str_view.remove_prefix(str_view.find(__func__) + sizeof(__func__));
-        if (auto enum_token_pos = str_view.find("enum "); enum_token_pos == 0)
-            str_view.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
-        str_view.remove_suffix(str_view.length() - str_view.rfind(">(void)"));
+        return details::parse_mangling<details::type_prefix_tag>(__FUNCSIG__, __func__);
     #else
         static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
     #endif
-        return str_view;
     }
     template <typename T>
     constexpr inline auto type_name_v = type_name<T>();
@@ -44,21 +55,12 @@ namespace gcl::cx {
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
-        std::string_view str_view = __PRETTY_FUNCTION__;
-        str_view.remove_prefix(str_view.find(__FUNCTION__) + sizeof(__FUNCTION__));
-        constexpr std::string_view prefix = "value = ";
-        str_view.remove_prefix(str_view.find(prefix) + prefix.length());
-        str_view.remove_suffix(str_view.length() - str_view.find_first_of(";]"));
+        return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
     #elif defined(_MSC_VER)
-        std::string_view str_view = __FUNCSIG__;
-        str_view.remove_prefix(str_view.find(__func__) + sizeof(__func__));
-        if (auto enum_token_pos = str_view.find("enum "); enum_token_pos == 0)
-            str_view.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
-        str_view.remove_suffix(str_view.length() - str_view.rfind(">(void)"));
+        return details::parse_mangling<details::value_prefix_tag>(__FUNCSIG__, __func__);
     #else
         static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
     #endif
-        return str_view;
     }
     template <auto value>
     constexpr inline auto value_name_v = value_name<value>();
