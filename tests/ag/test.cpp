@@ -3,68 +3,8 @@
 #include <iostream>
 #include <iomanip>
 #include <cassert>
-#include <memory>
-#include <string_view>
 
-namespace gcl::cx::details {
-    struct type_prefix_tag { constexpr static std::string_view value = "T = "; };
-    struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
-
-    template <typename prefix_tag_t>
-    static constexpr auto parse_mangling(std::string_view value, std::string_view function) {
-        value.remove_prefix(value.find(function) + function.size());
-    #if defined(__GNUC__) or defined(__clang__)
-            value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
-        #if defined(__clang__)
-            value.remove_suffix(value.length() - value.rfind(']'));
-        #elif defined(__GNUC__) // GCC
-            value.remove_suffix(value.length() - value.find(';'));
-        #endif
-    #elif defined(_MSC_VER)
-        if (auto enum_token_pos = value.find("enum "); enum_token_pos == 0)
-            value.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
-        value.remove_suffix(value.length() - value.rfind(">(void)"));
-    #endif
-        return value;
-    }
-}
-namespace gcl::cx {
-    template <typename T>
-    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
-    -> std::string_view
-    {
-    #if defined(__GNUC__) or defined(__clang__)
-        return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
-    #elif defined(_MSC_VER)
-        return details::parse_mangling<details::type_prefix_tag>(__FUNCSIG__, __func__);
-    #else
-        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
-    #endif
-    }
-    template <typename T>
-    constexpr inline auto type_name_v = type_name<T>();
-    template <auto value>
-    static constexpr auto type_name(/*no parameters allowed*/)
-    -> std::string_view
-    {
-        return type_name<decltype(value)>();
-    }
-
-    template <auto value>
-    static constexpr auto value_name(/*no parameters allowed*/)
-    -> std::string_view
-    {
-    #if defined(__GNUC__) or defined(__clang__)
-        return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
-    #elif defined(_MSC_VER)
-        return details::parse_mangling<details::value_prefix_tag>(__FUNCSIG__, __func__);
-    #else
-        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
-    #endif
-    }
-    template <auto value>
-    constexpr inline auto value_name_v = value_name<value>();
-}
+// WIP : https://godbolt.org/z/769efdM6f
 
 namespace csl::ag::io::details {
 
@@ -103,6 +43,7 @@ namespace csl::ag::io::details {
         os << indent{depth} << "" << "}\n";
     }
 }
+
 //  TODO : std::formatter
 namespace csl::ag::io {
     //  For GCC [10.3 .. 12.1] : Can't use the following synthax anymore (constraint depends on itself)
@@ -122,31 +63,6 @@ namespace csl::ag::io {
     {
         details::print_impl(os, std::forward<decltype(value)>(value), 0);
         return os;
-    }
-
-    // WIP : indent
-    // todo : stack/queue : depth -> count
-    struct indent_type {
-        std::ostream & os;
-        std::size_t depth;
-
-        auto & operator<<(const auto & value) {
-            // os << std::setw(depth * 3) << "" << value;
-            return *this;
-        }
-    };
-
-    struct indent {
-        struct increase{};
-        struct decrease{};
-        std::size_t depth = 0;
-    };
-    auto operator<<(std::ostream & os, indent && value) {
-        return indent_type{ os, value.depth };
-    }
-    auto & operator<<(indent_type & value, indent::increase) {
-        value.depth += 1;
-        return value;
     }
 }
 

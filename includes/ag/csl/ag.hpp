@@ -780,3 +780,149 @@ namespace std { // NOLINT(cert-dcl58-cpp)
     template <std::size_t N, ::csl::ag::concepts::aggregate T>
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
 }
+
+// io
+#include <string_view>
+
+namespace gcl::cx::details {
+    struct type_prefix_tag { constexpr static std::string_view value = "T = "; };
+    struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
+
+    template <typename prefix_tag_t>
+    static constexpr auto parse_mangling(std::string_view value, std::string_view function) {
+        value.remove_prefix(value.find(function) + function.size());
+    #if defined(__GNUC__) or defined(__clang__)
+            value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
+        #if defined(__clang__)
+            value.remove_suffix(value.length() - value.rfind(']'));
+        #elif defined(__GNUC__) // GCC
+            value.remove_suffix(value.length() - value.find(';'));
+        #endif
+    #elif defined(_MSC_VER)
+        if (auto enum_token_pos = value.find("enum "); enum_token_pos == 0)
+            value.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
+        value.remove_suffix(value.length() - value.rfind(">(void)"));
+    #endif
+        return value;
+    }
+}
+namespace gcl::cx {
+    template <typename T>
+    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
+    -> std::string_view
+    {
+    #if defined(__GNUC__) or defined(__clang__)
+        return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
+    #elif defined(_MSC_VER)
+        return details::parse_mangling<details::type_prefix_tag>(__FUNCSIG__, __func__);
+    #else
+        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
+    #endif
+    }
+    template <typename T>
+    constexpr inline auto type_name_v = type_name<T>();
+    template <auto value>
+    static constexpr auto type_name(/*no parameters allowed*/)
+    -> std::string_view
+    {
+        return type_name<decltype(value)>();
+    }
+
+    template <auto value>
+    static constexpr auto value_name(/*no parameters allowed*/)
+    -> std::string_view
+    {
+    #if defined(__GNUC__) or defined(__clang__)
+        return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
+    #elif defined(_MSC_VER)
+        return details::parse_mangling<details::value_prefix_tag>(__FUNCSIG__, __func__);
+    #else
+        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
+    #endif
+    }
+    template <auto value>
+    constexpr inline auto value_name_v = value_name<value>();
+}
+
+namespace gcl::pattern
+{
+	template <typename T, typename /*type_tag*/>
+    struct strong_type
+    {
+        using underlying_type = T;
+        using reference = T&;
+        using const_reference = const T &;
+
+        constexpr explicit strong_type(const_reference arg)
+        requires std::copy_constructible<T>
+        : value(arg)
+        {}
+        constexpr explicit strong_type(T&& arg)
+        requires std::move_constructible<T>
+        : value{ std::forward<decltype(arg)>(arg) }
+        {}
+
+        constexpr reference       underlying()        { return value; }
+        constexpr const_reference underlying() const  { return value; }
+
+        constexpr operator reference ()               { return underlying(); }
+        constexpr operator const_reference () const   { return underlying(); }
+
+    private:
+        T value;
+    };
+}
+
+namespace gcl::io {
+    using abs = gcl::pattern::strong_type<std::size_t, struct indent_abs_t>;
+    using rel = gcl::pattern::strong_type<int,         struct indent_rel_t>;
+}
+
+#include <iomanip>
+#include <cassert>
+
+namespace gcl::io::details {
+    struct line{
+        const std::size_t indent_value = 0;
+        // factories
+        constexpr auto operator()(io::abs value) const noexcept {
+            return line{ indent_value + value };
+        }
+        constexpr auto operator()(io::rel value) const noexcept {
+            assert(indent_value + value > 0);
+            return line{ indent_value + value };
+        }
+    };
+}
+
+namespace gcl::io {
+    static constexpr auto indent = details::line{};
+
+    class indented_ostream {
+
+        std::ostream & os;
+        std::size_t depth = 0;
+
+    public:
+        indented_ostream() noexcept = delete;
+        indented_ostream(std::ostream & output_stream, std::size_t initial_depth = 0) noexcept
+        : os{ output_stream }
+        , depth{ initial_depth }
+        {}
+
+        indented_ostream(const indented_ostream& other) noexcept
+        : os { other.os }
+        , depth { other.depth + 1 }
+        {}
+
+        auto & operator<<(const auto & value) {
+            os << value;
+            return *this;
+        }
+
+        friend auto & operator<<(indented_ostream & indent_os, const details::line l) {
+            indent_os.os << std::setw((indent_os.depth + l.indent_value) * 3) << "";
+            return indent_os;
+        }
+    };
+}
