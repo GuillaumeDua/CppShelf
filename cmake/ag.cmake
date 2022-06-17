@@ -40,7 +40,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     file(APPEND
         ${ag_as_tuple_impl_specialization_filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
+[[nodiscard]] constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
 \treturn fwd_tie<decltype(value)>(${identities});
 }\n"

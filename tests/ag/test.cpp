@@ -44,7 +44,7 @@ namespace csl::ag::io::details {
     }
 }
 
-//  TODO : std::formatter
+//  TODO(Guss) : (std|fmt)::formatter
 namespace csl::ag::io {
     //  For GCC [10.3 .. 12.1] : Can't use the following synthax anymore (constraint depends on itself)
     //  (might be same issue as https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99599)
@@ -68,7 +68,7 @@ namespace csl::ag::io {
 
 struct type_0{ int i = 0; char c = 'a'; };
 struct type_1{ char c = 'c'; type_0 t; };
-struct type_2{ bool b = true; type_1 t; std::tuple<int, char> tu = { 2, 'b'}; std::array<char, 3> a = {'a', 'b', 'c'}; std::pair<int, int> p = { 42, 43 }; };
+struct type_2{ bool b = true; type_1 t; std::tuple<int, char> tu = { 2, 'b'}; std::array<char, 3> a = {'a', 'b', 'c'}; std::pair<int, int> p = { 42, 43 }; }; // NOLINT
 struct type_3{ int i = 0; char c = 'a'; };
 
 auto & operator<<(std::ostream & os, type_3) { return os << "type_3 : user-defined operator<<(std::ostream&, const T &)\n"; }
