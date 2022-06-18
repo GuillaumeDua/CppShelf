@@ -930,18 +930,17 @@ namespace gcl::io {
 		indented_ostream & operator=(const indented_ostream & other) noexcept = delete;
 		indented_ostream & operator=(indented_ostream&&) noexcept = delete;
 
-        auto & operator<<(const auto & value) const {
+        auto operator<<(const auto & value) const -> const indented_ostream & {
             bounded_ostream << value;
             return *this;
         }
-
-        friend auto & operator<<(const indented_ostream & indent_os, const details::line l) {
+        auto operator<<(const details::line l) const -> const indented_ostream & {
 			assert( // NOLINT
-				std::max(indent_os.depth, l.indent_value) - std::min(indent_os.depth, l.indent_value)
+				std::max(depth, l.indent_value) - std::min(depth, l.indent_value)
 				<= (std::numeric_limits<int>::max() / indent_width)
 			);
-            indent_os.bounded_ostream << std::setw((indent_os.depth + l.indent_value) * indent_width) << "";
-            return indent_os;
+            bounded_ostream << std::setw((depth + l.indent_value) * indent_width) << "";
+            return *this;
         }
     };
 }
