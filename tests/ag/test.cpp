@@ -58,6 +58,12 @@ namespace csl::ag::io {
         details::print_impl(os, std::forward<decltype(value)>(value));
         return os;
     }
+    // auto & operator<<(const gcl::io::indented_ostream os, csl::ag::concepts::aggregate auto const & value)
+    // requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>) // temporary quickfix
+    // {
+    //     details::print_impl(os, std::forward<decltype(value)>(value));
+    //     return os.bounded_to();
+    // }
 }
 
 struct type_0{ int i = 0; char c = 'a'; };
