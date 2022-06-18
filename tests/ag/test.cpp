@@ -8,17 +8,10 @@
 
 namespace csl::ag::io::details {
 
-    struct indent {
-        std::size_t depth;
-        friend std::ostream & operator<<(std::ostream & os, const indent & op) {
-            return os << std::setw(3 * op.depth) << ""; // NOLINT
-        }
-    };
-
-    void print_impl(std::ostream & os, auto && value, std::size_t) {
+    void print_impl(const gcl::io::indented_ostream os, auto && value) { // NOLINT(performance-unnecessary-value-param)
         os << gcl::cx::type_name_v<decltype(value)> << " : " << value << '\n';
     }
-    void print_impl(std::ostream & os, csl::ag::concepts::structured_bindable auto && value, std::size_t depth) {
+    void print_impl(const gcl::io::indented_ostream os, csl::ag::concepts::structured_bindable auto && value) {
 
         using value_type = std::remove_cvref_t<decltype(value)>;
 
@@ -31,16 +24,17 @@ namespace csl::ag::io::details {
                 static_assert(sizeof(value_type) and false, "csl::ag::print : invalid type"); // NOLINT
         }();
 
-        os << gcl::cx::type_name_v<decltype(value)> << " : {\n";
+        using namespace gcl::io;
+        os <<  gcl::cx::type_name_v<decltype(value)> << " : {\n";
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
-                os << indent{depth + 1} << '[' << indexes << "] ",
-                print_impl(os, std::get<indexes>(std::forward<decltype(value)>(value)), depth + 1)
+                os << indent(rel(1)) << '[' << indexes << "] ",
+                print_impl(os, std::get<indexes>(std::forward<decltype(value)>(value)))
             ), ...);  
         }(std::make_index_sequence<size>{});
 
-        os << indent{depth} << "" << "}\n";
+        os << indent << "}\n";
     }
 }
 
@@ -61,7 +55,7 @@ namespace csl::ag::io {
     auto & operator<<(std::ostream & os, csl::ag::concepts::aggregate auto const & value)
     requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>) // temporary quickfix
     {
-        details::print_impl(os, std::forward<decltype(value)>(value), 0);
+        details::print_impl(os, std::forward<decltype(value)>(value));
         return os;
     }
 }

@@ -904,12 +904,16 @@ namespace gcl::io {
 
     class indented_ostream {
 
+		// TODO(Guss): as style
+		//	+ break-after-brace
+		constexpr static size_t indent_width = 3;
+
         std::ostream & os;
-        std::size_t depth = 0;
+        const std::size_t depth = 0;
 
     public:
         indented_ostream() noexcept = delete;
-        explicit indented_ostream(std::ostream & output_stream, std::size_t initial_depth = 0) noexcept
+        indented_ostream(std::ostream & output_stream, std::size_t initial_depth = 0) noexcept // NOLINT(google-explicit-constructor)
         : os{ output_stream }
         , depth{ initial_depth }
         {}
@@ -923,17 +927,17 @@ namespace gcl::io {
 		indented_ostream & operator=(const indented_ostream & other) noexcept = delete;
 		indented_ostream & operator=(indented_ostream&&) noexcept = delete;
 
-        auto & operator<<(const auto & value) {
+        auto & operator<<(const auto & value) const {
             os << value;
             return *this;
         }
 
-        friend auto & operator<<(indented_ostream & indent_os, const details::line l) {
-			assert(
+        friend auto & operator<<(const indented_ostream & indent_os, const details::line l) {
+			assert( // NOLINT
 				std::max(indent_os.depth, l.indent_value) - std::min(indent_os.depth, l.indent_value)
-				<= (std::numeric_limits<int>::max() / 3)
+				<= (std::numeric_limits<int>::max() / indent_width)
 			);
-            indent_os.os << std::setw((indent_os.depth + l.indent_value) * 3) << "";
+            indent_os.os << std::setw((indent_os.depth + l.indent_value) * indent_width) << "";
             return indent_os;
         }
     };
