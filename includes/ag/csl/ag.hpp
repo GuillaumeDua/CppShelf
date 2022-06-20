@@ -944,3 +944,65 @@ namespace gcl::io {
         }
     };
 }
+
+// fmt
+//	wip : https://godbolt.org/z/7b1Ga168P
+#ifdef FMT_FORMAT_H_
+# include <fmt/ranges.h>
+
+namespace csl::ag::details::mp {
+	template <typename>
+	struct is_std_array : std::false_type{};
+	template <typename T, std::size_t N>
+	struct is_std_array<std::array<T, N>> : std::true_type{};
+}
+namespace csl::ag::details::concepts {
+	template <typename T>
+	concept formattable_aggregate = 
+		csl::ag::concepts::aggregate<T> and
+		(not std::is_array_v<T>) and
+		(not is_std_array<T>::value)
+	;
+}
+
+// TODO(Guss) : opt-in (include as an extra file : csl::ag::io)
+template <formattable_aggregate T, class CharT>
+struct fmt::formatter<T, CharT>
+{
+    // TODO(Guss)
+    char presentation = 'c'; // [c:compact, p:pretty]
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+
+        auto it = ctx.begin(), end = ctx.end();
+        if (it != end && (*it == 'c' || *it == 'p'))
+            presentation = *it++;
+        if (it != end && *it != '}')
+            throw fmt::format_error{"invalid format"};
+
+        return it;
+    }
+
+    // or : return format_to(out, "{}", csl::ag::as_tuple(value));
+    template <typename FormatContext>
+    constexpr auto format(const T & value, FormatContext& ctx)
+    {
+        auto&& out = ctx.out();
+        constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
+        if (size == 0)
+            return out;
+        *out++ = '{';
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            (
+                format_to(
+                    out, "{}{}",
+                    csl::ag::get<indexes>(value),
+                    (indexes == (size - 1) ? "" : ", ")
+                )
+            , ...);
+        }(std::make_index_sequence<size>{});
+        *out++ = '}';
+        return out;
+    }
+};
+#endif

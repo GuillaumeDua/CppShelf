@@ -4,8 +4,8 @@
 #include <iomanip>
 #include <cassert>
 
-//  TODO(Guss) : (std|fmt)::formatter
-//  TODO(Guss) : cvref-correctness (of printed values)
+// TODO(Guss) : (std|fmt)::formatter
+//  WIP : https://godbolt.org/z/hsP3ezGsd
 namespace csl::ag::io {
     //  For GCC [10.3 .. 12.1] : Can't use the following synthax anymore (constraint depends on itself)
     //  (might be same issue as https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99599)
