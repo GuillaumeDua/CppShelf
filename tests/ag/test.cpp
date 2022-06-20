@@ -4,57 +4,6 @@
 #include <iomanip>
 #include <cassert>
 
-// TODO(Guss) : (std|fmt)::formatter
-//  WIP : https://godbolt.org/z/hsP3ezGsd
-namespace csl::ag::io {
-    //  For GCC [10.3 .. 12.1] : Can't use the following synthax anymore (constraint depends on itself)
-    //  (might be same issue as https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99599)
-    //      std::ostream & operator<<(std::ostream & os, csl::ag::concepts::aggregate auto && value)
-    //      requires (not ostream_shiftable<decltype(value)>::value)
-    //  nor delayed adl :
-    //      std::ostream & details::ostream_shift(std::ostream & os, csl::ag::concepts::aggregate auto const& value)
-    //      requires (not ostream_shiftable<decltype(value)>::value); // never defined
-    //
-    //      auto operator<<(std::ostream & os, csl::ag::concepts::aggregate auto && value)
-    //      -> decltype(details::ostream_shift(os, value))
-    //
-    // Warning : csl::ag makes aggregate type tuplelike
-
-    auto & operator<<(const gcl::io::indented_ostream os, csl::ag::concepts::structured_bindable auto && value)
-    requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>) // temporary quickfix
-    {
-        using value_type = std::remove_cvref_t<decltype(value)>;
-
-        constexpr auto size = []() constexpr { // work-around for ADL issue
-            if constexpr (csl::ag::concepts::tuplelike<value_type>)
-                return std::tuple_size_v<value_type>;
-            else if constexpr (csl::ag::concepts::aggregate<value_type>)
-                return csl::ag::size_v<value_type>;
-            else
-                static_assert(sizeof(value_type) and false, "csl::ag::print : invalid type"); // NOLINT
-        }();
-
-        using namespace gcl::io;
-        os << gcl::cx::type_name_v<decltype(value)> << " : {\n";
-
-        const auto print_value = [&]<size_t index>(){
-            os << indent(rel(1)) << '[' << index << "] ";
-            auto && element_value = std::get<index>(std::forward<decltype(value)>(value));
-            using element_value_type = decltype(element_value);
-            if constexpr (not csl::ag::concepts::structured_bindable<element_value_type>)
-                os << gcl::cx::type_name_v<element_value_type> << " : ";
-            os << element_value << '\n';
-        };
-
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((print_value.template operator()<indexes>()), ...);  
-        }(std::make_index_sequence<size>{});
-
-        os << indent << "}";
-        return os.bounded_to();
-    }
-}
-
 struct type_0{ int i = 0; char c = 'a'; };
 struct type_1{ char c = 'c'; type_0 t; };
 struct type_2{ bool b = true; type_1 t; std::tuple<int, char> tu = { 2, 'b'}; std::array<char, 3> a = {'a', 'b', 'c'}; std::pair<int, int> p = { 42, 43 }; }; // NOLINT
