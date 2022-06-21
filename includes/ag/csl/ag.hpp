@@ -782,7 +782,7 @@ namespace std { // NOLINT(cert-dcl58-cpp)
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
 }
 
-// io
+// csl::ag::io
 #include <string_view>
 
 namespace gcl::cx::details {
@@ -844,7 +844,6 @@ namespace gcl::cx {
     template <auto value>
     constexpr inline auto value_name_v = value_name<value>();
 }
-
 namespace gcl::pattern
 {
 	template <typename T, typename /*type_tag*/>
@@ -874,7 +873,6 @@ namespace gcl::pattern
         T value;
     };
 }
-
 namespace gcl::io {
     using abs = gcl::pattern::strong_type<std::size_t, struct indent_abs_t>;
     using rel = gcl::pattern::strong_type<int,         struct indent_rel_t>;
@@ -995,6 +993,7 @@ namespace csl::ag::io {
 
 // fmt
 //	wip : https://godbolt.org/z/7b1Ga168P
+//  wip (presentation) : https://godbolt.org/z/TG691sKGb
 #ifdef FMT_FORMAT_H_
 # include <fmt/ranges.h>
 

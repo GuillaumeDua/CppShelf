@@ -33,8 +33,10 @@ auto main() -> int {
     //     print(value);
     // }
 
-    // auto value = toto{ 42, 'A' }; // NOLINT
-    // auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
+    {
+        auto value = type_0{ 42, 'A' }; // NOLINT
+        /*constexpr*/ auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
+    }
 
     // static_assert(std::same_as<
     //     int&,
