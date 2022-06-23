@@ -993,7 +993,8 @@ namespace csl::ag::io {
 
 // fmt
 //	wip : https://godbolt.org/z/7b1Ga168P
-//  wip (presentation) : https://godbolt.org/z/TG691sKGb
+//  wip (presentation) : https://godbolt.org/z/qfTMoT7fo
+//		see https://github.com/GuillaumeDua/CppShelf/issues/57
 #ifdef FMT_FORMAT_H_
 # include <fmt/ranges.h>
 
@@ -1017,7 +1018,7 @@ template <formattable_aggregate T, class CharT>
 struct fmt::formatter<T, CharT>
 {
     // TODO(Guss)
-    char presentation = 'c'; // [c:compact, p:pretty]
+    char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
 
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
 
