@@ -17,6 +17,7 @@ endif()
 set(CSL_COMPONENT_LIST
     mp
     wf
+    ag
 )
 
 ### Components - tests
@@ -27,6 +28,16 @@ set(CSL_TESTS_LIST "")
 ### Components - add/glue (csl_lib)
 function(CSL_ADD_COMPONENT component_name)
     message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} ...")
+
+    # check if component has a custom cmake for custom pre-build/configuration
+    set(maybe_component_custom_cmake "${PROJECT_SOURCE_DIR}/cmake/${component_name}.cmake")
+    if (EXISTS "${maybe_component_custom_cmake}")
+        message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : custom cmake detected ...")
+        include("${maybe_component_custom_cmake}")
+    endif()
+
+    # add the component
+
     add_library(csl_${component_name}_lib INTERFACE)
     target_include_directories(csl_${component_name}_lib INTERFACE
         ${PROJECT_SOURCE_DIR}/includes/${component_name}
@@ -63,11 +74,11 @@ else()
 
     add_compile_options(-Wall -Wno-unknown-pragmas)
 
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options(-fdiagnostics-color=always)
-    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        add_compile_options(-fcolor-diagnostics)
-    endif()
+    # if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    #     add_compile_options(-fdiagnostics-color=always)
+    # elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    #     add_compile_options(-fcolor-diagnostics)
+    # endif()
 
     # Catch2
 endif()
