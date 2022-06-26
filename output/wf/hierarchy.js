@@ -30,8 +30,8 @@ var hierarchy =
       [ "csl::wf::mp::is_args< T >", "structcsl_1_1wf_1_1mp_1_1is__args.html", null ],
       [ "csl::wf::mp::is_ttps< T >", "structcsl_1_1wf_1_1mp_1_1is__ttps.html", null ]
     ] ],
-    [ "csl::wf::details::invoke_policy::nodiscard::identity", "structcsl_1_1wf_1_1details_1_1invoke__policy_1_1nodiscard_1_1identity.html", null ],
     [ "csl::wf::details::invoke_policy::allow_discard::identity", "structcsl_1_1wf_1_1details_1_1invoke__policy_1_1allow__discard_1_1identity.html", null ],
+    [ "csl::wf::details::invoke_policy::nodiscard::identity", "structcsl_1_1wf_1_1details_1_1invoke__policy_1_1nodiscard_1_1identity.html", null ],
     [ "index_sequence< indexes... >", null, [
       [ "csl::wf::mp::apply_result< F, ttps< ttps_args... >, tuple_type >", "structcsl_1_1wf_1_1mp_1_1apply__result_3_01F_00_01ttps_3_01ttps__args_8_8_8_01_4_00_01tuple__type_01_4.html", null ],
       [ "csl::wf::mp::apply_result< F, tuple_type >", "structcsl_1_1wf_1_1mp_1_1apply__result_3_01F_00_01tuple__type_01_4.html", null ]
@@ -155,6 +155,8 @@ var hierarchy =
         [ "csl::wf::details::mp::unfold_to< destination, from< Ts... > >", "structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to_3_01destination_00_01from_3_01Ts_8_8_8_01_4_01_4.html", null ]
       ] ]
     ] ],
+    [ "gcl::cx::details::type_prefix_tag", "structgcl_1_1cx_1_1details_1_1type__prefix__tag.html", null ],
     [ "csl::wf::details::mp::unfold_tuple_to< destination, T >", "structcsl_1_1wf_1_1details_1_1mp_1_1unfold__tuple__to.html", null ],
+    [ "gcl::cx::details::value_prefix_tag", "structgcl_1_1cx_1_1details_1_1value__prefix__tag.html", null ],
     [ "csl::wf::operators::view_tag_t", "structcsl_1_1wf_1_1operators_1_1view__tag__t.html", null ]
 ];

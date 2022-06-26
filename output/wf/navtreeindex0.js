@@ -5,6 +5,9 @@ var NAVTREEINDEX0 =
 ".html":[1,0,0,0,0],
 ".html":[1,0,0,0,0,1,0],
 ".html":[1,0,0,0,0,1,0,0],
+".html":[1,0,1],
+".html":[1,0,1,0],
+".html":[1,0,1,0,0],
 ".html":[1,0,0,0,0,0],
 ".html":[1,0,0,0,0,0,0],
 ".html":[1,0,0,0,1],
@@ -157,5 +160,7 @@ var NAVTREEINDEX0 =
 "structcsl_1_1wf_1_1route.html#a98f1703fdc2589f84fbebacee14e378c":[1,0,0,0,13,3],
 "structcsl_1_1wf_1_1route.html#aaa9cbfe0cdff004a328016601b8d3ccd":[1,0,0,0,13,0],
 "structcsl_1_1wf_1_1route.html#ae75ccaf97dfa416245688066e9e64a60":[1,0,0,0,13,5],
-"structcsl_1_1wf_1_1route.html#af417a78fa1bcfd648c1e2847ccbe5e7a":[1,0,0,0,13,4]
+"structcsl_1_1wf_1_1route.html#af417a78fa1bcfd648c1e2847ccbe5e7a":[1,0,0,0,13,4],
+"structgcl_1_1cx_1_1details_1_1type__prefix__tag.html":[1,0,1,0,0,0],
+"structgcl_1_1cx_1_1details_1_1value__prefix__tag.html":[1,0,1,0,0,1]
 };

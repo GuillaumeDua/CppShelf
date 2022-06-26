@@ -120,5 +120,13 @@ var annotated_dup =
         [ "repeater_factory", "structcsl_1_1wf_1_1repeater__factory.html", "structcsl_1_1wf_1_1repeater__factory" ],
         [ "route", "structcsl_1_1wf_1_1route.html", "structcsl_1_1wf_1_1route" ]
       ] ]
+    ] ],
+    [ "gcl", null, [
+      [ "cx", null, [
+        [ "details", null, [
+          [ "type_prefix_tag", "structgcl_1_1cx_1_1details_1_1type__prefix__tag.html", null ],
+          [ "value_prefix_tag", "structgcl_1_1cx_1_1details_1_1value__prefix__tag.html", null ]
+        ] ]
+      ] ]
     ] ]
 ];

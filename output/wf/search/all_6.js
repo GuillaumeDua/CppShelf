@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['identity_28',['identity',['../structcsl_1_1wf_1_1details_1_1invoke__policy_1_1nodiscard_1_1identity.html',1,'csl::wf::details::invoke_policy::nodiscard::identity'],['../structcsl_1_1wf_1_1details_1_1invoke__policy_1_1allow__discard_1_1identity.html',1,'csl::wf::details::invoke_policy::allow_discard::identity']]],
+  ['identity_28',['identity',['../structcsl_1_1wf_1_1details_1_1invoke__policy_1_1allow__discard_1_1identity.html',1,'csl::wf::details::invoke_policy::allow_discard::identity'],['../structcsl_1_1wf_1_1details_1_1invoke__policy_1_1nodiscard_1_1identity.html',1,'csl::wf::details::invoke_policy::nodiscard::identity']]],
   ['invoke_5fresult_29',['invoke_result',['../structcsl_1_1wf_1_1mp_1_1invoke__result.html',1,'csl::wf::mp']]],
   ['invoke_5fresult_3c_20f_2c_20args_5ftypes_2e_2e_2e_20_3e_30',['invoke_result&lt; F, args_types... &gt;',['../structcsl_1_1wf_1_1mp_1_1invoke__result.html',1,'csl::wf::mp']]],
   ['invoke_5fresult_3c_20f_2c_20std_3a_3aremove_5fcvref_5ft_3c_20ttps_5ftype_20_3e_2c_20args_5ftypes_2e_2e_2e_20_3e_31',['invoke_result&lt; F, std::remove_cvref_t&lt; ttps_type &gt;, args_types... &gt;',['../structcsl_1_1wf_1_1mp_1_1invoke__result.html',1,'csl::wf::mp']]],
