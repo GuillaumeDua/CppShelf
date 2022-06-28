@@ -31,6 +31,12 @@ See project's
 [documentation](https://guillaumedua.github.io/CppShelf/output/wf/), 
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
+### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ag/csl/ag.hpp)
+
+A **tuple-like** interface - *thus, structured-binding* - for **aggregates** type.
+
+Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
+
 ### 🧙‍♂️ [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
 
 A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
