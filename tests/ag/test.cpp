@@ -46,11 +46,11 @@ auto main() -> int {
         >);
 
         static_assert(std::same_as<
-            int&,
+            int,
             std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
         >);
         static_assert(std::same_as<
-            char&,
+            char,
             std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
         >);
     }
@@ -59,7 +59,7 @@ auto main() -> int {
         auto value = type_4{ 42, c }; // NOLINT
 
         static_assert(std::same_as<
-            const int&,
+            const int,
             std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
         >);
         static_assert(std::same_as<
