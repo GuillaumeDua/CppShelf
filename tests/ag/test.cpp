@@ -27,25 +27,33 @@ auto main() -> int {
         // << std::tuple{42, 'a'} << "-----\n"
     ;
 
-    // {
-    //     auto value = toto{ 42, 'a' };
-    //     [[maybe_unused]] auto && [ v0, v1 ] = value;
-    //     print(value);
-    // }
-
     {
         auto value = type_0{ 42, 'A' }; // NOLINT
-        /*constexpr*/ auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
-    }
+        [[maybe_unused]] auto && [ v0, v1 ] = value;
+        [[maybe_unused]] /*constexpr*/ auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
+        static_assert(std::same_as<
+            decltype(as_tuple),
+            std::tuple<int&, char&>
+        >);
 
-    // static_assert(std::same_as<
-    //     int&,
-    //     std::tuple_element_t<0, std::remove_cvref_t<decltype(as_tuple)>>
-    // >);
-    // static_assert(std::same_as<
-    //     char&,
-    //     std::tuple_element_t<1, std::remove_cvref_t<decltype(as_tuple)>>
-    // >);
+        static_assert(std::same_as<
+            int&,
+            std::tuple_element_t<0, std::remove_cvref_t<decltype(as_tuple)>>
+        >);
+        static_assert(std::same_as<
+            char&,
+            std::tuple_element_t<1, std::remove_cvref_t<decltype(as_tuple)>>
+        >);
+
+        static_assert(std::same_as<
+            int&&,
+            std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+        >);
+        static_assert(std::same_as<
+            char&&,
+            std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+        >);
+    }
 
     // // /*static_*/assert(csl::ag::get<0>(value) == 42);
     // // /*static_*/assert(csl::ag::get<1>(value) == 'A');

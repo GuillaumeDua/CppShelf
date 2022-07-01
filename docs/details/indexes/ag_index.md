@@ -4,9 +4,9 @@ The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 
 This library is divided in five parts :
 
-- A tuplelike interface for aggregates types
-- A (non-owning) to-tuple conversion for aggregate types
 - Structured-binding for aggregate types
+- A (non-owning) to-tuple conversion for aggregate types
+- A tuplelike interface for aggregates types
 - Aggregates-related type-traits
 - (WIP) Pretty-printing (using `std::ostream operator<<` or `fmt`)
 
@@ -17,6 +17,43 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 - `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
 - `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
+
+## Details
+
+Considering the following aggregate type, and associated value :
+
+```cpp
+struct type_0{ int i = 0; char c = 'a'; };
+auto value = type_0{ 42, 'A' }; // NOLINT
+```
+
+### Structured-binding for aggregate types
+
+```cpp
+[[maybe_unused]] auto && [ v0, v1 ] = value;
+```
+
+### (non-owning) to-tuple conversion for aggregate types
+
+```cpp
+[[maybe_unused]] auto as_tuple = csl::ag::as_tuple(value); // not constexpr yet
+static_assert(std::same_as<
+  decltype(as_tuple),
+  std::tuple<int&, char&>
+>);
+```
+
+### tuplelike interface for aggregates
+
+#### `std::tuple_element`
+
+```cpp
+[[maybe_unused]] auto as_tuple = csl::ag::as_tuple(value);
+
+
+```
+
+### Pretty-printing
 
 ## `std::tuple` and aggregate types homogeneity
 
@@ -48,6 +85,7 @@ void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bin
 }
 ```
 
+###
 
 ## Current limitations
 
@@ -55,4 +93,3 @@ As-is, this implementation internally relies on structured-binding, which design
 
 - Compile-time evaluation is limited.
 - By-default behaviors injections, using STL extension/customization point (e.g injecting in the `std` namespace definitions for `get`/`tuple_element`/`tuple_size(_v)` won't work).
-
