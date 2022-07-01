@@ -751,7 +751,7 @@ namespace csl::ag {
     }
 	// element
 	template <std::size_t N, concepts::aggregate T>
-    struct element : std::tuple_element<N, decltype(as_tuple(std::declval<T>()))>{};
+    struct element : std::tuple_element<N, decltype(as_tuple(std::declval<T&>()))>{};
 	template <std::size_t N, concepts::aggregate T>
 	using element_t = typename element<N, T>::type;
 
