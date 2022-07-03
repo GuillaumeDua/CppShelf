@@ -26,11 +26,16 @@ auto main() -> int {
         << type_4{ 42, c } << "\n-----\n"
         // << std::tuple{42, 'a'} << "-----\n"
     ;
-    struct qwe {
+    struct A{ int i; float f; };
+    struct B {
+        A a;
         int i;
         std::string str;
         char && c;
-    } v1 { .i = 42, .str = "str", .c = std::move(c) } ;
+    } v1 { 
+        .a = A{ 13, .12f},
+        .i = 42, .str = "str", .c = std::move(c)
+    };
     std::cout << v1; // const-lvalue-ref
 
     {

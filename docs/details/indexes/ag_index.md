@@ -69,6 +69,100 @@ static_assert(std::same_as<
 
 ### Pretty-printing
 
+There are two way to pretty-print aggregate types :
+
+- using the legacy C++'s way : `std::ostream& operator<<(std::ostream&, T&&)` overload
+- using the `fmt` or `std::format` library
+
+#### using `std::ostream` :
+
+Simple example :
+
+Try this on [compiler-explorer here](https://godbolt.org/z/q8Yeq4e83).
+
+```cpp
+#include <csl/ag.hpp>
+#include <iostream>
+
+auto main() -> int {
+  using namespace csl::ag::io;
+  
+  struct A{ int i; float f; };
+  std::cout << A{ .i = 42, .f = .13f };
+}
+```
+
+```
+A && : {
+   [0] int : 42
+   [1] float : 0.13
+}
+```
+
+Advanced example :
+
+Try this on [compiler-explorer here](https://godbolt.org/z/hsofqExoT).
+
+```cpp
+#include <iostream>
+#include <tuple>
+#include <array>
+
+struct A{ int i; float f; };
+struct B{};
+auto & operator<<(std::ostream & os, B) { 
+  return os << "user-defined operator<<(std::ostream&, const B &)";
+}
+struct C {
+    A a;
+    B b;
+    int & i;
+    const std::string str;
+    char && c;
+    std::tuple<bool, int> t{ true, 2 };
+    std::array<char, 3> arr{ 'a', 'b', 'c' };
+};
+
+#include <csl/ag.hpp>
+
+auto main() -> int {
+  using namespace csl::ag::io;
+
+  int i = 42;
+  char c = 'c';
+  auto value = C { 
+    .a = A{ 13, .12f },
+    .b = B{},
+    .i = i, .str = "str", .c = std::move(c)
+  };
+  std::cout << value;
+}
+```
+
+Output :
+
+```yaml
+C & : {
+   [0] A & : {
+      [0] int : 13
+      [1] float : 0.12
+   }
+   [1] B & : user-defined operator<<(std::ostream&, const B &)
+   [2] int & : 42
+   [3] const std::basic_string<char> : str
+   [4] char && : c
+   [5] std::tuple<bool, int> & : {
+      [0] bool : 1
+      [1] int : 2
+   }
+   [6] std::array<char, 3> & : {
+      [0] char : a
+      [1] char : b
+      [2] char : c
+   }
+}
+```
+
 ## `std::tuple` and aggregate types homogeneity
 
 As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.
