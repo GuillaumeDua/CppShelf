@@ -2017,10 +2017,10 @@ namespace csl::ag::io {
         const auto print_value = [&]<size_t index>(){
             os << indent(rel(1)) << '[' << index << "] ";
             auto && element_value = std::get<index>(std::forward<decltype(value)>(value));
-            using element_value_type = decltype(element_value);
+            using element_value_type = std::tuple_element_t<index, std::remove_cvref_t<decltype(value)>>; //decltype(element_value);
             if constexpr (not csl::ag::concepts::structured_bindable<element_value_type>)
                 os << gcl::cx::type_name_v<element_value_type> << " : ";
-            os << element_value << '\n';
+            os << std::forward<element_value_type>(element_value) << '\n';
         };
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
