@@ -55,10 +55,11 @@ file(APPEND
 # Generates `element<N, T>` specializations ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
-set(identities_fwd "std::forward<decltype(v0)>(v0)")
+set(identities_fwd "csl_ag_fwd(v0)")
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma region element<N, T>\n"
+    "#pragma region element<N, T>
+#define csl_ag_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
@@ -79,7 +80,8 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 endforeach()
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
-    "#pragma endregion\n"
+    "#undef csl_ag_fwd
+#pragma endregion\n"
 )
 
 # injects into ag/csl/ag.hpp
