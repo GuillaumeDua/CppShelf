@@ -26,6 +26,12 @@ auto main() -> int {
         << type_4{ 42, c } << "\n-----\n"
         // << std::tuple{42, 'a'} << "-----\n"
     ;
+    struct qwe {
+        int i;
+        std::string str;
+        char && c;
+    } v1 { .i = 42, .str = "str", .c = std::move(c) } ;
+    std::cout << v1; // const-lvalue-ref
 
     {
         auto value = type_0{ 42, 'A' }; // NOLINT

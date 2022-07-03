@@ -55,6 +55,7 @@ file(APPEND
 # Generates `element<N, T>` specializations ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
+set(identities_fwd "std::forward<decltype(v0)>(v0)")
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
     "#pragma region element<N, T>\n"
@@ -68,12 +69,13 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         N,
         std::remove_cvref_t<decltype([]() constexpr {
             auto && [ ${identities} ] = declval<T>();
-            return std::tuple<${identities_decltype}>{ ${identities} };
+            return std::tuple<${identities_decltype}>{ ${identities_fwd} };
         }())>>
     {};\n"
     )
     string(APPEND identities ",v${ID}")
     string(APPEND identities_decltype ",decltype(v${ID})")
+    string(APPEND identities_fwd ",std::forward<decltype(v${ID})>(v${ID})")
 endforeach()
 file(APPEND
     ${ag_as_tuple_impl_specialization_filepath}
