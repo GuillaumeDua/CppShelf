@@ -36,9 +36,9 @@ auto main() -> int {
         .a = A{ 13, .12f},
         .i = 42, .str = "str", .c = std::move(c)
     };
-    std::cout << v1; // const-lvalue-ref
+    std::cout << v1 << '\n'; // const-lvalue-ref
 
-    {
+    {   // std::tuple_element_t
         auto value = type_0{ 42, 'A' }; // NOLINT
         [[maybe_unused]] auto && [ v0, v1 ] = value;
         [[maybe_unused]] /*constexpr*/ auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
@@ -65,7 +65,7 @@ auto main() -> int {
             std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
         >);
     }
-    {
+    {   // std::tuple_element_t
         char c = 'c';
         auto value = type_4{ 42, c }; // NOLINT
 
@@ -77,6 +77,28 @@ auto main() -> int {
             char&,
             std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
         >);
+    }
+    {   // get
+        struct A{ int i; float f; };
+        auto value = A { .i = 42, .f = 0.13f };
+
+        std::cout << std::get<0>(value) << ", " << std::get<1>(value) << '\n';
+        static_assert(std::same_as<
+            int &,
+            decltype(std::get<0>(value))
+        >);
+        static_assert(std::same_as<
+            float &,
+            decltype(std::get<1>(value))
+        >);
+    }
+    {
+        struct A{ int i; float f; };
+        auto value = A{ .i = 42, .f = 0.13f };
+
+        [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((std::cout << std::get<indexes>(value) << ' '), ...);
+        }(std::make_index_sequence<csl::ag::size_v<A>>{});
     }
 
     // // /*static_*/assert(csl::ag::get<0>(value) == 42);

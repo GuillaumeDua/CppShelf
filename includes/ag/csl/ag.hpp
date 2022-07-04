@@ -1812,10 +1812,6 @@ namespace csl::ag {
 namespace std { // NOLINT(cert-dcl58-cpp)
 // TODO(Guss) : as opt-in, so aggregate are not necessarily tuplelike
 
-	// // screw-up the ADL (aggregate structured-binding vs tuplelike)
-    // template <csl::ag::concepts::aggregate T>
-    // struct tuple_size<T> : std::integral_constant<std::size_t, csl::ag::details::fields_count<T>>{};
-
     template <std::size_t N>
     constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) {
         return std::get<N>(csl::ag::as_tuple(std::forward<decltype(value)>(value)));
@@ -1823,6 +1819,10 @@ namespace std { // NOLINT(cert-dcl58-cpp)
 
     template <std::size_t N, ::csl::ag::concepts::aggregate T>
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
+
+    // // screw-up the ADL (aggregate structured-binding vs tuplelike)
+    // template <csl::ag::concepts::aggregate T>
+    // struct tuple_size<T> : std::integral_constant<std::size_t, csl::ag::details::fields_count<T>>{};
 }
 
 // csl::ag::io

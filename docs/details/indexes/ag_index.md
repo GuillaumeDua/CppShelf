@@ -64,8 +64,42 @@ static_assert(std::same_as<
 
 #### `std::get`
 
-// TODO
+Simple example (try it on [compiler-explorer here](https://godbolt.org/z/je4Gr16h5)) :
 
+```cpp
+struct A{ int i; float f; };
+auto value = A { .i = 42, .f = 0.13f };
+
+std::cout << std::get<0>(value) << ", " << std::get<1>(value) << '\n';
+
+static_assert(std::same_as<
+    int &,
+    decltype(std::get<0>(value))
+>);
+static_assert(std::same_as<
+    float &,
+    decltype(std::get<1>(value))
+>);
+```
+
+```
+42, 0.13
+```
+
+Advanced example (try it on [compiler-explorer here](https://godbolt.org/z/j9bhr4WrP)) :
+
+```cpp
+struct A{ int i; float f; };
+auto value = A{ .i = 42, .f = 0.13f };
+
+[&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    ((std::cout << std::get<indexes>(value) << ' '), ...);
+}(std::make_index_sequence<csl::ag::size_v<A>>{});
+```
+
+```
+42 0.13 
+```
 
 ### Pretty-printing
 
@@ -76,9 +110,7 @@ There are two way to pretty-print aggregate types :
 
 #### using `std::ostream` :
 
-Simple example :
-
-Try this on [compiler-explorer here](https://godbolt.org/z/q8Yeq4e83).
+Simple example (Try it on [compiler-explorer here](https://godbolt.org/z/q8Yeq4e83)) :
 
 ```cpp
 #include <csl/ag.hpp>
@@ -99,9 +131,7 @@ A && : {
 }
 ```
 
-Advanced example :
-
-Try this on [compiler-explorer here](https://godbolt.org/z/hsofqExoT).
+Advanced example (try it on [compiler-explorer here](https://godbolt.org/z/hsofqExoT)) :
 
 ```cpp
 #include <iostream>
