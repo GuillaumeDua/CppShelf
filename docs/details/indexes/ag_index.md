@@ -20,7 +20,7 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 ## Details
 
-Considering the following aggregate type, and associated value :
+Unless otherwise specified, the following aggregate type - and associated value - will be used in the examples below:
 
 ```cpp
 struct type_0{ int i = 0; char c = 'a'; };
@@ -37,11 +37,39 @@ auto value = type_0{ 42, 'A' }; // NOLINT
 
 This function returns a non-owning tuple (std::tuple of references), for which each element represents a given aggregate's field.
 
+Note that the reference semantic of the aggregate's value is used to qualify each tuple's element.
+
 ```cpp
-[[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
+struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
+int i = 42;
+
+{ // using a rvalue
+  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) }); // not constexpr yet
+  static_assert(std::same_as<
+      decltype(as_tuple),
+      std::tuple<int&&, int&&, const int&&, int&&>
+  >);
+}
+{ // using a const-lvalue
+  const auto & value = type{ i, i, i, std::move(i) };
+  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
+  static_assert(std::same_as<
+      decltype(as_tuple),
+      std::tuple<const int &, int&, const int &, int&>
+  >);
+}
+```
+
+Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field type information.
+
+```cpp
 static_assert(std::same_as<
-  decltype(as_tuple),
-  std::tuple<int&, char&>
+    int &&,
+    csl::ag::view_element_t<0, decltype(value)>
+>);
+static_assert(std::same_as<
+    char &&,
+    csl::ag::view_element_t<1, std::remove_cvref_t<decltype(value)>>
 >);
 ```
 

@@ -55,6 +55,22 @@ auto main() -> int {
             char&,
             std::tuple_element_t<1, std::remove_cvref_t<decltype(as_tuple)>>
         >);
+        static_assert(std::same_as<
+            decltype(std::get<0>(as_tuple)),
+            std::tuple_element_t<0, std::remove_cvref_t<decltype(as_tuple)>>
+        >);
+        static_assert(std::same_as<
+            decltype(std::get<1>(as_tuple)),
+            std::tuple_element_t<1, std::remove_cvref_t<decltype(as_tuple)>>
+        >);
+        static_assert(std::same_as<
+            int &&,
+            csl::ag::view_element_t<0, decltype(value)>
+        >);
+        static_assert(std::same_as<
+            char&&,
+            csl::ag::view_element_t<1, std::remove_cvref_t<decltype(value)>>
+        >);
 
         static_assert(std::same_as<
             int,
@@ -99,6 +115,27 @@ auto main() -> int {
         [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((std::cout << std::get<indexes>(value) << ' '), ...);
         }(std::make_index_sequence<csl::ag::size_v<A>>{});
+    }
+    {   // as_tuple_view ref-qualifiers
+        struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
+        int i = 42;
+
+        {   // rvalue
+            [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) }); // not constexpr yet
+            static_assert(std::same_as<
+                decltype(as_tuple),
+                std::tuple<int&&, int&&, const int&&, int&&>
+            >);
+        }
+        {   // const lvalue
+            const auto & value = type{ i, i, i, std::move(i) };
+            std::get<1>(csl::ag::as_tuple_view(value)) = 42;
+            [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
+            static_assert(std::same_as<
+                decltype(as_tuple),
+                std::tuple<const int &, int&, const int &, int&>
+            >);
+        }
     }
 
     // // /*static_*/assert(csl::ag::get<0>(value) == 42);
