@@ -41,7 +41,7 @@ auto main() -> int {
     {   // std::tuple_element_t
         auto value = type_0{ 42, 'A' }; // NOLINT
         [[maybe_unused]] auto && [ v0, v1 ] = value;
-        [[maybe_unused]] /*constexpr*/ auto as_tuple = csl::ag::as_tuple(value); // WTF not a constant expression ???
+        [[maybe_unused]] /*constexpr*/ auto as_tuple = csl::ag::as_tuple_view(value); // WTF not a constant expression ???
         static_assert(std::same_as<
             decltype(as_tuple),
             std::tuple<int&, char&>

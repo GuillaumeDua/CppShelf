@@ -8,7 +8,7 @@ This library is divided in five parts :
 - A (non-owning) to-tuple conversion for aggregate types
 - A tuplelike interface for aggregates types
 - Aggregates-related type-traits
-- (WIP) Pretty-printing (using `std::ostream operator<<` or `fmt`)
+- (WIP) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
 
 ## Philosophy & design choices
 
@@ -35,8 +35,10 @@ auto value = type_0{ 42, 'A' }; // NOLINT
 
 ### (non-owning) to-tuple conversion for aggregate types
 
+This function returns a non-owning tuple (std::tuple of references), for which each element represents a given aggregate's field.
+
 ```cpp
-[[maybe_unused]] auto as_tuple = csl::ag::as_tuple(value); // not constexpr yet
+[[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
 static_assert(std::same_as<
   decltype(as_tuple),
   std::tuple<int&, char&>
