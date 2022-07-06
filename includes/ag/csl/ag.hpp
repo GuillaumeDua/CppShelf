@@ -1775,16 +1775,20 @@ namespace csl::ag {
         return details::as_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
 
+    constexpr auto to_tuple(concepts::aggregate auto && value) {
+        auto view = as_tuple_view(std::forward<decltype(value)>(value));
+        return [&view]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return std::tuple<std::remove_cvref_t<decltype(std::get<indexes>(view))>...>{
+                std::get<indexes>(view)...
+            };
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(view)>>>{});
+    }
+
 	// get
     template <std::size_t N>
     constexpr decltype(auto) get(concepts::aggregate auto && value) {
         return ::std::get<N>(as_tuple_view(std::forward<decltype(value)>(value)));
     }
-
-	template <typename T>
-	struct remove_rvalue_reference : std::type_identity<T>{};
-	template <typename T>
-	struct remove_rvalue_reference<T&&> : std::type_identity<T>{};
 
 	// element
 	template <std::size_t N, concepts::aggregate T>

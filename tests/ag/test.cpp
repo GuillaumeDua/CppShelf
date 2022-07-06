@@ -115,6 +115,7 @@ auto main() -> int {
         [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((std::cout << std::get<indexes>(value) << ' '), ...);
         }(std::make_index_sequence<csl::ag::size_v<A>>{});
+        std::cout << '\n';
     }
     {   // as_tuple_view ref-qualifiers
         struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
@@ -136,6 +137,41 @@ auto main() -> int {
                 std::tuple<const int &, int&, const int &, int&>
             >);
         }
+    }
+    {   // to-tuple (owning)
+        struct A{ int i; float f; };
+        constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
+
+        [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((std::cout << std::get<indexes>(value) << ' '), ...);
+        }(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+        static_assert(std::same_as<
+            int,
+            std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+        >);
+        static_assert(std::same_as<
+            float,
+            std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+        >);
+    }
+    {
+        struct A{ int & i; float && f; };
+        int i = 42; float f = .13f;
+        /* not constexpr */ auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
+
+        [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((std::cout << std::get<indexes>(value) << ' '), ...);
+        }(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+        static_assert(std::same_as<
+            int,
+            std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+        >);
+        static_assert(std::same_as<
+            float,
+            std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+        >);
     }
 
     // // /*static_*/assert(csl::ag::get<0>(value) == 42);

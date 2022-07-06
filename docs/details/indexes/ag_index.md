@@ -33,11 +33,13 @@ auto value = type_0{ 42, 'A' }; // NOLINT
 [[maybe_unused]] auto && [ v0, v1 ] = value;
 ```
 
-### (non-owning) to-tuple conversion for aggregate types
+### to-tuple conversion for aggregate types
 
-This function returns a non-owning tuple (std::tuple of references), for which each element represents a given aggregate's field.
+#### Non-owning conversion (view)
 
-Note that the reference semantic of the aggregate's value is used to qualify each tuple's element.
+This function returns a non-owning tuple (`std::tuple` of references), for which each element represents a given aggregate's field.
+
+Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.
 
 ```cpp
 struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
@@ -73,6 +75,54 @@ static_assert(std::same_as<
 >);
 ```
 
+Try both examples on [compiler-explorer here](https://godbolt.org/z/z8vnxr619)).
+
+#### Owning conversion
+
+In opposition to the previous conversion that creates non-owning views,  
+the following create copies of each members, discarding cvref-qualifiers.
+
+```cpp
+struct A{ int i; float f; };
+constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
+
+[&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    ((std::cout << std::get<indexes>(value) << ' '), ...);
+}(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+static_assert(std::same_as<
+    int,
+    std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+>);
+static_assert(std::same_as<
+    float,
+    std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+>);
+```
+
+The main advantage here is to use such function in `constexpr` contexts.
+A precondition here is that each aggregates field's value must be usable in a constexpr context (e.g not ref-qualified).
+
+```cpp
+struct A{ int & i; float && f; };
+int i = 42; float f = .13f;
+/* not constexpr */ auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
+// ^^^^^^^^^^^^^^^ : neither `A::i` nor `A::f` are valid constants
+
+[&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    ((std::cout << std::get<indexes>(value) << ' '), ...);
+}(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+static_assert(std::same_as<
+    int,
+    std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+>);
+static_assert(std::same_as<
+    float,
+    std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+>);
+```
+
 ### tuplelike interface for aggregates
 
 #### `std::tuple_element`
@@ -80,7 +130,7 @@ static_assert(std::same_as<
 ```cpp
 struct type{ const int i = 0; char & c; };
 char c = 'c';
-auto value = type_4{ 42, c }; // NOLINT
+auto value = type{ 42, c }; // NOLINT
 
 static_assert(std::same_as<
     const int,
