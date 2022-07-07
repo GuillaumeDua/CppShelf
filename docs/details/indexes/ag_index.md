@@ -20,20 +20,18 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 ## Details
 
-Unless otherwise specified, the following aggregate type - and associated value - will be used in the examples below:
-
-```cpp
-struct type_0{ int i; char c; };
-auto value = type_0{ 42, 'A' }; // NOLINT
-```
-
 ### Structured-binding for aggregate types
 
 ```cpp
+struct type{ int i; char c; };
+auto value = type{ 42, 'A' }; // NOLINT
+
 [[maybe_unused]] auto && [ v0, v1 ] = value;
 assert(v0 == 42);   // pass
 assert(v1 == 'A');  // pass
 ```
+
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h).
 
 ### to-tuple conversion for aggregate types
 
@@ -77,7 +75,7 @@ static_assert(std::same_as<
 >);
 ```
 
-Try both examples on [compiler-explorer here](https://godbolt.org/z/z8vnxr619)).
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/z8vnxr619).
 
 #### Owning conversion
 
@@ -102,6 +100,8 @@ static_assert(std::same_as<
 >);
 ```
 
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/Yv6WKssG4).
+
 The main advantage here is to use such function in `constexpr` contexts.
 A precondition here is that each aggregates field's value must be usable in a constexpr context (e.g not ref-qualified).
 
@@ -125,6 +125,8 @@ static_assert(std::same_as<
 >);
 ```
 
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/K4qzsxcGY).
+
 ### tuplelike interface for aggregates
 
 #### `std::tuple_element`
@@ -144,9 +146,11 @@ static_assert(std::same_as<
 >);
 ```
 
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
+
 #### `std::get`
 
-Simple example (try it on [compiler-explorer here](https://godbolt.org/z/je4Gr16h5)) :
+Simple example :
 
 ```cpp
 struct A{ int i; float f; };
@@ -168,7 +172,9 @@ static_assert(std::same_as<
 42, 0.13
 ```
 
-Advanced example (try it on [compiler-explorer here](https://godbolt.org/z/j9bhr4WrP)) :
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
+
+Slightly more advanced example :
 
 ```cpp
 struct A{ int i; float f; };
@@ -183,6 +189,8 @@ auto value = A{ .i = 42, .f = 0.13f };
 42 0.13 
 ```
 
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
+
 Note that `constexpr`-ness is preserved :
 
 ```cpp
@@ -192,7 +200,7 @@ static_assert(csl::ag::get<0>(value) == 42);    // pass
 static_assert(csl::ag::get<1>(value) == 'c');   // pass
 ```
 
-Try this on [compiled-explorer here](https://godbolt.org/z/h9jbrc8d6).
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
 
 ### Pretty-printing
 
@@ -203,7 +211,7 @@ There are two way to pretty-print aggregate types :
 
 #### using `std::ostream` :
 
-Simple example (Try it on [compiler-explorer here](https://godbolt.org/z/q8Yeq4e83)) :
+Simple example :
 
 ```cpp
 #include <csl/ag.hpp>
@@ -224,7 +232,9 @@ A && : {
 }
 ```
 
-Advanced example (try it on [compiler-explorer here](https://godbolt.org/z/hsofqExoT)) :
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
+
+Advanced example :
 
 ```cpp
 #include <iostream>
@@ -286,6 +296,8 @@ C & : {
 }
 ```
 
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
+
 ## `std::tuple` and aggregate types homogeneity
 
 As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.
@@ -293,19 +305,21 @@ As is, it is quite easy to handle aggregates and tuple in an homogeneous way, de
 ```cpp
 void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bindable auto && value) {
 
-  constexpr auto size = []() constexpr { // work-around for ADL issue
-      if constexpr (csl::ag::concepts::tuplelike<value_type>)
-          return std::tuple_size_v<value_type>;
-      else if constexpr (csl::ag::concepts::aggregate<value_type>)
-          return csl::ag::size_v<value_type>;
-      else
-          static_assert(sizeof(value_type) and false, "Unexpected type"); // NOLINT
-  }();
+    using value_type = std::remove_cvref_t<decltype(value)>;
+
+    constexpr auto size = []() constexpr { // work-around for ADL issue
+        if constexpr (csl::ag::concepts::tuplelike<value_type>)
+            return std::tuple_size_v<value_type>;
+        else if constexpr (csl::ag::concepts::aggregate<value_type>)
+            return csl::ag::size_v<value_type>;
+        else
+            static_assert(sizeof(value_type) and false, "Unexpected type"); // NOLINT
+    }();
 
   const auto do_stuffs = [&]<size_t index>(){
     auto && element_value = std::get<index>(std::forward<decltype(value)>(value));
     using element_value_type = decltype(element_value);
-    using element_type = std::tuple_element_t<std::remove_cvref_t<decltype(value)>>;
+    using element_type = std::tuple_element_t<index, value_type>;
 
     // do stuffs with element_value, element_type ...
   };
@@ -316,7 +330,7 @@ void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bin
 }
 ```
 
-###
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j6ahehMn1).
 
 ## Current limitations
 
