@@ -23,7 +23,7 @@ which is especially convenient when dealing with **reflection** and **serializat
 Unless otherwise specified, the following aggregate type - and associated value - will be used in the examples below:
 
 ```cpp
-struct type_0{ int i = 0; char c = 'a'; };
+struct type_0{ int i; char c; };
 auto value = type_0{ 42, 'A' }; // NOLINT
 ```
 
@@ -31,6 +31,8 @@ auto value = type_0{ 42, 'A' }; // NOLINT
 
 ```cpp
 [[maybe_unused]] auto && [ v0, v1 ] = value;
+assert(v0 == 42);   // pass
+assert(v1 == 'A');  // pass
 ```
 
 ### to-tuple conversion for aggregate types
@@ -180,6 +182,17 @@ auto value = A{ .i = 42, .f = 0.13f };
 ```
 42 0.13 
 ```
+
+Note that `constexpr`-ness is preserved :
+
+```cpp
+struct A{ int i; char c; };
+constexpr auto value = A{ 42, 'c' };
+static_assert(csl::ag::get<0>(value) == 42);    // pass
+static_assert(csl::ag::get<1>(value) == 'c');   // pass
+```
+
+Try this on [compiled-explorer here](https://godbolt.org/z/h9jbrc8d6).
 
 ### Pretty-printing
 

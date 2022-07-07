@@ -41,7 +41,7 @@ auto main() -> int {
     {   // std::tuple_element_t
         auto value = type_0{ 42, 'A' }; // NOLINT
         [[maybe_unused]] auto && [ v0, v1 ] = value;
-        [[maybe_unused]] /*constexpr*/ auto as_tuple = csl::ag::as_tuple_view(value); // WTF not a constant expression ???
+        [[maybe_unused]] /*not constexpr*/ auto as_tuple = csl::ag::as_tuple_view(value);
         static_assert(std::same_as<
             decltype(as_tuple),
             std::tuple<int&, char&>
@@ -108,6 +108,12 @@ auto main() -> int {
             decltype(std::get<1>(value))
         >);
     }
+    {   // get (constexpr)
+        struct A{ int i; char c; };
+        constexpr auto value = A{ 42, 'c' };
+        static_assert(csl::ag::get<0>(value) == 42);
+        static_assert(csl::ag::get<1>(value) == 'c');
+    }
     {
         struct A{ int i; float f; };
         auto value = A{ .i = 42, .f = 0.13f };
@@ -173,9 +179,6 @@ auto main() -> int {
             std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
         >);
     }
-
-    // // /*static_*/assert(csl::ag::get<0>(value) == 42);
-    // // /*static_*/assert(csl::ag::get<1>(value) == 'A');
 
     // assert(
     //     std::addressof(std::get<0>(as_tuple)) ==
