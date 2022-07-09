@@ -11,7 +11,7 @@ namespace csl::ag::details {
     template <typename T>
     constexpr auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
         // static_assert([](){ return false; }(), "csl::ag::details : declval : for unevaluated context only !");
-        if constexpr (std::is_lvalue_reference_v<std::add_rvalue_reference_t<T>>)
+        if constexpr (std::is_lvalue_reference_v<T>)
             return *((std::remove_reference_t<T>*){ nullptr });
         else
             return std::move(*((std::remove_reference_t<T>*){ nullptr }));
