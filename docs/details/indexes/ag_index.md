@@ -2,25 +2,9 @@
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 
-This library is divided in five parts :
+## Introduction
 
-- Structured-binding for aggregate types
-- A (non-owning) to-tuple conversion for aggregate types
-- A tuplelike interface for aggregates types
-- Aggregates-related type-traits
-- (WIP) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
-
-## Philosophy & design choices
-
-The key idea of this library is to ease iterations over aggregates's member-variables,  
-which is especially convenient when dealing with **reflection** and **serialization**.
-
-- `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
-- `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
-
-## Details
-
-### Structured-binding for aggregate types
+By default, the C++ standard allow structured-binding for aggregate types.
 
 ```cpp
 struct type{ int i; char c; };
@@ -32,6 +16,95 @@ assert(v1 == 'A');  // pass
 ```
 
 [<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h).
+
+However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
+
+- The quantity of fields
+- Access a field's value anonymously
+- Iterate over fields
+
+This library provides a way to obtain such information, and internally use it to provide convenient high-level conversions and printing functions.
+
+---
+
+This library is divided in four distinct parts :
+
+- [#1](#aggregate-related-type-traits) Aggregates-related type-traits
+- [#2](#to-tuple-conversion-for-aggregate-types) to-tuple conversion for aggregate types *(owning or not)*
+- [#3](#tuplelike-interface-for-aggregates) A tuplelike interface for aggregates types
+- [#4 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
+
+---
+
+## Philosophy & design choices
+
+The key idea of this library is to ease iterations over aggregates's member-variables,  
+which is especially convenient when dealing with **reflection** and **serialization**.
+
+- `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
+- `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
+
+## Details
+
+
+### Aggregate-related type-traits
+
+#### `csl::ag::size<T>`
+
+Integral constant type which value represents the count of fields for a given aggregate type.
+
+```cpp
+struct A{ int i; float f; };
+static_assert(csl::ag::size_v<A> == 2);
+```
+
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
+
+Just like `std::tuple_size/std::tuple_size_v`, the **value** can be accessed using a convenience alias :
+
+```cpp
+template <csl::ag::concepts::aggregate T>
+constexpr auto size_v = size<T>::value;
+```
+
+#### `csl::ag::element<std::size_t, T>`
+
+Type-identity for a field's type of a given aggregate type.
+
+```cpp
+struct A{ int i; float f; };
+static_assert(std::same_as<int,   csl::ag::element_t<0, A>>);
+static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
+```
+
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+
+Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
+
+```cpp
+template <std::size_t N, concepts::aggregate T>
+using element_t = typename element<N, T>::type;
+```
+
+#### `csl::ag::view_element`
+
+In a similar way to `csl::ag::element<std::size_t, T>`, `csl::ag::view_element<std::size_t,T>` is a type-identity for a field's type of a given aggregate view type.  
+For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view) section.
+
+```cpp
+struct A{ int i; float f; };
+static_assert(std::same_as<int&&,   csl::ag::view_element_t<0, A>>);
+static_assert(std::same_as<float&&, csl::ag::view_element_t<1, A>>);
+```
+
+[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+
+The **type** can be accessed using a convenience alias :
+
+```cpp
+template <std::size_t N, concepts::aggregate T>
+using view_element_t = typename view_element<N, T>::type;
+```
 
 ### to-tuple conversion for aggregate types
 
