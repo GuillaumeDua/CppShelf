@@ -35,7 +35,9 @@ See project's
 
 A **tuple-like** interface - *thus, structured-binding* - for **aggregates** type.
 
-Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
+Project's 
+[documentation](https://guillaumedua.github.io/CppShelf/output/ag/), 
+[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
 
 ### 🧙‍♂️ [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
 
