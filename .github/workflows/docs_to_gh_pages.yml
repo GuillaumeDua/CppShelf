@@ -27,6 +27,11 @@ jobs:
           sudo mkdir -p docs/output/wf/
           sudo doxygen docs/details/wf.Doxyfile
 
+      - name: Doxygen generate documentation (csl::ag)
+        run: |
+          sudo mkdir -p docs/output/ag/
+          sudo doxygen docs/details/ag.Doxyfile
+
       - name: Generates host page (README)
         run: |
           cp README.md docs/
