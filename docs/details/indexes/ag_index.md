@@ -15,7 +15,7 @@ assert(v0 == 42);   // pass
 assert(v1 == 'A');  // pass
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h).
 
 However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
 
@@ -58,7 +58,7 @@ struct A{ int i; float f; };
 static_assert(csl::ag::size_v<A> == 2);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
 
 Just like `std::tuple_size/std::tuple_size_v`, the **value** can be accessed using a convenience alias :
 
@@ -77,7 +77,7 @@ static_assert(std::same_as<int,   csl::ag::element_t<0, A>>);
 static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
 Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
 
@@ -97,7 +97,7 @@ static_assert(std::same_as<int&&,   csl::ag::view_element_t<0, A>>);
 static_assert(std::same_as<float&&, csl::ag::view_element_t<1, A>>);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
 The **type** can be accessed using a convenience alias :
 
@@ -148,7 +148,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/z8vnxr619).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/z8vnxr619).
 
 #### Owning conversion
 
@@ -173,7 +173,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/Yv6WKssG4).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/Yv6WKssG4).
 
 The main advantage here is to use such function in `constexpr` contexts.
 A precondition here is that each aggregates field's value must be usable in a constexpr context (e.g not ref-qualified).
@@ -198,7 +198,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/K4qzsxcGY).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/K4qzsxcGY).
 
 ### tuplelike interface for aggregates
 
@@ -219,7 +219,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
 
 #### `std::get`
 
@@ -245,7 +245,7 @@ static_assert(std::same_as<
 42, 0.13
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
 
 Slightly more advanced example :
 
@@ -262,7 +262,7 @@ auto value = A{ .i = 42, .f = 0.13f };
 42 0.13 
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
 
 Note that `constexpr`-ness is preserved :
 
@@ -273,7 +273,7 @@ static_assert(csl::ag::get<0>(value) == 42);    // pass
 static_assert(csl::ag::get<1>(value) == 'c');   // pass
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
 
 ### Pretty-printing
 
@@ -305,7 +305,7 @@ A && : {
 }
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
 
 Advanced example :
 
@@ -369,9 +369,9 @@ C & : {
 }
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
 
-## `std::tuple` and aggregate types homogeneity
+## std::tuple and aggregate types homogeneity
 
 As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.
 
@@ -403,7 +403,7 @@ void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bin
 }
 ```
 
-[<img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j6ahehMn1).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j6ahehMn1).
 
 ## Current limitations
 
