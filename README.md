@@ -1,8 +1,17 @@
 <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" height="150" style="Padding: 0px 10px 0px 0px"/>
 
-<a href="https://github.com/GuillaumeDua/CppShelf"><img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right" ></a>
+<div style="position: absolute; top: 0; right: 0;">
+<a href="https://github.com/GuillaumeDua/CppShelf">
+<img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right"
+style="position: relative; top: 0; right: 0; z-index: 1;">
+</a>
 
-<a href="https://guillaumedua.github.io/CppShelf/"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/gh-pages-logo.png?raw=true" loading="lazy"  align="right" class="attachment-full size-full" height="40"></a>
+<a href="https://guillaumedua.github.io/CppShelf/">
+<img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
+style="position: absolute; top: 0; right: 0; z-index: 3;"
+>
+</a>
+</div>
 
 # C++ Shelf
 
