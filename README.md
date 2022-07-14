@@ -28,14 +28,6 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 ## Components - nested librairies
 
-### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
-
-Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
-
-See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/wf/), 
-[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
-
 ### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ag/csl/ag.hpp)
 
 A **tuple-like** interface - *thus, structured-binding* - for **aggregates** type.
@@ -43,6 +35,14 @@ A **tuple-like** interface - *thus, structured-binding* - for **aggregates** typ
 Project's 
 [documentation](https://guillaumedua.github.io/CppShelf/output/ag/), 
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
+
+### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
+
+Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
+
+See project's
+[documentation](https://guillaumedua.github.io/CppShelf/output/wf/), 
+[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
 ### 🧙‍♂️ [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
 
