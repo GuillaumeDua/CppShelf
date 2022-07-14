@@ -23,29 +23,29 @@ for the JavaScript code in this file
 var NAVTREE =
 [
   [ "📦 csl::ag", "index.html", [
-    [ "Overall presentation", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html", [
-      [ "Introduction", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md1", null ],
-      [ "Philosophy & design choices", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md4", null ],
-      [ "Details", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md5", [
-        [ "Aggregate-related type-traits", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md6", [
-          [ "<tt>csl::ag::size<T></tt>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md7", null ],
-          [ "<tt>csl::ag::element<std::size_t, T></tt>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md8", null ],
-          [ "<tt>csl::ag::view_element</tt>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md9", null ]
+    [ "Overall presentation", "index.html", [
+      [ "Introduction", "index.html#autotoc_md1", null ],
+      [ "Philosophy & design choices", "index.html#autotoc_md4", null ],
+      [ "Details", "index.html#autotoc_md5", [
+        [ "Aggregate-related type-traits", "index.html#autotoc_md6", [
+          [ "<tt>csl::ag::size<T></tt>", "index.html#autotoc_md7", null ],
+          [ "<tt>csl::ag::element<std::size_t, T></tt>", "index.html#autotoc_md8", null ],
+          [ "<tt>csl::ag::view_element</tt>", "index.html#autotoc_md9", null ]
         ] ],
-        [ "to-tuple conversion for aggregate types", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md10", [
-          [ "Non-owning conversion (view)", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md11", null ],
-          [ "Owning conversion", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md12", null ]
+        [ "to-tuple conversion for aggregate types", "index.html#autotoc_md10", [
+          [ "Non-owning conversion (view)", "index.html#autotoc_md11", null ],
+          [ "Owning conversion", "index.html#autotoc_md12", null ]
         ] ],
-        [ "tuplelike interface for aggregates", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md13", [
-          [ "<tt>std::tuple_element</tt>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md14", null ],
-          [ "<tt>std::get</tt>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md15", null ]
+        [ "tuplelike interface for aggregates", "index.html#autotoc_md13", [
+          [ "<tt>std::tuple_element</tt>", "index.html#autotoc_md14", null ],
+          [ "<tt>std::get</tt>", "index.html#autotoc_md15", null ]
         ] ],
-        [ "Pretty-printing", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md16", [
-          [ "using <tt>std::ostream</tt> :", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md17", null ]
+        [ "Pretty-printing", "index.html#autotoc_md16", [
+          [ "using <tt>std::ostream</tt> :", "index.html#autotoc_md17", null ]
         ] ]
       ] ],
-      [ "std::tuple and aggregate types homogeneity", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md18", null ],
-      [ "Current limitations", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md19", null ]
+      [ "std::tuple and aggregate types homogeneity", "index.html#autotoc_md18", null ],
+      [ "Current limitations", "index.html#autotoc_md19", null ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
