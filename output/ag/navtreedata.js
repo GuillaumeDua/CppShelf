@@ -44,7 +44,7 @@ var NAVTREE =
           [ "using <tt>std::ostream</tt> :", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md17", null ]
         ] ]
       ] ],
-      [ "<tt>std::tuple</tt> and aggregate types homogeneity", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md18", null ],
+      [ "std::tuple and aggregate types homogeneity", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md18", null ],
       [ "Current limitations", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md19", null ]
     ] ],
     [ "Classes", "annotated.html", [

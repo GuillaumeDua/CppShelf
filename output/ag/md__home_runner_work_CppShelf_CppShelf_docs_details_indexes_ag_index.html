@@ -97,7 +97,7 @@ Introduction</h1>
 <div class="line">[[maybe_unused]] <span class="keyword">auto</span> &amp;&amp; [ v0, v1 ] = value;</div>
 <div class="line">assert(v0 == 42);   <span class="comment">// pass</span></div>
 <div class="line">assert(v1 == <span class="charliteral">&#39;A&#39;</span>);  <span class="comment">// pass</span></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/3EcK9Wc7h"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/3EcK9Wc7h"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>However, there is no - <em>simple</em> - way to access the following informations for a given aggregate type or value :</p>
 <ul>
 <li>The quantity of fields</li>
@@ -131,7 +131,7 @@ Aggregate-related type-traits</h2>
 <p>Integral constant type which value represents the count of fields for a given aggregate type.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(csl::ag::size_v&lt;A&gt; == 2);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/5cr1x7K3T"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/5cr1x7K3T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Just like <code>std::tuple_size/std::tuple_size_v</code>, the <b>value</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;csl::ag::concepts::aggregate T&gt;</div>
 <div class="line">constexpr <span class="keyword">auto</span> size_v = size&lt;T&gt;::value;</div>
@@ -141,7 +141,7 @@ Aggregate-related type-traits</h2>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>,   csl::ag::element_t&lt;0, A&gt;&gt;);</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">float</span>, csl::ag::element_t&lt;1, A&gt;&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Just like <code>std::tuple_element/std::tuple_element_t</code>, the <b>type</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using</span> element_t = <span class="keyword">typename</span> element&lt;N, T&gt;::type;</div>
@@ -152,7 +152,7 @@ Aggregate-related type-traits</h2>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>&amp;&amp;,   csl::ag::view_element_t&lt;0, A&gt;&gt;);</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">float</span>&amp;&amp;, csl::ag::view_element_t&lt;1, A&gt;&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>The <b>type</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using</span> view_element_t = <span class="keyword">typename</span> view_element&lt;N, T&gt;::type;</div>
@@ -189,7 +189,7 @@ Non-owning conversion (view)</h3>
 <div class="line">    <span class="keywordtype">char</span> &amp;&amp;,</div>
 <div class="line">    csl::ag::view_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
 <div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/z8vnxr619"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/z8vnxr619"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h3><a class="anchor" id="autotoc_md12"></a>
 Owning conversion</h3>
 <p>In opposition to the previous conversion that creates non-owning views, <br  />
@@ -209,7 +209,7 @@ Owning conversion</h3>
 <div class="line">    <span class="keywordtype">float</span>,</div>
 <div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
 <div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/Yv6WKssG4"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/Yv6WKssG4"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>The main advantage here is to use such function in <code>constexpr</code> contexts. A precondition here is that each aggregates field's value must be usable in a constexpr context (e.g not ref-qualified).</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> &amp; i; <span class="keywordtype">float</span> &amp;&amp; f; };</div>
 <div class="line"><span class="keywordtype">int</span> i = 42; <span class="keywordtype">float</span> f = .13f;</div>
@@ -228,7 +228,7 @@ Owning conversion</h3>
 <div class="line">    <span class="keywordtype">float</span>,</div>
 <div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
 <div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/K4qzsxcGY"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/K4qzsxcGY"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h2><a class="anchor" id="autotoc_md13"></a>
 tuplelike interface for aggregates</h2>
 <h3><a class="anchor" id="autotoc_md14"></a>
@@ -245,7 +245,7 @@ tuplelike interface for aggregates</h2>
 <div class="line">    <span class="keywordtype">char</span>&amp;,</div>
 <div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
 <div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/YPj7931b9"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/YPj7931b9"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h3><a class="anchor" id="autotoc_md15"></a>
 &lt;tt&gt;std::get&lt;/tt&gt;</h3>
 <p>Simple example :</p>
@@ -263,7 +263,7 @@ tuplelike interface for aggregates</h2>
 <div class="line">    decltype(std::get&lt;1&gt;(value))</div>
 <div class="line">&gt;);</div>
 </div><!-- fragment --><div class="fragment"><div class="line">42, 0.13</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/je4Gr16h5"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/je4Gr16h5"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Slightly more advanced example :</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"><span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
@@ -272,13 +272,13 @@ tuplelike interface for aggregates</h2>
 <div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
 <div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
 </div><!-- fragment --><div class="fragment"><div class="line">42 0.13 </div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/j9bhr4WrP"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/j9bhr4WrP"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Note that <code>constexpr</code>-ness is preserved :</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">char</span> c; };</div>
 <div class="line">constexpr <span class="keyword">auto</span> value = A{ 42, <span class="charliteral">&#39;c&#39;</span> };</div>
 <div class="line">static_assert(csl::ag::get&lt;0&gt;(value) == 42);    <span class="comment">// pass</span></div>
 <div class="line">static_assert(csl::ag::get&lt;1&gt;(value) == <span class="charliteral">&#39;c&#39;</span>);   <span class="comment">// pass</span></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/h9jbrc8d6"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/h9jbrc8d6"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h2><a class="anchor" id="autotoc_md16"></a>
 Pretty-printing</h2>
 <p>There are two way to pretty-print aggregate types :</p>
@@ -302,7 +302,7 @@ using &lt;tt&gt;std::ostream&lt;/tt&gt; :</h3>
 <div class="line">   [0] int : 42</div>
 <div class="line">   [1] float : 0.13</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/q8Yeq4e83"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/q8Yeq4e83"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Advanced example :</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
@@ -357,9 +357,9 @@ using &lt;tt&gt;std::ostream&lt;/tt&gt; :</h3>
 <div class="line">      [2] char : c</div>
 <div class="line">   }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/hsofqExoT"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/hsofqExoT"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h1><a class="anchor" id="autotoc_md18"></a>
-&lt;tt&gt;std::tuple&lt;/tt&gt; and aggregate types homogeneity</h1>
+std::tuple and aggregate types homogeneity</h1>
 <p>As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bindable <span class="keyword">auto</span> &amp;&amp; value) {</div>
 <div class="line"> </div>
@@ -386,7 +386,7 @@ using &lt;tt&gt;std::ostream&lt;/tt&gt; :</h3>
 <div class="line">      ((do_stuffs.template operator()&lt;indexes&gt;()), ...);  </div>
 <div class="line">  }(std::make_index_sequence&lt;size&gt;{});</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/j6ahehMn1"><img src="../images/compiler-explorer.png" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/j6ahehMn1"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h1><a class="anchor" id="autotoc_md19"></a>
 Current limitations</h1>
 <p>As-is, this implementation internally relies on structured-binding, which design choice expose two main limitations :</p>
