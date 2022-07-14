@@ -22,15 +22,15 @@ jobs:
           sudo apt update
           sudo apt install -y doxygen graphviz
 
-      - name: Doxygen generate documentation (csl::wf)
-        run: |
-          sudo mkdir -p docs/output/wf/
-          sudo doxygen docs/details/wf.Doxyfile
-
       - name: Doxygen generate documentation (csl::ag)
         run: |
           sudo mkdir -p docs/output/ag/
           sudo doxygen docs/details/ag.Doxyfile
+
+      - name: Doxygen generate documentation (csl::wf)
+        run: |
+          sudo mkdir -p docs/output/wf/
+          sudo doxygen docs/details/wf.Doxyfile
 
       - name: Generates host page (README)
         run: |
