@@ -49,7 +49,7 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 ### Aggregate-related type-traits
 
-#### `csl::ag::size<T>`
+#### csl::ag::size<T>
 
 Integral constant type which value represents the count of fields for a given aggregate type.
 
@@ -67,7 +67,7 @@ template <csl::ag::concepts::aggregate T>
 constexpr auto size_v = size<T>::value;
 ```
 
-#### `csl::ag::element<std::size_t, T>`
+#### csl::ag::element<std::size_t, T>
 
 Type-identity for a field's type of a given aggregate type.
 
@@ -86,7 +86,7 @@ template <std::size_t N, concepts::aggregate T>
 using element_t = typename element<N, T>::type;
 ```
 
-#### `csl::ag::view_element`
+#### csl::ag::view_element
 
 In a similar way to `csl::ag::element<std::size_t, T>`, `csl::ag::view_element<std::size_t,T>` is a type-identity for a field's type of a given aggregate view type.  
 For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view) section.
@@ -202,7 +202,7 @@ static_assert(std::same_as<
 
 ### tuplelike interface for aggregates
 
-#### `std::tuple_element`
+#### std::tuple_element
 
 ```cpp
 struct type{ const int i = 0; char & c; };
@@ -221,7 +221,7 @@ static_assert(std::same_as<
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
 
-#### `std::get`
+#### std::get
 
 Simple example :
 
@@ -282,7 +282,7 @@ There are two way to pretty-print aggregate types :
 - using the legacy C++'s way : `std::ostream& operator<<(std::ostream&, T&&)` overload
 - using the `fmt` or `std::format` library
 
-#### using `std::ostream` :
+#### using std::ostream :
 
 Simple example :
 
