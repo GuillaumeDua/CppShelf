@@ -28,20 +28,20 @@ var NAVTREE =
       [ "Philosophy & design choices", "index.html#autotoc_md4", null ],
       [ "Details", "index.html#autotoc_md5", [
         [ "Aggregate-related type-traits", "index.html#autotoc_md6", [
-          [ "<tt>csl::ag::size<T></tt>", "index.html#autotoc_md7", null ],
-          [ "<tt>csl::ag::element<std::size_t, T></tt>", "index.html#autotoc_md8", null ],
-          [ "<tt>csl::ag::view_element</tt>", "index.html#autotoc_md9", null ]
+          [ "csl::ag::size<T>", "index.html#autotoc_md7", null ],
+          [ "csl::ag::element<std::size_t, T>", "index.html#autotoc_md8", null ],
+          [ "csl::ag::view_element", "index.html#autotoc_md9", null ]
         ] ],
         [ "to-tuple conversion for aggregate types", "index.html#autotoc_md10", [
           [ "Non-owning conversion (view)", "index.html#autotoc_md11", null ],
           [ "Owning conversion", "index.html#autotoc_md12", null ]
         ] ],
         [ "tuplelike interface for aggregates", "index.html#autotoc_md13", [
-          [ "<tt>std::tuple_element</tt>", "index.html#autotoc_md14", null ],
-          [ "<tt>std::get</tt>", "index.html#autotoc_md15", null ]
+          [ "std::tuple_element", "index.html#autotoc_md14", null ],
+          [ "std::get", "index.html#autotoc_md15", null ]
         ] ],
         [ "Pretty-printing", "index.html#autotoc_md16", [
-          [ "using <tt>std::ostream</tt> :", "index.html#autotoc_md17", null ]
+          [ "using std::ostream :", "index.html#autotoc_md17", null ]
         ] ]
       ] ],
       [ "std::tuple and aggregate types homogeneity", "index.html#autotoc_md18", null ],
