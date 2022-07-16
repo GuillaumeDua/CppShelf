@@ -1,8 +1,8 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,78,115,105"/>
-<area shape="rect" id="node2" href="$structcsl_1_1wf_1_1mp_1_1invoke__result.html" title=" " alt="" coords="169,5,351,47"/>
-<area shape="rect" id="node3" href="$structcsl_1_1wf_1_1mp_1_1invoke__result.html" title=" " alt="" coords="163,71,357,112"/>
-<area shape="rect" id="node5" href="$structcsl_1_1wf_1_1mp_1_1invoke__result.html" title=" " alt="" coords="173,136,347,207"/>
-<area shape="rect" id="node4" href="$structcsl_1_1wf_1_1mp_1_1invoke__result_3_01F_00_01ttps_3_4_00_01args__types_8_8_8_01_4.html" title=" " alt="" coords="413,63,561,119"/>
-<area shape="rect" id="node6" href="$structcsl_1_1wf_1_1mp_1_1invoke__result_3_01F_00_01ttps__type_00_01args__types_8_8_8_01_4.html" title=" " alt="" coords="405,143,568,199"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,78,168,105"/>
+<area shape="rect" id="node2" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable.html" title=" " alt="" coords="222,5,431,47"/>
+<area shape="rect" id="node3" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable.html" title=" " alt="" coords="216,71,437,112"/>
+<area shape="rect" id="node5" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable.html" title=" " alt="" coords="226,136,427,207"/>
+<area shape="rect" id="node4" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable_3_01F_00_01ttps_3_4_00_01args__types_8_8_8_01_4.html" title=" " alt="" coords="492,63,667,119"/>
+<area shape="rect" id="node6" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable_3_01F_00_01ttps__type_00_01args__types_8_8_8_01_4.html" title=" " alt="" coords="485,143,673,199"/>
 </map>

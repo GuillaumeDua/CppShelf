@@ -1,18 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,439,113,466"/>
-<area shape="rect" id="node2" href="$structcsl_1_1mp_1_1cat_3_01pack_3_01Ts_8_8_8_01_4_00_01pack_3_01Us_8_8_8_01_4_01_4.html" title=" " alt="" coords="173,5,364,47"/>
-<area shape="rect" id="node3" href="$structcsl_1_1mp_1_1cat_3_01pack_3_01Ts_8_8_8_01_4_00_01Us_8_8_8_01_4.html" title=" " alt="" coords="197,71,340,112"/>
-<area shape="rect" id="node4" href="$structcsl_1_1mp_1_1filters_3_01filter__type_00_01pack_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="185,136,352,177"/>
-<area shape="rect" id="node5" href="$structcsl_1_1mp_1_1flat__cat_3_01pack__type_3_01Ts_8_8_8_01_4_00_01rest_8_8_8_01_4.html" title=" " alt="" coords="193,202,345,258"/>
-<area shape="rect" id="node6" href="$structcsl_1_1mp_1_1flatten__once.html" title=" " alt="" coords="171,282,366,309"/>
-<area shape="rect" id="node7" href="$structcsl_1_1mp_1_1flatten__once_3_01pack__type_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="181,333,356,375"/>
-<area shape="rect" id="node8" href="$structcsl_1_1mp_1_1front_3_01pack_3_01T_00_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="191,399,346,440"/>
-<area shape="rect" id="node9" href="$structcsl_1_1mp_1_1transform_3_01pack_3_01Ts_8_8_8_01_4_00_01trait_01_4.html" title=" " alt="" coords="182,464,355,505"/>
-<area shape="rect" id="node10" href="$structcsl_1_1mp_1_1unfold__to.html" title=" " alt="" coords="195,529,342,571"/>
-<area shape="rect" id="node11" href="$structcsl_1_1mp_1_1unfold__to_3_01destination_00_01from_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="194,595,343,651"/>
-<area shape="rect" id="node12" href="$structcsl_1_1wf_1_1details_1_1mp_1_1cat_3_01pack_3_01Ts_8_8_8_01_4_00_01pack_3_01Us_8_8_8_01_4_01_4.html" title=" " alt="" coords="191,675,346,731"/>
-<area shape="rect" id="node13" href="$structcsl_1_1wf_1_1details_1_1mp_1_1cat_3_01pack_3_01Ts_8_8_8_01_4_00_01Us_8_8_8_01_4.html" title=" " alt="" coords="191,755,346,811"/>
-<area shape="rect" id="node14" href="$structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to.html" title=" " alt="" coords="161,836,376,877"/>
-<area shape="rect" id="node15" href="$structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to.html" title=" " alt="" coords="177,902,360,958"/>
-<area shape="rect" id="node16" href="$structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to_3_01destination_00_01from_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="424,902,607,958"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,13,121,39"/>
+<area shape="rect" id="node2" href="$structcsl_1_1ag_1_1view__element.html" title=" " alt="" coords="169,5,333,47"/>
 </map>

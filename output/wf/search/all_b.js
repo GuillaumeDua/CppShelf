@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['overall_20presentation_153',['Overall presentation',['../index.html',1,'']]],
-  ['overall_20presentation_154',['Overall presentation',['../md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html',1,'']]]
+  ['unfold_5fto_113',['unfold_to',['../structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to.html',1,'csl::wf::details::mp']]],
+  ['unfold_5fto_3c_20destination_2c_20from_3c_20ts_2e_2e_2e_20_3e_20_3e_114',['unfold_to&lt; destination, from&lt; Ts... &gt; &gt;',['../structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to_3_01destination_00_01from_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::wf::details::mp']]],
+  ['unfold_5fto_3c_20destination_2c_20ts_2e_2e_2e_20_3e_115',['unfold_to&lt; destination, Ts... &gt;',['../structcsl_1_1wf_1_1details_1_1mp_1_1unfold__to.html',1,'csl::wf::details::mp']]],
+  ['unfold_5ftuple_5fto_116',['unfold_tuple_to',['../structcsl_1_1wf_1_1details_1_1mp_1_1unfold__tuple__to.html',1,'csl::wf::details::mp']]]
 ];

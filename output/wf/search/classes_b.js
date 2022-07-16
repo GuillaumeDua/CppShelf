@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['pack_346',['pack',['../structcsl_1_1mp_1_1pack.html',1,'csl::mp::pack&lt; Ts &gt;'],['../structtest_1_1mp_1_1pack.html',1,'test::mp::pack&lt;... &gt;']]],
-  ['pack_5felement_347',['pack_element',['../structcsl_1_1mp_1_1pack__element.html',1,'csl::mp']]],
-  ['pack_5felement_3c_20pack_5ftype_3c_20ts_2e_2e_2e_20_3e_20_3e_348',['pack_element&lt; pack_type&lt; Ts... &gt; &gt;',['../structcsl_1_1mp_1_1pack__element_3_01pack__type_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::mp']]]
+  ['value_5fprefix_5ftag_235',['value_prefix_tag',['../structgcl_1_1cx_1_1details_1_1value__prefix__tag.html',1,'gcl::cx::details']]],
+  ['view_5ftag_5ft_236',['view_tag_t',['../structcsl_1_1wf_1_1operators_1_1view__tag__t.html',1,'csl::wf::operators']]]
 ];
