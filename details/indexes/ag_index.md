@@ -44,8 +44,7 @@ which is especially convenient when dealing with **reflection** and **serializat
 - `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
 - `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
 
-## Details
-
+## Content
 
 ### Aggregate-related type-traits
 

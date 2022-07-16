@@ -26,7 +26,7 @@ var NAVTREE =
     [ "Overall presentation", "index.html", [
       [ "Introduction", "index.html#autotoc_md1", null ],
       [ "Philosophy & design choices", "index.html#autotoc_md4", null ],
-      [ "Details", "index.html#autotoc_md5", [
+      [ "Content", "index.html#autotoc_md5", [
         [ "Aggregate-related type-traits", "index.html#autotoc_md6", [
           [ "csl::ag::size<T>", "index.html#autotoc_md7", null ],
           [ "csl::ag::element<std::size_t, T>", "index.html#autotoc_md8", null ],

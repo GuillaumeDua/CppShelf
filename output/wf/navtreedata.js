@@ -44,7 +44,7 @@ var NAVTREE =
     [ "Overall presentation", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html", [
       [ "Introduction", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md16", null ],
       [ "Philosophy & design choices", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md19", null ],
-      [ "Details", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md20", [
+      [ "Content", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md20", [
         [ "Aggregate-related type-traits", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md21", [
           [ "csl::ag::size<T>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md22", null ],
           [ "csl::ag::element<std::size_t, T>", "md__home_runner_work_CppShelf_CppShelf_docs_details_indexes_ag_index.html#autotoc_md23", null ],
