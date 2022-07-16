@@ -20,7 +20,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "📦 csl::ag"
 PROJECT_NUMBER         =
-PROJECT_BRIEF          = "Tuple-like interface (get/element/size) - thus, structured-binding - for aggregates type."
+PROJECT_BRIEF          = "Tuple-like interface (get/element/size) for aggregates type."
 PROJECT_LOGO           = ./docs/details/images/github_emoji_unicode_1f4e6.png
 
 OUTPUT_DIRECTORY       = ./docs/output/ag # meant to run from project's root folder
