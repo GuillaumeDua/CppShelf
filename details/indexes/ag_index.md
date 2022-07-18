@@ -410,3 +410,34 @@ As-is, this implementation internally relies on structured-binding, which design
 
 - Compile-time evaluation is limited.
 - By-default behaviors injections, using STL extension/customization point (e.g injecting in the `std` namespace definitions for `get`/`tuple_element`/`tuple_size(_v)` won't work).
+- Aggregate types with more fields than their size are currently not supported.
+
+## (Internal details) Where's the magic ?
+
+Everything has its own dirty secrets, and this library is no exception.  
+
+Internally, and for each given aggregate type, it recursively check if a value of the later is constructible from an aggregate-initialization using `N` implicitly-castable-to-anything parameters values.  
+
+> The initial `N` value is `sizeof(T)`.
+
+If the result is a failure, then another attempt using `N-1` is done, up to 1 (included).
+
+See `csl::ag::concepts::aggregate_with_n_fields<T, size>`
+
+```cpp
+auto main() -> int {
+    struct A{ char a, b, c, d, e, f, g, h; };
+    static_assert(sizeof(A) == 8);
+    static_assert(csl::ag::size_v<A> == 8);
+
+    struct B{ int a, b; };
+    static_assert(sizeof(B) == 8);
+    static_assert(csl::ag::size_v<B> == 2);
+
+    struct alignas(32) C { char c; };
+    static_assert(sizeof(C) == 32);
+    static_assert(csl::ag::size_v<C> == 1);
+}
+```
+
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).

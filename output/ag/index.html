@@ -394,8 +394,34 @@ Current limitations</h1>
 <p>As-is, this implementation internally relies on structured-binding, which design choice expose two main limitations :</p>
 <ul>
 <li>Compile-time evaluation is limited.</li>
-<li>By-default behaviors injections, using STL extension/customization point (e.g injecting in the <code>std</code> namespace definitions for <code>get</code>/<code>tuple_element</code>/<code>tuple_size(_v)</code> won't work). </li>
+<li>By-default behaviors injections, using STL extension/customization point (e.g injecting in the <code>std</code> namespace definitions for <code>get</code>/<code>tuple_element</code>/<code>tuple_size(_v)</code> won't work).</li>
+<li>Aggregate types with more fields than their size are currently not supported.</li>
 </ul>
+<h1><a class="anchor" id="autotoc_md20"></a>
+(Internal details) Where's the magic ?</h1>
+<p>Everything has its own dirty secrets, and this library is no exception. <br  />
+</p>
+<p>Internally, and for each given aggregate type, it recursively check if a value of the later is constructible from an aggregate-initialization using <code>N</code> implicitly-castable-to-anything parameters values. <br  />
+</p>
+<blockquote class="doxtable">
+<p>The initial <code>N</code> value is <code>sizeof(T)</code>. </p>
+</blockquote>
+<p>If the result is a failure, then another attempt using <code>N-1</code> is done, up to 1 (included).</p>
+<p>See <code>csl::ag::concepts::aggregate_with_n_fields&lt;T, size&gt;</code></p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>A{ <span class="keywordtype">char</span> a, b, c, d, e, f, g, h; };</div>
+<div class="line">    static_assert(<span class="keyword">sizeof</span>(A) == 8);</div>
+<div class="line">    static_assert(csl::ag::size_v&lt;A&gt; == 8);</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">struct </span>B{ <span class="keywordtype">int</span> a, b; };</div>
+<div class="line">    static_assert(<span class="keyword">sizeof</span>(B) == 8);</div>
+<div class="line">    static_assert(csl::ag::size_v&lt;B&gt; == 2);</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">struct </span><span class="keyword">alignas</span>(32) C { <span class="keywordtype">char</span> c; };</div>
+<div class="line">    static_assert(<span class="keyword">sizeof</span>(C) == 32);</div>
+<div class="line">    static_assert(csl::ag::size_v&lt;C&gt; == 1);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/v91bqTEWP"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>. </p>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->

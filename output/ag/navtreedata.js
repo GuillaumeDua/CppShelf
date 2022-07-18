@@ -45,7 +45,8 @@ var NAVTREE =
         ] ]
       ] ],
       [ "std::tuple and aggregate types homogeneity", "index.html#autotoc_md18", null ],
-      [ "Current limitations", "index.html#autotoc_md19", null ]
+      [ "Current limitations", "index.html#autotoc_md19", null ],
+      [ "(Internal details) Where's the magic ?", "index.html#autotoc_md20", null ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
