@@ -44,7 +44,79 @@ which is especially convenient when dealing with **reflection** and **serializat
 - `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
 - `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
 
+---
+
+## Getting starting
+
+This library is single-header, header-only.  
+Users may use it in various ways :
+
+### Simple usage
+
+- **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
+- **Clone** the repo, or add it as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your project.
+
+### CMake
+
+- **Fetch** the header file using [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html), or [ExternalProject](https://cmake.org/cmake/help/latest/module/ExternalProject.html).
+
+Then use the `csl::ag` target.
+
+> Note : to disable tests, set the cmake cache variable `CSL_BUILD_ALL_TESTS` to false.
+
+### Customization
+
+This library relies of a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value (default : 128).
+
+The sources by default offer support for aggregate types up to `CSL_AG_MAX_FIELDS_COUNT_OPTION`, meaning 128 fields.
+
+To extend such support, simply edit your **CMake** cache to set a greater integral value.
+
+---
+
 ## Content
+
+### Aggregate-related concepts
+
+#### unqualified_aggregate<T>
+
+Requirements that given `T` type must meet to be considered as an unqualified (e.g, not cvref-qualified) aggregate type by this library components.
+
+- `std::is_aggregate_v<T>`
+- `not std::is_empty_v<T>`
+- `not std::is_union_v<T>`
+- `not std::is_polymorphic_v<T>`
+- `not std::is_reference_v<T>`
+
+More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.
+
+#### aggregate<T>
+
+`T` must be a possibly cvref-qualified aggregate, meeting the `unqualified_aggregate<std::remove_cvref_t<T>>` requirement.
+
+Note that this requirement is widely used in this library.
+
+#### aggregate_constructible_from<T, args_ts...>
+
+`T` must be a valid aggregate type, constructible using brace-initialization using values for types `args_ts...`.
+
+#### aggregate_with_n_fields<T, std::size_t N>
+
+`T` must be a valid aggregate type, with `N` fields.
+
+#### tuplelike<T>
+
+`T` must the tuplelike interface, with valid implementation of :
+
+- `std::tuple_size`
+- `std::get<std::size_t>(/*possibly cvref-qualified */ T)`
+- `std::tuple_element<std::size_t, T>`
+
+#### structured_bindable<T>
+
+`T` must either match `tuplelike<T>` or `aggregate<T>` requirements.
+
+See the [structured_binding documentation](https://en.cppreference.com/w/cpp/language/structured_binding) for more details.
 
 ### Aggregate-related type-traits
 
@@ -411,6 +483,7 @@ As-is, this implementation internally relies on structured-binding, which design
 - Compile-time evaluation is limited.
 - By-default behaviors injections, using STL extension/customization point (e.g injecting in the `std` namespace definitions for `get`/`tuple_element`/`tuple_size(_v)` won't work).
 - Aggregate types with more fields than their size are currently not supported.
+- Ill-formed aggregate types using union-fields are not supported
 
 ## (Internal details) Where's the magic ?
 
