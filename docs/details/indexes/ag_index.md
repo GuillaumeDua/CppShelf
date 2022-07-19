@@ -44,6 +44,36 @@ which is especially convenient when dealing with **reflection** and **serializat
 - `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
 - `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
 
+---
+
+## Getting starting
+
+This library is single-header, header-only.  
+Users may use it in various ways :
+
+### Simple usage
+
+- **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
+- **Clone** the repo, or add it as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your project.
+
+### CMake
+
+- **Fetch** the header file using [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html), or [ExternalProject](https://cmake.org/cmake/help/latest/module/ExternalProject.html).
+
+Then use the `csl::ag` target.
+
+> Note : to disable tests, set the cmake cache variable `CSL_BUILD_ALL_TESTS` to false.
+
+### Customization
+
+This library relies of a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value (default : 128).
+
+The sources by default offer support for aggregate types up to `CSL_AG_MAX_FIELDS_COUNT_OPTION`, meaning 128 fields.
+
+To extend such support, simply edit your **CMake** cache to set a greater integral value.
+
+---
+
 ## Content
 
 ### Aggregate-related concepts

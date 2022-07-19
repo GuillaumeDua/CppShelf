@@ -14,13 +14,13 @@ endif()
 # }
 
 # Handle options ...
-## AG_MAX_FIELDS_COUNT_OPTION
-set(AG_MAX_FIELDS_COUNT_OPTION "128" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
-message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : AG_MAX_FIELDS_COUNT_OPTION set to ${AG_MAX_FIELDS_COUNT_OPTION}")
-if (NOT AG_MAX_FIELDS_COUNT_OPTION MATCHES "^[0-9]+$")
-    message(FATAL "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : AG_MAX_FIELDS_COUNT_OPTION is not a valid number")
+## CSL_AG_MAX_FIELDS_COUNT_OPTION
+set(CSL_AG_MAX_FIELDS_COUNT_OPTION "128" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
+message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION set to ${CSL_AG_MAX_FIELDS_COUNT_OPTION}")
+if (NOT CSL_AG_MAX_FIELDS_COUNT_OPTION MATCHES "^[0-9]+$")
+    message(FATAL "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION is not a valid number")
 endif()
-set(AG_MAX_FIELDS_COUNT ${AG_MAX_FIELDS_COUNT_OPTION})
+set(AG_MAX_FIELDS_COUNT ${CSL_AG_MAX_FIELDS_COUNT_OPTION})
 
 # Generates specialization as a file ...
 set(ag_as_tuple_view_impl_specialization_filepath ${PROJECT_SOURCE_DIR}/build/generated/ag_as_tuple_view_impl_specialization.hpp)
