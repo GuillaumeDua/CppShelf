@@ -46,6 +46,48 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 ## Content
 
+### Aggregate-related concepts
+
+#### unqualified_aggregate<T>
+
+Requirements that given `T` type must meet to be considered as an unqualified (e.g, not cvref-qualified) aggregate type by this library components.
+
+- `std::is_aggregate_v<T>`
+- `not std::is_empty_v<T>`
+- `not std::is_union_v<T>`
+- `not std::is_polymorphic_v<T>`
+- `not std::is_reference_v<T>`
+
+More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.
+
+#### aggregate<T>
+
+`T` must be a possibly cvref-qualified aggregate, meeting the `unqualified_aggregate<std::remove_cvref_t<T>>` requirement.
+
+Note that this requirement is widely used in this library.
+
+#### aggregate_constructible_from<T, args_ts...>
+
+`T` must be a valid aggregate type, constructible using brace-initialization using values for types `args_ts...`.
+
+#### aggregate_with_n_fields<T, std::size_t N>
+
+`T` must be a valid aggregate type, with `N` fields.
+
+#### tuplelike<T>
+
+`T` must the tuplelike interface, with valid implementation of :
+
+- `std::tuple_size`
+- `std::get<std::size_t>(/*possibly cvref-qualified */ T)`
+- `std::tuple_element<std::size_t, T>`
+
+#### structured_bindable<T>
+
+`T` must either match `tuplelike<T>` or `aggregate<T>` requirements.
+
+See the [structured_binding documentation](https://en.cppreference.com/w/cpp/language/structured_binding) for more details.
+
 ### Aggregate-related type-traits
 
 #### csl::ag::size<T>
@@ -411,6 +453,7 @@ As-is, this implementation internally relies on structured-binding, which design
 - Compile-time evaluation is limited.
 - By-default behaviors injections, using STL extension/customization point (e.g injecting in the `std` namespace definitions for `get`/`tuple_element`/`tuple_size(_v)` won't work).
 - Aggregate types with more fields than their size are currently not supported.
+- Ill-formed aggregate types using union-fields are not supported
 
 ## (Internal details) Where's the magic ?
 
