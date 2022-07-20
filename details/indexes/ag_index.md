@@ -27,12 +27,13 @@ This library provides a way to obtain such information, and internally use it to
 
 ---
 
-This library is divided in four distinct parts :
+This library is divided in five distinct parts :
 
-- [#1](#aggregate-related-type-traits) Aggregates-related type-traits
-- [#2](#to-tuple-conversion-for-aggregate-types) to-tuple conversion for aggregate types *(owning or not)*
-- [#3](#tuplelike-interface-for-aggregates) A tuplelike interface for aggregates types
-- [#4 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
+- [#1](#aggregate-related-concepts) Aggregates-related concepts
+- [#2](#aggregate-related-type-traits) Aggregates-related type-traits
+- [#3](#to-tuple-conversion-for-aggregate-types) to-tuple conversion for aggregate types *(owning or not)*
+- [#4](#tuplelike-interface-for-aggregates) A tuplelike interface for aggregates types
+- [#5 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
 
 ---
 
