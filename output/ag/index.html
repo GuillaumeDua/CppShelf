@@ -172,10 +172,11 @@ aggregate&lt;T&gt;</h3>
 <p>Note that this requirement is widely used in this library.</p>
 <h3><a class="anchor" id="autotoc_md15"></a>
 aggregate_constructible_from&lt;T, args_ts...&gt;</h3>
-<p><code>T</code> must be a valid aggregate type, constructible using brace-initialization using values for types <code>args_ts...</code>.</p>
+<p><code>T</code> must be a valid aggregate type, constructible using brace-initialization using values of types <code>args_ts...</code>.</p>
 <h3><a class="anchor" id="autotoc_md16"></a>
-aggregate_with_n_fields&lt;T, std::size_t N&gt;</h3>
-<p><code>T</code> must be a valid aggregate type, with <code>N</code> fields.</p>
+aggregate_constructible_from_n_values&lt;T, std::size_t N&gt;</h3>
+<p><code>T</code> must be a valid aggregate type, constructible using <code>N</code> values (which types does not matter here). <br  />
+ This does not mean that <code>T</code> has <code>N</code> fields : it can be more.</p>
 <h3><a class="anchor" id="autotoc_md17"></a>
 tuplelike&lt;T&gt;</h3>
 <p><code>T</code> must the tuplelike interface, with valid implementation of :</p>

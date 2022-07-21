@@ -36,7 +36,7 @@ var NAVTREE =
           [ "unqualified_aggregate<T>", "index.html#autotoc_md13", null ],
           [ "aggregate<T>", "index.html#autotoc_md14", null ],
           [ "aggregate_constructible_from<T, args_ts...>", "index.html#autotoc_md15", null ],
-          [ "aggregate_with_n_fields<T, std::size_t N>", "index.html#autotoc_md16", null ],
+          [ "aggregate_constructible_from_n_values<T, std::size_t N>", "index.html#autotoc_md16", null ],
           [ "tuplelike<T>", "index.html#autotoc_md17", null ],
           [ "structured_bindable<T>", "index.html#autotoc_md18", null ]
         ] ],
