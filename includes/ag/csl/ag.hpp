@@ -51,7 +51,7 @@ namespace csl::ag::concepts {
     concept aggregate_constructible_from = unqualified_aggregate<T> and requires { T{ std::declval<args_ts>()... }; }
     ;
     template <typename T, std::size_t size>
-    concept aggregate_with_n_fields =
+    concept aggregate_constructible_from_n_values =
         concepts::aggregate<T> and
         []<std::size_t... indexes>(std::index_sequence<indexes...>) {
             return concepts::aggregate_constructible_from<T, details::field_evaluator<indexes>...>;
@@ -67,12 +67,16 @@ namespace csl::ag::concepts {
 }
 namespace csl::ag::details {
 
-	template <concepts::aggregate T, std::size_t indice = sizeof(T)>
+	template <concepts::aggregate T, std::size_t indice = sizeof(T) * sizeof(std::byte)>
     requires (indice > 0)
     constexpr std::size_t fields_count = []() {
 
-        if constexpr (concepts::aggregate_with_n_fields<T, indice>)
+        if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
             return indice;
+        else if constexpr (indice == 1) {
+            static_assert([](){ return false; }(), "csl::ag::details::fields_count : Cannot evalute T's field count");
+            return 0; // noreturn
+        }
         else
             return fields_count<T, indice - 1>;
     }();

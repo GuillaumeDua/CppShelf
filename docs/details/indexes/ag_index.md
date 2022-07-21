@@ -99,11 +99,12 @@ Note that this requirement is widely used in this library.
 
 #### aggregate_constructible_from<T, args_ts...>
 
-`T` must be a valid aggregate type, constructible using brace-initialization using values for types `args_ts...`.
+`T` must be a valid aggregate type, constructible using brace-initialization using values of types `args_ts...`.
 
-#### aggregate_with_n_fields<T, std::size_t N>
+#### aggregate_constructible_from_n_values<T, std::size_t N>
 
-`T` must be a valid aggregate type, with `N` fields.
+`T` must be a valid aggregate type, constructible using `N` values (which types does not matter here).  
+This does not mean that `T` has `N` fields : it can be more.
 
 #### tuplelike<T>
 
