@@ -5,6 +5,7 @@
 #include <concepts>
 #include <type_traits>
 #include <utility>
+#include <climits>
 
 namespace csl::ag::details {
 
@@ -67,19 +68,27 @@ namespace csl::ag::concepts {
 }
 namespace csl::ag::details {
 
-	template <concepts::aggregate T, std::size_t indice = sizeof(T) * sizeof(std::byte)>
-    requires (indice > 0)
-    constexpr std::size_t fields_count = []() {
+    // TODO(Guss) : enable_bitfields_support, enable_reference_support
+    //  conjunction of both -> costly algorithm
+
+	template <concepts::aggregate T, std::size_t indice>
+    consteval auto fields_count_impl() -> std::size_t {
+
+        if constexpr (indice == 0) {
+            static_assert(indice != 0, "csl::ag::details::fields_count : Cannot evalute T's field count");
+            return {}; // no-return
+        }
 
         if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
             return indice;
-        else if constexpr (indice == 1) {
-            static_assert([](){ return false; }(), "csl::ag::details::fields_count : Cannot evalute T's field count");
-            return 0; // noreturn
-        }
+        else if constexpr (not concepts::aggregate_constructible_from_n_values<T, indice / 2 + 1>)
+            return fields_count_impl<T, indice / 2>();
         else
-            return fields_count<T, indice - 1>;
-    }();
+            return fields_count_impl<T, indice - 1>();
+    }
+
+	template <concepts::aggregate T>
+    constexpr std::size_t fields_count = fields_count_impl<T, sizeof(T) * sizeof(std::byte) * CHAR_BIT>();
 
     template <typename from> requires std::is_lvalue_reference_v<from>
     constexpr auto fwd_tie(auto && ... values) {
