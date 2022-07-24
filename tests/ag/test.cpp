@@ -42,7 +42,22 @@ auto main() -> int {
     static_assert(csl::ag::concepts::aggregate_constructible_from_n_values<B, 4>);
     static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 5>);
     static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 6>);
-    [[maybe_unused]] constexpr auto b_fields_count = csl::ag::details::fields_count<B>; // sizeof == 56
+    static_assert(csl::ag::details::fields_count<B> == 4);
+
+    #if defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
+    // TODO: test 1 .. N
+    struct with_bitfields {
+        int b0 : 1,
+            b1 : 1,
+            b2 : 1,
+            b3 : 1,
+            b4 : 1
+        ;
+    };
+    static_assert(csl::ag::concepts::aggregate_constructible_from_n_values<with_bitfields, 4>);
+    static_assert(csl::ag::concepts::aggregate_constructible_from_n_values<with_bitfields, 5>);
+    // static_assert(csl::ag::details::fields_count<with_bitfields> == 5);
+    #endif
 
     // std::cout << v1 << '\n'; // const-lvalue-ref
 

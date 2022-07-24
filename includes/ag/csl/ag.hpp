@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <utility>
 #include <climits>
+#include <string_view>
 
 namespace csl::ag::details {
 
@@ -73,12 +74,11 @@ namespace csl::ag::concepts {
 }
 namespace csl::ag::details {
 
-    // TODO(Guss) : enable_bitfields_support (disabled by default), enable_reference_support (enabled by default)
-    //  conjunction of both -> costly algorithm
-
+    #if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
 	template <concepts::aggregate_without_ref_fields T, std::size_t indice>
     consteval auto fields_count_impl() -> std::size_t {
-
+    // faster algorithm if T does not contains any ref fields,
+    // and no fields is a bitfield.
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
             return {}; // no-return
@@ -91,10 +91,12 @@ namespace csl::ag::details {
         else
             return fields_count_impl<T, indice - 1>();
     }
+    #endif
 
-    template <concepts::aggregate_with_ref_fields T, std::size_t indice>
+    //template <concepts::aggregate_with_ref_fields T, std::size_t indice>
+    template <concepts::aggregate T, std::size_t indice>
     consteval auto fields_count_impl() -> std::size_t {
-
+    // costly algorithm
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (with ref) : Cannot evalute T's field count");
             return {}; // no-return
@@ -107,7 +109,14 @@ namespace csl::ag::details {
     }
 
 	template <concepts::aggregate T>
-    constexpr std::size_t fields_count = fields_count_impl<T, sizeof(T) * sizeof(std::byte) * CHAR_BIT>();
+    constexpr std::size_t fields_count = fields_count_impl<
+        T,
+        sizeof(T)
+        #if defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
+        #pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT enabled, slower algorithm selected")
+        * sizeof(std::byte) * CHAR_BIT
+        #endif
+    >();
 
     template <typename from> requires std::is_lvalue_reference_v<from>
     constexpr auto fwd_tie(auto && ... values) {

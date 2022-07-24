@@ -3,6 +3,14 @@ if (NOT EXISTS ${csl_ag_hpp})
     message(FATAL "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : missing file ${csl_ag_hpp}")
 endif()
 
+# Configuration ...
+## CSL_AG_ENABLE_BITFIELDS_SUPPORT
+option(CSL_AG_ENABLE_BITFIELDS_SUPPORT "csl::ag : enable bitfields support (slower compilation)" FALSE)
+message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_ENABLE_BITFIELDS_SUPPORT set to ${CSL_AG_ENABLE_BITFIELDS_SUPPORT}")
+if (CSL_AG_ENABLE_BITFIELDS_SUPPORT)
+    add_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
+endif()
+
 # Generates "partial" specializations for `as_tuple_view_impl<N, T>`,
 #                                     and `element<N, T>`
 # According to the following template :
