@@ -42,7 +42,7 @@ auto main() -> int {
     static_assert(csl::ag::concepts::aggregate_constructible_from_n_values<B, 4>);
     static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 5>);
     static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 6>);
-    // [[maybe_unused]] constexpr auto b_fields_count = csl::ag::details::fields_count<B>; // sizeof == 56
+    [[maybe_unused]] constexpr auto b_fields_count = csl::ag::details::fields_count<B>; // sizeof == 56
 
     // std::cout << v1 << '\n'; // const-lvalue-ref
 

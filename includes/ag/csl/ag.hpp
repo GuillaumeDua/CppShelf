@@ -48,6 +48,11 @@ namespace csl::ag::concepts {
     template <typename T>
     concept aggregate = unqualified_aggregate<std::remove_cvref_t<T>>
     ;
+    template <typename T>
+    concept aggregate_with_ref_fields = aggregate<T> and not std::default_initializable<T>;
+    template <typename T>
+    concept aggregate_without_ref_fields = aggregate<T> and std::default_initializable<T>;
+
     template <typename T, typename... args_ts>
     concept aggregate_constructible_from = unqualified_aggregate<T> and requires { T{ std::declval<args_ts>()... }; }
     ;
@@ -68,14 +73,14 @@ namespace csl::ag::concepts {
 }
 namespace csl::ag::details {
 
-    // TODO(Guss) : enable_bitfields_support, enable_reference_support
+    // TODO(Guss) : enable_bitfields_support (disabled by default), enable_reference_support (enabled by default)
     //  conjunction of both -> costly algorithm
 
-	template <concepts::aggregate T, std::size_t indice>
+	template <concepts::aggregate_without_ref_fields T, std::size_t indice>
     consteval auto fields_count_impl() -> std::size_t {
 
         if constexpr (indice == 0) {
-            static_assert(indice != 0, "csl::ag::details::fields_count : Cannot evalute T's field count");
+            static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
             return {}; // no-return
         }
 
@@ -83,6 +88,20 @@ namespace csl::ag::details {
             return indice;
         else if constexpr (not concepts::aggregate_constructible_from_n_values<T, indice / 2 + 1>)
             return fields_count_impl<T, indice / 2>();
+        else
+            return fields_count_impl<T, indice - 1>();
+    }
+
+    template <concepts::aggregate_with_ref_fields T, std::size_t indice>
+    consteval auto fields_count_impl() -> std::size_t {
+
+        if constexpr (indice == 0) {
+            static_assert(indice != 0, "csl::ag::details::fields_count (with ref) : Cannot evalute T's field count");
+            return {}; // no-return
+        }
+
+        if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
+            return indice;
         else
             return fields_count_impl<T, indice - 1>();
     }
