@@ -91,6 +91,8 @@ namespace csl::ag::details {
         else
             return fields_count_impl<T, indice - 1>();
     }
+    #else
+    # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT enabled, slower algorithm selected")
     #endif
 
     //template <concepts::aggregate_with_ref_fields T, std::size_t indice>
@@ -113,7 +115,6 @@ namespace csl::ag::details {
         T,
         sizeof(T)
         #if defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
-        #pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT enabled, slower algorithm selected")
         * sizeof(std::byte) * CHAR_BIT
         #endif
     >();
