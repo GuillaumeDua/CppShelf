@@ -36,6 +36,15 @@ namespace csl::ag::details {
         }
     };
 }
+namespace csl::ag::details::mp {
+    // apply_ref
+    template <typename from, typename to>
+    struct apply_ref : std::remove_reference<to>{};
+    template <typename from, typename to>
+    struct apply_ref<from&, to> : std::add_lvalue_reference<to>{};
+    template <typename from, typename to>
+    struct apply_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
+}
 namespace csl::ag::concepts {
 
 	template <typename T>
