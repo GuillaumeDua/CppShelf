@@ -8,6 +8,8 @@
 # error "[Test] csl::ag : expect CSL_AG_ENABLE_BITFIELDS_SUPPORT"
 #endif
 
+#include "./details/mp.hpp"
+
 #include <iostream>
 #include <iomanip>
 #include <cassert>
@@ -19,6 +21,8 @@ struct type_3{ int i = 0; char c = 'a'; };
 struct type_4{ const int i = 0; char & c; };
 
 auto & operator<<(std::ostream & os, type_3) { return os << "type_3 : user-defined operator<<(std::ostream&, const T &)\n"; }
+
+// WIP : https://godbolt.org/z/oanM1fcba
 
 auto main() -> int {
 
