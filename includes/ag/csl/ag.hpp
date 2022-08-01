@@ -44,6 +44,23 @@ namespace csl::ag::details::mp {
     struct apply_ref<from&, to> : std::add_lvalue_reference<to>{};
     template <typename from, typename to>
     struct apply_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
+
+    template <typename from, typename to>
+    using apply_ref_t = typename apply_ref<from, to>::type;
+
+    // add cv (also for ref-qualified types)
+    template <typename T> struct add_const : std::type_identity<const T>{};
+    template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
+    template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
+    template <typename T> using add_const_t     = typename add_const<T>::type;
+
+    template <typename T> struct add_volatile : std::type_identity<volatile T>{};
+    template <typename T> struct add_volatile<T&> : std::type_identity<volatile T&>{};
+    template <typename T> struct add_volatile<T&&> : std::type_identity<volatile T&&>{};
+    template <typename T> using add_volatile_t  = typename add_volatile<T>::type;
+
+    template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
+    template <typename T> using add_cv_t        = typename add_cv<T>::type;
 }
 namespace csl::ag::concepts {
 
