@@ -61,6 +61,18 @@ namespace csl::ag::details::mp {
 
     template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
     template <typename T> using add_cv_t        = typename add_cv<T>::type;
+
+    // apply_cv
+    template <typename from, typename to>
+    struct apply_cv : std::remove_cv<to>{};
+    template <typename from, typename to>
+    struct apply_cv<const volatile from, to> :add_cv<to>{};
+    template <typename from, typename to>
+    struct apply_cv<const from, to> : add_const<to>{};
+    template <typename from, typename to>
+    struct apply_cv<volatile from, to> : add_volatile<to>{};
+    template <typename from, typename to>
+    using apply_cv_t = typename apply_cv<from, to>::type;
 }
 namespace csl::ag::concepts {
 
