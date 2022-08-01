@@ -3,6 +3,18 @@ var annotated_dup =
     [ "csl", null, [
       [ "ag", null, [
         [ "details", null, [
+          [ "mp", null, [
+            [ "add_const", "structcsl_1_1ag_1_1details_1_1mp_1_1add__const.html", null ],
+            [ "add_const< T & >", "structcsl_1_1ag_1_1details_1_1mp_1_1add__const_3_01T_01_6_01_4.html", null ],
+            [ "add_const< T && >", "structcsl_1_1ag_1_1details_1_1mp_1_1add__const_3_01T_01_6_6_01_4.html", null ],
+            [ "add_cv", "structcsl_1_1ag_1_1details_1_1mp_1_1add__cv.html", null ],
+            [ "add_volatile", "structcsl_1_1ag_1_1details_1_1mp_1_1add__volatile.html", null ],
+            [ "add_volatile< T & >", "structcsl_1_1ag_1_1details_1_1mp_1_1add__volatile_3_01T_01_6_01_4.html", null ],
+            [ "add_volatile< T && >", "structcsl_1_1ag_1_1details_1_1mp_1_1add__volatile_3_01T_01_6_6_01_4.html", null ],
+            [ "apply_ref", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref.html", null ],
+            [ "apply_ref< from &&, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref_3_01from_01_6_6_00_01to_01_4.html", null ],
+            [ "apply_ref< from &, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref_3_01from_01_6_00_01to_01_4.html", null ]
+          ] ],
           [ "element", "structcsl_1_1ag_1_1details_1_1element.html", null ],
           [ "field_evaluator", "structcsl_1_1ag_1_1details_1_1field__evaluator.html", "structcsl_1_1ag_1_1details_1_1field__evaluator" ]
         ] ],
