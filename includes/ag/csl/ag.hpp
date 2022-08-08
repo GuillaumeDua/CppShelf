@@ -86,11 +86,11 @@ namespace csl::ag::details::mp {
 namespace csl::ag::details {
     template <typename owner, typename T>
     auto && make_field_view(T && value) {
-        return static_cast<field_view_t<owner, T>>(value);
+        return static_cast<mp::field_view_t<owner, T>>(value);
     }
     template <typename owner, typename ... Ts>
     auto make_tuple_view(Ts && ... values) {
-        using view_type = std::tuple<field_view_t<owner, Ts>...>;
+        using view_type = std::tuple<mp::field_view_t<owner, Ts>...>;
         return view_type{ make_field_view<owner>(fwd(values))... };
     }
 }
@@ -177,13 +177,8 @@ namespace csl::ag::details {
         #endif
     >();
 
-    // template <typename from>\
-    // constexpr auto fwd_tie(auto && ... values) {
-    //     using view_type = std::tuple<mp::apply_ref_t<from, decltype(values)>...>;
-    //     return view_type{
-    //         std::forward<decltype(values)>(values)...
-    //     };
-    // }
+
+    // WIP : use make_tuple_view instead (https://godbolt.org/z/j7ncxKMK7)
     template <typename from> requires std::is_lvalue_reference_v<from>
     constexpr auto fwd_tie(auto && ... values) {
         return std::tie(values...);
