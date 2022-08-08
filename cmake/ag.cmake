@@ -9,6 +9,8 @@ option(CSL_AG_ENABLE_BITFIELDS_SUPPORT "csl::ag : enable bitfields support (slow
 message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_ENABLE_BITFIELDS_SUPPORT set to ${CSL_AG_ENABLE_BITFIELDS_SUPPORT}")
 if (CSL_AG_ENABLE_BITFIELDS_SUPPORT)
     add_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
+else()
+    remove_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
 endif()
 
 # Generates "partial" specializations for `as_tuple_view_impl<N, T>`,
@@ -39,6 +41,7 @@ file(WRITE
 
 ## Generates `as_tuple_view_impl` ...
 set(identities "v0")
+set(identities_fwd "fwd(v0)")
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
     "#pragma region as_tuple_view_impl<N,T>\n"
@@ -50,10 +53,11 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
 [[nodiscard]] constexpr auto as_tuple_view_impl(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
-\treturn fwd_tie<decltype(value)>(${identities});
+\treturn make_tuple_view<decltype(value)>( ${identities_fwd} );
 }\n"
     )
     string(APPEND identities ",v${ID}")
+    string(APPEND identities_fwd ",fwd(v${ID})")
 endforeach()
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
@@ -63,11 +67,10 @@ file(APPEND
 # Generates `element<N, T>` specializations ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
-set(identities_fwd "csl_ag_fwd(v0)")
+set(identities_fwd "fwd(v0)")
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
-    "#pragma region element<N, T>
-#define csl_ag_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)\n"
+    "#pragma region element<N, T>\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
@@ -84,12 +87,11 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     )
     string(APPEND identities ",v${ID}")
     string(APPEND identities_decltype ",decltype(v${ID})")
-    string(APPEND identities_fwd ",std::forward<decltype(v${ID})>(v${ID})")
+    string(APPEND identities_fwd ",fwd(v${ID})")
 endforeach()
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
-    "#undef csl_ag_fwd
-#pragma endregion\n"
+    "#pragma endregion\n"
 )
 
 # injects into ag/csl/ag.hpp
