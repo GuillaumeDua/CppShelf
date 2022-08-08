@@ -83,6 +83,17 @@ namespace csl::ag::details::mp {
     template <typename owner, typename T>
     using field_view_t = typename field_view<owner, T>::type;
 }
+namespace csl::ag::details {
+    template <typename owner, typename T>
+    auto && make_field_view(T && value) {
+        return static_cast<field_view_t<owner, T>>(value);
+    }
+    template <typename owner, typename ... Ts>
+    auto make_tuple_view(Ts && ... values) {
+        using view_type = std::tuple<field_view_t<owner, Ts>...>;
+        return view_type{ make_field_view<owner>(fwd(values))... };
+    }
+}
 namespace csl::ag::concepts {
 
 	template <typename T>
