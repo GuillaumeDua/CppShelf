@@ -19,6 +19,9 @@ var hierarchy =
       [ "csl::ag::details::mp::apply_cv< from, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__cv.html", null ]
     ] ],
     [ "remove_reference", null, [
+      [ "csl::ag::details::mp::apply_ref< owner, T >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref.html", [
+        [ "csl::ag::details::mp::field_view< owner, T >", "structcsl_1_1ag_1_1details_1_1mp_1_1field__view.html", null ]
+      ] ],
       [ "csl::ag::details::mp::apply_ref< from, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref.html", null ]
     ] ],
     [ "gcl::pattern::strong_type< T, typename >", "structgcl_1_1pattern_1_1strong__type.html", null ],
