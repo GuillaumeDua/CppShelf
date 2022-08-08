@@ -52,7 +52,7 @@ namespace csl::ag::details::mp {
     template <typename T> struct add_const : std::type_identity<const T>{};
     template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
     template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
-    template <typename T> using add_const_t     = typename add_const<T>::type;
+    template <typename T> using add_const_t = typename add_const<T>::type;
 
     template <typename T> struct add_volatile : std::type_identity<volatile T>{};
     template <typename T> struct add_volatile<T&> : std::type_identity<volatile T&>{};
@@ -60,7 +60,7 @@ namespace csl::ag::details::mp {
     template <typename T> using add_volatile_t  = typename add_volatile<T>::type;
 
     template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
-    template <typename T> using add_cv_t        = typename add_cv<T>::type;
+    template <typename T> using add_cv_t = typename add_cv<T>::type;
 
     // apply_cv
     template <typename from, typename to>
@@ -73,6 +73,15 @@ namespace csl::ag::details::mp {
     struct apply_cv<volatile from, to> : add_volatile<to>{};
     template <typename from, typename to>
     using apply_cv_t = typename apply_cv<from, to>::type;
+
+    // field_view
+    template <typename owner, typename T>
+    struct field_view : apply_ref<owner, T>{};
+    template <typename owner, typename T>
+    requires (std::is_reference_v<T>)
+    struct field_view<owner, T> : std::type_identity<T>{};
+    template <typename owner, typename T>
+    using field_view_t = typename field_view<owner, T>::type;
 }
 namespace csl::ag::concepts {
 
@@ -157,6 +166,13 @@ namespace csl::ag::details {
         #endif
     >();
 
+    // template <typename from>\
+    // constexpr auto fwd_tie(auto && ... values) {
+    //     using view_type = std::tuple<mp::apply_ref_t<from, decltype(values)>...>;
+    //     return view_type{
+    //         std::forward<decltype(values)>(values)...
+    //     };
+    // }
     template <typename from> requires std::is_lvalue_reference_v<from>
     constexpr auto fwd_tie(auto && ... values) {
         return std::tie(values...);
@@ -1936,7 +1952,7 @@ namespace gcl::cx::details {
 }
 namespace gcl::cx {
     template <typename T>
-    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
+    static consteval auto type_name()
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
@@ -1950,14 +1966,14 @@ namespace gcl::cx {
     template <typename T>
     constexpr inline auto type_name_v = type_name<T>();
     template <auto value>
-    static constexpr auto type_name(/*no parameters allowed*/)
+    static constexpr auto type_name()
     -> std::string_view
     {
         return type_name<decltype(value)>();
     }
 
     template <auto value>
-    static constexpr auto value_name(/*no parameters allowed*/)
+    static constexpr auto value_name()
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
@@ -1973,7 +1989,7 @@ namespace gcl::cx {
 }
 namespace gcl::pattern
 {
-	template <typename T, typename /*type_tag*/>
+	template <typename T, typename>
     struct strong_type
     {
         using underlying_type = T;
