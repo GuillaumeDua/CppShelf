@@ -3,9 +3,9 @@ name: cmake-Ubuntu-clang
 on: [push, pull_request]
 
 env:
-  relase_id: 14
-  CC:   clang-14
-  CXX:  clang++-14
+  relase_id: 15
+  CC:   clang-${{relase_id}}
+  CXX:  clang++-${{relase_id}}
   libstdcpp_release_id: 11
 
 jobs:
