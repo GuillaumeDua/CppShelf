@@ -4,8 +4,8 @@ on: [push, pull_request]
 
 env:
   relase_id: 15
-  CC:   clang-${{relase_id}}
-  CXX:  clang++-${{relase_id}}
+  CC:   clang-15
+  CXX:  clang++-15
   libstdcpp_release_id: 11
 
 jobs:
