@@ -23,6 +23,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Initialize compiler (Clang)
+    # or sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh ${relase_id})" 
       run: |
           sudo apt update
           sudo apt install libstdc++-$libstdcpp_release_id-dev
