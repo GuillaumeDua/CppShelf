@@ -39,7 +39,7 @@ The libraries here could, once mature enough, become self-contained on a separat
 
 ### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ag/csl/ag.hpp)
 
-A **tuple-like** interface - *thus, structured-binding* - for **aggregates** type.
+A **tuple-like** interface for **aggregates** type.
 
 Project's 
 [documentation](https://guillaumedua.github.io/CppShelf/output/ag/), 
