@@ -15,6 +15,7 @@ var annotated_dup =
             [ "apply_cv< const from, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__cv_3_01const_01from_00_01to_01_4.html", null ],
             [ "apply_cv< const volatile from, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__cv_3_01const_01volatile_01from_00_01to_01_4.html", null ],
             [ "apply_cv< volatile from, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__cv_3_01volatile_01from_00_01to_01_4.html", null ],
+            [ "apply_cvref", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__cvref.html", null ],
             [ "apply_ref", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref.html", null ],
             [ "apply_ref< from &&, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref_3_01from_01_6_6_00_01to_01_4.html", null ],
             [ "apply_ref< from &, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref_3_01from_01_6_00_01to_01_4.html", null ],
