@@ -46,7 +46,6 @@ namespace csl::ag::details::mp {
     struct apply_ref<from&, to> : std::add_lvalue_reference<to>{};
     template <typename from, typename to>
     struct apply_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
-
     template <typename from, typename to>
     using apply_ref_t = typename apply_ref<from, to>::type;
 
@@ -67,14 +66,22 @@ namespace csl::ag::details::mp {
     // apply_cv
     template <typename from, typename to>
     struct apply_cv : std::remove_cv<to>{};
+    template <typename from, typename to> requires (std::is_reference_v<from>)
+    struct apply_cv<from, to> : apply_cv<std::remove_reference_t<from>, to>{};
     template <typename from, typename to>
-    struct apply_cv<const volatile from, to> :add_cv<to>{};
+    struct apply_cv<const volatile from, to> : add_cv<to>{};
     template <typename from, typename to>
     struct apply_cv<const from, to> : add_const<to>{};
     template <typename from, typename to>
     struct apply_cv<volatile from, to> : add_volatile<to>{};
     template <typename from, typename to>
     using apply_cv_t = typename apply_cv<from, to>::type;
+
+    // apply_cvref
+    template <typename from, typename to>
+    struct apply_cvref : apply_cv<from, apply_ref_t<from, to>>{};
+    template <typename from, typename to>
+    using apply_cvref_t = typename apply_cvref<from, to>::type;
 
     // field_view
     template <typename owner, typename T>

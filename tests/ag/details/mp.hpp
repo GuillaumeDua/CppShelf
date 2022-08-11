@@ -61,3 +61,67 @@ namespace test::ag::details::mp::add_cv_ {
     static_assert(std::same_as<const volatile int&,  csl::ag::details::mp::add_cv_t<const volatile int&>>);
     static_assert(std::same_as<const volatile int&&, csl::ag::details::mp::add_cv_t<const volatile int&&>>);
 }
+namespace test::ag::details::mp::apply_cv_ {
+    struct A{};
+    static_assert(std::same_as<int,                     csl::ag::details::mp::apply_cv_t<A, int>>);
+    static_assert(std::same_as<const int,               csl::ag::details::mp::apply_cv_t<const A, int>>);
+    static_assert(std::same_as<const int&,              csl::ag::details::mp::apply_cv_t<const A, int&>>);
+    static_assert(std::same_as<const int&&,             csl::ag::details::mp::apply_cv_t<const A, int&&>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cv_t<volatile A, int>>);
+    static_assert(std::same_as<volatile int&,           csl::ag::details::mp::apply_cv_t<volatile A, int&>>);
+    static_assert(std::same_as<volatile int&&,          csl::ag::details::mp::apply_cv_t<volatile A, int&&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cv_t<const volatile A, int>>);
+    static_assert(std::same_as<const volatile int&,     csl::ag::details::mp::apply_cv_t<const volatile A, int&>>);
+    static_assert(std::same_as<const volatile int&&,    csl::ag::details::mp::apply_cv_t<const volatile A, int&&>>);
+
+    static_assert(std::same_as<int,                     csl::ag::details::mp::apply_cv_t<A&, int>>);
+    static_assert(std::same_as<const int,               csl::ag::details::mp::apply_cv_t<const A&, int>>);
+    static_assert(std::same_as<const int&,              csl::ag::details::mp::apply_cv_t<const A&, int&>>);
+    static_assert(std::same_as<const int&&,             csl::ag::details::mp::apply_cv_t<const A&, int&&>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cv_t<volatile A&, int>>);
+    static_assert(std::same_as<volatile int&,           csl::ag::details::mp::apply_cv_t<volatile A&, int&>>);
+    static_assert(std::same_as<volatile int&&,          csl::ag::details::mp::apply_cv_t<volatile A&, int&&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cv_t<const volatile A&, int>>);
+    static_assert(std::same_as<const volatile int&,     csl::ag::details::mp::apply_cv_t<const volatile A&, int&>>);
+    static_assert(std::same_as<const volatile int&&,    csl::ag::details::mp::apply_cv_t<const volatile A&, int&&>>);
+
+    static_assert(std::same_as<int,                     csl::ag::details::mp::apply_cv_t<A&&, int>>);
+    static_assert(std::same_as<const int,               csl::ag::details::mp::apply_cv_t<const A&&, int>>);
+    static_assert(std::same_as<const int&,              csl::ag::details::mp::apply_cv_t<const A&&, int&>>);
+    static_assert(std::same_as<const int&&,             csl::ag::details::mp::apply_cv_t<const A&&, int&&>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cv_t<volatile A&&, int>>);
+    static_assert(std::same_as<volatile int&,           csl::ag::details::mp::apply_cv_t<volatile A&&, int&>>);
+    static_assert(std::same_as<volatile int&&,          csl::ag::details::mp::apply_cv_t<volatile A&&, int&&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cv_t<const volatile A&&, int>>);
+    static_assert(std::same_as<const volatile int&,     csl::ag::details::mp::apply_cv_t<const volatile A&&, int&>>);
+    static_assert(std::same_as<const volatile int&&,    csl::ag::details::mp::apply_cv_t<const volatile A&&, int&&>>);
+}
+namespace test::ag::details::mp::apply_cvref_ {
+    struct A{};
+
+    static_assert(std::same_as<int,                     csl::ag::details::mp::apply_cvref_t<A, int>>);
+
+    static_assert(std::same_as<const int,               csl::ag::details::mp::apply_cvref_t<const A, int>>);
+    static_assert(std::same_as<const int,               csl::ag::details::mp::apply_cvref_t<const A, int&>>);
+    static_assert(std::same_as<const int,               csl::ag::details::mp::apply_cvref_t<const A, int&&>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cvref_t<volatile A, int>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cvref_t<volatile A, int&>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cvref_t<volatile A, int&&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cvref_t<const volatile A, int>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cvref_t<const volatile A, int&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cvref_t<const volatile A, int&&>>);
+
+    static_assert(std::same_as<const int &,             csl::ag::details::mp::apply_cvref_t<const A&, int>>);
+    static_assert(std::same_as<const int &,             csl::ag::details::mp::apply_cvref_t<const A&, int&>>);
+    static_assert(std::same_as<const int &,             csl::ag::details::mp::apply_cvref_t<const A&, int&&>>);
+    static_assert(std::same_as<const int &&,            csl::ag::details::mp::apply_cvref_t<const A&&, int>>);
+    static_assert(std::same_as<const int &&,            csl::ag::details::mp::apply_cvref_t<const A&&, int&>>);
+    static_assert(std::same_as<const int &&,            csl::ag::details::mp::apply_cvref_t<const A&&, int&&>>);
+
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cvref_t<volatile A, int>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cvref_t<volatile A, int&>>);
+    static_assert(std::same_as<volatile int,            csl::ag::details::mp::apply_cvref_t<volatile A, int&&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cvref_t<const volatile A, int>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cvref_t<const volatile A, int&>>);
+    static_assert(std::same_as<const volatile int,      csl::ag::details::mp::apply_cvref_t<const volatile A, int&&>>);
+}
