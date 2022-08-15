@@ -139,7 +139,7 @@ namespace test::ag::details::mp_::field_view_ {
     };
 
     template <typename T>
-    using as_tuple_fields_view_t = std::tuple<
+    using as_tuple_fields_view_t = typename std::tuple<
         mp::field_view_t<T, decltype(std::declval<T>().v)>,
         mp::field_view_t<T, decltype(std::declval<T>().c_v)>,
         mp::field_view_t<T, decltype(std::declval<T>().ref)>,
@@ -148,4 +148,17 @@ namespace test::ag::details::mp_::field_view_ {
         mp::field_view_t<T, decltype(std::declval<T>().c_rref)>
     >;
 
+    using type = S<int>;
+    static_assert(std::same_as<as_tuple_fields_view_t<type&>,
+        std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
+    >);
+    static_assert(std::same_as<as_tuple_fields_view_t<const type&>,
+        std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
+    >);
+    static_assert(std::same_as<as_tuple_fields_view_t<type&&>,
+        std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>
+    >);
+    static_assert(std::same_as<as_tuple_fields_view_t<const type&&>,
+        std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
+    >);
 }
