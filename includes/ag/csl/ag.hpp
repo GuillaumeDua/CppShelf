@@ -85,7 +85,7 @@ namespace csl::ag::details::mp {
 
     // field_view
     template <typename owner, typename T>
-    struct field_view : apply_ref<owner, T>{};
+    struct field_view : apply_cvref<owner, T>{};
     template <typename owner, typename T>
     requires (std::is_reference_v<T>)
     struct field_view<owner, T> : std::type_identity<T>{};
