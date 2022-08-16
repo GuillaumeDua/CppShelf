@@ -9,6 +9,7 @@
 #endif
 
 #include "./details/mp.hpp"
+#include "./details/view.hpp"
 
 #include <iostream>
 #include <iomanip>
