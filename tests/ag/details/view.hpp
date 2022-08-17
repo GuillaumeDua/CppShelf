@@ -53,16 +53,58 @@ namespace test::ag::details {
     using type = S<int>;
 
     consteval void make_field_view_() {
-        static_assert(std::same_as<int&,        decltype(csl::ag::details::make_field_view<type&>(std::declval<int&>()))>);
-        static_assert(std::same_as<int&&,       decltype(csl::ag::details::make_field_view<type&>(std::declval<int&&>()))>);
-        static_assert(std::same_as<const int&,  decltype(csl::ag::details::make_field_view<type&>(std::declval<const int&>()))>);
-        static_assert(std::same_as<const int&&, decltype(csl::ag::details::make_field_view<type&>(std::declval<const int&&>()))>);
+        constexpr auto check_expected_field_type = [](auto && value) constexpr {
 
-        int value = {};
-        static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&>(value)));
-        static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&, const int&>(value)));
+            auto && [ v, c_v, ref, c_ref, rref, c_rref ] = std::forward<decltype(value)>(value);
+            using T = decltype(value);
+
+            // v
+            static_assert(std::same_as<
+                mp::apply_cvref_t<T, decltype(v)>,
+                decltype(csl::ag::details::make_field_view<T>(v))
+            >);
+            static_assert(std::same_as<
+                mp::field_view_t<T, decltype(v)>,
+                decltype(csl::ag::details::make_field_view<T, decltype(v)>(v))
+            >);
+            // c_v
+            static_assert(std::same_as<
+                mp::field_view_t<T, decltype(c_v)>,
+                decltype(csl::ag::details::make_field_view<T, decltype(c_v)>(c_v))
+            >);
+
+            // ref, c_ref, rref, c_rref
+            static_assert(std::same_as<int&,        decltype(csl::ag::details::make_field_view<T, decltype(ref)>(ref))>);
+            static_assert(std::same_as<const int&,  decltype(csl::ag::details::make_field_view<T, decltype(c_ref)>(c_ref))>);
+            static_assert(std::same_as<int&&,       decltype(csl::ag::details::make_field_view<T, decltype(rref)>(std::move(rref)))>);
+            static_assert(std::same_as<const int&&, decltype(csl::ag::details::make_field_view<T, decltype(c_rref)>(std::move(c_rref)))>);
+        };
+        auto value = type{};
+        check_expected_field_type(static_cast<      type&>(value));
+        check_expected_field_type(static_cast<      type&&>(value));
+        // check_expected_field_type(static_cast<const type&>(value));
+        // check_expected_field_type(static_cast<const type&&>(value));
+
+        // int value = {};
+        // static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&>(value)));
+        // static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&, const int&>(value)));
     }
     consteval void make_tuple_view_() {
-
+        // static_assert(std::same_as<
+        //     decltype(csl::ag::details::make_tuple_view<type&>(std::declval<>()),
+        //     std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
+        // >);
+        // static_assert(std::same_as<
+        //     decltype(csl::ag::details::make_tuple_view(std::declval<type&&>())),
+        //     std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>
+        // >);
+        // static_assert(std::same_as<
+        //     decltype(csl::ag::details::make_tuple_view(std::declval<const type&>())),
+        //     std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
+        // >);
+        // static_assert(std::same_as<
+        //     decltype(csl::ag::details::make_tuple_view(std::declval<const type&&>())),
+        //     std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
+        // >);
     }
 }
