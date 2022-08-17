@@ -58,7 +58,9 @@ namespace test::ag::details {
         static_assert(std::same_as<const int&,  decltype(csl::ag::details::make_field_view<type&>(std::declval<const int&>()))>);
         static_assert(std::same_as<const int&&, decltype(csl::ag::details::make_field_view<type&>(std::declval<const int&&>()))>);
 
-        
+        int value = {};
+        static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&>(value)));
+        static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&, const int&>(value)));
     }
     consteval void make_tuple_view_() {
 

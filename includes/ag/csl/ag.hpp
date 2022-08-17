@@ -94,11 +94,11 @@ namespace csl::ag::details::mp {
 }
 namespace csl::ag::details {
     template <typename owner, typename T>
-    auto make_field_view(T && value) -> mp::field_view_t<owner, T&&> {
+    constexpr auto make_field_view(T && value) -> mp::field_view_t<owner, T&&> {
         return fwd(value);
     }
     template <typename owner, typename ... Ts>
-    auto make_tuple_view(Ts && ... values) {
+    constexpr auto make_tuple_view(Ts && ... values) {
         using view_type = std::tuple<mp::field_view_t<owner, Ts>...>;
         return view_type{ make_field_view<owner>(fwd(values))... };
     }
