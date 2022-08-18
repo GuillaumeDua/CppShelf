@@ -2,6 +2,8 @@
 
 #include <csl/ag.hpp>
 
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
+
 namespace mp = csl::ag::details::mp;
 
 namespace test::ag::details::mp_::field_view_ {
@@ -42,8 +44,8 @@ namespace test::ag::details::mp_::field_view_ {
 namespace test::ag::details {
     template <typename T>
     struct S {
-        T v;
-        const T c_v;
+        T v = {};
+        const T c_v = {};
         T & ref = v;
         const T & c_ref = c_v;
         T && rref = std::move(v);
@@ -53,24 +55,24 @@ namespace test::ag::details {
     using type = S<int>;
 
     consteval void make_field_view_() {
-        constexpr auto check_expected_field_type = [](auto && value) constexpr {
+        constexpr auto test = [](auto && value) constexpr {
 
-            auto && [ v, c_v, ref, c_ref, rref, c_rref ] = std::forward<decltype(value)>(value);
+            auto && [ v, c_v, ref, c_ref, rref, c_rref ] = fwd(value);
             using T = decltype(value);
 
             // v
             static_assert(std::same_as<
                 mp::apply_cvref_t<T, decltype(v)>,
-                decltype(csl::ag::details::make_field_view<T>(v))
+                decltype(csl::ag::details::make_field_view<T, decltype(v)>(fwd(v)))
             >);
             static_assert(std::same_as<
                 mp::field_view_t<T, decltype(v)>,
-                decltype(csl::ag::details::make_field_view<T, decltype(v)>(v))
+                decltype(csl::ag::details::make_field_view<T, decltype(v)>(fwd(v)))
             >);
             // c_v
             static_assert(std::same_as<
                 mp::field_view_t<T, decltype(c_v)>,
-                decltype(csl::ag::details::make_field_view<T, decltype(c_v)>(c_v))
+                decltype(csl::ag::details::make_field_view<T, decltype(c_v)>(fwd(c_v)))
             >);
 
             // ref, c_ref, rref, c_rref
@@ -80,31 +82,40 @@ namespace test::ag::details {
             static_assert(std::same_as<const int&&, decltype(csl::ag::details::make_field_view<T, decltype(c_rref)>(std::move(c_rref)))>);
         };
         auto value = type{};
-        check_expected_field_type(static_cast<      type&>(value));
-        check_expected_field_type(static_cast<      type&&>(value));
-        // check_expected_field_type(static_cast<const type&>(value));
-        // check_expected_field_type(static_cast<const type&&>(value));
-
-        // int value = {};
-        // static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&>(value)));
-        // static_assert(std::addressof(value) == std::addressof(csl::ag::details::make_field_view<type&, const int&>(value)));
+        test(static_cast<      type&>(value));
+        test(static_cast<      type&&>(value));
+        test(static_cast<const type&>(value));
+        test(static_cast<const type&&>(value));
     }
     consteval void make_tuple_view_() {
+
+        constexpr auto create = [](auto && value) constexpr {
+            auto && [ v, c_v, ref, c_ref, rref, c_rref ] = value;
+            // return csl::ag::details::make_tuple_view<
+            //     decltype(value),
+            //     decltype(v), decltype(c_v), decltype(ref), decltype(c_ref), decltype(rref), decltype(c_rref)
+            // >(
+            //     fwd(v), fwd(c_v), fwd(ref), fwd(c_ref), fwd(rref), fwd(c_rref)
+            // );
+        };
+
         // static_assert(std::same_as<
-        //     decltype(csl::ag::details::make_tuple_view<type&>(std::declval<>()),
-        //     std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
+        //     std::tuple<int&, const int&, int&, const int&, int&&, const int&&>,
+        //     decltype(create(std::declval<type&>()))
         // >);
         // static_assert(std::same_as<
-        //     decltype(csl::ag::details::make_tuple_view(std::declval<type&&>())),
-        //     std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>
+        //     std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>,
+        //     decltype(create(std::declval<type&&>()))
         // >);
         // static_assert(std::same_as<
-        //     decltype(csl::ag::details::make_tuple_view(std::declval<const type&>())),
-        //     std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
+        //     std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>,
+        //     decltype(create(std::declval<const type&>()))
         // >);
         // static_assert(std::same_as<
-        //     decltype(csl::ag::details::make_tuple_view(std::declval<const type&&>())),
-        //     std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
+        //     std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>,
+        //     decltype(create(std::declval<const type&&>()))
         // >);
     }
 }
+
+#undef fwd
