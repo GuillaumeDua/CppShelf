@@ -109,30 +109,42 @@ namespace test::ag::details {
         type value;
         static_assert(std::same_as<
             decltype(create_view_type(std::declval<type&>()))::type,
-            std::tuple<int &, const int &, int &, const int &, int &&, const int &&>
+            std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
         >);
         static_assert(std::same_as<
             decltype(create_view_type(std::declval<type&&>()))::type,
-            std::tuple<int &&, const int &&, int &, const int &, int &&, const int &&>
+            std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>
         >);
         static_assert(std::same_as<
             decltype(create_view_type(std::declval<const type&>()))::type,
-            std::tuple<const int &, const int &, int &, const int &, int &&, const int &&>
+            std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
         >);
         static_assert(std::same_as<
             decltype(create_view_type(std::declval<const type&&>()))::type,
-            std::tuple<const int &&, const int &&, int &, const int &, int &&, const int &&>
+            std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
         >);
 
-        // constexpr auto create = [](auto && value) constexpr {
-        //     auto && [ v, c_v, ref, c_ref, rref, c_rref ] = value;
-        //     return csl::ag::details::make_tuple_view<
-        //         decltype(value),
-        //         decltype(v), decltype(c_v), decltype(ref), decltype(c_ref), decltype(rref), decltype(c_rref)
-        //     >(
-        //         fwd(v), fwd(c_v), fwd(ref), fwd(c_ref), fwd(rref), fwd(c_rref)
-        //     );
-        // };
+        constexpr auto create = [](auto && value) constexpr {
+            auto && [ v, c_v, ref, c_ref, rref, c_rref ] = value;
+            return csl::ag::details::make_tuple_view<
+                decltype(value),
+                decltype(v), decltype(c_v), decltype(ref), decltype(c_ref), decltype(rref), decltype(c_rref)
+            >(
+                fwd(v), fwd(c_v), fwd(ref), fwd(c_ref), fwd(rref), fwd(c_rref)
+            );
+        };
+        static_assert(std::same_as<decltype(create(std::declval<type&>())),
+            std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
+        >);
+        static_assert(std::same_as<decltype(create(std::declval<type&&>())),
+            std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>
+        >);
+        static_assert(std::same_as<decltype(create(std::declval<const type&>())),
+            std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
+        >);
+        static_assert(std::same_as<decltype(create(std::declval<const type&&>())),
+            std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
+        >);
     }
 }
 
