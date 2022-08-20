@@ -96,7 +96,10 @@ namespace csl::ag::details {
     template <typename owner, typename T>
     // T should be explicit
     constexpr auto make_field_view(T && value) -> mp::field_view_t<owner, T> {
-        return fwd(value);
+        static_assert(std::is_reference_v<mp::field_view_t<owner, T>>);
+        if constexpr (std::is_lvalue_reference_v<mp::field_view_t<owner, T>>)
+            return *(&value);
+        else return fwd(value);
     }
     template <typename owner, typename ... Ts>
     constexpr auto make_tuple_view(Ts&& ... values) {
