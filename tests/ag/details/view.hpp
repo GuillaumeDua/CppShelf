@@ -88,6 +88,7 @@ namespace test::ag::details {
         test(static_cast<const type&&>(value));
     }
 
+    // Helper function for test purpose
     template <typename owner, typename ... Ts>
     constexpr auto get_view_type(Ts&& ... values) {
         using view_type = std::tuple<mp::field_view_t<owner, Ts>...>;
@@ -143,6 +144,21 @@ namespace test::ag::details {
             std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
         >);
         static_assert(std::same_as<decltype(create(std::declval<const type&&>())),
+            std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
+        >);
+    }
+
+    constexpr void as_tuple_view_() {
+        static_assert(std::same_as<decltype(csl::ag::as_tuple_view(std::declval<type&>())),
+            std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
+        >);
+        static_assert(std::same_as<decltype(csl::ag::as_tuple_view(std::declval<type&&>())),
+            std::tuple<int&&, const int&&, int&, const int&, int&&, const int&&>
+        >);
+        static_assert(std::same_as<decltype(csl::ag::as_tuple_view(std::declval<const type&>())),
+            std::tuple<const int&, const int&, int&, const int&, int&&, const int&&>
+        >);
+        static_assert(std::same_as<decltype(csl::ag::as_tuple_view(std::declval<const type&&>())),
             std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
         >);
     }
