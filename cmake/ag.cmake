@@ -41,6 +41,7 @@ file(WRITE
 
 ## Generates `as_tuple_view_impl` ...
 set(identities "v0")
+set(identities_decltype "decltype(v0)")
 set(identities_fwd "fwd(v0)")
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
@@ -53,10 +54,11 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
 [[nodiscard]] constexpr auto as_tuple_view_impl(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
-\treturn make_tuple_view<decltype(value)>( ${identities_fwd} );
+\treturn make_tuple_view<decltype(value), ${identities_decltype}>( ${identities_fwd} );
 }\n"
     )
     string(APPEND identities ",v${ID}")
+    string(APPEND identities_decltype ",decltype(v${ID})")
     string(APPEND identities_fwd ",fwd(v${ID})")
 endforeach()
 file(APPEND
