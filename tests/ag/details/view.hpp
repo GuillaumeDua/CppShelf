@@ -147,8 +147,10 @@ namespace test::ag::details {
             std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
         >);
     }
-
-    constexpr void as_tuple_view_() {
+}
+namespace test::ag::details::as_tuple_view {
+    constexpr void check_type() {
+        // types
         static_assert(std::same_as<decltype(csl::ag::as_tuple_view(std::declval<type&>())),
             std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
         >);
@@ -161,6 +163,26 @@ namespace test::ag::details {
         static_assert(std::same_as<decltype(csl::ag::as_tuple_view(std::declval<const type&&>())),
             std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
         >);
+    }
+    constexpr void check_field_values() {
+        // values (`assert(false)` produce a)
+        constexpr auto check = [](auto && value) constexpr {
+            auto view = csl::ag::as_tuple_view(fwd(value));
+            if (
+                std::addressof(std::get<0>(view)) not_eq std::addressof(value.v) or
+                std::addressof(std::get<1>(view)) not_eq std::addressof(value.c_v) or
+                std::addressof(std::get<2>(view)) not_eq std::addressof(value.ref) or
+                std::addressof(std::get<3>(view)) not_eq std::addressof(value.c_ref) or
+                std::addressof(std::get<4>(view)) not_eq std::addressof(value.rref) or
+                std::addressof(std::get<5>(view)) not_eq std::addressof(value.c_rref)
+            ) throw std::runtime_error{ "test::ag::details::as_tuple_view" };
+        };
+
+        auto value = type{ 1, 2 };
+        check(value);
+        check(std::as_const(value));
+        check(std::move(value));
+        check(std::move(std::as_const(value)));
     }
 }
 

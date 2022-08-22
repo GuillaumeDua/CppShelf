@@ -27,6 +27,18 @@ auto & operator<<(std::ostream & os, type_3) { return os << "type_3 : user-defin
 
 auto main() -> int {
 
+    // runtime-tests
+    try {
+        test::ag::details::as_tuple_view::check_field_values();
+    }
+    catch (const std::exception & ex) {
+        std::cerr << ex.what() << '\n';
+        return 1;
+    }
+    catch (...) {
+        return 1;
+    }
+
     using namespace csl::ag::io;
 
     char c = 'a';
