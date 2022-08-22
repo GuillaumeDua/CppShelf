@@ -1873,11 +1873,24 @@ template <std::size_t N> requires (N == 128) // NOLINT
 
 namespace csl::ag {
 
-    constexpr auto as_tuple_view(auto && value) {
+    // tuple-view
+    constexpr auto as_tuple_view(concepts::aggregate auto && value) {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::as_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
+    template <concepts::aggregate T>
+    requires (std::is_reference_v<T>)
+    struct tuple_view : std::type_identity<decltype(as_tuple_view(std::declval<T>()))>{}; 
+    template <concepts::aggregate T>
+    using tuple_view_t = typename tuple_view<T>::type;
 
+    // view_element
+	template <std::size_t N, concepts::aggregate T>
+    struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
+	template <std::size_t N, concepts::aggregate T>
+	using view_element_t = typename view_element<N, T>::type;
+
+    // TODO(Guss): fix this
     constexpr auto to_tuple(concepts::aggregate auto && value) {
         auto view = as_tuple_view(std::forward<decltype(value)>(value));
         return [&view]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
@@ -1898,12 +1911,6 @@ namespace csl::ag {
     using element = details::element<N, T>;
 	template <std::size_t N, concepts::aggregate T>
 	using element_t = typename element<N, T>::type;
-
-	// view_element
-	template <std::size_t N, concepts::aggregate T>
-    struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
-	template <std::size_t N, concepts::aggregate T>
-	using view_element_t = typename view_element<N, T>::type;
 
     // size
     template <csl::ag::concepts::aggregate T>
