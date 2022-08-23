@@ -1886,6 +1886,7 @@ namespace csl::ag {
 
     // view_element
 	template <std::size_t N, concepts::aggregate T>
+    requires (std::is_reference_v<T>)
     struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
 	template <std::size_t N, concepts::aggregate T>
 	using view_element_t = typename view_element<N, T>::type;
