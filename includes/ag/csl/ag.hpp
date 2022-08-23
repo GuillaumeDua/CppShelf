@@ -148,8 +148,10 @@ namespace csl::ag::details {
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
     consteval auto fields_count_impl() -> std::size_t {
-    // faster algorithm if T does not contains any ref fields,
+    // faster algorithm if T is default_initializable (ref fields can be initialized),
     // and no fields is a bitfield.
+        static_assert(not std::is_reference_v<T>);
+
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
             return {}; // no-return
@@ -169,6 +171,8 @@ namespace csl::ag::details {
     template <concepts::aggregate T, std::size_t indice>
     consteval auto fields_count_impl() -> std::size_t {
     // costly algorithm
+        static_assert(not std::is_reference_v<T>);
+
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (with ref) : Cannot evalute T's field count");
             return {}; // no-return
@@ -1914,7 +1918,7 @@ namespace csl::ag {
 
     // size
     template <csl::ag::concepts::aggregate T>
-    struct size : std::integral_constant<std::size_t, details::fields_count<T>>{};
+    struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
 	constexpr auto size_v = size<T>::value;
 }
