@@ -30,9 +30,6 @@ var hierarchy =
       [ "csl::ag::details::mp::apply_ref< from, to >", "structcsl_1_1ag_1_1details_1_1mp_1_1apply__ref.html", null ]
     ] ],
     [ "gcl::pattern::strong_type< T, typename >", "structgcl_1_1pattern_1_1strong__type.html", null ],
-    [ "tuple_element", null, [
-      [ "csl::ag::view_element< N, T >", "structcsl_1_1ag_1_1view__element.html", null ]
-    ] ],
     [ "type_identity", null, [
       [ "csl::ag::details::mp::add_const< add_volatile< T >::type >", "structcsl_1_1ag_1_1details_1_1mp_1_1add__const.html", [
         [ "csl::ag::details::mp::add_cv< T >", "structcsl_1_1ag_1_1details_1_1mp_1_1add__cv.html", null ]

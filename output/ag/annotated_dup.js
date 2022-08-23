@@ -24,8 +24,7 @@ var annotated_dup =
           [ "element", "structcsl_1_1ag_1_1details_1_1element.html", null ],
           [ "field_evaluator", "structcsl_1_1ag_1_1details_1_1field__evaluator.html", "structcsl_1_1ag_1_1details_1_1field__evaluator" ]
         ] ],
-        [ "size", "structcsl_1_1ag_1_1size.html", null ],
-        [ "view_element", "structcsl_1_1ag_1_1view__element.html", null ]
+        [ "size", "structcsl_1_1ag_1_1size.html", null ]
       ] ]
     ] ],
     [ "gcl", null, [
