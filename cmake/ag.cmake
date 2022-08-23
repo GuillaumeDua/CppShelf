@@ -108,7 +108,7 @@ string(REGEX REPLACE
 )
 
 if ("${csl_ag_hpp_file_content_with_injection}" STREQUAL "${csl_ag_hpp_file_content}")
-    message(AUTHOR_WARNING "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : nothing was injected")
+    message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : sources was already up-to-date (no new content was injected")
 endif()
 
 FILE(WRITE ${csl_ag_hpp} "${csl_ag_hpp_file_content_with_injection}")
