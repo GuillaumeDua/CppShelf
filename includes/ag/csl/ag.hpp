@@ -121,9 +121,7 @@ namespace csl::ag::concepts {
     concept aggregate = unqualified_aggregate<std::remove_cvref_t<T>>
     ;
     template <typename T>
-    concept aggregate_with_ref_fields = aggregate<T> and not std::default_initializable<T>;
-    template <typename T>
-    concept aggregate_without_ref_fields = aggregate<T> and std::default_initializable<T>;
+    concept aggregate_default_initializable = aggregate<T> and std::default_initializable<T>;
 
     template <typename T, typename... args_ts>
     concept aggregate_constructible_from = unqualified_aggregate<T> and requires { T{ std::declval<args_ts>()... }; }
@@ -147,7 +145,8 @@ namespace csl::ag::details {
 
     #if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
     # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
-	template <concepts::aggregate_without_ref_fields T, std::size_t indice>
+	template <concepts::aggregate T, std::size_t indice>
+    requires (std::default_initializable<T>)
     consteval auto fields_count_impl() -> std::size_t {
     // faster algorithm if T does not contains any ref fields,
     // and no fields is a bitfield.
@@ -167,7 +166,6 @@ namespace csl::ag::details {
     # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
     #endif
 
-    //template <concepts::aggregate_with_ref_fields T, std::size_t indice>
     template <concepts::aggregate T, std::size_t indice>
     consteval auto fields_count_impl() -> std::size_t {
     // costly algorithm
@@ -1887,7 +1885,8 @@ namespace csl::ag {
     // view_element
 	template <std::size_t N, concepts::aggregate T>
     requires (std::is_reference_v<T>)
-    struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
+    struct view_element : std::tuple_element<N, tuple_view_t<T>>{};
+    // struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
 	template <std::size_t N, concepts::aggregate T>
 	using view_element_t = typename view_element<N, T>::type;
 

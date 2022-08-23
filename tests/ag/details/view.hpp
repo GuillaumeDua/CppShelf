@@ -125,7 +125,6 @@ namespace test::ag::details::mp_::field_view_ {
         mp::field_view_t<T, decltype(std::declval<T>().c_rref)>
     >;
 
-    using type = S<int>;
     static_assert(std::same_as<as_tuple_fields_view_t<type&>,
         std::tuple<int&, const int&, int&, const int&, int&&, const int&&>
     >);
@@ -177,7 +176,38 @@ namespace test::ag::details::as_tuple_view {
     }
 }
 namespace test::ag::details::view_element_ {
-    
+    // consteval void check_fields_view_types() {
+    //     static constexpr auto check = []<typename T>(){
+    //         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //             static_assert((
+    //                 std::is_reference_v<csl::ag::view_element_t<indexes, T>> and ...
+    //             ));
+    //         }(std::make_index_sequence<csl::ag::size_v<T>>{});
+    //     };
+    //     check.template operator()<type&>();
+    //     check.template operator()<type&&>();
+    //     check.template operator()<const type&>();
+    //     check.template operator()<const type&&>();
+    // }
+    // consteval void check_type_correctness() {
+    //     constexpr auto check = []<typename T>(){
+    //         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //             static_assert(std::same_as<
+    //                 csl::ag::tuple_view_t<T>,
+    //                 std::tuple<
+    //                     csl::ag::view_element_t<indexes, T>...
+    //                 >
+    //             >);
+    //         }(std::make_index_sequence<csl::ag::size_v<T>>{});
+    //     };
+    //     check.template operator()<type&>();
+    //     check.template operator()<type&&>();
+    //     check.template operator()<const type&>();
+    //     check.template operator()<const type&&>();
+    // }
+    consteval void local_test() {
+        csl::ag::size_v<type&>;
+    }
 }
 
 #undef fwd
