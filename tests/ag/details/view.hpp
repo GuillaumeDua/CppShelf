@@ -206,7 +206,7 @@ namespace test::ag::details::view_element_ {
     //     check.template operator()<const type&&>();
     // }
     consteval void local_test() {
-        csl::ag::size_v<type&>;
+        csl::ag::size_v<type>;
     }
 }
 

@@ -10,6 +10,7 @@
 
 #include "./details/mp.hpp"
 #include "./details/view.hpp"
+#include "./tuple_interface.hpp"
 
 #include <iostream>
 #include <iomanip>
