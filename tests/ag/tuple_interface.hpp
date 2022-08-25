@@ -38,3 +38,20 @@ namespace test::ag::element_ {
         pack<int, const int, int&, const int&, int&&, const int&&>
     >);
 }
+namespace test::ag::get_ {
+    template <typename T>
+    consteval void check_type_impl() {
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            static_assert((std::same_as<
+                decltype(std::get<indexes>(std::declval<T>())),
+                csl::ag::view_element_t<indexes, T>
+            > and ...));
+        }(std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<T>>>{});
+    }
+    consteval void check_type() {
+        check_type_impl<type&>();
+        check_type_impl<type&&>();
+        check_type_impl<const type&>();
+        check_type_impl<const type&&>();
+    }
+}
