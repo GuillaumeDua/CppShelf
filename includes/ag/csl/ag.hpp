@@ -1894,16 +1894,6 @@ namespace csl::ag {
 	template <std::size_t N, concepts::aggregate T>
 	using view_element_t = typename view_element<N, T>::type;
 
-    // TODO(Guss): fix this
-    constexpr auto to_tuple(concepts::aggregate auto && value) {
-        auto view = as_tuple_view(std::forward<decltype(value)>(value));
-        return [&view]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return std::tuple<std::remove_cvref_t<decltype(std::get<indexes>(view))>...>{
-                std::get<indexes>(view)...
-            };
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(view)>>>{});
-    }
-
 	// get
     template <std::size_t N>
     constexpr decltype(auto) get(concepts::aggregate auto && value) {
@@ -1921,6 +1911,26 @@ namespace csl::ag {
     struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
 	constexpr auto size_v = size<T>::value;
+
+    // tuple conversion (not view !)
+    template <concepts::aggregate T>
+    using to_tuple_t = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        using result_t = std::tuple<
+            element_t<indexes, T>...
+        >;
+        return std::type_identity<result_t>{};
+    }(std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<T>>>{}))::type;
+    // TODO(Guss): fix this
+    constexpr auto to_tuple(concepts::aggregate auto && value) {
+        static_assert(false and sizeof(decltype(value)), "ill-formed implementation");
+
+        auto view = as_tuple_view(std::forward<decltype(value)>(value));
+        return [&view]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return std::tuple<std::remove_cvref_t<decltype(std::get<indexes>(view))>...>{
+                std::get<indexes>(view)...
+            };
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(view)>>>{});
+    }
 }
 // tuple-like interface
 //  N4606 [namespace.std]/1 :
