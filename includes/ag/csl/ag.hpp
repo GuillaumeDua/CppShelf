@@ -1913,7 +1913,7 @@ namespace csl::ag {
 	constexpr auto size_v = size<T>::value;
 
     // tuple conversion (not view !)
-    template <concepts::aggregate T>
+    template <concepts::aggregate T> requires (not std::is_reference_v<T>)
     using to_tuple_t = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
         using result_t = std::tuple<
             element_t<indexes, T>...
@@ -1922,14 +1922,13 @@ namespace csl::ag {
     }(std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<T>>>{}))::type;
     // TODO(Guss): fix this
     constexpr auto to_tuple(concepts::aggregate auto && value) {
-        static_assert(false and sizeof(decltype(value)), "ill-formed implementation");
-
-        auto view = as_tuple_view(std::forward<decltype(value)>(value));
-        return [&view]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return std::tuple<std::remove_cvref_t<decltype(std::get<indexes>(view))>...>{
-                std::get<indexes>(view)...
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        using return_type = to_tuple_t<value_type>;
+        return [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return return_type{
+                get<indexes>(fwd(value))...
             };
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(view)>>>{});
+        }(std::make_index_sequence<size_v<value_type>>{});
     }
 }
 // tuple-like interface
