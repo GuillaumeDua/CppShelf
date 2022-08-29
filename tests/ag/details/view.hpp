@@ -138,6 +138,7 @@ namespace test::ag::details::mp_::field_view_ {
         std::tuple<const int&&, const int&&, int&, const int&, int&&, const int&&>
     >);
 }
+// TODO(Guss) : move to tests/ag/public_interface.hpp ?
 namespace test::ag::details::as_tuple_view {
     constexpr void check_type() {
         // types
@@ -205,9 +206,6 @@ namespace test::ag::details::view_element_ {
     //     check.template operator()<const type&>();
     //     check.template operator()<const type&&>();
     // }
-    consteval void local_test() {
-        csl::ag::size_v<type>;
-    }
 }
 
 #undef fwd
