@@ -1913,23 +1913,21 @@ namespace csl::ag {
 	constexpr auto size_v = size<T>::value;
 
     // tuple conversion (not view !)
-    template <concepts::aggregate T> requires (not std::is_reference_v<T>)
-    using to_tuple_t = typename decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        using result_t = std::tuple<
-            element_t<indexes, T>...
-        >;
-        return std::type_identity<result_t>{};
-    }(std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<T>>>{}))::type;
-    // TODO(Guss): fix this
-    constexpr auto to_tuple(concepts::aggregate auto && value) {
+    constexpr auto as_tuple(concepts::aggregate auto && value) {
         using value_type = std::remove_cvref_t<decltype(value)>;
-        using return_type = to_tuple_t<value_type>;
-        return [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return return_type{
-                get<indexes>(fwd(value))...
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+            using result_t = std::tuple<
+                csl::ag::element_t<indexes, value_type>...
+            >;
+            return result_t{
+                csl::ag::get<indexes>(fwd(value))...
             };
         }(std::make_index_sequence<size_v<value_type>>{});
     }
+    template <concepts::aggregate T> requires (not std::is_reference_v<T>)
+    using to_tuple = std::type_identity<decltype(as_tuple(std::declval<T>()))>;
+    template <concepts::aggregate T> requires (not std::is_reference_v<T>)
+    using to_tuple_t = typename to_tuple<T>::type;
 }
 // tuple-like interface
 //  N4606 [namespace.std]/1 :

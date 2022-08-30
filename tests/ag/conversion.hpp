@@ -22,6 +22,6 @@ namespace test::ag::to_tuple_ {
     >);
     static_assert(std::same_as<
         csl::ag::to_tuple_t<type>,
-        decltype(csl::ag::to_tuple(type{1,2}))
+        decltype(csl::ag::as_tuple(type{1,2}))
     >);
 }
