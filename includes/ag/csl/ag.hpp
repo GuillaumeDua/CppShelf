@@ -39,17 +39,20 @@ namespace csl::ag::details {
     };
 }
 namespace csl::ag::details::mp {
-    // apply_ref
-    template <typename from, typename to>
-    struct apply_ref : std::remove_reference<to>{};
-    template <typename from, typename to>
-    struct apply_ref<from&, to> : std::add_lvalue_reference<to>{};
-    template <typename from, typename to>
-    struct apply_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
-    template <typename from, typename to>
-    using apply_ref_t = typename apply_ref<from, to>::type;
+// P1450 Enriching type modification traits : https://github.com/cplusplus/papers/issues/216
+// Note that this is a good-enough implementation of P1450 to only fit this project's needs
 
-    // add cv (also for ref-qualified types)
+    // P1450 copy_ref
+    template <typename from, typename to>
+    struct copy_ref : std::remove_reference<to>{};
+    template <typename from, typename to>
+    struct copy_ref<from&, to> : std::add_lvalue_reference<to>{};
+    template <typename from, typename to>
+    struct copy_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
+    template <typename from, typename to>
+    using copy_ref_t = typename copy_ref<from, to>::type;
+
+    // add cv - P1450 impl detail (also for ref-qualified types)
     template <typename T> struct add_const : std::type_identity<const T>{};
     template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
     template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
@@ -63,29 +66,29 @@ namespace csl::ag::details::mp {
     template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
     template <typename T> using add_cv_t = typename add_cv<T>::type;
 
-    // apply_cv
+    // P1450 copy_cv
     template <typename from, typename to>
-    struct apply_cv : std::remove_cv<to>{};
+    struct copy_cv : std::remove_cv<to>{};
     template <typename from, typename to> requires (std::is_reference_v<from>)
-    struct apply_cv<from, to> : apply_cv<std::remove_reference_t<from>, to>{};
+    struct copy_cv<from, to> : copy_cv<std::remove_reference_t<from>, to>{};
     template <typename from, typename to>
-    struct apply_cv<const volatile from, to> : add_cv<to>{};
+    struct copy_cv<const volatile from, to> : add_cv<to>{};
     template <typename from, typename to>
-    struct apply_cv<const from, to> : add_const<to>{};
+    struct copy_cv<const from, to> : add_const<to>{};
     template <typename from, typename to>
-    struct apply_cv<volatile from, to> : add_volatile<to>{};
+    struct copy_cv<volatile from, to> : add_volatile<to>{};
     template <typename from, typename to>
-    using apply_cv_t = typename apply_cv<from, to>::type;
+    using copy_cv_t = typename copy_cv<from, to>::type;
 
-    // apply_cvref
+    // P1450 copy_cvref
     template <typename from, typename to>
-    struct apply_cvref : apply_cv<from, apply_ref_t<from, to>>{};
+    struct copy_cvref : copy_cv<from, copy_ref_t<from, to>>{};
     template <typename from, typename to>
-    using apply_cvref_t = typename apply_cvref<from, to>::type;
+    using copy_cvref_t = typename copy_cvref<from, to>::type;
 
     // field_view
     template <typename owner, typename T>
-    struct field_view : apply_cvref<owner, T>{};
+    struct field_view : copy_cvref<owner, T>{};
     template <typename owner, typename T>
     requires (std::is_reference_v<T>)
     struct field_view<owner, T> : std::type_identity<T>{};

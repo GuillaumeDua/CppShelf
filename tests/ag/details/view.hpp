@@ -27,7 +27,7 @@ namespace test::ag::details {
 
             // v
             static_assert(std::same_as<
-                mp::apply_cvref_t<T, decltype(v)>,
+                mp::copy_cvref_t<T, decltype(v)>,
                 decltype(csl::ag::details::make_field_view<T, decltype(v)>(fwd(v)))
             >);
             static_assert(std::same_as<
