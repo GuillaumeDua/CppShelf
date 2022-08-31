@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['line_27',['line',['../structgcl_1_1io_1_1details_1_1line.html',1,'gcl::io::details']]]
+  ['indented_5fostream_26',['indented_ostream',['../classgcl_1_1io_1_1indented__ostream.html',1,'gcl::io']]]
 ];
