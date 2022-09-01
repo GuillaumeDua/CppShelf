@@ -181,7 +181,7 @@ Content</h1>
 <h2><a class="anchor" id="autotoc_md14"></a>
 Aggregate-related concepts</h2>
 <h3><a class="anchor" id="autotoc_md15"></a>
-unqualified_aggregate&lt;T&gt;</h3>
+&lt;tt&gt;unqualified_aggregate&lt;T&gt;&lt;/tt&gt;</h3>
 <p>Requirements that given <code>T</code> type must meet to be considered as an unqualified (e.g, not cvref-qualified) aggregate type by this library components.</p>
 <ul>
 <li><code>std::is_aggregate_v&lt;T&gt;</code></li>
@@ -192,18 +192,18 @@ unqualified_aggregate&lt;T&gt;</h3>
 </ul>
 <p>More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.</p>
 <h3><a class="anchor" id="autotoc_md16"></a>
-aggregate&lt;T&gt;</h3>
+&lt;tt&gt;aggregate&lt;T&gt;&lt;/tt&gt;</h3>
 <p><code>T</code> must be a possibly cvref-qualified aggregate, meeting the <code>unqualified_aggregate&lt;std::remove_cvref_t&lt;T&gt;&gt;</code> requirement.</p>
 <p>Note that this requirement is widely used in this library.</p>
 <h3><a class="anchor" id="autotoc_md17"></a>
-aggregate_constructible_from&lt;T, args_ts...&gt;</h3>
+&lt;tt&gt;aggregate_constructible_from&lt;T, args_ts...&gt;&lt;/tt&gt;</h3>
 <p><code>T</code> must be a valid aggregate type, constructible using brace-initialization using values of types <code>args_ts...</code>.</p>
 <h3><a class="anchor" id="autotoc_md18"></a>
-aggregate_constructible_from_n_values&lt;T, std::size_t N&gt;</h3>
+&lt;tt&gt;aggregate_constructible_from_n_values&lt;T, std::size_t N&gt;&lt;/tt&gt;</h3>
 <p><code>T</code> must be a valid aggregate type, constructible using <code>N</code> values (which types does not matter here). <br  />
  This does not mean that <code>T</code> has <code>N</code> fields : it can be more.</p>
 <h3><a class="anchor" id="autotoc_md19"></a>
-tuplelike&lt;T&gt;</h3>
+&lt;tt&gt;tuplelike&lt;T&gt;&lt;/tt&gt;</h3>
 <p><code>T</code> must the tuplelike interface, with valid implementation of :</p>
 <ul>
 <li><code>std::tuple_size</code></li>
@@ -211,13 +211,13 @@ tuplelike&lt;T&gt;</h3>
 <li><code>std::tuple_element&lt;std::size_t, T&gt;</code></li>
 </ul>
 <h3><a class="anchor" id="autotoc_md20"></a>
-structured_bindable&lt;T&gt;</h3>
+&lt;tt&gt;structured_bindable&lt;T&gt;&lt;/tt&gt;</h3>
 <p><code>T</code> must either match <code>tuplelike&lt;T&gt;</code> or <code>aggregate&lt;T&gt;</code> requirements.</p>
 <p>See the <a href="https://en.cppreference.com/w/cpp/language/structured_binding">structured_binding documentation</a> for more details.</p>
 <h2><a class="anchor" id="autotoc_md21"></a>
 Aggregate-related type-traits</h2>
 <h3><a class="anchor" id="autotoc_md22"></a>
-csl::ag::size&lt;T&gt;</h3>
+&lt;tt&gt;csl::ag::size&lt;T&gt;&lt;/tt&gt;</h3>
 <p>Integral constant type which value represents the count of fields for a given aggregate type.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(csl::ag::size_v&lt;A&gt; == 2);</div>
@@ -239,9 +239,15 @@ csl::ag::element&lt;std::size_t, T&gt;</h3>
 csl::ag::view_element</h3>
 <p>In a similar way to <code>csl::ag::element&lt;std::size_t, T&gt;</code>, <code>csl::ag::view_element&lt;std::size_t,T&gt;</code> is a type-identity for a field's type of a given aggregate view type. <br  />
  For more details about aggregate's view, see the <a href="#non-owning-conversion-view">to-tuple non-owning conversion (view)</a> section.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>&amp;&amp;,   csl::ag::view_element_t&lt;0, A&gt;&gt;);</div>
-<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">float</span>&amp;&amp;, csl::ag::view_element_t&lt;1, A&gt;&gt;);</div>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> &amp; f; <span class="keyword">const</span> <span class="keywordtype">char</span> &amp;&amp; c; };</div>
+<div class="line"> </div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>&amp;&amp;,        csl::ag::view_element_t&lt;0, A&amp;&amp;&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">float</span>&amp;,       csl::ag::view_element_t&lt;1, A&amp;&amp;&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">char</span>&amp;&amp;, csl::ag::view_element_t&lt;2, A&amp;&amp;&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line">static_assert(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">int</span>&amp;,    csl::ag::view_element_t&lt;0, const A&amp;&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">float</span>&amp;,        csl::ag::view_element_t&lt;1, const A&amp;&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">char</span>&amp;&amp;,  csl::ag::view_element_t&lt;2, const A&amp;&gt;&gt;);</div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>The <b>type</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>

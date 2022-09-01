@@ -36,15 +36,15 @@ var NAVTREE =
       ] ],
       [ "Content", "index.html#autotoc_md13", [
         [ "Aggregate-related concepts", "index.html#autotoc_md14", [
-          [ "unqualified_aggregate<T>", "index.html#autotoc_md15", null ],
-          [ "aggregate<T>", "index.html#autotoc_md16", null ],
-          [ "aggregate_constructible_from<T, args_ts...>", "index.html#autotoc_md17", null ],
-          [ "aggregate_constructible_from_n_values<T, std::size_t N>", "index.html#autotoc_md18", null ],
-          [ "tuplelike<T>", "index.html#autotoc_md19", null ],
-          [ "structured_bindable<T>", "index.html#autotoc_md20", null ]
+          [ "<tt>unqualified_aggregate<T></tt>", "index.html#autotoc_md15", null ],
+          [ "<tt>aggregate<T></tt>", "index.html#autotoc_md16", null ],
+          [ "<tt>aggregate_constructible_from<T, args_ts...></tt>", "index.html#autotoc_md17", null ],
+          [ "<tt>aggregate_constructible_from_n_values<T, std::size_t N></tt>", "index.html#autotoc_md18", null ],
+          [ "<tt>tuplelike<T></tt>", "index.html#autotoc_md19", null ],
+          [ "<tt>structured_bindable<T></tt>", "index.html#autotoc_md20", null ]
         ] ],
         [ "Aggregate-related type-traits", "index.html#autotoc_md21", [
-          [ "csl::ag::size<T>", "index.html#autotoc_md22", null ],
+          [ "<tt>csl::ag::size<T></tt>", "index.html#autotoc_md22", null ],
           [ "csl::ag::element<std::size_t, T>", "index.html#autotoc_md23", null ],
           [ "csl::ag::view_element", "index.html#autotoc_md24", null ]
         ] ],
