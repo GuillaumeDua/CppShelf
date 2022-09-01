@@ -20,7 +20,7 @@ assert(v1 == 'A');  // pass
 However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
 
 - The quantity of fields
-- Access a field's value anonymously
+- Access a field's value by index
 - Iterate over fields
 
 This library provides a way to obtain such information, and internally use it to provide convenient high-level conversions and printing functions.
@@ -31,7 +31,7 @@ This library is divided in five distinct parts :
 
 - [#1](#aggregate-related-concepts) Aggregates-related concepts
 - [#2](#aggregate-related-type-traits) Aggregates-related type-traits
-- [#3](#to-tuple-conversion-for-aggregate-types) to-tuple conversion for aggregate types *(owning or not)*
+- [#3](#to-tuple-conversion-for-aggregate-types) Conversion to tuples for aggregate types *(owning or not)*
 - [#4](#tuplelike-interface-for-aggregates) A tuplelike interface for aggregates types
 - [#5 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
 
@@ -42,8 +42,9 @@ This library is divided in five distinct parts :
 The key idea of this library is to ease iterations over aggregates's member-variables,  
 which is especially convenient when dealing with **reflection** and **serialization**.
 
-- `csl::ag::size` (or `std::tuple_size_v` after a `to_tuple` conversion) give the fields count in a given aggregate type type
-- `csl::ag::get<N>` (when N is a `std::size_t`) allow per-field access, in a similar way to `std::tuple` using `std::get<N>`
+- `csl::ag::size<T>` gives the fields count in a given aggregate type type  
+  *(or `std::tuple_size_v` after a `as_tuple` or `as_tuple_view` conversion)*
+- `csl::ag::get<size_t N>` allows per-field access, in a similar way to `std::get<N>` for `std::tuple<Ts...>`
 
 ---
 
