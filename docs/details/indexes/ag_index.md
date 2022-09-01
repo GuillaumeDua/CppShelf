@@ -110,7 +110,7 @@ To extend such support, simply edit your **CMake** cache to set a greater integr
 
 ### Aggregate-related concepts
 
-#### unqualified_aggregate<T>
+#### `unqualified_aggregate<T>`
 
 Requirements that given `T` type must meet to be considered as an unqualified (e.g, not cvref-qualified) aggregate type by this library components.
 
@@ -122,22 +122,22 @@ Requirements that given `T` type must meet to be considered as an unqualified (e
 
 More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.
 
-#### aggregate<T>
+#### `aggregate<T>`
 
 `T` must be a possibly cvref-qualified aggregate, meeting the `unqualified_aggregate<std::remove_cvref_t<T>>` requirement.
 
 Note that this requirement is widely used in this library.
 
-#### aggregate_constructible_from<T, args_ts...>
+#### `aggregate_constructible_from<T, args_ts...>`
 
 `T` must be a valid aggregate type, constructible using brace-initialization using values of types `args_ts...`.
 
-#### aggregate_constructible_from_n_values<T, std::size_t N>
+#### `aggregate_constructible_from_n_values<T, std::size_t N>`
 
 `T` must be a valid aggregate type, constructible using `N` values (which types does not matter here).  
 This does not mean that `T` has `N` fields : it can be more.
 
-#### tuplelike<T>
+#### `tuplelike<T>`
 
 `T` must the tuplelike interface, with valid implementation of :
 
@@ -145,7 +145,7 @@ This does not mean that `T` has `N` fields : it can be more.
 - `std::get<std::size_t>(/*possibly cvref-qualified */ T)`
 - `std::tuple_element<std::size_t, T>`
 
-#### structured_bindable<T>
+#### `structured_bindable<T>`
 
 `T` must either match `tuplelike<T>` or `aggregate<T>` requirements.
 
@@ -153,7 +153,7 @@ See the [structured_binding documentation](https://en.cppreference.com/w/cpp/lan
 
 ### Aggregate-related type-traits
 
-#### csl::ag::size<T>
+#### `csl::ag::size<T>`
 
 Integral constant type which value represents the count of fields for a given aggregate type.
 
@@ -196,9 +196,15 @@ In a similar way to `csl::ag::element<std::size_t, T>`, `csl::ag::view_element<s
 For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view) section.
 
 ```cpp
-struct A{ int i; float f; };
-static_assert(std::same_as<int&&,   csl::ag::view_element_t<0, A>>);
-static_assert(std::same_as<float&&, csl::ag::view_element_t<1, A>>);
+struct A{ int i; float & f; const char && c; };
+
+static_assert(std::same_as<int&&,        csl::ag::view_element_t<0, A&&>>);
+static_assert(std::same_as<float&,       csl::ag::view_element_t<1, A&&>>);
+static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, A&&>>);
+
+static_assert(std::same_as<const int&,    csl::ag::view_element_t<0, const A&>>);
+static_assert(std::same_as<float&,        csl::ag::view_element_t<1, const A&>>);
+static_assert(std::same_as<const char&&,  csl::ag::view_element_t<2, const A&>>);
 ```
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
