@@ -19,7 +19,6 @@ namespace test::ag {
 
 namespace test::ag::size_ {
     static_assert(csl::ag::size_v<type> == 6);
-    // todo : check not requires csl::ag::size<type /*cvref qualifier*/>
 }
 namespace test::ag::element_ {
 

@@ -66,9 +66,39 @@ Then use the `csl::ag` target.
 
 > Note : to disable tests, set the cmake cache variable `CSL_BUILD_ALL_TESTS` to false.
 
-### Customization
+### Configuration
 
-This library relies of a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value (default : 128).
+#### **Bitfields support**
+
+⚠️ By default, bitfields support is **disabled**.  
+Using features for this library with any aggregate type using custom layout will results in ☣️ **undefined behavior**.  
+Most likely, a compile-time error will be emitted. However, such behavior is not guaranteed.
+
+```cpp
+struct S {
+    int b0 : 1, b1 : 1, b2 : 1, b3 : 1;
+    char : 0;
+    char && c;
+};
+static_assert(csl::ag::size_v<S> == 5); // ☣️ UB by default
+```
+
+If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :
+
+- Using `CMake`, edit the cache to set the `CSL_AG_ENABLE_BITFIELDS_SUPPORT` option to `on`.
+- Using plain **C++**, define the preprocessor variable `CSL_AG_ENABLE_BITFIELDS_SUPPORT`.
+  ```cpp
+  #define CSL_AG_ENABLE_BITFIELDS_SUPPORT true
+  ```
+
+> ❔ **Question** : Why such option exists ?
+> 
+> The *(compile-time)* algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one.  
+> One might want to challenge his/her project's design in order to avoid such high performance cost.
+
+#### **Highier limit for aggregate field count**
+
+This library relies on a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value *(default : `128`)*.
 
 The sources by default offer support for aggregate types up to `CSL_AG_MAX_FIELDS_COUNT_OPTION`, meaning 128 fields.
 
