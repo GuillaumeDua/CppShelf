@@ -1883,10 +1883,9 @@ namespace csl::ag {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::as_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
-    template <concepts::aggregate T>
-    requires (std::is_reference_v<T>)
+    template <concepts::aggregate T> requires (std::is_reference_v<T>)
     struct tuple_view : std::type_identity<decltype(as_tuple_view(std::declval<T>()))>{}; 
-    template <concepts::aggregate T>
+    template <concepts::aggregate T> requires (std::is_reference_v<T>)
     using tuple_view_t = typename tuple_view<T>::type;
 
     // view_element
