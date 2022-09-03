@@ -2,6 +2,48 @@
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 
+## Overview demo
+
+The following example demonstrates some of the features which are available in `csl::ag`.
+
+<table>
+<tr>
+    <th>
+        <a href="https://godbolt.org/z/x1dGTWddK">
+        Try me on compiler-explorer
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>.
+    </th>
+    <th> Console output </th>
+</tr>
+<tr><td>
+
+```cpp
+struct S { char c; int i; };
+
+static_assert(
+    csl::ag::concepts::aggregate<S> and
+    csl::ag::size_v<S> == 2
+);
+static_assert(std::same_as<char,  csl::ag::element_t<0, S>>);
+static_assert(std::same_as<int,   csl::ag::element_t<1, S>>);
+
+S value{ 'A', 41 }; ++std::get<1>(value);
+
+using namespace csl::ag::io;
+std::cout << "value: " << value << '\n';
+// (wip) compatibility with `fmt` and `std::print` will be available soon
+```
+
+</td><td>
+
+```
+value: S& : {
+   [0] char : A
+   [1] int : 42
+}
+```
+</td></tr></table>
+
 ## Introduction
 
 By default, the C++ standard allow structured-binding for aggregate types.
