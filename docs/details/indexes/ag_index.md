@@ -166,7 +166,9 @@ To extend such support, simply edit your **CMake** cache to set a greater integr
 
 ### Aggregate-related concepts
 
-#### `unqualified_aggregate<T>`
+All concepts that are part of the public interface are defined in the namespace `csl::ag::concepts`.
+
+#### unqualified_aggregate<T>
 
 Requirements that given `T` type must meet to be considered as an unqualified (e.g, not cvref-qualified) aggregate type by this library components.
 
@@ -178,30 +180,30 @@ Requirements that given `T` type must meet to be considered as an unqualified (e
 
 More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.
 
-#### `aggregate<T>`
+#### aggregate<T>
 
 `T` must be a possibly cvref-qualified aggregate, meeting the `unqualified_aggregate<std::remove_cvref_t<T>>` requirement.
 
-Note that this requirement is widely used in this library.
+Note that such requirement is widely used in this library.
 
-#### `aggregate_constructible_from<T, args_ts...>`
+#### aggregate_constructible_from<T, args_ts...>
 
 `T` must be a valid aggregate type, constructible using brace-initialization using values of types `args_ts...`.
 
-#### `aggregate_constructible_from_n_values<T, std::size_t N>`
+#### aggregate_constructible_from_n_values<T, std::size_t N>
 
 `T` must be a valid aggregate type, constructible using `N` values (which types does not matter here).  
 This does not mean that `T` has `N` fields : it can be more.
 
-#### `tuplelike<T>`
+#### tuplelike<T>
 
 `T` must the tuplelike interface, with valid implementation of :
 
-- `std::tuple_size`
-- `std::get<std::size_t>(/*possibly cvref-qualified */ T)`
-- `std::tuple_element<std::size_t, T>`
+- [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size)
+- [std::get<std::size_t>(/*possibly cvref-qualified */ T)](https://en.cppreference.com/w/cpp/utility/tuple/get)
+- [std::tuple_element<std::size_t, T>](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element)
 
-#### `structured_bindable<T>`
+#### csl::ag::concepts::structured_bindable<T>
 
 `T` must either match `tuplelike<T>` or `aggregate<T>` requirements.
 
@@ -209,7 +211,7 @@ See the [structured_binding documentation](https://en.cppreference.com/w/cpp/lan
 
 ### Aggregate-related type-traits
 
-#### `csl::ag::size<T>`
+#### csl::ag::size<T>
 
 Integral constant type which value represents the count of fields for a given aggregate type.
 
@@ -265,7 +267,7 @@ static_assert(std::same_as<const char&&,  csl::ag::view_element_t<2, const A&>>)
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
-The **type** can be accessed using a convenience alias :
+The `type` nested-type can be accessed using a convenience alias :
 
 ```cpp
 template <std::size_t N, concepts::aggregate T>
@@ -274,47 +276,22 @@ using view_element_t = typename view_element<N, T>::type;
 
 ### to-tuple conversion for aggregate types
 
-#### Non-owning conversion (view)
+This library provides two ways to convert an aggregate's value to [std::tuple](https://en.cppreference.com/w/cpp/utility/tuple), distinguishing between proprietary and non-proprietary tuples of values.
 
-This function returns a non-owning tuple (`std::tuple` of references), for which each element represents a given aggregate's field.
+- **Owning** is a plain translation of an aggregate type as a tuple.
 
-Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.
+  Each `std::tuple_element_t` of the resulting type will be strictly equivalent to `csl::ag::element_t` of the source one.  
+  The value of each field is pass by-value *(understand: copy)*.
 
-```cpp
-struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
-int i = 42;
+  See the [Owning conversion](#owning-conversion) section hereunder.
 
-{ // using a rvalue
-  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) }); // not constexpr yet
-  static_assert(std::same_as<
-      decltype(as_tuple),
-      std::tuple<int&&, int&&, const int&&, int&&>
-  >);
-}
-{ // using a const-lvalue
-  const auto & value = type{ i, i, i, std::move(i) };
-  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
-  static_assert(std::same_as<
-      decltype(as_tuple),
-      std::tuple<const int &, int&, const int &, int&>
-  >);
-}
-```
+- **Non-owning** *(undestand: **view**, or accessor)* conversion offer a cheap way to convert an aggregate into a tuple of references;  
+  offering a convenient way to then use already-existing features - *or even libraries* - that operates on [std::tuple](https://en.cppreference.com/w/cpp/utility/tuple) values.
 
-Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field type information.
+  - Field types that already are references will remain unchanged : `csl::ag::element_t` is strictly equivalent to `std::tuple_element_t`.
+  - Field types that are not references will acquire the cvref-qualifier of the source aggregate value.
 
-```cpp
-static_assert(std::same_as<
-    int &&,
-    csl::ag::view_element_t<0, decltype(value)>
->);
-static_assert(std::same_as<
-    char &&,
-    csl::ag::view_element_t<1, std::remove_cvref_t<decltype(value)>>
->);
-```
-
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/z8vnxr619).
+  See the [Non-owning conversion (view)](#non-owning-conversion-view) section hereunder.
 
 #### Owning conversion
 
@@ -365,6 +342,49 @@ static_assert(std::same_as<
 ```
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/K4qzsxcGY).
+
+#### Non-owning conversion (view)
+
+This function returns a non-owning tuple (`std::tuple` of references), for which each element represents a given aggregate's field.
+
+Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.
+
+```cpp
+struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
+int i = 42;
+
+{ // using a rvalue
+  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) }); // not constexpr yet
+  static_assert(std::same_as<
+      decltype(as_tuple),
+      std::tuple<int&&, int&&, const int&&, int&&>
+  >);
+}
+{ // using a const-lvalue
+  const auto & value = type{ i, i, i, std::move(i) };
+  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
+  static_assert(std::same_as<
+      decltype(as_tuple),
+      std::tuple<const int &, int&, const int &, int&>
+  >);
+}
+```
+
+Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field type information.
+
+```cpp
+static_assert(std::same_as<
+    int &&,
+    csl::ag::view_element_t<0, decltype(value)>
+>);
+static_assert(std::same_as<
+    char &&,
+    csl::ag::view_element_t<1, std::remove_cvref_t<decltype(value)>>
+>);
+```
+
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/z8vnxr619).
+
 
 ### tuplelike interface for aggregates
 
