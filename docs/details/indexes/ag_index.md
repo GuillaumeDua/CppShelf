@@ -7,15 +7,14 @@ The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 The following example demonstrates some of the features which are available in `csl::ag`.
 
 <table>
-<tr>
-    <th>
+    <tr><th>
+        C++ code (
         <a href="https://godbolt.org/z/x1dGTWddK">
         Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>.
-    </th>
-    <th> Console output </th>
-</tr>
-<tr><td>
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+        )
+    </th><th> Console output </th></tr>
+    <tr><td>
 
 ```cpp
 struct S { char c; int i; };
@@ -48,6 +47,16 @@ value: S& : {
 
 By default, the C++ standard allow structured-binding for aggregate types.
 
+<table>
+    <tr><th>
+        C++ code (
+        <a href="https://godbolt.org/z/3EcK9Wc7h">
+        Try me on compiler-explorer
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+        )
+    </th></tr>
+    <td>
+
 ```cpp
 struct type{ int i; char c; };
 auto value = type{ 42, 'A' }; // NOLINT
@@ -57,11 +66,11 @@ assert(v0 == 42);   // pass
 assert(v1 == 'A');  // pass
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h).
+</td></tr></table>
 
 However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
 
-- The quantity of fields
+- The count of fields
 - Access a field's value by index
 - Iterate over fields
 
@@ -85,22 +94,27 @@ The key idea of this library is to ease iterations over aggregates's member-vari
 which is especially convenient when dealing with **reflection** and **serialization**.
 
 - `csl::ag::size<T>` gives the fields count in a given aggregate type type  
-  *(or `std::tuple_size_v` after a `as_tuple` or `as_tuple_view` conversion)*
-- `csl::ag::get<size_t N>` allows per-field access, in a similar way to `std::get<N>` for `std::tuple<Ts...>`
+  *(or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `as_tuple` or `as_tuple_view` conversion)*
+- `csl::ag::get<size_t N>(aggregate auto value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
 
 ---
 
 ## Getting starting
 
-This library is single-header, header-only.  
-Users may use it in various ways :
+This library is single-header, header-only. Users may use it in various ways, however [CMake](https://cmake.org/) is the promoted one for both download and configuration.
 
-### Simple usage
+### Integration
+
+#### Plain download
 
 - **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
 - **Clone** the repo, or add it as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your project.
 
-### CMake
+> ⚠️ Proceeding the ways enumerated above is fast & simple. 
+> However this prevent users from using certain configuration mechanismes. 
+> *See the [configuration](#configuration) section for more information*.
+
+#### CMake
 
 - **Fetch** the header file using [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html), or [ExternalProject](https://cmake.org/cmake/help/latest/module/ExternalProject.html).
 
@@ -110,7 +124,7 @@ Then use the `csl::ag` target.
 
 ### Configuration
 
-#### **Bitfields support**
+#### Bitfields support
 
 ⚠️ By default, bitfields support is **disabled**.  
 Using features for this library with any aggregate type using custom layout will results in ☣️ **undefined behavior**.  
@@ -138,7 +152,7 @@ If you plan to use features of this library with aggregate types containing bitf
 > The *(compile-time)* algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one.  
 > One might want to challenge his/her project's design in order to avoid such high performance cost.
 
-#### **Highier limit for aggregate field count**
+#### Highier limit for aggregate field count
 
 This library relies on a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value *(default : `128`)*.
 
