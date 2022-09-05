@@ -55,7 +55,7 @@ By default, the C++ standard allow structured-binding for aggregate types.
         <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
         )
     </th></tr>
-    <td>
+    <tr><td>
 
 ```cpp
 struct type{ int i; char c; };
