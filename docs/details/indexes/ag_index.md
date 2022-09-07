@@ -141,7 +141,8 @@ static_assert(csl::ag::size_v<S> == 5); // ☣️ UB by default
 
 If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :
 
-- Using `CMake`, edit the cache to set the `CSL_AG_ENABLE_BITFIELDS_SUPPORT` option to `on`.
+- Using `CMake`, edit the cache to set the `CSL_AG_ENABLE_BITFIELDS_SUPPORT` option to `on`.  
+  or
 - Using plain **C++**, define the preprocessor variable `CSL_AG_ENABLE_BITFIELDS_SUPPORT`.
   ```cpp
   #define CSL_AG_ENABLE_BITFIELDS_SUPPORT true
@@ -149,16 +150,28 @@ If you plan to use features of this library with aggregate types containing bitf
 
 > ❔ **Question** : Why such option exists ?
 > 
-> The *(compile-time)* algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one.  
+> The (compile-time) algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one.  
 > One might want to challenge his/her project's design in order to avoid such high performance cost.
 
 #### Highier limit for aggregate field count
 
-This library relies on a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value *(default : `128`)*.
+This library relies on a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value.
 
-The sources by default offer support for aggregate types up to `CSL_AG_MAX_FIELDS_COUNT_OPTION`, meaning 128 fields.
+By default, `CSL_AG_MAX_FIELDS_COUNT_OPTION` is set to `128`, meaning the library supports aggregate types with up to 128 fields.
 
-To extend such support, simply edit your **CMake** cache to set a greater integral value.
+To extend such support, edit your **CMake** cache to set `CSL_AG_MAX_FIELDS_COUNT_OPTION` to a greater integral value.
+
+> ❔ **Question** : What if I don't use **CMake** ?
+> 
+> Then the library will always use the default value.
+
+> ❔ **Question** : Why such configuration/limitation ?
+>
+> Despite interesting proposals that aim to enhance & offer new code generation mecanisms as part of the C++ language, such features are not available yet.  
+> 
+> The choice here to use **CMake** in order to generate C++ code **upstream** is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).
+> 
+> 👉 If you are willing to propose a better design, you can fill a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
 
 ---
 
