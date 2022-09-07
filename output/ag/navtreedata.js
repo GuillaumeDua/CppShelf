@@ -53,7 +53,7 @@ var NAVTREE =
         ] ],
         [ "to-tuple conversion for aggregate types", "index.html#autotoc_md27", [
           [ "Owning conversion", "index.html#autotoc_md28", null ],
-          [ "Non-owning conversion (view)", "index.html#autotoc_md29", null ]
+          [ "Non-owning conversion (view, lightweight accessor)", "index.html#autotoc_md29", null ]
         ] ],
         [ "tuplelike interface for aggregates", "index.html#autotoc_md30", [
           [ "std::tuple_element", "index.html#autotoc_md31", null ],

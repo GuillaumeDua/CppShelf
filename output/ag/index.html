@@ -227,7 +227,7 @@ Highier limit for aggregate field count</h3>
 <p>Despite interesting proposals that aim to enhance &amp; offer new code generation mecanisms as part of the C++ language, such features are not available yet. <br  />
 </p>
 <p>The choice here to use <b>CMake</b> in order to generate C++ code <b>upstream</b> is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).</p>
-<p>👉 If you are willing to propose a better design, you can fill a <a href="https://github.com/GuillaumeDua/CppShelf/pulls">PR here</a>. </p>
+<p>👉 If you are willing to propose a better design, you can submit a <a href="https://github.com/GuillaumeDua/CppShelf/pulls">PR here</a>. </p>
 </blockquote>
 <hr  />
 <h1><a class="anchor" id="autotoc_md15"></a>
@@ -320,7 +320,7 @@ to-tuple conversion for aggregate types</h2>
  The value of each field is pass by-value (understand: copy).</p>
 <p class="startli">See the <a href="#owning-conversion">Owning conversion</a> section hereunder.</p>
 </li>
-<li><p class="startli"><b>Non-owning</b> (undestand: <b>view</b>, or accessor) conversion offer a cheap way to convert an aggregate into a tuple of references; <br  />
+<li><p class="startli"><b>Non-owning</b> (undestand: <b>view</b>, or <b>lightweight accessor</b>) conversion offers a cheap way to convert an aggregate into a tuple of references; <br  />
  offering a convenient way to then use already-existing features - <em>or even libraries</em> - that operates on <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a> values.</p><ul>
 <li>Field types that already are references will remain unchanged : <code>csl::ag::element_t</code> is strictly equivalent to <code>std::tuple_element_t</code>.</li>
 <li>Field types that are not references will acquire the cvref-qualifier of the source aggregate value.</li>
@@ -330,46 +330,42 @@ to-tuple conversion for aggregate types</h2>
 </ul>
 <h3><a class="anchor" id="autotoc_md28"></a>
 Owning conversion</h3>
-<p>In opposition to the previous conversion that creates non-owning views, <br  />
- the following create copies of each members, discarding cvref-qualifiers.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line">constexpr <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });</div>
+<p>The following factory (as a function) creates a <code>std::tuple</code> of <code>csl::ag::elements</code>, never altered. <br  />
+</p>
+<p>The value of each member-variable of the aggregate's value are **forward**ed, in order to preserve cvref-semantic. <br  />
+ Meaning that using a <code>const-lvalue-reference</code> of a given type <code>S</code> 's value will result in a copy of each of its field that are not ref-qualified, <br  />
+ while using a <code>rvalue-reference</code> will results in a perfect-forwarding that member-variable.</p>
+<table class="doxtable">
+<tr>
+<th>C++ code ( <a href="https://godbolt.org/z/qvjan7G1r">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output  </th></tr>
+<tr>
+<td><p class="starttd"></p>
+<p class="intertd">```cpp struct A{ int i; float f; };</p>
+<p class="intertd">constexpr auto value = A{ .i = 42, .f = 0.13f }; constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));</p>
+<p class="intertd">// print each element's value of <code>value_as_tuple</code> [&amp;value_as_tuple]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){ ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value_as_tuple) &lt;&lt; ' '), ...); }(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</p>
+<p class="intertd">// check 1st element type static_assert(std::same_as&lt; int, std::tuple_element_t&lt;0, std::remove_cvref_t&lt;decltype(value_as_tuple)&gt;&gt; &gt;); static_assert(std::same_as&lt; csl::ag::element_t&lt;0, A&gt;, std::tuple_element_t&lt;0, std::remove_cvref_t&lt;decltype(value_as_tuple)&gt;&gt; &gt;);</p>
+<p class="intertd">// check 2nd element type static_assert(std::same_as&lt; float, std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value_as_tuple)&gt;&gt; &gt;); static_assert(std::same_as&lt; csl::ag::element_t&lt;1, A&gt;, std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value_as_tuple)&gt;&gt; &gt;); </p><div class="fragment"><div class="line">&lt;/td&gt;&lt;td&gt;</div>
+</div><!-- fragment --><p class="intertd">42 0.13 </p><div class="fragment"><div class="line">&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</div>
 <div class="line"> </div>
-<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
-<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line">The main advantage here is to use such function in a `constexpr` contexts.  </div>
+<div class="line">A precondition while doing so is that each aggregates field&#39;s value must be usable in a constexpr context though (e.g **not** ref-qualified).</div>
 <div class="line"> </div>
-<div class="line">static_assert(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">int</span>,</div>
-<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line">static_assert(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">float</span>,</div>
-<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/Yv6WKssG4"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
-<p>The main advantage here is to use such function in <code>constexpr</code> contexts. A precondition here is that each aggregates field's value must be usable in a constexpr context (e.g not ref-qualified).</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> &amp; i; <span class="keywordtype">float</span> &amp;&amp; f; };</div>
-<div class="line"><span class="keywordtype">int</span> i = 42; <span class="keywordtype">float</span> f = .13f;</div>
-<div class="line"><span class="comment">/* not constexpr */</span> <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });</div>
-<div class="line"><span class="comment">// ^^^^^^^^^^^^^^^ : neither `A::i` nor `A::f` are valid constants</span></div>
+<div class="line">```cpp</div>
+<div class="line">struct A{ int i; float f; };</div>
 <div class="line"> </div>
-<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
-<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line">constexpr auto value = A{ .i = 42, .f = 0.13f };</div>
+<div class="line">constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));</div>
 <div class="line"> </div>
-<div class="line">static_assert(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">int</span>,</div>
-<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line">static_assert(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">float</span>,</div>
-<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/K4qzsxcGY"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line">static_assert(42    == std::get&lt;0&gt;(value_as_tuple));</div>
+<div class="line">static_assert(0.13f == std::get&lt;1&gt;(value_as_tuple));</div>
+</div><!-- fragment --><p class="intertd"><a href="https://godbolt.org/z/nPKcEj76M"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+<p class="endtd"></p>
+</td></tr>
+</table>
 <h3><a class="anchor" id="autotoc_md29"></a>
-Non-owning conversion (view)</h3>
-<p>This function returns a non-owning tuple (<code>std::tuple</code> of references), for which each element represents a given aggregate's field.</p>
+Non-owning conversion (view, lightweight accessor)</h3>
+<p>This factory (as a function) creates non-owning <b>lightweight accessors</b> (views), <br  />
+ returning a non-owning tuple (<code>std::tuple</code> of references), for which each element represents an accessor to an aggregate value's field.</p>
 <p>Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>type { <span class="keywordtype">int</span> lvalue; <span class="keywordtype">int</span> &amp; llvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; };</div>
 <div class="line"><span class="keywordtype">int</span> i = 42;</div>
@@ -594,7 +590,7 @@ Current limitations</h1>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:1913</div></div>
+<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:1915</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
