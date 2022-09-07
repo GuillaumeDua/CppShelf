@@ -82,7 +82,7 @@ This library is divided in five distinct parts :
 
 - [#1](#aggregate-related-concepts) Aggregates-related concepts
 - [#2](#aggregate-related-type-traits) Aggregates-related type-traits
-- [#3](#to-tuple-conversion-for-aggregate-types) Conversion to tuples for aggregate types *(owning or not)*
+- [#3](#to-tuple-conversion-for-aggregate-types) Conversion to tuples for aggregate types (owning or not)
 - [#4](#tuplelike-interface-for-aggregates) A tuplelike interface for aggregates types
 - [#5 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
 
@@ -94,7 +94,7 @@ The key idea of this library is to ease iterations over aggregates's member-vari
 which is especially convenient when dealing with **reflection** and **serialization**.
 
 - `csl::ag::size<T>` gives the fields count in a given aggregate type type  
-  *(or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `as_tuple` or `as_tuple_view` conversion)*
+  (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `as_tuple` or `as_tuple_view` conversion)
 - `csl::ag::get<size_t N>(aggregate auto value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
 
 ---
@@ -177,6 +177,11 @@ To extend such support, edit your **CMake** cache to set `CSL_AG_MAX_FIELDS_COUN
 
 ## Content
 
+All components that are part of the public interface are defined in the namespace `csl::ag`,  
+except for nested-namespaces named `details`.  
+
+In other words, the library provides **no guarantee** to any direct use of namespaces named with a pattern like `csl::ag::*::details::*`.
+
 ### Aggregate-related concepts
 
 All concepts that are part of the public interface are defined in the namespace `csl::ag::concepts`.
@@ -190,8 +195,6 @@ Requirements that given `T` type must meet to be considered as an unqualified (e
 - `not std::is_union_v<T>`
 - `not std::is_polymorphic_v<T>`
 - `not std::is_reference_v<T>`
-
-More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.
 
 #### aggregate<T>
 
@@ -210,7 +213,7 @@ This does not mean that `T` has `N` fields : it can be more.
 
 #### tuplelike<T>
 
-`T` must the tuplelike interface, with valid implementation of :
+`T` must meet the tuplelike interface, with valid implementation of :
 
 - [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size)
 - [std::get<std::size_t>(/*possibly cvref-qualified */ T)](https://en.cppreference.com/w/cpp/utility/tuple/get)
@@ -230,7 +233,8 @@ Integral constant type which value represents the count of fields for a given ag
 
 ```cpp
 struct A{ int i; float f; };
-static_assert(csl::ag::size_v<A> == 2);
+static_assert(csl::ag::size<A>::value == 2);
+static_assert(csl::ag::size_v<A>      == 2);
 ```
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
@@ -242,9 +246,9 @@ template <csl::ag::concepts::aggregate T>
 constexpr auto size_v = size<T>::value;
 ```
 
-#### csl::ag::element<std::size_t, T>
+#### csl::ag::element<std::size_t, concepts::aggregate>
 
-Type-identity for a field's type of a given aggregate type.
+Type-identity of a field's type of a given aggregate type.
 
 ```cpp
 struct A{ int i; float f; };
@@ -261,7 +265,7 @@ template <std::size_t N, concepts::aggregate T>
 using element_t = typename element<N, T>::type;
 ```
 
-#### csl::ag::view_element
+#### csl::ag::view_element<std::size_t, concepts::aggregate>
 
 In a similar way to `csl::ag::element<std::size_t, T>`, `csl::ag::view_element<std::size_t,T>` is a type-identity for a field's type of a given aggregate view type.  
 For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view) section.
@@ -294,11 +298,11 @@ This library provides two ways to convert an aggregate's value to [std::tuple](h
 - **Owning** is a plain translation of an aggregate type as a tuple.
 
   Each `std::tuple_element_t` of the resulting type will be strictly equivalent to `csl::ag::element_t` of the source one.  
-  The value of each field is pass by-value *(understand: copy)*.
+  The value of each field is pass by-value (understand: copy).
 
   See the [Owning conversion](#owning-conversion) section hereunder.
 
-- **Non-owning** *(undestand: **view**, or accessor)* conversion offer a cheap way to convert an aggregate into a tuple of references;  
+- **Non-owning** (undestand: **view**, or accessor) conversion offer a cheap way to convert an aggregate into a tuple of references;  
   offering a convenient way to then use already-existing features - *or even libraries* - that operates on [std::tuple](https://en.cppreference.com/w/cpp/utility/tuple) values.
 
   - Field types that already are references will remain unchanged : `csl::ag::element_t` is strictly equivalent to `std::tuple_element_t`.
