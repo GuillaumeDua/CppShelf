@@ -30,7 +30,7 @@
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">📦 csl::ag
    </div>
-   <div id="projectbrief">Tuple-like interface (get/element/size) for aggregates type.</div>
+   <div id="projectbrief">Tuple-like interface (get/element/size) for aggregates type, and much more.</div>
   </td>
  </tr>
  </tbody>
@@ -150,7 +150,7 @@ Introduction</h1>
 <ul>
 <li><a href="#aggregate-related-concepts">#1</a> Aggregates-related concepts</li>
 <li><a href="#aggregate-related-type-traits">#2</a> Aggregates-related type-traits</li>
-<li><a href="#to-tuple-conversion-for-aggregate-types">#3</a> Conversion to tuples for aggregate types *(owning or not)*</li>
+<li><a href="#to-tuple-conversion-for-aggregate-types">#3</a> Conversion to tuples for aggregate types (owning or not)</li>
 <li><a href="#tuplelike-interface-for-aggregates">#4</a> A tuplelike interface for aggregates types</li>
 <li><a href="#pretty-printing">#5 (WIP)</a> Pretty-printing (using <code>std::ostream &amp; operator&lt;&lt;</code> overloads or <code>fmt</code>)</li>
 </ul>
@@ -161,7 +161,7 @@ Philosophy &amp; design choices</h1>
  which is especially convenient when dealing with <b>reflection</b> and <b>serialization</b>.</p>
 <ul>
 <li><code><a class="el" href="structcsl_1_1ag_1_1size.html">csl::ag::size</a>&lt;T&gt;</code> gives the fields count in a given aggregate type type <br  />
- *(or <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size">std::tuple_size_v</a> after a <code>as_tuple</code> or <code>as_tuple_view</code> conversion)*</li>
+ (or <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size">std::tuple_size_v</a> after a <code>as_tuple</code> or <code>as_tuple_view</code> conversion)</li>
 <li><code>csl::ag::get&lt;size_t N&gt;(aggregate auto value)</code> allows per-field access, in a similar way to <a href="https://en.cppreference.com/w/cpp/utility/tuple/get">std::get&lt;N&gt;</a> for <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple&lt;Ts...&gt;</a></li>
 </ul>
 <hr  />
@@ -203,23 +203,39 @@ Bitfields support</h3>
 <div class="line">static_assert(csl::ag::size_v&lt;S&gt; == 5); <span class="comment">// ☣️ UB by default</span></div>
 </div><!-- fragment --><p>If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :</p>
 <ul>
-<li>Using <code>CMake</code>, edit the cache to set the <code>CSL_AG_ENABLE_BITFIELDS_SUPPORT</code> option to <code>on</code>.</li>
+<li>Using <code>CMake</code>, edit the cache to set the <code>CSL_AG_ENABLE_BITFIELDS_SUPPORT</code> option to <code>on</code>. <br  />
+ or</li>
 <li>Using plain <b>C++</b>, define the preprocessor variable <code>CSL_AG_ENABLE_BITFIELDS_SUPPORT</code>. <div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG_ENABLE_BITFIELDS_SUPPORT true</span></div>
 </div><!-- fragment --></li>
 </ul>
 <blockquote class="doxtable">
 <p>❔ <b>Question</b> : Why such option exists ?</p>
-<p>The *(compile-time)* algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one. <br  />
+<p>The (compile-time) algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one. <br  />
  One might want to challenge his/her project's design in order to avoid such high performance cost. </p>
 </blockquote>
 <h3><a class="anchor" id="autotoc_md13"></a>
 Highier limit for aggregate field count</h3>
-<p>This library relies on a <b>CMake</b> cache variable <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> to generate code in order to properly handle aggregate types with fields up to this value *(default : <code>128</code>)*.</p>
-<p>The sources by default offer support for aggregate types up to <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code>, meaning 128 fields.</p>
-<p>To extend such support, simply edit your <b>CMake</b> cache to set a greater integral value.</p>
+<p>This library relies on a <b>CMake</b> cache variable <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> to generate code in order to properly handle aggregate types with fields up to this value.</p>
+<p>By default, <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> is set to <code>128</code>, meaning the library supports aggregate types with up to 128 fields.</p>
+<p>To extend such support, edit your <b>CMake</b> cache to set <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> to a greater integral value.</p>
+<blockquote class="doxtable">
+<p>❔ <b>Question</b> : What if I don't use <b>CMake</b> ?</p>
+<p>Then the library will always use the default value. </p>
+</blockquote>
+<blockquote class="doxtable">
+<p>❔ <b>Question</b> : Why such configuration/limitation ?</p>
+<p>Despite interesting proposals that aim to enhance &amp; offer new code generation mecanisms as part of the C++ language, such features are not available yet. <br  />
+</p>
+<p>The choice here to use <b>CMake</b> in order to generate C++ code <b>upstream</b> is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).</p>
+<p>👉 If you are willing to propose a better design, you can fill a <a href="https://github.com/GuillaumeDua/CppShelf/pulls">PR here</a>. </p>
+</blockquote>
 <hr  />
 <h1><a class="anchor" id="autotoc_md15"></a>
 Content</h1>
+<p>All components that are part of the public interface are defined in the namespace <code>csl::ag</code>, <br  />
+ except for nested-namespaces named <code>details</code>. <br  />
+</p>
+<p>In other words, the library provides <b>no guarantee</b> to any direct use of namespaces named with a pattern like <code>csl::ag::*::details::*</code>.</p>
 <h2><a class="anchor" id="autotoc_md16"></a>
 Aggregate-related concepts</h2>
 <p>All concepts that are part of the public interface are defined in the namespace <code>csl::ag::concepts</code>.</p>
@@ -233,7 +249,6 @@ unqualified_aggregate&lt;T&gt;</h3>
 <li><code>not std::is_polymorphic_v&lt;T&gt;</code></li>
 <li><code>not std::is_reference_v&lt;T&gt;</code></li>
 </ul>
-<p>More requirements are likely to be added, in order to handle specific layout *(bitset, custom aligments, etc.)*.</p>
 <h3><a class="anchor" id="autotoc_md18"></a>
 aggregate&lt;T&gt;</h3>
 <p><code>T</code> must be a possibly cvref-qualified aggregate, meeting the <code>unqualified_aggregate&lt;std::remove_cvref_t&lt;T&gt;&gt;</code> requirement.</p>
@@ -247,7 +262,7 @@ aggregate_constructible_from_n_values&lt;T, std::size_t N&gt;</h3>
  This does not mean that <code>T</code> has <code>N</code> fields : it can be more.</p>
 <h3><a class="anchor" id="autotoc_md21"></a>
 tuplelike&lt;T&gt;</h3>
-<p><code>T</code> must the tuplelike interface, with valid implementation of :</p>
+<p><code>T</code> must meet the tuplelike interface, with valid implementation of :</p>
 <ul>
 <li><a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size">std::tuple_size_v</a></li>
 <li><a href="https://en.cppreference.com/w/cpp/utility/tuple/get">std::get&lt;std::size_t&gt;(/*possibly cvref-qualified */ T)</a></li>
@@ -263,14 +278,15 @@ Aggregate-related type-traits</h2>
 csl::ag::size&lt;T&gt;</h3>
 <p>Integral constant type which value represents the count of fields for a given aggregate type.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line">static_assert(csl::ag::size_v&lt;A&gt; == 2);</div>
+<div class="line">static_assert(<a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a> == 2);</div>
+<div class="line">static_assert(csl::ag::size_v&lt;A&gt;      == 2);</div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/5cr1x7K3T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Just like <code>std::tuple_size/std::tuple_size_v</code>, the <b>value</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;csl::ag::concepts::aggregate T&gt;</div>
 <div class="line">constexpr <span class="keyword">auto</span> size_v = size&lt;T&gt;::value;</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md25"></a>
-csl::ag::element&lt;std::size_t, T&gt;</h3>
-<p>Type-identity for a field's type of a given aggregate type.</p>
+csl::ag::element&lt;std::size_t, concepts::aggregate&gt;</h3>
+<p>Type-identity of a field's type of a given aggregate type.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>,   csl::ag::element_t&lt;0, A&gt;&gt;);</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">float</span>, csl::ag::element_t&lt;1, A&gt;&gt;);</div>
@@ -279,7 +295,7 @@ csl::ag::element&lt;std::size_t, T&gt;</h3>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using</span> element_t = <span class="keyword">typename</span> element&lt;N, T&gt;::type;</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md26"></a>
-csl::ag::view_element</h3>
+csl::ag::view_element&lt;std::size_t, concepts::aggregate&gt;</h3>
 <p>In a similar way to <code>csl::ag::element&lt;std::size_t, T&gt;</code>, <code>csl::ag::view_element&lt;std::size_t,T&gt;</code> is a type-identity for a field's type of a given aggregate view type. <br  />
  For more details about aggregate's view, see the <a href="#non-owning-conversion-view">to-tuple non-owning conversion (view)</a> section.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> &amp; f; <span class="keyword">const</span> <span class="keywordtype">char</span> &amp;&amp; c; };</div>
@@ -301,10 +317,10 @@ to-tuple conversion for aggregate types</h2>
 <ul>
 <li><p class="startli"><b>Owning</b> is a plain translation of an aggregate type as a tuple.</p>
 <p class="startli">Each <code>std::tuple_element_t</code> of the resulting type will be strictly equivalent to <code>csl::ag::element_t</code> of the source one. <br  />
- The value of each field is pass by-value *(understand: copy)*.</p>
+ The value of each field is pass by-value (understand: copy).</p>
 <p class="startli">See the <a href="#owning-conversion">Owning conversion</a> section hereunder.</p>
 </li>
-<li><p class="startli"><b>Non-owning</b> *(undestand: <b>view</b>, or accessor)* conversion offer a cheap way to convert an aggregate into a tuple of references; <br  />
+<li><p class="startli"><b>Non-owning</b> (undestand: <b>view</b>, or accessor) conversion offer a cheap way to convert an aggregate into a tuple of references; <br  />
  offering a convenient way to then use already-existing features - <em>or even libraries</em> - that operates on <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a> values.</p><ul>
 <li>Field types that already are references will remain unchanged : <code>csl::ag::element_t</code> is strictly equivalent to <code>std::tuple_element_t</code>.</li>
 <li>Field types that are not references will acquire the cvref-qualifier of the source aggregate value.</li>
@@ -578,6 +594,7 @@ Current limitations</h1>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:1913</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

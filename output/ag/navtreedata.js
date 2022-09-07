@@ -48,8 +48,8 @@ var NAVTREE =
         ] ],
         [ "Aggregate-related type-traits", "index.html#autotoc_md23", [
           [ "csl::ag::size<T>", "index.html#autotoc_md24", null ],
-          [ "csl::ag::element<std::size_t, T>", "index.html#autotoc_md25", null ],
-          [ "csl::ag::view_element", "index.html#autotoc_md26", null ]
+          [ "csl::ag::element<std::size_t, concepts::aggregate>", "index.html#autotoc_md25", null ],
+          [ "csl::ag::view_element<std::size_t, concepts::aggregate>", "index.html#autotoc_md26", null ]
         ] ],
         [ "to-tuple conversion for aggregate types", "index.html#autotoc_md27", [
           [ "Owning conversion", "index.html#autotoc_md28", null ],
