@@ -171,7 +171,7 @@ To extend such support, edit your **CMake** cache to set `CSL_AG_MAX_FIELDS_COUN
 > 
 > The choice here to use **CMake** in order to generate C++ code **upstream** is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).
 > 
-> 👉 If you are willing to propose a better design, you can fill a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
+> 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
 
 ---
 
@@ -302,7 +302,7 @@ This library provides two ways to convert an aggregate's value to [std::tuple](h
 
   See the [Owning conversion](#owning-conversion) section hereunder.
 
-- **Non-owning** (undestand: **view**, or accessor) conversion offer a cheap way to convert an aggregate into a tuple of references;  
+- **Non-owning** (undestand: **view**, or **lightweight accessor**) conversion offers a cheap way to convert an aggregate into a tuple of references;  
   offering a convenient way to then use already-existing features - *or even libraries* - that operates on [std::tuple](https://en.cppreference.com/w/cpp/utility/tuple) values.
 
   - Field types that already are references will remain unchanged : `csl::ag::element_t` is strictly equivalent to `std::tuple_element_t`.
@@ -312,57 +312,80 @@ This library provides two ways to convert an aggregate's value to [std::tuple](h
 
 #### Owning conversion
 
-In opposition to the previous conversion that creates non-owning views,  
-the following create copies of each members, discarding cvref-qualifiers.
+The following factory (as a function) creates a `std::tuple` of `csl::ag::elements`, never altered.  
+
+The value of each member-variable of the aggregate's value are **forward**ed, in order to preserve cvref-semantic.  
+Meaning that using a `const-lvalue-reference` of a given type `S` 's value will result in a copy of each of its field that are not ref-qualified,  
+while using a `rvalue-reference` will results in a perfect-forwarding that member-variable.
+
+<table>
+    <tr><th>
+        C++ code (
+        <a href="https://godbolt.org/z/qvjan7G1r">
+        Try me on compiler-explorer
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+        )
+    </th><th> Console output </th></tr>
+    <tr><td>
 
 ```cpp
 struct A{ int i; float f; };
-constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
 
-[&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    ((std::cout << std::get<indexes>(value) << ' '), ...);
+constexpr auto value = A{ .i = 42, .f = 0.13f };
+constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
+
+// print each element's value of `value_as_tuple`
+[&value_as_tuple]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    ((std::cout << std::get<indexes>(value_as_tuple) << ' '), ...);
 }(std::make_index_sequence<csl::ag::size_v<A>>{});
 
+// check 1st element type
 static_assert(std::same_as<
     int,
-    std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+    std::tuple_element_t<0, std::remove_cvref_t<decltype(value_as_tuple)>>
 >);
 static_assert(std::same_as<
+    csl::ag::element_t<0, A>,
+    std::tuple_element_t<0, std::remove_cvref_t<decltype(value_as_tuple)>>
+>);
+
+// check 2nd element type
+static_assert(std::same_as<
     float,
-    std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+    std::tuple_element_t<1, std::remove_cvref_t<decltype(value_as_tuple)>>
+>);
+static_assert(std::same_as<
+    csl::ag::element_t<1, A>,
+    std::tuple_element_t<1, std::remove_cvref_t<decltype(value_as_tuple)>>
 >);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/Yv6WKssG4).
+</td><td>
 
-The main advantage here is to use such function in `constexpr` contexts.
-A precondition here is that each aggregates field's value must be usable in a constexpr context (e.g not ref-qualified).
+```
+42 0.13
+```
+</td></tr></table>
+
+The main advantage here is to use such function in a `constexpr` contexts.  
+A precondition while doing so is that each aggregates field's value must be usable in a constexpr context though (e.g **not** ref-qualified).
 
 ```cpp
-struct A{ int & i; float && f; };
-int i = 42; float f = .13f;
-/* not constexpr */ auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
-// ^^^^^^^^^^^^^^^ : neither `A::i` nor `A::f` are valid constants
+struct A{ int i; float f; };
 
-[&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    ((std::cout << std::get<indexes>(value) << ' '), ...);
-}(std::make_index_sequence<csl::ag::size_v<A>>{});
+constexpr auto value = A{ .i = 42, .f = 0.13f };
+constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
 
-static_assert(std::same_as<
-    int,
-    std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
->);
-static_assert(std::same_as<
-    float,
-    std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
->);
+static_assert(42    == std::get<0>(value_as_tuple));
+static_assert(0.13f == std::get<1>(value_as_tuple));
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/K4qzsxcGY).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/nPKcEj76M).
 
-#### Non-owning conversion (view)
+#### Non-owning conversion (view, lightweight accessor)
 
-This function returns a non-owning tuple (`std::tuple` of references), for which each element represents a given aggregate's field.
+This factory (as a function) creates non-owning **lightweight accessors** (views),  
+returning a non-owning tuple (`std::tuple` of references), for which each element represents an accessor to an aggregate value's field.
 
 Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.
 

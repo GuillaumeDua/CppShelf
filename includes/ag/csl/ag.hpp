@@ -1879,6 +1879,8 @@ template <std::size_t N> requires (N == 128) // NOLINT
 namespace csl::ag {
 
     // tuple-view
+    // factory that creates a lightweight accessor to an existing aggregate value,
+    // preserving cvref semantic
     constexpr auto as_tuple_view(concepts::aggregate auto && value) {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::as_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
