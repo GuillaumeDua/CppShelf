@@ -1,3 +1,15 @@
+<div style="position: absolute; top: 0; right: 0;">
+  <a href="https://github.com/GuillaumeDua/CppShelf">
+    <img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right"
+    style="position: relative; top: 0; right: 0; z-index: 1;">
+  </a>
+  <a href="https://guillaumedua.github.io/CppShelf/">
+    <img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
+    style="position: absolute; top: 0; right: 0; z-index: 3;"
+    >
+  </a>
+</div>
+
 # Overall presentation
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
@@ -321,7 +333,7 @@ while using a `rvalue-reference` will results in a perfect-forwarding that membe
 <table>
     <tr><th>
         C++ code (
-        <a href="https://godbolt.org/z/qvjan7G1r">
+        <a href="https://godbolt.org/z/Yqh1q3Wea">
         Try me on compiler-explorer
         <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
         )
@@ -334,30 +346,14 @@ struct A{ int i; float f; };
 constexpr auto value = A{ .i = 42, .f = 0.13f };
 constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
 
-// print each element's value of `value_as_tuple`
-[&value_as_tuple]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+[&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    static_assert((std::same_as<
+        csl::ag::element_t<indexes, A>, // { 0: int, 1:float }
+        std::tuple_element_t<indexes, std::remove_cvref_t<decltype(value_as_tuple)>>
+    > and ...));
+
     ((std::cout << std::get<indexes>(value_as_tuple) << ' '), ...);
 }(std::make_index_sequence<csl::ag::size_v<A>>{});
-
-// check 1st element type
-static_assert(std::same_as<
-    int,
-    std::tuple_element_t<0, std::remove_cvref_t<decltype(value_as_tuple)>>
->);
-static_assert(std::same_as<
-    csl::ag::element_t<0, A>,
-    std::tuple_element_t<0, std::remove_cvref_t<decltype(value_as_tuple)>>
->);
-
-// check 2nd element type
-static_assert(std::same_as<
-    float,
-    std::tuple_element_t<1, std::remove_cvref_t<decltype(value_as_tuple)>>
->);
-static_assert(std::same_as<
-    csl::ag::element_t<1, A>,
-    std::tuple_element_t<1, std::remove_cvref_t<decltype(value_as_tuple)>>
->);
 ```
 
 </td><td>

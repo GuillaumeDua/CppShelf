@@ -23,7 +23,7 @@ for the JavaScript code in this file
 var NAVTREE =
 [
   [ "📦 csl::ag", "index.html", [
-    [ "Overall presentation", "index.html", [
+    [ "Overall presentation", "index.html#autotoc_md0", [
       [ "Overview demo", "index.html#autotoc_md1", null ],
       [ "Introduction", "index.html#autotoc_md2", null ],
       [ "Philosophy & design choices", "index.html#autotoc_md5", null ],
