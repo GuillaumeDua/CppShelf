@@ -20,7 +20,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "📦 csl::ag"
 PROJECT_NUMBER         =
-PROJECT_BRIEF          = "Tuple-like interface (get/element/size) for aggregates type, and much more."
+PROJECT_BRIEF          = "Tuple-like interface (get/element/size) for aggregates type, and much more. https://github.com/GuillaumeDua/CppShelf/"
 PROJECT_LOGO           = ./docs/details/images/github_emoji_unicode_1f4e6.png
 
 OUTPUT_DIRECTORY       = ./docs/output/ag # meant to run from project's root folder
@@ -987,7 +987,7 @@ ECLIPSE_DOC_ID         = org.doxygen.Project
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-DISABLE_INDEX          = NO # TODO ? YES
+DISABLE_INDEX          = YES
 GENERATE_TREEVIEW      = YES
 
 ENUM_VALUES_PER_LINE   = 4
