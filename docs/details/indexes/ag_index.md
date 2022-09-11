@@ -391,6 +391,15 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
 
 - Example 1 : aggregate type with not-cvref-qualified fields
 
+  <table><tr><th>
+  C++ code (
+  <a href="https://godbolt.org/z/17Es3oooY">
+  Try me on compiler-explorer
+  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+  )
+  </th><th> Console output </th></tr>
+  <tr><td>
+  
   ```cpp
   struct A{ int i; float f; };
   constexpr auto value = csl::ag::as_tuple(A{ .i = 42, .f = 0.13f });
@@ -408,9 +417,26 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
       std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
   >);
   ```
+  
+  </td><td>
+  
+  ```
+  42 0.13 
+  ```
+  
+  </td></tr></table>
 
 - Example 2 : aggregate type with ref-qualified fields
 
+  <table><tr><th>
+  C++ code (
+  <a href="https://godbolt.org/z/17Es3oooY">
+  Try me on compiler-explorer
+  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+  )
+  </th><th> Console output </th></tr>
+  <tr><td>
+  
   ```cpp
   struct A{ int & i; float && f; };
   int i = 42; float f = .13f;
@@ -429,8 +455,14 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
       std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
   >);
   ```
-
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY).
+  
+  </td><td>
+  
+  ```
+  42 0.13 
+  ```
+  
+  </td></tr></table>
 
 #### Non-owning conversion (view, lightweight accessor)
 
@@ -476,7 +508,7 @@ int i = 42;
 }
 ```
 
-// TODO : https://godbolt.org/z/39bTrKzzo
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo).
 
 Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
 
@@ -514,7 +546,7 @@ static_assert(std::same_as<int &,
 // still not propagation for fields 2 and 3 ...
 ```
 
-// TODO: https://godbolt.org/z/e6jn1v1x6
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc).
 
 ### tuplelike interface for aggregates
 
