@@ -344,7 +344,7 @@ to-tuple conversion for aggregate types</h3>
 Owning conversion</h4>
 <p>The following factory (as a function) creates a <code>std::tuple</code> of <code>csl::ag::elements</code>, never altered. <br  />
 </p>
-<p>The value of each member-variable of the aggregate's value are **forward**ed, in order to preserve cvref-semantic. <br  />
+<p>The value of each member-variable of the aggregate's value are <a href="https://en.cppreference.com/w/cpp/utility/forward">forward</a>ed, in order to preserve cvref-semantic. <br  />
  Meaning that using a <code>const-lvalue-reference</code> of a given type <code>S</code> 's value will result in a copy of each of its field that are not ref-qualified, <br  />
  while using a <code>rvalue-reference</code> will results in a perfect-forwarding that member-variable.</p>
 <table class="doxtable">
@@ -375,45 +375,153 @@ Owning conversion</h4>
  A precondition while doing so is that each aggregates field's value must be usable in a constexpr context though (e.g <b>not</b> ref-qualified).</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"> </div>
+<div class="line">static_assert(std::same_as&lt;</div>
+<div class="line">    std::tuple&lt;int, float&gt;,</div>
+<div class="line">    csl::ag::to_tuple_t&lt;A&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line"> </div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, csl::ag::element_t&lt;0, A&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, std::tuple_element_t&lt;0, csl::ag::to_tuple_t&lt;A&gt;&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, std::tuple_element_t&lt;0,decltype(csl::ag::as_tuple(A{}))&gt;&gt;);</div>
+<div class="line"> </div>
 <div class="line">constexpr <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
 <div class="line">constexpr <span class="keyword">auto</span> value_as_tuple = csl::ag::as_tuple(std::move(value));</div>
 <div class="line"> </div>
 <div class="line">static_assert(42    == std::get&lt;0&gt;(value_as_tuple));</div>
 <div class="line">static_assert(0.13f == std::get&lt;1&gt;(value_as_tuple));</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/nPKcEj76M"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/EE7494zbv"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+<p>Additionaly, <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_element">std::tuple_element_t</a> can be use to obtains the conversion result's element types.</p>
+<ul>
+<li><p class="startli">Example 1 : aggregate type with not-cvref-qualified fields</p>
+<table class="doxtable">
+<tr>
+<th>C++ code ( <a href="https://godbolt.org/z/17Es3oooY">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output  </th></tr>
+<tr>
+<td><p class="starttd"></p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">constexpr <span class="keyword">auto</span> value = csl::ag::as_tuple(A{ .i = 42, .f = 0.13f });</div>
+<div class="line"> </div>
+<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
+<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
+<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line"> </div>
+<div class="line">static_assert(std::same_as&lt;</div>
+<div class="line">    <span class="keywordtype">int</span>,</div>
+<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
+<div class="line">&gt;);                      <span class="comment">// \-&gt; same as csl::ag::to_tuple_t&lt;A&gt;</span></div>
+<div class="line">static_assert(std::same_as&lt;</div>
+<div class="line">    <span class="keywordtype">float</span>,</div>
+<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
+<div class="line">&gt;);</div>
+</div><!-- fragment --><p class="endtd"></p>
+</td><td><p class="starttd"></p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><p class="endtd"></p>
+</td></tr>
+</table>
+</li>
+<li><p class="startli">Example 2 : aggregate type with ref-qualified fields</p>
+<table class="doxtable">
+<tr>
+<th>C++ code ( <a href="https://godbolt.org/z/17Es3oooY">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output  </th></tr>
+<tr>
+<td><p class="starttd"></p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> &amp; i; <span class="keywordtype">float</span> &amp;&amp; f; };</div>
+<div class="line"><span class="keywordtype">int</span> i = 42; <span class="keywordtype">float</span> f = .13f;</div>
+<div class="line"><span class="comment">/* not constexpr */</span> <span class="keyword">auto</span> value = csl::ag::as_tuple(A{ .i = i, .f = std::move(f) });</div>
+<div class="line"> </div>
+<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
+<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
+<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line"> </div>
+<div class="line">static_assert(std::same_as&lt;</div>
+<div class="line">    <span class="keywordtype">int</span>&amp;,</div>
+<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;</div>
+<div class="line">    <span class="keywordtype">float</span>&amp;&amp;,</div>
+<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
+<div class="line">&gt;);</div>
+</div><!-- fragment --><p class="endtd"></p>
+</td><td><p class="starttd"></p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><p class="endtd"></p>
+</td></tr>
+</table>
+</li>
+</ul>
 <h4><a class="anchor" id="autotoc_md29"></a>
 Non-owning conversion (view, lightweight accessor)</h4>
 <p>This factory (as a function) creates non-owning <b>lightweight accessors</b> (views), <br  />
  returning a non-owning tuple (<code>std::tuple</code> of references), for which each element represents an accessor to an aggregate value's field.</p>
-<p>Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.</p>
+<p>Note that in order to preserve <code>cvref semantic</code>, the possibly-used <code>cvref qualifiers</code> of the aggregate's value are propagated to qualify each of non-ref-qualified elements of the result tuple-type. <br  />
+ Ref-qualified fields type remain unchanged.</p>
+<p>The conversion's result type can be access using the <code>tuple_view(_t)&lt;T&gt;</code> type-trait.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>type { <span class="keywordtype">int</span> lvalue; <span class="keywordtype">int</span> &amp; llvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; };</div>
 <div class="line"><span class="keywordtype">int</span> i = 42;</div>
 <div class="line"> </div>
 <div class="line">{ <span class="comment">// using a rvalue</span></div>
-<div class="line">  [[maybe_unused]] <span class="keyword">auto</span> as_tuple = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) }); <span class="comment">// not constexpr yet</span></div>
-<div class="line">  static_assert(std::same_as&lt;</div>
-<div class="line">      decltype(as_tuple),</div>
-<div class="line">      std::tuple&lt;int&amp;&amp;, int&amp;&amp;, const int&amp;&amp;, int&amp;&amp;&gt;</div>
-<div class="line">  &gt;);</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) });</div>
+<div class="line"> </div>
+<div class="line">    static_assert(std::same_as&lt;</div>
+<div class="line">        decltype(view),</div>
+<div class="line">        csl::ag::tuple_view_t&lt;type&amp;&amp;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">    static_assert(std::same_as&lt;</div>
+<div class="line">        decltype(view),</div>
+<div class="line">        std::tuple&lt;int&amp;&amp;, int&amp;, const int&amp;, int&amp;&amp;&gt;</div>
+<div class="line">        <span class="comment">//         ^^^^^ cvref-qualified (rvalue-ref) propagation</span></div>
+<div class="line">    &gt;);</div>
 <div class="line">}</div>
+<div class="line"> </div>
 <div class="line">{ <span class="comment">// using a const-lvalue</span></div>
-<div class="line">  <span class="keyword">const</span> <span class="keyword">auto</span> &amp; value = type{ i, i, i, std::move(i) };</div>
-<div class="line">  [[maybe_unused]] <span class="keyword">auto</span> as_tuple = csl::ag::as_tuple_view(value); <span class="comment">// not constexpr yet</span></div>
-<div class="line">  static_assert(std::same_as&lt;</div>
-<div class="line">      decltype(as_tuple),</div>
-<div class="line">      std::tuple&lt;const int &amp;, int&amp;, const int &amp;, int&amp;&gt;</div>
-<div class="line">  &gt;);</div>
+<div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> &amp; value = type{ i, i, i, std::move(i) };</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::as_tuple_view(value);</div>
+<div class="line"> </div>
+<div class="line">    static_assert(std::same_as&lt;</div>
+<div class="line">        decltype(view),</div>
+<div class="line">        csl::ag::tuple_view_t&lt;const type&amp;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">    static_assert(std::same_as&lt;</div>
+<div class="line">        decltype(view),</div>
+<div class="line">        std::tuple&lt;const int &amp;, int&amp;, const int &amp;, int&amp;&amp;&gt;</div>
+<div class="line">        <span class="comment">//         ^^^^^^^^^^^ cvref-qualified (const-lvalue-ref) propagation</span></div>
+<div class="line">    &gt;);</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>Additionally, <code>csl::ag::view_element(_t)&lt;N,T&gt;</code> can be used to obtains a field type information.</p>
-<div class="fragment"><div class="line">static_assert(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">int</span> &amp;&amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;0, decltype(value)&gt;</div>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/39bTrKzzo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+<p>Additionally, <code>csl::ag::view_element(_t)&lt;N,T&gt;</code> can be used to obtains a field's type information, by index.</p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>type { <span class="keywordtype">int</span> lvalue; <span class="keywordtype">int</span> &amp; llvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; };</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// field 0 IS NOT a reference : cvref-qualifiers propagation</span></div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span> &amp;&amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;0, type&amp;&amp;&gt;</div>
 <div class="line">&gt;);</div>
-<div class="line">static_assert(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">char</span> &amp;&amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;0, type&amp;&gt;</div>
 <div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/z8vnxr619"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line">static_assert(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">int</span> &amp;&amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;0, const type&amp;&amp;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">int</span> &amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;0, const type&amp;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// field 0 IS a reference : no cvref-qualifiers propagation</span></div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;1, type&amp;&amp;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;1, type&amp;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;1, const type&amp;&amp;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
+<div class="line">    csl::ag::view_element_t&lt;1, const type&amp;&gt;</div>
+<div class="line">&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// still not propagation for fields 2 and 3 ...</span></div>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/M3ejaf7Mc"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <h3><a class="anchor" id="autotoc_md30"></a>
 tuplelike interface for aggregates</h3>
 <h4><a class="anchor" id="autotoc_md31"></a>
