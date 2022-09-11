@@ -376,7 +376,7 @@ static_assert(std::same_as<
 
 static_assert(std::same_as<int, csl::ag::element_t<0, A>>);
 static_assert(std::same_as<int, std::tuple_element_t<0, csl::ag::to_tuple_t<A>>>);
-static_assert(std::same_as<int, std::tuple_element_t<0, decltype(csl::ag::as_tuple(A{}))>>);
+static_assert(std::same_as<int, std::tuple_element_t<0,decltype(csl::ag::as_tuple(A{}))>>);
 
 constexpr auto value = A{ .i = 42, .f = 0.13f };
 constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
@@ -437,44 +437,84 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
 This factory (as a function) creates non-owning **lightweight accessors** (views),  
 returning a non-owning tuple (`std::tuple` of references), for which each element represents an accessor to an aggregate value's field.
 
-Note that the reference semantic of the aggregate's value is used to qualify each tuple's elements.
+Note that in order to preserve `cvref semantic`, the possibly-used `cvref qualifiers` of the aggregate's value are propagated to qualify each of non-ref-qualified elements of the result tuple-type.  
+Ref-qualified fields type remain unchanged.
+
+The conversion's result type can be access using the `tuple_view(_t)<T>` type-trait.
 
 ```cpp
 struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
 int i = 42;
 
 { // using a rvalue
-  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) }); // not constexpr yet
-  static_assert(std::same_as<
-      decltype(as_tuple),
-      std::tuple<int&&, int&&, const int&&, int&&>
-  >);
+    [[maybe_unused]] auto view = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) });
+
+    static_assert(std::same_as<
+        decltype(view),
+        csl::ag::tuple_view_t<type&&>
+    >);
+    static_assert(std::same_as<
+        decltype(view),
+        std::tuple<int&&, int&, const int&, int&&>
+        //         ^^^^^ cvref-qualified (rvalue-ref) propagation
+    >);
 }
+
 { // using a const-lvalue
-  const auto & value = type{ i, i, i, std::move(i) };
-  [[maybe_unused]] auto as_tuple = csl::ag::as_tuple_view(value); // not constexpr yet
-  static_assert(std::same_as<
-      decltype(as_tuple),
-      std::tuple<const int &, int&, const int &, int&>
-  >);
+    const auto & value = type{ i, i, i, std::move(i) };
+    [[maybe_unused]] auto view = csl::ag::as_tuple_view(value);
+
+    static_assert(std::same_as<
+        decltype(view),
+        csl::ag::tuple_view_t<const type&>
+    >);
+    static_assert(std::same_as<
+        decltype(view),
+        std::tuple<const int &, int&, const int &, int&&>
+        //         ^^^^^^^^^^^ cvref-qualified (const-lvalue-ref) propagation
+    >);
 }
 ```
 
-Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field type information.
+// TODO : https://godbolt.org/z/39bTrKzzo
+
+Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
 
 ```cpp
-static_assert(std::same_as<
-    int &&,
-    csl::ag::view_element_t<0, decltype(value)>
+struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
+
+// field 0 IS NOT a reference : cvref-qualifiers propagation
+static_assert(std::same_as<int &&,
+    csl::ag::view_element_t<0, type&&>
 >);
-static_assert(std::same_as<
-    char &&,
-    csl::ag::view_element_t<1, std::remove_cvref_t<decltype(value)>>
+static_assert(std::same_as<int &,
+    csl::ag::view_element_t<0, type&>
 >);
+static_assert(std::same_as<const int &&,
+    csl::ag::view_element_t<0, const type&&>
+>);
+static_assert(std::same_as<const int &,
+    csl::ag::view_element_t<0, const type&>
+>);
+
+// field 0 IS a reference : no cvref-qualifiers propagation
+static_assert(std::same_as<int &,
+    csl::ag::view_element_t<1, type&&>
+>);
+static_assert(std::same_as<int &,
+    csl::ag::view_element_t<1, type&>
+>);
+static_assert(std::same_as<int &,
+    csl::ag::view_element_t<1, const type&&>
+>);
+static_assert(std::same_as<int &,
+    csl::ag::view_element_t<1, const type&>
+>);
+
+// still not propagation for fields 2 and 3 ...
 ```
 
-// TODO
-
+// TODO: https://godbolt.org/z/e6jn1v1x6
 
 ### tuplelike interface for aggregates
 

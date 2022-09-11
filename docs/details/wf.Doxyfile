@@ -20,7 +20,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "🌊 csl::wf"
 PROJECT_NUMBER         =
-PROJECT_BRIEF          = "Generic eDSL builder - as a route pattern - to best translate workflow/use-cases in C++. https://github.com/GuillaumeDua/CppShelf"
+PROJECT_BRIEF          = "Generic eDSL builder - as a route pattern - to best translate workflow/use-cases in C++. https://github.com/GuillaumeDua/CppShelf/"
 PROJECT_LOGO           = ./docs/details/images/github_emoji_unicode_1f30a.png
 
 OUTPUT_DIRECTORY       = ./docs/output/wf # meant to run from project's root folder
