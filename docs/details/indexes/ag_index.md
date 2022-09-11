@@ -326,7 +326,7 @@ This library provides two ways to convert an aggregate's value to [std::tuple](h
 
 The following factory (as a function) creates a `std::tuple` of `csl::ag::elements`, never altered.  
 
-The value of each member-variable of the aggregate's value are **forward**ed, in order to preserve cvref-semantic.  
+The value of each member-variable of the aggregate's value are [forward](https://en.cppreference.com/w/cpp/utility/forward)ed, in order to preserve cvref-semantic.  
 Meaning that using a `const-lvalue-reference` of a given type `S` 's value will result in a copy of each of its field that are not ref-qualified,  
 while using a `rvalue-reference` will results in a perfect-forwarding that member-variable.
 
@@ -369,6 +369,15 @@ A precondition while doing so is that each aggregates field's value must be usab
 ```cpp
 struct A{ int i; float f; };
 
+static_assert(std::same_as<
+    std::tuple<int, float>,
+    csl::ag::to_tuple_t<A>
+>);
+
+static_assert(std::same_as<int, csl::ag::element_t<0, A>>);
+static_assert(std::same_as<int, std::tuple_element_t<0, csl::ag::to_tuple_t<A>>>);
+static_assert(std::same_as<int, std::tuple_element_t<0, decltype(csl::ag::as_tuple(A{}))>>);
+
 constexpr auto value = A{ .i = 42, .f = 0.13f };
 constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
 
@@ -376,7 +385,52 @@ static_assert(42    == std::get<0>(value_as_tuple));
 static_assert(0.13f == std::get<1>(value_as_tuple));
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/nPKcEj76M).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv).
+
+Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element) can be use to obtains the conversion result's element types.
+
+- Example 1 : aggregate type with not-cvref-qualified fields
+
+  ```cpp
+  struct A{ int i; float f; };
+  constexpr auto value = csl::ag::as_tuple(A{ .i = 42, .f = 0.13f });
+
+  [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+      ((std::cout << std::get<indexes>(value) << ' '), ...);
+  }(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+  static_assert(std::same_as<
+      int,
+      std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+  >);                      // \-> same as csl::ag::to_tuple_t<A>
+  static_assert(std::same_as<
+      float,
+      std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+  >);
+  ```
+
+- Example 2 : aggregate type with ref-qualified fields
+
+  ```cpp
+  struct A{ int & i; float && f; };
+  int i = 42; float f = .13f;
+  /* not constexpr */ auto value = csl::ag::as_tuple(A{ .i = i, .f = std::move(f) });
+
+  [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+      ((std::cout << std::get<indexes>(value) << ' '), ...);
+  }(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+  static_assert(std::same_as<
+      int&,
+      std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+  >);
+  static_assert(std::same_as<
+      float&&,
+      std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+  >);
+  ```
+
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY).
 
 #### Non-owning conversion (view, lightweight accessor)
 
@@ -419,7 +473,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/z8vnxr619).
+// TODO
 
 
 ### tuplelike interface for aggregates
