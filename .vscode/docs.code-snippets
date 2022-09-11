@@ -1,0 +1,27 @@
+{
+	"doc_code_section": {
+		"scope": "markdown, html, javascript",
+		"body": [
+			"<table><tr><th>",
+			"C++ code (",
+			"<a href=\"https://godbolt.org/z/$1\">",
+			"Try me on compiler-explorer",
+			"<img src=\"https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true\" alt=\"\" align=\"left\" width=\"20\" height=\"20\" style=\"Padding: 2px 4px 0px 0px\"/> </a>",
+			")",
+			"</th><th> Console output </th></tr>",
+			"<tr><td>",
+			"",
+			"```cpp",
+			"$2",
+			"```",
+			"",
+			"</td><td>",
+			"",
+			"```",
+			"$3",
+			"```",
+			"",
+			"</td></tr></table>"
+		]
+	}
+}
