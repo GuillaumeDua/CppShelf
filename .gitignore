@@ -41,6 +41,9 @@ x86
 *.x86_64
 *.hex
 
+# docs
+docs/output
+
 # Others
 local
 .clangd
