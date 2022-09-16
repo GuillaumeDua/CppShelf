@@ -1,9 +1,9 @@
-<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+<!-- <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
 <script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
 <script type="text/javascript">
     DoxygenAwesomeDarkModeToggle.init();
     DoxygenAwesomeFragmentCopyButton.init();
-</script>
+</script> -->
 
 <div style="position: absolute; top: 0; right: 0;">
   <a href="https://github.com/GuillaumeDua/CppShelf">
