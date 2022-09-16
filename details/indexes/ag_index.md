@@ -10,6 +10,11 @@
   </a>
 </div>
 
+<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeDarkModeToggle.init()
+</script>
+
 # Overall presentation
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.

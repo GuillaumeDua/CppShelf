@@ -29,7 +29,7 @@ style="position: absolute; top: 0; right: 0; z-index: 3;"
 Collection of - ***S**ingle-**He**ader, header-only, C++ **l**ibraries **f**iles*.  
 Personal incubator for various library ideas and experiences, and perhaps a hint of serendipity.
 
-The libraries here could, once mature enough, become self-contained on a separate repository.
+The libraries here could, once mature enough, become self-contained in a separated repository.
 
 ---
 
