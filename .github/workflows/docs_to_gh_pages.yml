@@ -17,10 +17,10 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
-      - name: Submodules
+      - name: Submodules (awesome-css)
         run: |
-          git submodule init
-          git submodule update
+          git submodule update --init --recursive
+          find docs/details/doxygen-awesome-css/ -maxdepth 1 -type f \( -name '*.js' -o -name '*.css' \) -delete
 
       - name: Doxygen installation
         run: |
