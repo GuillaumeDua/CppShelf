@@ -17,6 +17,11 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
+      - name: Submodules
+        run: |
+          git submodule init
+          git submodule update
+
       - name: Doxygen installation
         run: |
           sudo apt update

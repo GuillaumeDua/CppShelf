@@ -1,3 +1,10 @@
+<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeDarkModeToggle.init();
+    DoxygenAwesomeFragmentCopyButton.init();
+</script>
+
 <div style="position: absolute; top: 0; right: 0;">
   <a href="https://github.com/GuillaumeDua/CppShelf">
     <img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right"
@@ -9,13 +16,6 @@
     >
   </a>
 </div>
-
-<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
-<script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
-<script type="text/javascript">
-    DoxygenAwesomeDarkModeToggle.init();
-    DoxygenAwesomeFragmentCopyButton.init();
-</script>
 
 # Overall presentation
 
