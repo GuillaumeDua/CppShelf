@@ -11,8 +11,10 @@
 </div>
 
 <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
 <script type="text/javascript">
-    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeDarkModeToggle.init();
+    DoxygenAwesomeFragmentCopyButton.init();
 </script>
 
 # Overall presentation
