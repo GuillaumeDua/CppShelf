@@ -1,9 +1,14 @@
-<!-- <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+
+@htmlonly
+<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+
 <script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
+
 <script type="text/javascript">
     DoxygenAwesomeDarkModeToggle.init();
     DoxygenAwesomeFragmentCopyButton.init();
-</script> -->
+</script>
+@endhtmlonly
 
 <div style="position: absolute; top: 0; right: 0;">
   <a href="https://github.com/GuillaumeDua/CppShelf">
@@ -258,7 +263,7 @@ static_assert(csl::ag::size_v<A>      == 2);
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
 
-Just like `std::tuple_size/std::tuple_size_v`, the **value** can be accessed using a convenience alias :
+Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed using a convenience alias :
 
 ```cpp
 template <csl::ag::concepts::aggregate T>
