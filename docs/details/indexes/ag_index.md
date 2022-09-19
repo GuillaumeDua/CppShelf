@@ -1,13 +1,5 @@
 
 @htmlonly
-<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
-
-<script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
-
-<script type="text/javascript">
-    DoxygenAwesomeDarkModeToggle.init();
-    DoxygenAwesomeFragmentCopyButton.init();
-</script>
 @endhtmlonly
 
 <div style="position: absolute; top: 0; right: 0;">
@@ -196,8 +188,6 @@ To extend such support, edit your **CMake** cache to set `CSL_AG_MAX_FIELDS_COUN
 > The choice here to use **CMake** in order to generate C++ code **upstream** is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).
 > 
 > 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
-
----
 
 ## Content
 
