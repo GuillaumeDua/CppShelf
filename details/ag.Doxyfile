@@ -922,7 +922,8 @@ HTML_FOOTER            = ./docs/details/footer.html
 # obsolete.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_STYLESHEET        = ./docs/details/stylesheet.css
+HTML_STYLESHEET               =
+HTML_EXTRA_STYLESHEET         = ./docs/details/stylesheet.css
 
 # The HTML_EXTRA_STYLESHEET tag can be used to specify additional user-defined
 # cascading style sheets that are included after the standard style sheets
