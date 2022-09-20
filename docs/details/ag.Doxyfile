@@ -949,6 +949,10 @@ HTML_EXTRA_STYLESHEET  += ./docs/details/doxygen-awesome-css/doxygen-awesome-sid
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
+HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js
+HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-interactive-toc.js
+HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
+
 
 HTML_COLORSTYLE_HUE    = 220
 HTML_COLORSTYLE_SAT    = 100
@@ -1661,7 +1665,7 @@ CALLER_GRAPH           = NO
 
 GRAPHICAL_HIERARCHY    = YES
 DIRECTORY_GRAPH        = NO # TODO : useless for now
-DOT_IMAGE_FORMAT       = png
+DOT_IMAGE_FORMAT       = svg
 INTERACTIVE_SVG        = NO
 DOT_PATH               =
 DOTFILE_DIRS           =
@@ -1672,7 +1676,7 @@ PLANTUML_CFG_FILE      =
 PLANTUML_INCLUDE_PATH  =
 DOT_GRAPH_MAX_NODES    = 50
 MAX_DOT_GRAPH_DEPTH    = 0
-DOT_TRANSPARENT        = NO
+DOT_TRANSPARENT        = YES
 DOT_MULTI_TARGETS      = NO
 GENERATE_LEGEND        = YES
 DOT_CLEANUP            = YES
