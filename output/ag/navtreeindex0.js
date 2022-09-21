@@ -1,8 +1,5 @@
 var NAVTREEINDEX0 =
 {
-".html":[1,0,0],
-".html":[1,0,0,0],
-".html":[1,0,1],
 "annotated.html":[1,0],
 "classes.html":[1,1],
 "hierarchy.html":[1,2],

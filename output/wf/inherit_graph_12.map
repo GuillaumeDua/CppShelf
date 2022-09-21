@@ -1,12 +1,12 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,444,89,471"/>
-<area shape="rect" id="node2" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__multiply__operator_3_01T_00_01U_00_01std_1_17a1cb67f4534c0f560aa1aa5a29f354c.html" title=" " alt="" coords="137,5,375,91"/>
-<area shape="rect" id="node3" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__pipe__operator_3_01T_00_01U_00_01std_1_1void572171b7951c2d29352de841a01d7078.html" title=" " alt="" coords="141,115,371,200"/>
-<area shape="rect" id="node4" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__plus__operator_3_01T_00_01U_00_01std_1_1void3944ea8b804e3898fce5fdc8206fccf2.html" title=" " alt="" coords="138,224,374,309"/>
-<area shape="rect" id="node5" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__shift__equal__operator_0astd_1_1declval_3_01U_01_4_07_08_08_4_01_4.html" title=" " alt="" coords="149,334,363,405"/>
-<area shape="rect" id="node6" href="$structcsl_1_1wf_1_1details_1_1mp_1_1is__instance__of_3_01type_00_01type_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="171,429,341,485"/>
-<area shape="rect" id="node7" href="$structcsl_1_1wf_1_1details_1_1mp_1_1is__same__ttp_3_01pack_3_01Ts_8_8_8_01_4_00_01pack_3_01Us_8_8_8_01_4_01_4.html" title=" " alt="" coords="167,509,345,565"/>
-<area shape="rect" id="node8" href="$structcsl_1_1wf_1_1is__repeater_3_01repeater_3_01times_00_01T_01_4_01_4.html" title=" " alt="" coords="161,590,351,631"/>
-<area shape="rect" id="node9" href="$structcsl_1_1wf_1_1mp_1_1is__args_3_01args_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="183,655,329,697"/>
-<area shape="rect" id="node10" href="$structcsl_1_1wf_1_1mp_1_1is__ttps_3_01ttps_3_01Ts_8_8_8_01_4_01_4.html" title=" " alt="" coords="185,721,327,762"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,348,124,375"/>
+<area shape="rect" id="node2" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__multiply__operator.html" title=" " alt="" coords="172,5,387,61"/>
+<area shape="rect" id="node3" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__pipe__operator.html" title=" " alt="" coords="175,85,383,141"/>
+<area shape="rect" id="node4" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__plus__operator.html" title=" " alt="" coords="176,165,383,221"/>
+<area shape="rect" id="node5" href="$structcsl_1_1wf_1_1details_1_1mp_1_1detect_1_1have__shift__equal__operator.html" title=" " alt="" coords="193,246,365,317"/>
+<area shape="rect" id="node6" href="$structcsl_1_1wf_1_1details_1_1mp_1_1is__instance__of.html" title=" " alt="" coords="180,341,379,382"/>
+<area shape="rect" id="node7" href="$structcsl_1_1wf_1_1details_1_1mp_1_1is__same__ttp.html" title=" " alt="" coords="197,406,362,447"/>
+<area shape="rect" id="node8" href="$structcsl_1_1wf_1_1is__repeater.html" title=" " alt="" coords="188,472,371,499"/>
+<area shape="rect" id="node9" href="$structcsl_1_1wf_1_1mp_1_1is__args.html" title=" " alt="" coords="187,523,371,549"/>
+<area shape="rect" id="node10" href="$structcsl_1_1wf_1_1mp_1_1is__ttps.html" title=" " alt="" coords="189,573,370,600"/>
 </map>
