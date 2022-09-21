@@ -10,7 +10,7 @@ jobs:
   docs_to_gh_pages:
 
     concurrency: ci-${{ github.ref }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # ubuntu-latest currently is ubuntu-20.04
 
     steps:
 
