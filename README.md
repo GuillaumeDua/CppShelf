@@ -42,7 +42,7 @@ The libraries here could, once mature enough, become self-contained in a separat
 A **tuple-like** interface for **aggregates** type.
 
 Project's 
-[documentation](https://guillaumedua.github.io/CppShelf/output/ag/), 
+[documentation](https://guillaumedua.github.io/CppShelf/output/ag/index.html#autotoc_md0), 
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
 
 ### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)

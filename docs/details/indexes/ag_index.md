@@ -1,7 +1,4 @@
 
-@htmlonly
-@endhtmlonly
-
 <div style="position: absolute; top: 0; right: 0;">
   <a href="https://github.com/GuillaumeDua/CppShelf">
     <img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right"
@@ -15,6 +12,9 @@
 </div>
 
 # Overall presentation
+
+<div class='code_example' id='01' ></div>
+<div class='code_example' id='dir/02'></div>
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 
