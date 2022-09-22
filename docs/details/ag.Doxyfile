@@ -952,7 +952,7 @@ HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-dar
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-interactive-toc.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
-HTML_EXTRA_FILES       += ./examples/ag
+# HTML_EXTRA_FILES     += ./examples/ag
 HTML_EXTRA_FILES       += ./docs/details/godbolt.js
 
 HTML_COLORSTYLE_HUE    = 220

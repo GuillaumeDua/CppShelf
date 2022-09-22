@@ -13,8 +13,11 @@
 
 # Overall presentation
 
-<div class='code_example' id='01' ></div>
-<div class='code_example' id='dir/02'></div>
+<!-- <godbolt_snippet url="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore"></godbolt_snippet> -->
+
+Example is here :
+
+<div class='code_example' id='examples/ag/00_overview.cpp' ></div>
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 

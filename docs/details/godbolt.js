@@ -1,22 +1,57 @@
 
+class SendToGodboltButton extends HTMLButtonElement {
+    constructor() {
+        super();
+        this.addEventListener('click', () => alert("SendToGodboltButton!")); //TODO
+    }
+}
+customElements.define('send-to-godbolt-button', SendToGodboltButton, {extends: 'button'});
+// <button is="send-to-godbolt-button">Click me</button>
+
 class godbolt_snippet extends HTMLElement {
 
-    constructor(id) {
+    connectedCallback() {
+        console.log('godbolt_snippet: connectedCallback with url attribute : ' + this.getAttribute('url'));
+    }
+
+    constructor(code_url) {
+        console.log('godbolt_snippet: constructor: ' + code_url)
         super();
         // this.onclick = this.open_in_godbolt // TBD
         
-        this.id = id;
-        // this.path = 
-
-        this.code = 'SOME CODE LOLZ'
-        this.short_link_hash = 'x1dGTWddK';
-        this.left_panel = 'toto';
+        this.code_url = code_url;
+        // this.short_link_hash = 'x1dGTWddK';
 
         this.load();
     }
 
     load() {
-        this.innerHTML = `
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', this.code_url); // TODO: async
+        xhr.onerror = function() {
+            console.log(`Network Error`);
+        };
+        xhr.onload = function() {
+            console.log(`Loaded with status: ${xhr.status}`);
+            if (xhr.status != 200) {
+                return;
+            }
+
+            let content = document.createElement('table');
+            let content_first_row  = content.appendChild(document.createElement('tr'));
+            let content_second_row = content.appendChild(document.createElement('tr'));
+            let content_first_row_th = content_first_row.appendChild(document.createElement('th'));
+            content_first_row_th.textContent = "C++ code";
+            content_first_row_th.appendChild(document.createElement('a'))
+                .setAttribute('href', 'https://godbolt.org')
+                .textContent = 'Try me on compiler-explorer'
+            ;
+
+            this.parent.innerHTML = content;
+            
+            
+            `
         <table>
         <tr><th>
             C++ code (
@@ -28,17 +63,19 @@ class godbolt_snippet extends HTMLElement {
         <tr><td>
     
     \`\`\`cpp
-    ` + this.code + `
+    ` + xhr.response + `
     \`\`\`
     
     </td><td>
     
     \`\`\`
-    ` + this.left_panel + `
+    ` + "TODO: TBD (split using comments with special token ?)" + `
     \`\`\`
     </td></tr></table>
     `
         ;
+        };
+        xhr.send();
     }
 
     static init() {
@@ -59,10 +96,22 @@ function inject_examples() {
             console.log('godbolt.js: warning: code_example is missing an id')
             return true; // ill-formed, skip this element but continue iteration
         }
-
         console.log('processing example ' + index + ' with index ' + value.id + ' ...')
+
+        // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
+        const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
+
+        // TODO: trim-off first comment (or use regex + specific tags ?)
+
+        // value = new godbolt_snippet(example_url);
+
         // value.textContent
-        // value.innerHTML = "<h2>TEST</h2>";
+        let example_element = new godbolt_snippet(example_url);
+        example_element.setAttribute('url', example_url);
+        value.appendChild(example_element);
+        // value.innerHTML = `<h2>TEST</h2><godbolt_snippet url="${example_url}"></godbolt_snippet>`;
+
+        // TODO: try me on godbolt button (or iframe)
     });
 }
 
