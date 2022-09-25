@@ -1,4 +1,3 @@
-
 class SendToGodboltButton extends HTMLButtonElement {
     constructor() {
         super();
@@ -117,18 +116,18 @@ function inject_examples() {
         // value.innerHTML = `<h2>TEST</h2><godbolt_snippet url="${example_url}"></godbolt_snippet>`;
 
         // TODO: try me on godbolt button (or iframe)
+
+        let pre = document.createElement('pre');
         let code = document.createElement('code');
-        code.className = 'language-cpp';
-        code.textContent = `
-        auto i = 42;\n
-        ++i;
-        using type = std::string;
-        `;
+        code.className = 'language-cpp hljs';
+        code.textContent = `auto i = 42;
+++i;
+using type = std::string;`;
         // Tokyo Night Dark
         // Base16/Google Dark
-        value.appendChild(code);
-
-        hljs.highlightAll();
+        pre.appendChild(code);
+        hljs.highlightElement(code);
+        value.appendChild(pre);
     });
 }
 
