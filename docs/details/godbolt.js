@@ -38,42 +38,45 @@ class godbolt_snippet extends HTMLElement {
                 return;
             }
 
-            let content = document.createElement('table');
-            let content_first_row  = content.appendChild(document.createElement('tr'));
-            let content_second_row = content.appendChild(document.createElement('tr'));
-            let content_first_row_th = content_first_row.appendChild(document.createElement('th'));
-            content_first_row_th.textContent = "C++ code";
-            content_first_row_th.appendChild(document.createElement('a'))
-                .setAttribute('href', 'https://godbolt.org')
-                .textContent = 'Try me on compiler-explorer'
-            ;
+            this.parent = document.createElement('h2');
 
-            this.parent.innerHTML = content;
+    //         let content = document.createElement('table');
+    //         let content_first_row  = content.appendChild(document.createElement('tr'));
+    //         let content_second_row = content.appendChild(document.createElement('tr'));
+    //         let content_first_row_th = content_first_row.appendChild(document.createElement('th'));
+    //         content_first_row_th.textContent = "C++ code";
+            
+    //             .setAttribute('href', 'https://godbolt.org')
+    //             .textContent = 'Try me on compiler-explorer'
+    //         ;
+    //         content_first_row_th.appendChild(document.createElement('a'))
+
+    //         this.parent.innerHTML = content;
             
             
-            `
-        <table>
-        <tr><th>
-            C++ code (
-            <a href="https://godbolt.org/z/` + this.short_link_hash + `">
-            Try me on compiler-explorer
-            <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
-            )
-        </th><th> Console output </th></tr>
-        <tr><td>
+    //         `
+    //     <table>
+    //     <tr><th>
+    //         C++ code (
+    //         <a href="https://godbolt.org/z/` + this.short_link_hash + `">
+    //         Try me on compiler-explorer
+    //         <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+    //         )
+    //     </th><th> Console output </th></tr>
+    //     <tr><td>
     
-    \`\`\`cpp
-    ` + xhr.response + `
-    \`\`\`
+    // \`\`\`cpp
+    // ` + xhr.response + `
+    // \`\`\`
     
-    </td><td>
+    // </td><td>
     
-    \`\`\`
-    ` + "TODO: TBD (split using comments with special token ?)" + `
-    \`\`\`
-    </td></tr></table>
-    `
-        ;
+    // \`\`\`
+    // ` + "TODO: TBD (split using comments with special token ?)" + `
+    // \`\`\`
+    // </td></tr></table>
+    // `
+    //     ;
         };
         xhr.send();
     }
@@ -106,12 +109,26 @@ function inject_examples() {
         // value = new godbolt_snippet(example_url);
 
         // value.textContent
-        let example_element = new godbolt_snippet(example_url);
-        example_element.setAttribute('url', example_url);
-        value.appendChild(example_element);
+
+        // let example_element = new godbolt_snippet(example_url);
+        // example_element.setAttribute('url', example_url);
+        // value.appendChild(example_element);
+
         // value.innerHTML = `<h2>TEST</h2><godbolt_snippet url="${example_url}"></godbolt_snippet>`;
 
         // TODO: try me on godbolt button (or iframe)
+        let code = document.createElement('code');
+        code.className = 'language-cpp';
+        code.textContent = `
+        auto i = 42;\n
+        ++i;
+        using type = std::string;
+        `;
+        // Tokyo Night Dark
+        // Base16/Google Dark
+        value.appendChild(code);
+
+        hljs.highlightAll();
     });
 }
 
