@@ -13,9 +13,9 @@
 
 # Overall presentation
 
-<!-- <godbolt_snippet url="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore"></godbolt_snippet> -->
-
 Example is here :
+
+<!-- <godbolt_snippet url="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore"></godbolt_snippet> -->
 
 <div class='code_example' id='examples/ag/00_overview.cpp' ></div>
 

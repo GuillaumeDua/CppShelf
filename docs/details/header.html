@@ -32,34 +32,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
     <link id='code_theme_stylesheet' rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/tokyo-night-light.min.css" integrity="sha512-XPIePliMtoEozJ99t+gktFvC8YVLKHzQH7T0RBtzEzNitkNh4IgQ5UAOdPT52ypYGjOHWkKSC4W77ZelU42LeA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script>
-        function callback(mutationsList, observer) {
-            mutationsList.forEach(mutation => {
-                if (mutation.attributeName === 'class') {
-                    let html_node = document.getElementsByTagName('html')[0];
-                    let code_stylesheet = document.getElementById('code_theme_stylesheet');
-
-                    console.log('html class changed to : ' + html_node.className);
-                    
-                    if (html_node.className == 'dark-mode') {
-                        code_stylesheet.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/tokyo-night-dark.min.css";
-                        code_stylesheet.integrity = "sha512-dSQLLtgaq2iGigmy9xowRshaMzUHeiIUTvJW/SkUpb1J+ImXOPNGAI7ZC8V5/PiN/XN83B8uIk4qET7AMhdC5Q==";
-                    }
-                    else {
-                        code_stylesheet.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/tokyo-night-light.min.css";
-                        code_stylesheet.integrity = "sha512-XPIePliMtoEozJ99t+gktFvC8YVLKHzQH7T0RBtzEzNitkNh4IgQ5UAOdPT52ypYGjOHWkKSC4W77ZelU42LeA==";
-                    }
-                    hljs.highlightAll();
-                }
-            })
-        } // dark-mode
-
-        const mutationObserver = new MutationObserver(callback)
-        mutationObserver.observe(
-            document.getElementsByTagName('html')[0],
-            { attributes: true }
-        );
-    </script>
+    <script type="text/javascript" src="$relpath^highlightjs_doxygenawesomecss_darktheme_toggle.js"></script>
 
     <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
     <script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
@@ -71,6 +44,8 @@
         DoxygenAwesomeFragmentCopyButton.init();
         godbolt_snippet.init();
         godbolt_js_initialize();
+
+        hljs.highlightAll();
     </script>
 </head>
 
