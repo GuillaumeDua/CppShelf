@@ -1,3 +1,10 @@
+function send_to_godbolt(element) {
+    console.log('sending : ' + element)
+}
+
+class CopyToClipboardButton extends HTMLButtonElement {
+// TODO
+}
 class SendToGodboltButton extends HTMLButtonElement {
 
     static icon = 
@@ -22,11 +29,6 @@ class SendToGodboltButton extends HTMLButtonElement {
 }
 customElements.define('send-to-godbolt-button', SendToGodboltButton, {extends: 'button'});
 
-
-function send_to_godbolt(element) {
-    console.log('sending : ' + element)
-}
-
 // Todo: Remove xhr (or make another component for remove ressources)
 //  local code had better to be injected
 //  - godbolt_snippet
@@ -34,17 +36,20 @@ function send_to_godbolt(element) {
 class godbolt_snippet extends HTMLElement {
 
     connectedCallback() {
-        console.log('godbolt_snippet: connectedCallback with url attribute : ' + this.getAttribute('url'));
+        // console.log('godbolt_snippet: connectedCallback with url attribute : ' + this.getAttribute('url'));
     }
 
     constructor(code_url) {
-        console.log('godbolt_snippet: constructor: ' + code_url)
         super();
-        // this.onclick = this.open_in_godbolt // TBD
-        
-        this.code_url = code_url;
-        // this.short_link_hash = 'x1dGTWddK';
 
+        if (code_url === undefined && this.getAttribute('url') != undefined)
+            code_url = this.getAttribute('url')
+
+        // TODO: parse for specific format (or use regex + specific tags ?)
+        // - expected output tag
+        // - {code}{separator}{expected_output}
+       
+        this.code_url = code_url;
         this.load();
     }
 
@@ -95,44 +100,23 @@ window.customElements.define('godbolt-snippet', godbolt_snippet);
 // TODO : same with old/previous table/tr/th/td ?
 
 function inject_examples() {
+// expected format : <div class='code_example' url='path/to/code'></div>
     var place_holders = $('body').find('div[class=code_example]');
     place_holders.each((index, value) => {
 
-        if (value.id === undefined) {
-            console.log('godbolt.js: warning: code_example is missing an id')
+        if (value.getAttribute('url') === undefined) {
+            console.log('godbolt.js: warning: code_example is missing an url attribute')
             return true; // ill-formed, skip this element but continue iteration
         }
-        console.log('processing example ' + index + ' with index ' + value.id + ' ...')
+        console.log('processing example ' + index + ' with index ' + value.getAttribute('url') + ' ...')
 
         // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
         const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
-
-        // TODO: trim-off first comment (or use regex + specific tags ?)
-
-        // value = new godbolt_snippet(example_url);
-
-        // value.textContent
+        // const example_url = document.URL.split('/').slice(0, -1).join('/') + '/../../../' + value.getAttribute('url')
 
         let example_element = new godbolt_snippet(example_url);
         example_element.setAttribute('url', example_url);
         value.appendChild(example_element);
-
-        // value.innerHTML = `<h2>TEST</h2><godbolt_snippet url="${example_url}"></godbolt_snippet>`;
-
-        // TODO: try me on godbolt button (or iframe)
-
-
-//         let pre = document.createElement('pre');
-//         let code = document.createElement('code');
-//         code.className = 'language-cpp hljs';
-//         code.textContent = `auto i = 42;
-// ++i;
-// using type = std::string;`;
-//         // Tokyo Night Dark
-//         // Base16/Google Dark
-//         pre.appendChild(code);
-//         hljs.highlightElement(code);
-//         value.appendChild(pre);
     });
 }
 
@@ -140,8 +124,12 @@ function godbolt_js_initialize() {
 
     $(function() {
         $(document).ready(function() {
+            console.log('initializing code sections ...')
             inject_examples();
-            
         })
     })
 }
+
+// TODO : highlightjs theme picker
+// - Tokyo Night Dark
+// - Base16/Google Dark

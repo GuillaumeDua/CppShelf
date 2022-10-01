@@ -15,9 +15,13 @@
 
 Example is here :
 
-<!-- <godbolt_snippet url="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore"></godbolt_snippet> -->
+<div class='code_example' url='examples/ag/00_overview.cpp'></div>
 
-<div class='code_example' id='examples/ag/00_overview.cpp' ></div>
+<!-- 
+    equivalent to
+    <godbolt-snippet url="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore"></godbolt-snippet>
+    but doxygen using markdown does not know how to interpret such HTML element
+-->
 
 The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 
