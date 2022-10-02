@@ -160,6 +160,26 @@ class ThemeSelector {
     }
 
     static initialize = function() {
+
+        let onOptionSelectedChange = function() {
+            let selected_option = $(this).find('option:selected')
+            console.log('ThemeSelector: switching to ' + selected_option.text())
+
+            let html_node = document.getElementsByTagName('html')[0];
+
+            if (html_node.className !== "dark-mode" &&
+                html_node.className !== "light-mode")
+                return;
+
+            let theme_color = html_node.className.replace('-mode', '')
+            let new_stylesheet_url = ThemeSelector.BuildUrl(selected_option.text())
+                .replace(ThemeSelector.dark_or_light_placeholder, theme_color)
+            console.log('ThemeSelector: switching to stylesheet : ' + new_stylesheet_url)
+            document.getElementById('code_theme_stylesheet').href = new_stylesheet_url
+
+            hljs.highlightAll()
+        }
+
         $(document).ready(function() {
             console.log('ThemeSelector: initializing themes selector ...')
 
@@ -177,25 +197,9 @@ class ThemeSelector {
 
             var selectors = $('body').find('select[class=code_theme_selector]');
             selectors.each((index, element) => {
+                element.onchange = onOptionSelectedChange
 
-                element.onchange = function() {
-                    let selected_option = $(this).find('option:selected')
-                    console.log('ThemeSelector: switching to ' + selected_option.text())
-
-                    let html_node = document.getElementsByTagName('html')[0];
-
-                    if (html_node.className !== "dark-mode" &&
-                        html_node.className !== "light-mode")
-                        return;
-
-                    let theme_color = html_node.className.replace('-mode', '')
-                    let new_stylesheet_url = ThemeSelector.BuildUrl(selected_option.text())
-                        .replace(ThemeSelector.dark_or_light_placeholder, theme_color)
-                    console.log('ThemeSelector: switching to stylesheet : ' + new_stylesheet_url)
-                    document.getElementById('code_theme_stylesheet').href = new_stylesheet_url
-
-                    hljs.highlightAll()
-                }
+                element.onchange() // initialization
             })
         })
     }
