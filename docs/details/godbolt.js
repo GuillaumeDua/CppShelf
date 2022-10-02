@@ -141,7 +141,7 @@ window.customElements.define('godbolt-snippet', godbolt_snippet);
 
 // TODO : same with old/previous table/tr/th/td ?
 
-class ThemeSelectorOptionElement extends HTMLElement { // extends HTMLOptionElement {
+class ThemeSelector {
 
     static url_base = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/'
     static url_ext = '.min.css'
@@ -149,126 +149,78 @@ class ThemeSelectorOptionElement extends HTMLElement { // extends HTMLOptionElem
 
     static BuildUrl(arg) {
         if (typeof arg !== 'string' && ! arg instanceof String) {
-            console.error('ThemeSelectorOptionElement.BuildUrl: invalid argument')
+            console.error('ThemeSelector.BuildUrl: invalid argument')
             return
         }
-        return ThemeSelectorOptionElement.url_base
+        return ThemeSelector.url_base
             + arg + '-'
-            + ThemeSelectorOptionElement.dark_or_light_placeholder
-            + ThemeSelectorOptionElement.url_ext
+            + ThemeSelector.dark_or_light_placeholder
+            + ThemeSelector.url_ext
         ;
     }
 
-    connectedCallback() {
+    static initialize = function() {
+        $(document).ready(function() {
+            console.log('ThemeSelector: initializing themes selector ...')
 
-        let arg = this.getAttribute('value')
-        if (arg === undefined || arg == null) {
-            console.error('ThemeSelectorOptionElement: invalid argument')
-            return
-        }
+            var options = $('body').find('option[class=code_theme_option]');
+            options.each((index, element) => {
 
-        this.textContent = arg
-        this.value = ThemeSelectorOptionElement.BuildUrl(arg)
-        this.setAttribute("value", this.value);
-    }
+                let value = element.getAttribute('value')
+                if (element === undefined || element == null) {
+                    console.error('ThemeSelector: invalid argument')
+                    return
+                }
 
-    constructor() {
-        super()
-    }
-}
-customElements.define('theme-selector-option-element', ThemeSelectorOptionElement);
+                element.textContent = value
+            })
 
-// TODO: href-integrity ?
-// TODO: selected
-class ThemeSelector extends HTMLElement {
+            var selectors = $('body').find('select[class=code_theme_selector]');
+            selectors.each((index, element) => {
 
-    connectedCallback() {
+                element.onchange = function() {
+                    let selected_option = $(this).find('option:selected')
+                    console.log('ThemeSelector: switching to ' + selected_option.text())
 
-        console.log('Debug: ' +  this.firstElementChild)
+                    let html_node = document.getElementsByTagName('html')[0];
 
-        this.observer = new MutationObserver(this.onMutation);
-        this.observer.observe(this, { childList: true });
+                    if (html_node.className !== "dark-mode" &&
+                        html_node.className !== "light-mode")
+                        return;
 
-        // if (this.children.length == 0 || ! this.children.every(element => element instanceof ThemeSelectorOptionElement)) {
-        //     console.error('ThemeSelector: invalid argument (HTML)')
-        //     return
-        // }
-        // console.log('ThemeSelector: OK')
-    }
-    disconnectedCallback() {
-        this.observer.disconnect();
-    }
+                    let theme_color = html_node.className.replace('-mode', '')
+                    let new_stylesheet_url = ThemeSelector.BuildUrl(selected_option.text())
+                        .replace(ThemeSelector.dark_or_light_placeholder, theme_color)
+                    console.log('ThemeSelector: switching to stylesheet : ' + new_stylesheet_url)
+                    document.getElementById('code_theme_stylesheet').href = new_stylesheet_url
 
-    onMutation(mutations) {
-        const added = [];
-    
-        for (const mutation of mutations) {
-            if (mutation.type == 'childList')
-                added.push(...mutation.addedNodes);
-        }
-        
-        let nodes = added.filter(el => el.nodeType === Node.ELEMENT_NODE && el instanceof ThemeSelectorOptionElement)
-        nodes.forEach(function(el){
-            console.log(el)
+                    hljs.highlightAll()
+                }
+            })
         })
-      }
-
-    constructor() {
-        super()
-
-        this.onMutation = this.onMutation.bind(this);
-
-        // let theme_loader = document.createElement('link')
-        //     theme_loader.id = 'code_theme_stylesheet'
-        //     theme_loader.rel = 'stylesheet'
-        //     theme_loader.href = ""
-        //     theme_loader.integrity = ""
-        //     theme_loader.crossorigin = "anonymous"
-        //     theme_loader.referrerpolicy = "no-referrer"
-        // this.appendChild(theme_loader)
-        
-        // this.id = 'code_theme_selector'
-        // this.onselectionchange = function() {
-        //     console.log('ThemeSelector: selection changed')
-        // }
-
-        // if (arg === undefined || ! Array.isArray(arg) || Array.length(arg) == 0) {
-        //     // console.error('ThemeSelector: constructor: invalid argument')
-        // }
-        // else {
-        //     arg.forEach(function(element) {
-        //         let option = new ThemeSelectorOptionElement(element)
-        //         this.appendChild(option)
-        //     });
-        // }
     }
 }
-customElements.define('theme-selector', ThemeSelector);
-
-// TODO : highlightjs theme picker
-// - Tokyo Night Dark
-// - Base16/Google Dark
 
 function inject_examples() {
     // expected format : <div class='code_example' url='path/to/code'></div>
-        var place_holders = $('body').find('div[class=code_example]');
-        place_holders.each((index, value) => {
-    
-            if (value.getAttribute('url') === undefined) {
-                console.log('godbolt.js: warning: code_example is missing an url attribute')
-                return true; // ill-formed, skip this element but continue iteration
-            }
-            console.log('processing example ' + index + ' with index ' + value.getAttribute('url') + ' ...')
-    
-            // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
-            const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
-            // const example_url = document.URL.split('/').slice(0, -1).join('/') + '/../../../' + value.getAttribute('url')
-    
-            let example_element = new godbolt_snippet(example_url);
-                example_element.setAttribute('url', example_url);
-            value.appendChild(example_element);
-        });
-    }
+    var place_holders = $('body').find('div[class=code_example]');
+    place_holders.each((index, value) => {
+
+        if (value.getAttribute('url') === undefined) {
+            console.log('godbolt.js: warning: code_example is missing an url attribute')
+            return true; // ill-formed, skip this element but continue iteration
+        }
+        console.log('processing example ' + index + ' with index ' + value.getAttribute('url') + ' ...')
+
+        // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
+        const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
+        // const example_url = document.URL.split('/').slice(0, -1).join('/') + '/../../../' + value.getAttribute('url')
+
+        let example_element = new godbolt_snippet(example_url);
+            example_element.setAttribute('url', example_url);
+        value.appendChild(example_element);
+    });
+}
 
 class godbolt_js {
 
@@ -279,3 +231,5 @@ class godbolt_js {
         })
     }
 }
+
+// TODO: proper name, cleanup

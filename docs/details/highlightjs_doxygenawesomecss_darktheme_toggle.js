@@ -2,15 +2,7 @@
 //  prerequisites : doxygen-awesome-css-darkmode-toggle
 //  prerequisites : highlightjs
 
-// TODO: list of (few) themes in doxygen footer bar ?
-
-function switch_code_theme_to(integrity, href) {
-    let code_stylesheet = document.getElementById('code_theme_stylesheet');
-    code_stylesheet.integrity = integrity;
-    code_stylesheet.href = href;
-}
-
-function callback(mutationsList, observer) {
+function onHTMLClassChange(mutationsList, observer) {
     mutationsList.forEach(mutation => {
         if (mutation.attributeName !== 'class')
             return;
@@ -24,27 +16,21 @@ function callback(mutationsList, observer) {
         if (mutation.oldValue === html_node.className)
             return;
 
-        console.log('Switching highlightjs theme from : ' + mutation.oldValue + ' to ' + html_node.className);
+        let code_stylesheet = document.getElementById('code_theme_stylesheet');
+
+        console.log('onHTMLClassChange: Switching theme from : ' + mutation.oldValue + ' to ' + html_node.className);
         
-        // hard-coded tokyo-night theme
         if (html_node.className === 'dark-mode') {
-            switch_code_theme_to(
-                "sha512-dSQLLtgaq2iGigmy9xowRshaMzUHeiIUTvJW/SkUpb1J+ImXOPNGAI7ZC8V5/PiN/XN83B8uIk4qET7AMhdC5Q==",
-                "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/tokyo-night-dark.min.css"
-            );
+            code_stylesheet.href = code_stylesheet.href.replace('-light', '-dark')
         }
         else {
-            switch_code_theme_to(
-                "sha512-XPIePliMtoEozJ99t+gktFvC8YVLKHzQH7T0RBtzEzNitkNh4IgQ5UAOdPT52ypYGjOHWkKSC4W77ZelU42LeA==",
-                "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/tokyo-night-light.min.css"
-            );
+            code_stylesheet.href = code_stylesheet.href.replace('-dark', '-light')
         }
-        hljs.highlightAll();
     })
-} // dark-mode
+}
 
-const mutationObserver = new MutationObserver(callback);
-mutationObserver.observe(
+const html_class_mutationObserver = new MutationObserver(onHTMLClassChange);
+html_class_mutationObserver.observe(
     document.getElementsByTagName('html')[0],
     { 
         attributes: true,
@@ -52,3 +38,28 @@ mutationObserver.observe(
         attributeOldValue: true
     }
 );
+
+function onHighlightjsHrefChange(mutationsList, observer) {
+
+    mutationsList.forEach(mutation => {
+        if (mutation.attributeName !== 'href')
+            return;
+
+        let code_stylesheet = document.getElementById('code_theme_stylesheet');
+        if (mutation.oldValue === code_stylesheet.href)
+            return
+        console.log('onHighlightjsHrefChange: Switching highlighths stylesheet \n from : ' + mutation.oldValue + '\n to   : ' + code_stylesheet.href)
+
+        hljs.highlightAll();
+    })
+}
+
+const highlightjs_stylesheet_href_mutationObserver = new MutationObserver(onHighlightjsHrefChange);
+highlightjs_stylesheet_href_mutationObserver.observe(
+    document.getElementById('code_theme_stylesheet'),
+    { 
+        attributes: true,
+        attributeFilter: [ 'href' ],
+        attributeOldValue: true
+    }
+)
