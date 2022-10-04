@@ -1,5 +1,15 @@
-// code sections, code-color provided by highlightjs,
-// with send-to-godbolt and copy-to-clipboard buttons
+// awesome-doc-code-sections
+//
+//  Brief: Doxygen + doxygen-awesome-css + highlightjs == <3
+//
+// Code sections, with extra features :
+//  - load content from 
+//      - remote url
+//  - synthax-coloration provided by highlightjs,
+//      - theme selector
+//  - buttons :
+//      - send-to-godbolt
+//      - copy-to-clipboard
 
 if (hljs === undefined)
     console.error('godbolt.js depends on highlightjs, which is missing')
