@@ -40,15 +40,19 @@
     <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
     <script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
 
-    <script type="text/javascript" src="$relpath^godbolt.js" type="module"></script>
-
+    <script type="text/javascript" src="$relpath^awesome-doc-code-sections.js"></script>
+    <!-- <script type="module">
+        import adcs from "./awesome-doc-code-sections.js"
+        adcs.initialize();
+        adcs.ThemeSelector.initialize();
+    </script> -->
     <script type="text/javascript">
+        
+
         DoxygenAwesomeDarkModeToggle.init();
         DoxygenAwesomeFragmentCopyButton.init();
-        godbolt_js.initialize();
-        ThemeSelector.initialize();
-
-        hljs.highlightAll();
+        awesome_doc_code_sections.initialize();
+        // hljs.highlightAll();
     </script>
 </head>
 

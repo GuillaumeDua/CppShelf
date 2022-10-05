@@ -10,6 +10,8 @@
 //  - buttons :
 //      - send-to-godbolt
 //      - copy-to-clipboard
+//
+// TODO: as an external standalone project ? as a repo template ?
 
 if (hljs === undefined)
     console.error('godbolt.js depends on highlightjs, which is missing')
@@ -215,7 +217,14 @@ class ThemeSelector {
     }
 }
 
-function inject_examples() {
+var awesome_doc_code_sections = {}
+awesome_doc_code_sections.html_components = {}
+awesome_doc_code_sections.html_components.CopyToClipboardButton = CopyToClipboardButton
+awesome_doc_code_sections.html_components.SendToGodboltButton = SendToGodboltButton
+awesome_doc_code_sections.html_components.godbolt_snippet = godbolt_snippet
+awesome_doc_code_sections.ThemeSelector = ThemeSelector // private?
+
+awesome_doc_code_sections.inject_examples = () => { // private
     // expected format : <div class='code_example' url='path/to/code'></div>
     var place_holders = $('body').find('div[class=code_example]');
     place_holders.each((index, value) => {
@@ -235,15 +244,15 @@ function inject_examples() {
         value.appendChild(example_element);
     });
 }
-
-class godbolt_js {
-
-    static initialize = function() {
-        $(document).ready(function() {
-            console.log('godbolt_js: initializing code sections ...')
-            inject_examples();
-        })
-    }
+awesome_doc_code_sections.initialize = function() {
+    $(document).ready(function() {
+        console.log('godbolt_js: initializing code sections ...')
+        awesome_doc_code_sections.inject_examples();
+        awesome_doc_code_sections.ThemeSelector.initialize();
+    })
 }
 
-// TODO: proper name, cleanup
+// WIP: proper name, cleanup
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
+// export { awesome_doc_code_sections }
+// import adcs from '/path/to/awesome-doc-code-sections.js'
