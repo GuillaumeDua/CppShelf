@@ -105,7 +105,7 @@ class SendToGodboltButton extends HTMLButtonElement {
 }
 customElements.define('send-to-godbolt-button', SendToGodboltButton, {extends: 'button'});
 
-// Todo: Remove xhr (or make another component for remove ressources)
+// Todo: Remove xhr (or make another component for remote ressources)
 //  local code had better to be injected
 //  - godbolt_snippet
 //  - godbolt_remote_snippet (or a factory for remote ressources that generates a godbolt_snippet)
@@ -246,6 +246,16 @@ awesome_doc_code_sections.html_components.SendToGodboltButton = SendToGodboltBut
 awesome_doc_code_sections.html_components.godbolt_snippet = godbolt_snippet
 awesome_doc_code_sections.ThemeSelector = ThemeSelector // private?
 
+awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper = function() {
+// replace code-sections by doxygen-awesome-css
+
+    var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
+    place_holders.each((index, value) => { // wtf yield 0 elements ?
+        console.log(`removing ${index} element = ${value}`)
+        // TODO
+    });
+}
+
 awesome_doc_code_sections.inject_examples = () => { // private
     // expected format : <div class='code_example' url='path/to/code'></div>
     var place_holders = $('body').find('div[class=code_example]');
@@ -255,11 +265,13 @@ awesome_doc_code_sections.inject_examples = () => { // private
             console.log('godbolt.js: warning: code_example is missing an url attribute')
             return true; // ill-formed, skip this element but continue iteration
         }
-        console.log('processing example ' + index + ' with index ' + value.getAttribute('url') + ' ...')
+        console.log('processing example: ' + index + ' with index ' + value.getAttribute('url') + ' ...')
 
         // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
         const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
         // const example_url = document.URL.split('/').slice(0, -1).join('/') + '/../../../' + value.getAttribute('url')
+
+        console.log('processing example: ' + example_url)
 
         let example_element = new godbolt_snippet(example_url);
             example_element.setAttribute('url', example_url);
@@ -269,6 +281,7 @@ awesome_doc_code_sections.inject_examples = () => { // private
 awesome_doc_code_sections.initialize = function() {
     $(document).ready(function() {
         console.log('godbolt_js: initializing code sections ...')
+        // awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper();
         awesome_doc_code_sections.inject_examples();
         awesome_doc_code_sections.ThemeSelector.initialize();
     })
