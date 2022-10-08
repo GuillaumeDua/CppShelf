@@ -954,7 +954,7 @@ HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-int
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
 # HTML_EXTRA_FILES     += ./examples/ag
 HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections.js
-HTML_EXTRA_FILES       += ./docs/details/highlightjs_doxygenawesomecss_darktheme_toggle.js
+HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections_dark-mode.js
 
 HTML_COLORSTYLE_HUE    = 220
 HTML_COLORSTYLE_SAT    = 100

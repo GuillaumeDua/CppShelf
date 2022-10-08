@@ -24,6 +24,9 @@
 //  prerequisites : doxygen-awesome-css-darkmode-toggle
 //  prerequisites : highlightjs
 
+if (hljs === undefined)
+    console.error('awesome-doc-code-sections_dark-mode.js: depends on highlightjs, which is missing')
+
 function onHTMLClassChange(mutationsList, observer) {
     mutationsList.forEach(mutation => {
         if (mutation.attributeName !== 'class')
@@ -40,7 +43,7 @@ function onHTMLClassChange(mutationsList, observer) {
 
         let code_stylesheet = document.getElementById('code_theme_stylesheet');
 
-        console.log('onHTMLClassChange: Switching theme from : ' + mutation.oldValue + ' to ' + html_node.className);
+        console.log('awesome-doc-code-sections_dark-mode.js:onHTMLClassChange: Switching theme from : ' + mutation.oldValue + ' to ' + html_node.className);
         
         if (html_node.className === 'dark-mode') {
             code_stylesheet.href = code_stylesheet.href.replace('-light', '-dark')
@@ -50,7 +53,6 @@ function onHTMLClassChange(mutationsList, observer) {
         }
     })
 }
-
 const html_class_mutationObserver = new MutationObserver(onHTMLClassChange);
 html_class_mutationObserver.observe(
     document.getElementsByTagName('html')[0],
@@ -71,12 +73,11 @@ function onHighlightjsHrefChange(mutationsList, observer) {
         if (mutation.oldValue === code_stylesheet.href ||
             code_stylesheet.href === window.location.href)
             return
-        console.log('onHighlightjsHrefChange: Switching highlighths stylesheet \n from : ' + mutation.oldValue + '\n to   : ' + code_stylesheet.href)
+        console.log('awesome-doc-code-sections_dark-mode.js:onHighlightjsHrefChange: Switching highlighths stylesheet \n from : ' + mutation.oldValue + '\n to   : ' + code_stylesheet.href)
 
         hljs.highlightAll();
     })
 }
-
 const highlightjs_stylesheet_href_mutationObserver = new MutationObserver(onHighlightjsHrefChange);
 highlightjs_stylesheet_href_mutationObserver.observe(
     document.getElementById('code_theme_stylesheet'),

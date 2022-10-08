@@ -36,7 +36,7 @@
 // TODO: as an external standalone project ? as a repo template ?
 
 if (hljs === undefined)
-    console.error('godbolt.js depends on highlightjs, which is missing')
+    console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
 
 class CopyToClipboardButton extends HTMLButtonElement {
 
@@ -63,7 +63,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
             let text = this.previousSibling.textContent
             navigator.clipboard.writeText(text).then(
                 function() {
-                    console.log('CopyToClipboardButton: success');
+                    console.log('awesome-doc-code-sections.js:CopyToClipboardButton: success');
                 },
                 function(err) {
                     console.error('CopyToClipboardButton: failed: ', err);
@@ -79,7 +79,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
 customElements.define('copy-to-clipboard-button', CopyToClipboardButton, {extends: 'button'});
 
 function send_to_godbolt(element) {
-    console.log('sending : ' + element)
+    console.log('awesome-doc-code-sections.js:send_to_godbolt : ' + element)
     // TODO: detect language
 }
 
@@ -100,7 +100,10 @@ class SendToGodboltButton extends HTMLButtonElement {
         this.style.position = 'absolute';
         this.style.top = 10 + 'px';
         this.style.right = 10 + 'px';
-        this.addEventListener('click', () => console.log("SendToGodboltButton clicked !")); // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
+        this.addEventListener(
+            'click',
+            () => console.log("awesome-doc-code-sections.js:SendToGodboltButton : clicked !")
+        ); // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
     }
 }
 customElements.define('send-to-godbolt-button', SendToGodboltButton, {extends: 'button'});
@@ -112,7 +115,7 @@ customElements.define('send-to-godbolt-button', SendToGodboltButton, {extends: '
 class godbolt_snippet extends HTMLElement {
 
     connectedCallback() {
-        // console.log('godbolt_snippet: connectedCallback with url attribute : ' + this.getAttribute('url'));
+        // console.log('awesome-doc-code-sections.js:godbolt_snippet : connectedCallback with url attribute : ' + this.getAttribute('url'));
     }
 
     constructor(code_url) {
@@ -136,7 +139,7 @@ class godbolt_snippet extends HTMLElement {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', this.code_url); // TODO: async
         xhr.onerror = function() {
-            console.log(`godbolt_snippet: Network Error`);
+            console.error(`awesome-doc-code-sections.js:godbolt_snippet : Network Error`);
         };
         xhr.onload = function() {
 
@@ -197,7 +200,7 @@ class ThemeSelector {
 
         let onOptionSelectedChange = function() {
             let selected_option = $(this).find('option:selected')
-            console.log('ThemeSelector: switching to ' + selected_option.text())
+            console.log('awesome-doc-code-sections.js:ThemeSelector : switching to ' + selected_option.text())
 
             let html_node = document.getElementsByTagName('html')[0];
 
@@ -208,14 +211,14 @@ class ThemeSelector {
             let theme_color = html_node.className.replace('-mode', '')
             let new_stylesheet_url = ThemeSelector.BuildUrl(selected_option.text())
                 .replace(ThemeSelector.dark_or_light_placeholder, theme_color)
-            console.log('ThemeSelector: switching to stylesheet : ' + new_stylesheet_url)
+            console.log('awesome-doc-code-sections.js:ThemeSelector : switching to stylesheet : ' + new_stylesheet_url)
             document.getElementById('code_theme_stylesheet').href = new_stylesheet_url
 
             hljs.highlightAll()
         }
 
         $(document).ready(function() {
-            console.log('ThemeSelector: initializing themes selector ...')
+            console.log('awesome-doc-code-sections.js:ThemeSelector : initializing themes selector ...')
 
             var options = $('body').find('option[class=code_theme_option]');
             options.each((index, element) => {
@@ -251,7 +254,7 @@ awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper = function() {
 
     var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
     place_holders.each((index, value) => { // wtf yield 0 elements ?
-        console.log(`removing ${index} element = ${value}`)
+        console.log(`awesome-doc-code-sections.js:replace_doxygen_awesome_frament_wrapper : removing ${index} element = ${value}`)
         // TODO
     });
 }
@@ -262,16 +265,16 @@ awesome_doc_code_sections.inject_examples = () => { // private
     place_holders.each((index, value) => {
 
         if (value.getAttribute('url') === undefined) {
-            console.log('godbolt.js: warning: code_example is missing an url attribute')
+            console.error('awesome-doc-code-sections.js:inject_examples : div/code_example is missing an url attribute')
             return true; // ill-formed, skip this element but continue iteration
         }
-        console.log('processing example: ' + index + ' with index ' + value.getAttribute('url') + ' ...')
+        console.log('awesome-doc-code-sections.js:inject_examples : processing example: ' + index + ' with index ' + value.getAttribute('url') + ' ...')
 
         // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
         const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
         // const example_url = document.URL.split('/').slice(0, -1).join('/') + '/../../../' + value.getAttribute('url')
 
-        console.log('processing example: ' + example_url)
+        console.log('awesome-doc-code-sections.js:inject_examples : processing example: ' + example_url)
 
         let example_element = new godbolt_snippet(example_url);
             example_element.setAttribute('url', example_url);
@@ -280,7 +283,7 @@ awesome_doc_code_sections.inject_examples = () => { // private
 }
 awesome_doc_code_sections.initialize = function() {
     $(document).ready(function() {
-        console.log('godbolt_js: initializing code sections ...')
+        console.log('awesome-doc-code-sections.js:initialize: initializing code sections ...')
         // awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper();
         awesome_doc_code_sections.inject_examples();
         awesome_doc_code_sections.ThemeSelector.initialize();
