@@ -1,6 +1,5 @@
-// TODO: ifdef compiler-explorer : abs path to raw file
-//  otherwise <csl/ag.hpp>
-// TODO: hide this comment
+// @awesome-doc-code-sections:language=cpp
+// @awesome-doc-code-sections:include <csl/ag.hpp>
 
 struct S { char c; int i; };
 
@@ -16,3 +15,10 @@ S value{ 'A', 41 }; ++std::get<1>(value);
 using namespace csl::ag::io;
 std::cout << "value: " << value << '\n';
 // (wip) compatibility with `fmt` and `std::print` will be available soon
+
+// @awesome-doc-code-sections:expected_output position=right
+
+// value: S& : {
+//    [0] char : A
+//    [1] int : 42
+// }

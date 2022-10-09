@@ -27,6 +27,7 @@
 // Code sections, with extra features :
 //  - load content from 
 //      - remote url
+//          such as (in index.md: <div class='code_example' url='https://some/remote/path/to/file.cpp'></div> )
 //  - synthax-coloration provided by highlightjs,
 //      - theme selector
 //  - buttons :
@@ -118,17 +119,20 @@ class godbolt_snippet extends HTMLElement {
         // console.log('awesome-doc-code-sections.js:godbolt_snippet : connectedCallback with url attribute : ' + this.getAttribute('url'));
     }
 
-    constructor(code_url) {
+    constructor(code_url, code_language) {
         super();
 
         if (code_url === undefined && this.getAttribute('url') != undefined)
             code_url = this.getAttribute('url')
+        if (code_language === undefined && this.getAttribute('language') != undefined)
+            code_language = this.getAttribute('language')
 
         // TODO: parse for specific format (or use regex + specific tags ?)
         // - expected output tag
         // - {code}{separator}{expected_output}
        
         this.code_url = code_url;
+        this.code_language = code_language;
         this.load();
     }
 
@@ -153,6 +157,8 @@ class godbolt_snippet extends HTMLElement {
                 code_node.style.zIndex = 1;
                 code_node.style.position = 'relative'
             let code = code_node.appendChild(document.createElement('code'));
+            if (_this.code_language != undefined)
+                code.className = `hljs ${_this.code_language}`;
                 code.textContent = _this.code
                 hljs.highlightElement(code)
 //                 code.textContent = `auto i = int{ 42 };
@@ -249,42 +255,64 @@ awesome_doc_code_sections.html_components.SendToGodboltButton = SendToGodboltBut
 awesome_doc_code_sections.html_components.godbolt_snippet = godbolt_snippet
 awesome_doc_code_sections.ThemeSelector = ThemeSelector // private?
 
+class ParsedCodeContent {
+    constructor(code_content) {
+        var lines = code_content.split('\n')
+
+        // search for "// @awesome-doc-code-sections:"
+    }
+}
+
 awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper = function() {
 // replace code-sections by doxygen-awesome-css
 
-    var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
-    place_holders.each((index, value) => { // wtf yield 0 elements ?
-        console.log(`awesome-doc-code-sections.js:replace_doxygen_awesome_frament_wrapper : removing ${index} element = ${value}`)
-        // TODO
-    });
+    $(document).ready(function() {
+        var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
+        place_holders.each((index, value) => { // wtf yield 0 elements ?
+            console.log(`awesome-doc-code-sections.js:replace_doxygen_awesome_frament_wrapper : removing ${index} element = ${value}`)
+            value.className = 'awesome-doc-code-sections_code-section'
+            
+            // merge fragments
+            const fragments = document.getElementsByClassName("fragment")
+            for(const fragment of fragments) {
+            
+                let code_node = document.createElement('code');
+                    code_node.innerHTML = fragment.textContent;
+                    // TODO: parse code_content for specific tags ? (ex: expected output, header, etc.)
+                let new_node  = document.createElement('pre');
+                    new_node.appendChild(code_node)
+                fragment.replaceWith(new_node)
+            }
+
+            // TODO: remove doxygen-awesome-fragment-copy-button js file include
+        });
+    })
 }
 
 awesome_doc_code_sections.inject_examples = () => { // private
     // expected format : <div class='code_example' url='path/to/code'></div>
-    var place_holders = $('body').find('div[class=code_example]');
+    var place_holders = $('body').find('div[class^=code_example]');
     place_holders.each((index, value) => {
 
         if (value.getAttribute('url') === undefined) {
             console.error('awesome-doc-code-sections.js:inject_examples : div/code_example is missing an url attribute')
             return true; // ill-formed, skip this element but continue iteration
         }
-        console.log('awesome-doc-code-sections.js:inject_examples : processing example: ' + index + ' with index ' + value.getAttribute('url') + ' ...')
+        let url = value.getAttribute('url')
+        console.log('awesome-doc-code-sections.js:inject_examples : processing example: ' + index + ' with index ' + url + ' ...')
 
-        // const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/gh-pages/examples/' + value.id;
-        const example_url = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore';
-        // const example_url = document.URL.split('/').slice(0, -1).join('/') + '/../../../' + value.getAttribute('url')
+        let language = (value.classList.length != 1 ? value.classList[1] : undefined);
 
-        console.log('awesome-doc-code-sections.js:inject_examples : processing example: ' + example_url)
-
-        let example_element = new godbolt_snippet(example_url);
-            example_element.setAttribute('url', example_url);
+        let example_element = new godbolt_snippet(url, language);
+            example_element.setAttribute('url', url);
+            example_element.setAttribute('language', language)
         value.appendChild(example_element);
     });
 }
 awesome_doc_code_sections.initialize = function() {
     $(document).ready(function() {
         console.log('awesome-doc-code-sections.js:initialize: initializing code sections ...')
-        // awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper();
+        awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper();
         awesome_doc_code_sections.inject_examples();
         awesome_doc_code_sections.ThemeSelector.initialize();
     })

@@ -17,7 +17,7 @@
 
 Example is here :
 
-<div class='code_example' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div>
+<div class='code_example language-cpp' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div>
 
 <!-- 
     equivalent to
