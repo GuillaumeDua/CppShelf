@@ -653,14 +653,14 @@ EXAMPLE_PATH           = ./examples/ag
 # *.h) to filter out the source-files in the directories. If left blank all
 # files are included.
 
-EXAMPLE_PATTERNS       = *
+EXAMPLE_PATTERNS       = *.cpp
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude commands
 # irrespective of the value of the RECURSIVE tag.
 # The default value is: NO.
 
-EXAMPLE_RECURSIVE      = NO
+EXAMPLE_RECURSIVE      = YES
 
 # The IMAGE_PATH tag can be used to specify one or more files or directories
 # that contain images that are to be included in the documentation (see the
@@ -948,11 +948,11 @@ HTML_EXTRA_STYLESHEET  += ./docs/details/doxygen-awesome-css/doxygen-awesome-sid
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
+HTML_EXTRA_FILES       += ./docs/details/images/gh-pages-logo.png
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-interactive-toc.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
-# HTML_EXTRA_FILES     += ./examples/ag
 HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections.js
 HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections_dark-mode.js
 

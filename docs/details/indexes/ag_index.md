@@ -5,7 +5,7 @@
     style="position: relative; top: 0; right: 0; z-index: 1;">
   </a>
   <a href="https://guillaumedua.github.io/CppShelf/">
-    <img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
+    <img loading="lazy" src="gh-pages-logo.png" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="73"
     style="position: absolute; top: 0; right: 0; z-index: 3;"
     >
   </a>
@@ -13,9 +13,11 @@
 
 # Overall presentation
 
+\include examples/ag/00_overview.cpp
+
 Example is here :
 
-<div class='code_example' url='examples/ag/00_overview.cpp'></div>
+<div class='code_example' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div>
 
 <!-- 
     equivalent to
