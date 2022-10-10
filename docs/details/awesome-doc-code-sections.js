@@ -82,7 +82,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
         }
     }
 }
-customElements.define('copy-to-clipboard-button', CopyToClipboardButton, {extends: 'button'});
+customElements.define('awesome-doc-code-sections_copy-to-clipboard-button', CopyToClipboardButton, {extends: 'button'});
 
 function send_to_godbolt(element) {
     console.log('awesome-doc-code-sections.js:send_to_godbolt : ' + element)
@@ -127,9 +127,61 @@ class SendToGodboltButton extends HTMLButtonElement {
         ); // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
     }
 }
-customElements.define('send-to-godbolt-button', SendToGodboltButton, {extends: 'button'});
+customElements.define('awesome-doc-code-sections_send-to-godbolt-button', SendToGodboltButton, {extends: 'button'});
 
-class RemoteCodeSection extends HTMLElement {
+class CodeSection extends HTMLElement {
+// Code section, with synthax-coloration provided by highlightjs
+// Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
+// otherwise it is automatically detected based on fetched code content
+
+    constructor(code, language) {
+        super();
+
+        // arguments
+        if (code === undefined && this.textContent != undefined)
+            code = this.textContent
+        if (language === undefined && this.getAttribute('language') != undefined)
+            language = this.getAttribute('language')
+
+            this.code = code;
+        this.language = language;
+
+        // TODO: parse for specific format (or use regex + specific tags ?)
+        // - expected output tag
+        // - {code}{separator}{expected_output}
+        
+        if (code !== undefined)
+            this.load();
+        else
+            this.innerHTML = '<p>awesome-doc-code-sections:CodeSection : missing code</p>'
+    }
+
+    load() {
+
+        // code content
+        let code_node = document.createElement('pre');
+            code_node.style.zIndex = 1;
+            code_node.style.position = 'relative'
+        let code = code_node.appendChild(document.createElement('code'));
+        if (this.code_language != undefined)
+            code.className = `hljs ${this.code_language}`;
+            code.textContent = this.code
+            hljs.highlightElement(code)
+
+        // buttons
+        let copy_button = new CopyToClipboardButton()
+            copy_button.style.zIndex = code_node.style.zIndex + 1
+        code_node.appendChild(copy_button)
+
+        let CE_button = new SendToGodboltButton
+            CE_button.style.zIndex = code_node.style.zIndex + 1
+        code_node.appendChild(CE_button)
+        this.innerHTML = code_node.outerHTML;
+    }
+}
+window.customElements.define('awesome-doc-code-sections_code-section', CodeSection);
+
+class RemoteCodeSection extends CodeSection {
 // Fetch some code as texts based on the `code_url` parameter (or `url` attribute),
 // and creates a code-sections (pre/code) with synthax-color provided by hightlighthjs
 // Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
@@ -139,26 +191,30 @@ class RemoteCodeSection extends HTMLElement {
         // console.log('awesome-doc-code-sections.js:RemoteCodeSection : connectedCallback with url attribute : ' + this.getAttribute('url'));
     }
 
-    constructor(code_url, code_language) {
+    constructor(code_url, language) {
         super();
 
         if (code_url === undefined && this.getAttribute('url') != undefined)
             code_url = this.getAttribute('url')
-        if (code_language === undefined && this.getAttribute('language') != undefined)
-            code_language = this.getAttribute('language')
+        if (language === undefined && this.getAttribute('language') != undefined)
+        language = this.getAttribute('language')
 
         // TODO: parse for specific format (or use regex + specific tags ?)
         // - expected output tag
         // - {code}{separator}{expected_output}
        
         this.code_url = code_url;
-        this.code_language = code_language;
+        super.language = language;
+
         this.load();
     }
 
     load() {
 
-        let _this = this;
+        let apply_code = (code) => {
+            super.code = code;
+            super.load();
+        }
 
         let xhr = new XMLHttpRequest();
         xhr.open('GET', this.code_url); // TODO: async
@@ -170,37 +226,12 @@ class RemoteCodeSection extends HTMLElement {
             if (xhr.status != 200) {
                 return;
             }
-
-            _this.code = xhr.responseText
-
-            let code_node = document.createElement('pre');
-                code_node.style.zIndex = 1;
-                code_node.style.position = 'relative'
-            let code = code_node.appendChild(document.createElement('code'));
-            if (_this.code_language != undefined)
-                code.className = `hljs ${_this.code_language}`;
-                code.textContent = _this.code
-                hljs.highlightElement(code)
-//                 code.textContent = `auto i = int{ 42 };
-// ++i; // comment
-// return generate_fun() + unicorns_everywhere<42>();`
-
-            let copy_button = new CopyToClipboardButton()
-                copy_button.style.zIndex = code_node.style.zIndex + 1
-            code_node.appendChild(copy_button)
-
-            let CE_button = new SendToGodboltButton
-                CE_button.style.zIndex = code_node.style.zIndex + 1
-            code_node.appendChild(CE_button)
-            _this.innerHTML = code_node.outerHTML;
-
-            // hljs.highlightAll(); // TODO: only this one
-            // hljs.highlightElement(code.innerHTML)
+            apply_code(xhr.responseText)
         };
         xhr.send();
     }
 }
-window.customElements.define('remote-code-section', RemoteCodeSection);
+window.customElements.define('awesome-doc-code-sections_remote-code-section', RemoteCodeSection);
 
 // TODO : Optionaly wrap in table/tr/th/td ?
 
