@@ -27,7 +27,7 @@ auto i = 42;
 
 Example is here :
 
-<div class='code_example' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div>
+<div class='awesome-doc-code-sections_remote-code-section' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div>
 
 <!-- 
     equivalent to
