@@ -26,8 +26,10 @@
 //
 // Code sections, with extra features :
 //  - load content from 
-//      - remote url
-//          such as (in index.md: <div class='code_example' url='https://some/remote/path/to/file.cpp'></div> )
+//      - remote url (js: RemoteCodeSection)
+//          such as (in index.md: <div class='awesome-doc-code-sections_remote-code-section' url='https://some/remote/path/to/file.cpp'></div> )
+//      - local inner HTML (js: CodeSection)
+//          awesome-doc-code-sections_code-section
 //  - synthax-coloration provided by highlightjs,
 //      - theme selector
 //  - buttons :
@@ -55,6 +57,8 @@ class ParsedCodeContent {
 
 // ============
 // HTMLElements
+
+// TODO: toggle dark/light mode if doxygen-awesome-css is not detected
 
 class CopyToClipboardButton extends HTMLButtonElement {
 // Copy text context of this previousSibling HTMLelement
@@ -152,11 +156,11 @@ class CodeSection extends HTMLElement {
         super();
 
         // arguments
-        if (code === undefined && this.textContent != undefined)
+        if (code === undefined && this.textContent !== undefined)
             code = this.textContent
-        if (language === undefined && this.getAttribute('language') != undefined)
+        if (language === undefined && this.getAttribute('language') !== undefined)
             language = this.getAttribute('language')
-        if (language !== undefined && !language.startsWith("language-"))
+        if (language !== undefined && language != null && !language.startsWith("language-"))
             language = `language-${language}`
 
         this.code = code;
@@ -196,8 +200,30 @@ class CodeSection extends HTMLElement {
         code_node.appendChild(CE_button)
         this.innerHTML = code_node.outerHTML;
     }
+
+    static HTMLElement_name = 'awesome-doc-code-sections_code-section'
+
+    static Initialize_DivHTMLElements() {
+    // expected format :
+    // <div class='awesome-doc-code-sections_code-section' [language='cpp']>
+    //  some code here
+    // </div>
+
+        var place_holders = $('body').find(`div[class^=${CodeSection.HTMLElement_name}]`);
+        console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${place_holders.length} elements ...`)
+        place_holders.each((index, value) => {
+    
+            let language = value.getAttribute('language')
+            let code = value.innerHTML
+    
+            let node = new CodeSection(code, language);
+            //  node.setAttribute('code', code);
+                node.setAttribute('language', language)
+            value.replaceWith(node);
+        });
+    }
 }
-window.customElements.define('awesome-doc-code-sections_code-section', CodeSection);
+window.customElements.define(CodeSection.HTMLElement_name, CodeSection);
 
 // TODO : Optionaly wrap in table/tr/th/td ?
 // TODO: factory/init: replace all <div class='awesome-doc-code-sections_code-section' [language='cpp'] />
@@ -354,6 +380,7 @@ var awesome_doc_code_sections = {}
 awesome_doc_code_sections.HTML_elements = {}
 awesome_doc_code_sections.HTML_elements.CopyToClipboardButton = CopyToClipboardButton
 awesome_doc_code_sections.HTML_elements.SendToGodboltButton   = SendToGodboltButton
+awesome_doc_code_sections.HTML_elements.CodeSection           = CodeSection
 awesome_doc_code_sections.HTML_elements.RemoteCodeSection     = RemoteCodeSection
 awesome_doc_code_sections.ThemeSelector = ThemeSelector // private?
 
@@ -404,11 +431,17 @@ awesome_doc_code_sections.inject_examples = () => { // private
     });
 }
 awesome_doc_code_sections.initialize = function() {
-    $(document).ready(function() {
-        console.log('awesome-doc-code-sections.js:initialize: initializing code sections ...')
-        awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper();
-        awesome_doc_code_sections.inject_examples();
-        awesome_doc_code_sections.ThemeSelector.initialize();
+    // window.addEventListener("load", () => {
+
+    $(function() {
+        $(document).ready(function() {
+
+            console.log('awesome-doc-code-sections.js:initialize: initializing code sections ...')
+            awesome_doc_code_sections.replace_doxygen_awesome_frament_wrapper();
+            awesome_doc_code_sections.inject_examples();
+            awesome_doc_code_sections.ThemeSelector.initialize();
+            awesome_doc_code_sections.HTML_elements.CodeSection.Initialize_DivHTMLElements();
+        })
     })
 }
 

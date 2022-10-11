@@ -13,6 +13,16 @@
 
 # Overall presentation
 
+<div class='awesome-doc-code-sections_code-section'>
+auto i = 42;
+// comment
+</div>
+
+<div class='awesome-doc-code-sections_code-section' language='cpp'>
+auto i = 42;
+// comment
+</div>
+
 \include examples/ag/00_overview.cpp
 
 Example is here :
