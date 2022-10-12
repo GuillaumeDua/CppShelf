@@ -204,6 +204,7 @@ class CodeSection extends HTMLElement {
         let CE_button = new SendToGodboltButton
             CE_button.style.zIndex = code_node.style.zIndex + 1
         code_node.appendChild(CE_button)
+
         this.innerHTML = code_node.outerHTML;
     }
 
@@ -418,6 +419,10 @@ awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() 
 // like `<pre><code></code></pre>`,
 // or placeholders like `\include path/to/example.ext`
 
+    // DoxygenAwesomeFragmentCopyButton wraps code in `div class="doxygen-awesome-fragment-wrapper"`
+    // otherwise, default is `div class="fragment"`
+
+    /*
     var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
     console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
     place_holders.each((index, value) => {
@@ -430,6 +435,8 @@ awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() 
         let node = new CodeSection(code, undefined);
             $(value).replaceWith(node)
     });
+    */
+    $(value).parent().prop('className').toLowerCase() == ("doxygen-awesome-fragment-wrapper")
 }
 awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
 
@@ -446,17 +453,32 @@ awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
         }
     })
 
+    // TODO: same for only code elements ?
+}
+awesome_doc_code_sections.initialize_HideButtonsIfTooSmallCodeSection = function() {
+// TODO
+    $('body').find('button[is^=awesome-doc-code-sections_]').each((index, value) => { 
+
+        // console.log(! $(value).parent().width())
+
+        // if (! $(value).parent()) {
+            
+        // }
+    })
+
     // TODO: same for only code elements
 }
 
 awesome_doc_code_sections.options = new class{
 
-    doxygen_awesome_css_compatibility = false
+    doxygen_awesome_css_compatibility   = false
+    pre_code_compatibility              = false
 
     configure = function(obj) {
         if (obj === undefined || obj === null)
             return
-        this.doxygen_awesome_css_compatibility = obj.doxygen_awesome_css_compatibility || false
+        this.doxygen_awesome_css_compatibility  = obj.doxygen_awesome_css_compatibility || false
+        this.pre_code_compatibility             = obj.pre_code_compatibility || false
     }
 }()
 awesome_doc_code_sections.initialize = function() {
@@ -476,7 +498,10 @@ awesome_doc_code_sections.initialize = function() {
                 awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections()
             }
 
-            // awesome_doc_code_sections.initialize_PreCodeHTMLElements();
+            if (awesome_doc_code_sections.options.pre_code_compatibility) {
+                console.log(`awesome-doc-code-sections.js:initialize: existing pre-code compatiblity ...`)
+                awesome_doc_code_sections.initialize_PreCodeHTMLElements();
+            }
         })
     })
 }
