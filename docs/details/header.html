@@ -50,10 +50,20 @@
         adcs.ThemeSelector.initialize();
     </script> -->
     <script type="text/javascript">
+        // hljs.registerLanguage('undefined', hljs.getLanguage('plaintext').rawDefinition)
+        hljs.configure({
+            ignoreUnescapedHTML: true,
+            throwUnescapedHTML: false,
+            languages: [ 'cpp', 'c', 'bash', 'cmake', 'markdown', 'json', 'plaintext' ]
+            // noHighlightRe: /^.*undefined.*$/
+        })
+        
         DoxygenAwesomeDarkModeToggle.init();
         DoxygenAwesomeFragmentCopyButton.init();
 
-        awesome_doc_code_sections.doxygenAwesomeCss_compatiblity = true
+        awesome_doc_code_sections.options.configure({
+            doxygen_awesome_css_compatibility: true
+        })
         awesome_doc_code_sections.initialize(); // initialize all features
     </script>
 </head>

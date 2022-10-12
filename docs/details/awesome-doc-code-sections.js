@@ -155,6 +155,8 @@ class CodeSection extends HTMLElement {
 // Code section, with synthax-coloration provided by highlightjs
 // Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
 // otherwise it is automatically detected based on fetched code content
+//
+// <CodeSection language='cpp'>[some code here]</CodeSection>
 
     constructor(code, language) {
         super();
@@ -162,9 +164,9 @@ class CodeSection extends HTMLElement {
         // arguments
         if (code === undefined && this.textContent !== undefined)
             code = this.textContent
-        if (language === undefined && this.getAttribute('language') !== undefined)
-            language = this.getAttribute('language')
-        if (language !== undefined && language != null && !language.startsWith("language-"))
+        if (! language)
+            language = this.getAttribute('language') || undefined
+        if (language !== undefined && !language.startsWith("language-"))
             language = `language-${language}`
 
         this.code = code;
@@ -189,10 +191,10 @@ class CodeSection extends HTMLElement {
         let code = code_node.appendChild(document.createElement('code'));
             code.textContent = this.code
 
-        if (this.language != undefined)
-            code.className = `hljs ${this.language}`;
-        else
-            hljs.highlightElement(code)
+        code.classList.add('hljs')
+        if (this.language !== undefined && this.language !== null)
+            code.classList.add(`${this.language}`);
+        hljs.highlightElement(code)
 
         // buttons
         let copy_button = new CopyToClipboardButton()
@@ -422,11 +424,9 @@ awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() 
         
         // merge lines
         let lines = $(value).find('div[class=fragment] div[class=line]')
-        console.log(`DEBUG: element ${index} with ${lines.length} lines ...`)
         // WIP: how to keep links ? E.g <a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a>
 
         let code = $.map(lines, function(value) { return value.textContent }).join('\n')
-        console.log(code)
         let node = new CodeSection(code, undefined);
             $(value).replaceWith(node)
     });
@@ -449,8 +449,17 @@ awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
     // TODO: same for only code elements
 }
 
+awesome_doc_code_sections.options = new class{
+
+    doxygen_awesome_css_compatibility = false
+
+    configure = function(obj) {
+        if (obj === undefined || obj === null)
+            return
+        this.doxygen_awesome_css_compatibility = obj.doxygen_awesome_css_compatibility || false
+    }
+}()
 awesome_doc_code_sections.initialize = function() {
-    // window.addEventListener("load", () => {
 
     $(function() {
         $(document).ready(function() {
@@ -462,7 +471,7 @@ awesome_doc_code_sections.initialize = function() {
             awesome_doc_code_sections.HTML_elements.CodeSection.Initialize_DivHTMLElements();
             awesome_doc_code_sections.HTML_elements.RemoteCodeSection.Initialize_DivHTMLElements();
 
-            if (awesome_doc_code_sections.doxygenAwesomeCss_compatiblity === true) {
+            if (awesome_doc_code_sections.options.doxygen_awesome_css_compatibility === true) {
                 console.log(`awesome-doc-code-sections.js:initialize: doxygen-awesome-css compatiblity ...`)
                 awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections()
             }
