@@ -182,6 +182,9 @@ class CodeSection extends HTMLElement {
             this.innerHTML = '<p>awesome-doc-code-sections:CodeSection : missing code</p>'
     }
 
+    connectedCallback() {
+    }
+
     load() {
 
         // code content
@@ -445,36 +448,13 @@ awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() 
         let node = new CodeSection(code, undefined);
             $(value).replaceWith(node)
     })
-
-    // let place_holders = $('body').find('div[class=fragment] div[class=line]')
-    // console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
-    // place_holders.each((index, value) => {
-
-    //     console.log(
-    //         `parent: ${$(value).parent().prop('className').toLowerCase() } , ` +
-    //         `parent.parent : ${$(value).parent().parent().prop('className').toLowerCase() }`
-    //     )
-
-    //     // let node
-    //     // if ($(value).parent().parent().prop('className').toLowerCase() == 'doxygen-awesome-fragment-wrapper')
-    //     //     node = $(value).parent().parent()
-    //     // else
-    //     //     node = $(value).parent()
-
-    //     // merge lines
-        
-    //     // WIP: how to keep links ? E.g <a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a>
-
-    //     // let code = $.map(lines, function(value) { return value.textContent }).join('\n')
-    //     // let node = new CodeSection(code, undefined);
-    //     //     $(value).replaceWith(node)
-    // });
-    // $(value).parent().prop('className').toLowerCase() == ("")
 }
 awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
 
     $('body').find('pre code').each((index, value) => { // filter
-        if (! $(value).parent().parent().prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_")) {
+        if ($(value).parent().parent().prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_"))
+            return
+        
             let existing_node = $(value).parent()
 
             let language = value.getAttribute('language')
@@ -483,37 +463,53 @@ awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
             let node = new CodeSection(code, language);
                 node.setAttribute('language', language)
             existing_node.replaceWith(node);
-        }
     })
 
     // TODO: same for only code elements ?
-}
-awesome_doc_code_sections.initialize_HideButtonsIfTooSmallCodeSection = function() {
-// TODO
-    $('body').find('button[is^=awesome-doc-code-sections_]').each((index, value) => { 
-
-        // console.log(! $(value).parent().width())
-
-        // if (! $(value).parent()) {
-            
-        // }
-    })
-
-    // TODO: same for only code elements
 }
 
 awesome_doc_code_sections.options = new class{
 
     doxygen_awesome_css_compatibility   = false
     pre_code_compatibility              = false
+    auto_hide_buttons                   = false
 
     configure = function(obj) {
         if (obj === undefined || obj === null)
             return
         this.doxygen_awesome_css_compatibility  = obj.doxygen_awesome_css_compatibility || false
-        this.pre_code_compatibility             = obj.pre_code_compatibility || false
+        this.pre_code_compatibility             = obj.pre_code_compatibility            || false
+        this.auto_hide_buttons                  = obj.auto_hide_buttons                 || false
     }
 }()
+
+awesome_doc_code_sections.initialize_ButtonsAutoHide = function() {
+// TODO: How to do that dynamically (resize event, observer, etc.)?
+
+    let auto_hide_element = (container, element) => {
+        element.hide()
+        container.mouseover(() => {
+            element.show()
+        });
+        container.mouseout(() => {
+            element.hide()
+        });
+    }
+
+    $('body').find('button[is^=awesome-doc-code-sections_]').each((index, value) => { 
+
+        let node_containing_button = $(value).parent().parent()
+
+        if (!node_containing_button.prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_"))
+            return // unlikely
+
+        if (awesome_doc_code_sections.options.auto_hide_buttons
+        ||  node_containing_button.width() < 400 
+        // ||  node_containing_button.width() < (window.screen.availWidth / 2)
+        )   auto_hide_element(node_containing_button, $(value))
+    })
+}
+
 awesome_doc_code_sections.initialize = function() {
 
     $(function() {
@@ -535,6 +531,8 @@ awesome_doc_code_sections.initialize = function() {
                 console.log(`awesome-doc-code-sections.js:initialize: existing pre-code compatiblity ...`)
                 awesome_doc_code_sections.initialize_PreCodeHTMLElements();
             }
+
+            awesome_doc_code_sections.initialize_ButtonsAutoHide()
         })
     })
 }
