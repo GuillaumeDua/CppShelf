@@ -419,24 +419,57 @@ awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() 
 // like `<pre><code></code></pre>`,
 // or placeholders like `\include path/to/example.ext`
 
-    // DoxygenAwesomeFragmentCopyButton wraps code in `div class="doxygen-awesome-fragment-wrapper"`
-    // otherwise, default is `div class="fragment"`
+    // DoxygenAwesomeFragmentCopyButton wraps code in 
+    //  `div class="doxygen-awesome-fragment-wrapper > div class="fragment > div class="line"`
+    // otherwise, default is 
+    //  `div class="fragment > div class="line"`
 
-    /*
     var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
     console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
     place_holders.each((index, value) => {
-        
-        // merge lines
+
         let lines = $(value).find('div[class=fragment] div[class=line]')
-        // WIP: how to keep links ? E.g <a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a>
 
         let code = $.map(lines, function(value) { return value.textContent }).join('\n')
         let node = new CodeSection(code, undefined);
             $(value).replaceWith(node)
-    });
-    */
-    $(value).parent().prop('className').toLowerCase() == ("doxygen-awesome-fragment-wrapper")
+    })
+
+    var place_holders = $('body').find('div[class=fragment]')
+    console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
+    place_holders.each((index, value) => {
+
+        let lines = $(value).find('div[class=line]')
+
+        let code = $.map(lines, function(value) { return value.textContent }).join('\n')
+        let node = new CodeSection(code, undefined);
+            $(value).replaceWith(node)
+    })
+
+    // let place_holders = $('body').find('div[class=fragment] div[class=line]')
+    // console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
+    // place_holders.each((index, value) => {
+
+    //     console.log(
+    //         `parent: ${$(value).parent().prop('className').toLowerCase() } , ` +
+    //         `parent.parent : ${$(value).parent().parent().prop('className').toLowerCase() }`
+    //     )
+
+    //     // let node
+    //     // if ($(value).parent().parent().prop('className').toLowerCase() == 'doxygen-awesome-fragment-wrapper')
+    //     //     node = $(value).parent().parent()
+    //     // else
+    //     //     node = $(value).parent()
+
+    //     // merge lines
+        
+    //     // WIP: how to keep links ? E.g <a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a>
+
+    //     // let code = $.map(lines, function(value) { return value.textContent }).join('\n')
+    //     // let node = new CodeSection(code, undefined);
+    //     //     $(value).replaceWith(node)
+    // });
+    // $(value).parent().prop('className').toLowerCase() == ("")
 }
 awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
 
