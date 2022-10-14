@@ -40,6 +40,7 @@
 // TODO: test behavior without theme selector
 // TODO: not mandatory dependency to doxygen             (WIP)
 // TODO: not mandatory dependency to doxygen-awesome-css (WIP)
+// TODO: refactor awesome-doc-code-sections_dark-mode.js
 
 // TODO: fix custom HTMLElement constructor. For Buttons, test with <button is="typename" />
 
@@ -522,7 +523,6 @@ class ToggleDarkModeButton extends HTMLButtonElement {
     }
 
     updateIcon() {
-        console.log(">>>>>>>>>>>>>>>>>> updateIcon")
 
         this.innerHTML = ToggleDarkMode.darkModeEnabled
             ? ToggleDarkModeButton.darkModeIcon
@@ -627,11 +627,11 @@ awesome_doc_code_sections.initialize_ButtonsAutoHide = function() {
         });
     }
 
-    $('body').find('button[is^=awesome-doc-code-sections_]').each((index, value) => { 
+    $('body').find('button[is^=awesome-doc-code-sections_el_]').each((index, value) => { 
 
         let node_containing_button = $(value).parent().parent()
 
-        if (!node_containing_button.prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_cs_"))
+        if (!node_containing_button.prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_"))
             return // unlikely
 
         if (awesome_doc_code_sections.options.auto_hide_buttons
@@ -651,7 +651,7 @@ awesome_doc_code_sections.initialize = function() {
             if (awesome_doc_code_sections.options.toggle_dark_mode) {
                 console.log(`awesome-doc-code-sections.js:initialize: toggle light/dark mode ...`)
                 if (DoxygenAwesomeDarkModeToggle !== undefined) {
-                    console.error('awesome-doc-code-sections.js:initialize: toggle light/dark mode : conflict with DoxygenAwesomeDarkModeToggle detected, aborting')
+                    console.warn('awesome-doc-code-sections.js:initialize: toggle light/dark mode : conflict with DoxygenAwesomeDarkModeToggle detected, aborting')
                 }
                 else
                     awesome_doc_code_sections.ToggleDarkMode.initialize()
