@@ -3,17 +3,23 @@
 <!--BEGIN GENERATE_TREEVIEW-->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
 
-    <!-- https://cdnjs.com/libraries/highlight.js -->
-    <!-- The default one is the first one -->
-    <select class="code_theme_selector">
-      <option class="code_theme_option" value="tokyo-night"></option>
-      <option class="code_theme_option" value="base16/google"></option>
-    </select>
-
   <ul>
+
+    <div style="display:flex; float:left; height: 30px; align-content: flex-start; align-items: center;">
+      <button is="awesome-doc-code-sections_toggle-dark-mode-button" style="display: flex;"></button>
+      <p style="display: flex; margin-left: 10px; "> Code theme : </p>
+        <!-- https://cdnjs.com/libraries/highlight.js -->
+        <!-- The default one is the first one -->
+      <select class="code_theme_selector" style="display: flex; margin-left: 10px; ">
+        <option class="code_theme_option" value="tokyo-night"></option>
+        <option class="code_theme_option" value="base16/google"></option>
+      </select>
+    </div>
+
     $navpath
-    
-    <li class="footer">
+
+    <li class="footer" style="float:right; align-content: flex-end; ">
+
       $generatedby : (<a href="https://www.doxygen.org/index.html" alt="doxygen">
                     <img class="footer" src="$relpath^doxygen.svg" width="104" height="31" alt="doxygen"/>
                   </a> $doxygenversion
