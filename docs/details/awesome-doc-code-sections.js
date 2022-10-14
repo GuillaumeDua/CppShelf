@@ -41,6 +41,7 @@
 // TODO: not mandatory dependency to doxygen             (WIP)
 // TODO: not mandatory dependency to doxygen-awesome-css (WIP)
 // TODO: refactor awesome-doc-code-sections_dark-mode.js
+// TODO: ToggleDarkMode: make AwesomeDoxygenCSS and awesome-doc-code-sections buttons update each others
 
 // TODO: fix custom HTMLElement constructor. For Buttons, test with <button is="typename" />
 
@@ -407,8 +408,6 @@ class ThemeSelector {
     }
 }
 
-// WIP
-
 class ToggleDarkMode /*StaticObserver*/ {
 // Handle dark/light mode info,
 // altering document class-list by adding `dark-mode` or `light-mode`
@@ -422,9 +421,11 @@ class ToggleDarkMode /*StaticObserver*/ {
 
     static initialize = function() {
 
-        if (DoxygenAwesomeDarkModeToggle !== undefined) {
-            console.error('awesome-doc-code-sections.js:initialize: toggle light/dark mode : conflict with DoxygenAwesomeDarkModeToggle detected, aborting')
-        }
+        console.log(`awesome-doc-code-sections.js: ToggleDarkMode:initialize ...`)
+
+        // if (DoxygenAwesomeDarkModeToggle !== undefined) {
+        //     console.error('awesome-doc-code-sections.js:initialize: toggle light/dark mode : conflict with DoxygenAwesomeDarkModeToggle detected, aborting')
+        // }
 
         ToggleDarkMode.enableDarkMode(ToggleDarkMode.userPreference)
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
@@ -513,6 +514,9 @@ class ToggleDarkModeButton extends HTMLButtonElement {
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
                     _this.updateIcon()
                 })
+                window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', event => {
+                    _this.updateIcon()
+                })
                 document.addEventListener("visibilitychange", visibilityState => {
                     if (document.visibilityState === 'visible') {
                         _this.updateIcon()
@@ -524,6 +528,8 @@ class ToggleDarkModeButton extends HTMLButtonElement {
 
     updateIcon() {
 
+        console.log(`>>>>>>> ToggleDarkMode.darkModeEnabled ? ${ToggleDarkMode.darkModeEnabled}`)
+
         this.innerHTML = ToggleDarkMode.darkModeEnabled
             ? ToggleDarkModeButton.darkModeIcon
             : ToggleDarkModeButton.lightModeIcon
@@ -531,8 +537,6 @@ class ToggleDarkModeButton extends HTMLButtonElement {
     }
 }
 customElements.define(ToggleDarkModeButton.HTMLElement_name, ToggleDarkModeButton, {extends: 'button'});
-
-
 
 // ============
 
@@ -648,14 +652,7 @@ awesome_doc_code_sections.initialize = function() {
 
             console.log('awesome-doc-code-sections.js:initialize: initializing code sections ...')
 
-            if (awesome_doc_code_sections.options.toggle_dark_mode) {
-                console.log(`awesome-doc-code-sections.js:initialize: toggle light/dark mode ...`)
-                if (DoxygenAwesomeDarkModeToggle !== undefined) {
-                    console.warn('awesome-doc-code-sections.js:initialize: toggle light/dark mode : conflict with DoxygenAwesomeDarkModeToggle detected, aborting')
-                }
-                else
-                    awesome_doc_code_sections.ToggleDarkMode.initialize()
-            }
+            awesome_doc_code_sections.ToggleDarkMode.initialize()
 
             // replace <select/> with proper HTML elements
             awesome_doc_code_sections.ThemeSelector.Initialize_SelectHTMLElements();
