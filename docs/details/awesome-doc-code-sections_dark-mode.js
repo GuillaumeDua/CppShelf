@@ -24,38 +24,67 @@
 //  prerequisites : doxygen-awesome-css-darkmode-toggle
 //  prerequisites : highlightjs
 
-if (hljs === undefined)
+if (typeof hljs === 'undefined')
     console.error('awesome-doc-code-sections_dark-mode.js: depends on highlightjs, which is missing')
 
+if (typeof awesome_doc_code_sections === 'undefined')
+    console.error('awesome-doc-code-sections_dark-mode.js: depends on awesome-doc-code-sections.js, which is missing')
+
+// ============
+
 // light/dark theme switch
-function onHTMLClassChange(mutationsList, observer) {
+awesome_doc_code_sections.ThemeSelector.can_handle_darkMode = true
+awesome_doc_code_sections.ThemeSelector.toggleDarkLightMode_onTheme = function(isDarkModeEnabled) {
     
+    let code_stylesheet = document.getElementById(awesome_doc_code_sections.ThemeSelector.stylesheet_HTML_placeholder_id);
+    if (isDarkModeEnabled)
+        code_stylesheet.href = code_stylesheet.href.replace('-light', '-dark')
+    else
+        code_stylesheet.href = code_stylesheet.href.replace('-dark', '-light')
+}
+// Toggle dark/light mode : doxygen-awesome-css & awesome-doc-code-sections inter-operability/compatibility
+awesome_doc_code_sections.ToggleDarkMode.updateToggleIcons = function(isDarkModeEnabled) {
+    
+    if (awesome_doc_code_sections.options.doxygen_awesome_css_compatibility
+    &&  typeof DoxygenAwesomeDarkModeToggle !== 'undefined')
+    {
+        $("body").find("doxygen-awesome-dark-mode-toggle").each((index, value) => {
+            DoxygenAwesomeDarkModeToggle.darkModeEnabled = isDarkModeEnabled
+            value.updateIcon()
+        })
+        $("body").find('button[is="awesome-doc-code-sections_toggle-dark-mode-button"]').each((index, value) => {
+            awesome_doc_code_sections.ToggleDarkMode.darkModeEnabled = isDarkModeEnabled
+            value.updateIcon()
+        })
+    }
+}
+
+// ============
+
+awesome_doc_code_sections.onHTMLClassChange_updateDarkLightMode = function(mutationsList, observer) {
+// TODO: only last mutation matters ?
+
     mutationsList.forEach(mutation => {
+
         if (mutation.attributeName !== 'class')
             return;
-
-        let html_node = document.getElementsByTagName('html')[0];
-
         if (mutation.oldValue !== null &&
             mutation.oldValue !== "dark-mode" &&
             mutation.oldValue !== "light-mode")
             return;
+        let html_node = document.getElementsByTagName('html')[0];
         if (mutation.oldValue === html_node.className)
             return;
 
-        let code_stylesheet = document.getElementById('code_theme_stylesheet');
-
         console.log('awesome-doc-code-sections_dark-mode.js:onHTMLClassChange: Switching theme from : ' + mutation.oldValue + ' to ' + html_node.className);
-        
-        if (html_node.className === 'dark-mode') {
-            code_stylesheet.href = code_stylesheet.href.replace('-light', '-dark')
-        }
-        else {
-            code_stylesheet.href = code_stylesheet.href.replace('-dark', '-light')
-        }
+
+        let isDarkModeEnabled = (html_node.className === 'dark-mode')
+
+        awesome_doc_code_sections.ThemeSelector.toggleDarkLightMode_onTheme(isDarkModeEnabled)
+        awesome_doc_code_sections.ToggleDarkMode.updateToggleIcons(isDarkModeEnabled)
     })
 }
-const html_class_mutationObserver = new MutationObserver(onHTMLClassChange);
+const html_class_mutationObserver = new MutationObserver(awesome_doc_code_sections.onHTMLClassChange_updateDarkLightMode);
 html_class_mutationObserver.observe(
     document.getElementsByTagName('html')[0],
     { 
@@ -65,3 +94,5 @@ html_class_mutationObserver.observe(
     }
 );
 
+
+// TODO: move other related stuffs here ...

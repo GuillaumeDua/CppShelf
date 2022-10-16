@@ -42,12 +42,11 @@
 // TODO: as an external standalone project ?
 // TODO: test behavior without theme selector (provide default behavior)
 // TODO: not mandatory dependency to doxygen             (WIP)
-// TODO: refactor awesome-doc-code-sections_dark-mode.js
 // TODO: ToggleDarkMode: make AwesomeDoxygenCSS and awesome-doc-code-sections buttons update each others
 // TODO: highlightjs makes clickable code elements not clickable anymore. Fix that ?
 // TODO: Test with Marp
 
-if (hljs === undefined)
+if (typeof hljs === 'undefined')
     console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
 
 class ParsedCodeContent {
@@ -484,14 +483,6 @@ class ToggleDarkMode /*StaticObserver*/ {
             document.documentElement.classList.remove("dark-mode")
             document.documentElement.classList.add("light-mode")
         }
-
-        // doxygen-awesome-css compatibility
-        if (DoxygenAwesomeDarkModeToggle !== undefined) {
-            DoxygenAwesomeDarkModeToggle.onSystemPreferenceChanged()
-            $("body").find("doxygen-awesome-dark-mode-toggle").each((index, value) => {
-                value.updateIcon()
-            })
-        }
     }
 
     static get systemPreference() {
@@ -566,21 +557,6 @@ class ToggleDarkModeButton extends HTMLButtonElement {
                         _this.updateIcon()
                     }
                 });
-
-                // doxygen-awesome-css compatibility
-                console.log(">>>>>>>>>> init")
-                if (DoxygenAwesomeDarkModeToggle !== undefined) {
-                    console.log(">>>>>>>>>> defined")
-                    $("body").find("doxygen-awesome-dark-mode-toggle").each((index, value) => {
-                        console.log(">>>>>>>>>> FOUND")
-                        value.addEventListener('click', (e) => {
-                            console.log(">>>>>>>>>>>>>>>>> DoxygenAwesomeDarkModeToggle clicked")
-                        })
-                        value.onclick = (e) => {
-                            console.log(">>>>>>>>>>>>>>>>> DoxygenAwesomeDarkModeToggle clicked")
-                        }
-                    })
-                }
             })
         })
     }
@@ -604,7 +580,7 @@ var awesome_doc_code_sections = {}
     awesome_doc_code_sections.HTML_elements.ToggleDarkModeButton  = ToggleDarkModeButton
     awesome_doc_code_sections.HTML_elements.CodeSection           = CodeSection
     awesome_doc_code_sections.HTML_elements.RemoteCodeSection     = RemoteCodeSection
-    awesome_doc_code_sections.ThemeSelector = ThemeSelector // private?
+    awesome_doc_code_sections.ThemeSelector = ThemeSelector
     awesome_doc_code_sections.ToggleDarkMode = ToggleDarkMode
 
 // TODO: make sure that doxygen elements are also still clickable with pure doxygen (not doxygen-awesome-css)
@@ -695,7 +671,7 @@ awesome_doc_code_sections.options = new class{
     doxygen_awesome_css_compatibility   = false
     pre_code_compatibility              = false
     auto_hide_buttons                   = false
-    toggle_dark_mode                    = (DoxygenAwesomeDarkModeToggle !== undefined)
+    toggle_dark_mode                    = (typeof DoxygenAwesomeDarkModeToggle !== 'undefined')
 
     configure = function(obj) {
         if (obj === undefined || obj === null)
