@@ -27,7 +27,9 @@
 if (hljs === undefined)
     console.error('awesome-doc-code-sections_dark-mode.js: depends on highlightjs, which is missing')
 
+// light/dark theme switch
 function onHTMLClassChange(mutationsList, observer) {
+    
     mutationsList.forEach(mutation => {
         if (mutation.attributeName !== 'class')
             return;
@@ -63,27 +65,3 @@ html_class_mutationObserver.observe(
     }
 );
 
-function onHighlightjsHrefChange(mutationsList, observer) {
-
-    mutationsList.forEach(mutation => {
-        if (mutation.attributeName !== 'href')
-            return;
-
-        let code_stylesheet = document.getElementById('code_theme_stylesheet');
-        if (mutation.oldValue === code_stylesheet.href ||
-            code_stylesheet.href === window.location.href)
-            return
-        console.log('awesome-doc-code-sections_dark-mode.js:onHighlightjsHrefChange: Switching highlighths stylesheet \n from : ' + mutation.oldValue + '\n to   : ' + code_stylesheet.href)
-
-        hljs.highlightAll();
-    })
-}
-const highlightjs_stylesheet_href_mutationObserver = new MutationObserver(onHighlightjsHrefChange);
-highlightjs_stylesheet_href_mutationObserver.observe(
-    document.getElementById('code_theme_stylesheet'),
-    { 
-        attributes: true,
-        attributeFilter: [ 'href' ],
-        attributeOldValue: true
-    }
-)

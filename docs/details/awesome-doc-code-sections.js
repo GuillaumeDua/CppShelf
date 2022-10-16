@@ -22,7 +22,8 @@
 
 // awesome-doc-code-sections
 //
-//  Brief: Doxygen + doxygen-awesome-css + highlightjs == <3
+//  Brief: Doxygen + doxygen-awesome-css + highlightjs == <3 (awesome-doc-code-sections)
+//         Note that doxygen-awesome-css is not a mandatory dependency
 //
 // Code sections, with extra features :
 //  - load content from 
@@ -32,20 +33,19 @@
 //          awesome-doc-code-sections_code-section
 //  - synthax-coloration provided by highlightjs,
 //      - theme selector
+//  - toggle dark/light theme
 //  - buttons :
 //      - send-to-godbolt
 //      - copy-to-clipboard
 //      - toggle light/dark mode
 
 // TODO: as an external standalone project ?
-// TODO: test behavior without theme selector
+// TODO: test behavior without theme selector (provide default behavior)
 // TODO: not mandatory dependency to doxygen             (WIP)
-// TODO: not mandatory dependency to doxygen-awesome-css (WIP)
 // TODO: refactor awesome-doc-code-sections_dark-mode.js
 // TODO: ToggleDarkMode: make AwesomeDoxygenCSS and awesome-doc-code-sections buttons update each others
 // TODO: highlightjs makes clickable code elements not clickable anymore. Fix that ?
-
-// TODO: fix custom HTMLElement constructor. For Buttons, test with <button is="typename" />
+// TODO: Test with Marp
 
 if (hljs === undefined)
     console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
@@ -244,7 +244,6 @@ class RemoteCodeSection extends CodeSection {
 // and creates a code-sections (pre/code) with synthax-color provided by hightlighthjs
 // Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
 // otherwise it is automatically detected based on fetched code content
-//
 
     static HTMLElement_name = 'awesome-doc-code-sections_remote-code-section'
 
@@ -344,11 +343,15 @@ class ThemeSelector {
 // </select>
 //
 // Current limitation: not a dedicated HTMLElement
+//
+// Note that an HTML placeholder for stylesheet is necessary/mandatory
+//   <link id='code_theme_stylesheet' rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     static HTMLElement_name = 'awesome-doc-code-sections_theme-selector'
     static url_base = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/'
     static url_ext = '.min.css'
     static dark_or_light_placeholder = '{dark_or_light}'
+    static stylesheet_HTML_placeholder_id = 'code_theme_stylesheet'
 
     static BuildUrl(arg) {
         if (typeof arg !== 'string' && ! arg instanceof String) {
@@ -362,6 +365,15 @@ class ThemeSelector {
         ;
     }
 
+    static check_stylesheet_HTML_placeholder() {
+
+        var style_placeholder = document.getElementById(ThemeSelector.stylesheet_HTML_placeholder_id)
+        if (style_placeholder === undefined || style_placeholder === null) 
+            console.error(
+                `awesome-doc-code-sections.js:ThemeSelector : missing stylesheet HTML placeholder\n
+                <link id="${ThemeSelector.stylesheet_HTML_placeholder_id}" rel="stylesheet"/>`
+            )
+    }
     static Initialize_SelectHTMLElements = function() {
 
         let onOptionSelectedChange = function() {
@@ -386,6 +398,8 @@ class ThemeSelector {
         $(document).ready(function() {
             console.log('awesome-doc-code-sections.js:ThemeSelector : initializing themes selector ...')
 
+            ThemeSelector.check_stylesheet_HTML_placeholder()
+
             var options = $('body').find('select[class=code_theme_selector] option[class=code_theme_option]');
             options.each((index, element) => {
 
@@ -406,14 +420,38 @@ class ThemeSelector {
         })
     }
 }
+// Theme style switch
+const highlightjs_stylesheet_href_mutationObserver = new MutationObserver((mutationsList, observer) => {
+
+    mutationsList.forEach(mutation => {
+        if (mutation.attributeName !== 'href')
+            return;
+
+        let code_stylesheet = document.getElementById('code_theme_stylesheet');
+        if (mutation.oldValue === code_stylesheet.href ||
+            code_stylesheet.href === window.location.href)
+            return
+        console.log('awesome-doc-code-sections_dark-mode.js:onHighlightjsHrefChange: Switching highlighths stylesheet \n from : ' + mutation.oldValue + '\n to   : ' + code_stylesheet.href)
+
+        hljs.highlightAll();
+    })
+});
+highlightjs_stylesheet_href_mutationObserver.observe(
+    document.getElementById(ThemeSelector.stylesheet_HTML_placeholder_id),
+    { 
+        attributes: true,
+        attributeFilter: [ 'href' ],
+        attributeOldValue: true
+    }
+)
 
 class ToggleDarkMode /*StaticObserver*/ {
 // Handle dark/light mode info,
 // altering document class-list by adding `dark-mode` or `light-mode`
 //
-// Prerequisites: no DoxygenAwesomeDarkModeToggle
 //  Note: DoxygenAwesomeDarkModeToggle is a great alternative to this,
 //        that you should use instead when using awesome-doc-code-sections in conjunction with DoxygenAwesomeCSS
+//        Both can be used at the same time though (compatiblity/inter-operability is a default feature)
 
     static prefersLightModeInDarkModeKey    = "prefers-light-mode-in-dark-mode"
     static prefersDarkModeInLightModeKey    = "prefers-dark-mode-in-light-mode"
@@ -445,6 +483,14 @@ class ToggleDarkMode /*StaticObserver*/ {
         else {
             document.documentElement.classList.remove("dark-mode")
             document.documentElement.classList.add("light-mode")
+        }
+
+        // doxygen-awesome-css compatibility
+        if (DoxygenAwesomeDarkModeToggle !== undefined) {
+            DoxygenAwesomeDarkModeToggle.onSystemPreferenceChanged()
+            $("body").find("doxygen-awesome-dark-mode-toggle").each((index, value) => {
+                value.updateIcon()
+            })
         }
     }
 
@@ -502,7 +548,6 @@ class ToggleDarkModeButton extends HTMLButtonElement {
         super()
 
         let _this = this
-
         $(function() {
             $(document).ready(function() {
                 
@@ -521,6 +566,21 @@ class ToggleDarkModeButton extends HTMLButtonElement {
                         _this.updateIcon()
                     }
                 });
+
+                // doxygen-awesome-css compatibility
+                console.log(">>>>>>>>>> init")
+                if (DoxygenAwesomeDarkModeToggle !== undefined) {
+                    console.log(">>>>>>>>>> defined")
+                    $("body").find("doxygen-awesome-dark-mode-toggle").each((index, value) => {
+                        console.log(">>>>>>>>>> FOUND")
+                        value.addEventListener('click', (e) => {
+                            console.log(">>>>>>>>>>>>>>>>> DoxygenAwesomeDarkModeToggle clicked")
+                        })
+                        value.onclick = (e) => {
+                            console.log(">>>>>>>>>>>>>>>>> DoxygenAwesomeDarkModeToggle clicked")
+                        }
+                    })
+                }
             })
         })
     }
@@ -547,21 +607,35 @@ var awesome_doc_code_sections = {}
     awesome_doc_code_sections.ThemeSelector = ThemeSelector // private?
     awesome_doc_code_sections.ToggleDarkMode = ToggleDarkMode
 
-awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() {
-// Replace code-sections generated by doxygen-awesome-css
+// TODO: make sure that doxygen elements are also still clickable with pure doxygen (not doxygen-awesome-css)
+awesome_doc_code_sections.initialize_doxygenCodeSections = function() {
+// Replace code-sections generated by doxygen (and possibly altered by doxygen-awesome-css)
 // like `<pre><code></code></pre>`,
 // or placeholders like `\include path/to/example.ext`
 
     // DoxygenAwesomeFragmentCopyButton wraps code in 
-    //  `div class="doxygen-awesome-fragment-wrapper > div class="fragment > div class="line"`
+    //  div[class="doxygen-awesome-fragment-wrapper"] div[class="fragment"] div[class="line"]
     // otherwise, default is 
-    //  `div class="fragment > div class="line"`
+    //  div[class="fragment"] div[class="line"]
+
+    // clickable documentation elements are :
+    //  div[class="doxygen-awesome-fragment-wrapper"] div[class="fragment"] div[class="line"]
+    //      <a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a>
+
+    let doc_ref_links = new Map(); // preserve clickable documentation reference links
 
     var place_holders = $('body').find('div[class=doxygen-awesome-fragment-wrapper]');
-    console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
+    console.log(`awesome-doc-code-sections.js:initialize_doxygenCodeSections : replacing ${place_holders.length} elements ...`)
     place_holders.each((index, value) => {
 
         let lines = $(value).find('div[class=fragment] div[class=line]')
+
+        // WIP
+        let links = lines.find('a[class="code"]')
+        links.each((index, value) => {
+            doc_ref_links.set(value.textContent, value.href)
+        })
+        // /WIP
 
         let code = $.map(lines, function(value) { return value.textContent }).join('\n')
         let node = new CodeSection(code, undefined);
@@ -569,15 +643,33 @@ awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections = function() 
     })
 
     var place_holders = $('body').find('div[class=fragment]')
-    console.log(`awesome-doc-code-sections.js:initialize_doxygenAwesomeCssCodeSections : replacing ${place_holders.length} elements ...`)
+    console.log(`awesome-doc-code-sections.js:initialize_doxygenCodeSections : replacing ${place_holders.length} elements ...`)
     place_holders.each((index, value) => {
 
         let lines = $(value).find('div[class=line]')
+
+        // WIP
+        let links = lines.find('a[class="code"]')
+        links.each((index, value) => {
+            doc_ref_links.set(value.textContent, value.href)
+        })
+        // /WIP
 
         let code = $.map(lines, function(value) { return value.textContent }).join('\n')
         let node = new CodeSection(code, undefined);
             $(value).replaceWith(node)
     })
+
+    // documentation reference links
+    doc_ref_links.forEach((values, keys) => {
+        // console.log(">>>>>>> " + value.href + " => " + value.textContent)
+        console.log(">>>>>>> " + values + " => " + keys)
+    })
+
+    var place_holders = $('body').find('awesome-doc-code-sections_code-section pre code') // span or text
+    place_holders.filter(function() {
+        return $(this).text().replace(/toto/g, '<a href=".">toto</a>');
+      })
 }
 awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
 
@@ -659,7 +751,7 @@ awesome_doc_code_sections.initialize = function() {
 
             if (awesome_doc_code_sections.options.doxygen_awesome_css_compatibility === true) {
                 console.log(`awesome-doc-code-sections.js:initialize: doxygen-awesome-css compatiblity ...`)
-                awesome_doc_code_sections.initialize_doxygenAwesomeCssCodeSections()
+                awesome_doc_code_sections.initialize_doxygenCodeSections()
             }
 
             if (awesome_doc_code_sections.options.pre_code_compatibility) {
