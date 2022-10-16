@@ -14,8 +14,15 @@
 # Overall presentation
 
 <div class='awesome-doc-code-sections_code-section'>
+<pre><code>
 auto i = 42;
+
+struct A{ int i; float f; };
+static_assert(csl::ag::size<A>::value == 2);
+static_assert(csl::ag::size_v<A>      == 2);
+
 // comment
+</code></pre>
 </div>
 
 <div class='awesome-doc-code-sections_code-section' language='cpp'>

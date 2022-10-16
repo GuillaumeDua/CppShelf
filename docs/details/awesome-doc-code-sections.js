@@ -40,6 +40,7 @@
 //      - toggle light/dark mode
 
 // TODO: as an external standalone project ?
+// TODO: compatiblity with https://github.com/EnlighterJS/EnlighterJS instead of highlightjs
 // TODO: test behavior without theme selector (provide default behavior)
 // TODO: not mandatory dependency to doxygen             (WIP)
 // TODO: ToggleDarkMode: make AwesomeDoxygenCSS and awesome-doc-code-sections buttons update each others
@@ -216,22 +217,38 @@ class CodeSection extends HTMLElement {
     }
 
     static Initialize_DivHTMLElements() {
-    // expected format :
+    // expected formats :
+    //
     // <div class='awesome-doc-code-sections_code-section' [language='cpp']>
-    //  some code here
+    //  one line of code here
+    // </div>
+    //
+    // <div class='awesome-doc-code-sections_code-section' [language='cpp']>
+    //   <pre>
+    //      <code>
+    //  mutiples
+    //  lines of
+    //  code here
+    //      </code>
+    //   </pre>
     // </div>
 
-        var place_holders = $('body').find(`div[class=${CodeSection.HTMLElement_name}]`);
-        console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${place_holders.length} elements ...`)
-        place_holders.each((index, value) => {
+        let replace_by_HTMLElement = (index, value) => {
     
             let language = value.getAttribute('language')
             let code = value.textContent
-    
+                        .replace(/^\s+/g, '').replace(/\s+$/g, '') // remove enclosing empty lines
             let node = new CodeSection(code, language);
                 node.setAttribute('language', language)
             value.replaceWith(node);
-        });
+        };
+
+        var multines        = $('body').find(`div[class=${CodeSection.HTMLElement_name}] pre code`)
+        var single_lines    = $('body').find(`div[class=${CodeSection.HTMLElement_name}]`)
+
+        console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${multines.length + single_lines.length} elements ...`)
+        multines.each(replace_by_HTMLElement)
+        single_lines.each(replace_by_HTMLElement)
     }
 }
 customElements.define(CodeSection.HTMLElement_name, CodeSection);
