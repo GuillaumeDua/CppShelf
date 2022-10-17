@@ -109,14 +109,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
 }
 customElements.define(CopyToClipboardButton.HTMLElement_name, CopyToClipboardButton, {extends: 'button'});
 
-function send_to_godbolt(element) {
-    console.log('awesome-doc-code-sections.js:send_to_godbolt : ' + element)
-    // TODO: detect language
-}
-
 class SendToGodboltButton extends HTMLButtonElement {
-// TODO: open a godbolt tab with code content, or replace code section by a godbolt iframe
-// TODO: language -> parent.classList or language attribute
 
     static HTMLElement_name = 'awesome-doc-code-sections_el_send-to-godbolt-button'
     static title            = 'Try this on godbolt.org (compiler-explorer)'
@@ -142,14 +135,56 @@ class SendToGodboltButton extends HTMLButtonElement {
                 this.innerHTML = SendToGodboltButton.successIcon
                 this.style.fill = 'green'
 
-                // TODO
+                this.onClickSend()
 
                 window.setTimeout(() => {
                     this.innerHTML = SendToGodboltButton.icon
                     this.style.fill = 'black'
                 }, 1000);
             }
-        ); // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
+        );
+    }
+
+    // TODO: examples metadata
+    //  - cpp-main: encompass code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
+    //  - compilation-options
+    // TODO: replace header with absolute raw URL
+    // TODO: configuration for all of these ?
+    //  - map { language => compiler }
+    //  simple "onMetaData(key:value, requestModifier)"
+    onClickSend() {
+        let codeSectionElement = this.parentElement.parentElement
+        if (codeSectionElement === undefined
+        ||  codeSectionElement.tagName != CodeSection.HTMLElement_name.toUpperCase())
+            console.log("awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: unexpected parent.parent element (must be CodeSection)")
+
+        // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
+        console.log('awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: : sending ...')
+    
+        let data = {
+            "sessions": [{
+                "id": 1,
+                "language": "c++", // TODO: detect language
+                "source": codeSectionElement.textContent,
+                "compilers":  [],
+                "executors": [{
+                    "compiler":
+                    {
+                        "id": "clang1400",
+                        "libs": [ ],
+                        "options": "-O2 -std=c++20"
+                    }
+                }]
+            }]
+        };
+    
+        // CE /clientstate API
+        let body  = JSON.stringify(data);
+        let state = btoa(body);
+        let url   = "https://godbolt.org/clientstate/" + encodeURIComponent(state);
+    
+        // Open in a new tab
+        window.open(url, "_blank");
     }
 }
 customElements.define(SendToGodboltButton.HTMLElement_name, SendToGodboltButton, {extends: 'button'});
@@ -211,7 +246,7 @@ class CodeSection extends HTMLElement {
 
         let CE_button = new SendToGodboltButton
             CE_button.style.zIndex = code_node.style.zIndex + 1
-        code_node.appendChild(CE_button)
+        let CE_button_node = code_node.appendChild(CE_button)
 
         this.innerHTML = code_node.outerHTML;
     }
