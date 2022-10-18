@@ -40,12 +40,14 @@
 //      - toggle light/dark mode
 
 // TODO: as an external standalone project ?
-// TODO: compatiblity with https://github.com/EnlighterJS/EnlighterJS instead of highlightjs
-// TODO: test behavior without theme selector (provide default behavior)
-// TODO: not mandatory dependency to doxygen             (WIP)
-// TODO: ToggleDarkMode: make AwesomeDoxygenCSS and awesome-doc-code-sections buttons update each others
+// TODO: compatibility with https://github.com/EnlighterJS/EnlighterJS instead of highlightjs
+// TODO: compatibility with Marp
+//
+// TODO: test behavior without theme selector   (provide default behavior)
+// TODO: not mandatory dependency to doxygen    (WIP)
 // TODO: highlightjs makes clickable code elements not clickable anymore. Fix that ?
-// TODO: Test with Marp
+//          https://stackoverflow.com/questions/74114767/highlightjs-how-to-create-custom-clickable-sequence-of-characters
+// TODO: hide warnings for undefined/fallback hljs language
 
 if (typeof hljs === 'undefined')
     console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
@@ -66,26 +68,75 @@ class ParsedCode {
 // @awesome-doc-code-sections:CE:compiler_id
 // @awesome-doc-code-sections:CE:compilation_options
 // @awesome-doc-code-sections:CE:libs
+// @awesome-doc-code-sections:CE:add_main  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
 // @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
-// @awesome-doc-code-sections:encompass_with_main_function  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
+// @awesome-doc-code-sections:begin,end
 
     static tag              = '// @awesome-doc-code-sections:'
+    static tag_ce           = 'CE:'
     static code_placeholder = '${code_placeholder}'
 
+    get ce_code() {
+        if (! this.ce.add_main)
+            return this.code()
+        
+        // encompass code with a defaut main function
+        let conf = awesome_doc_code_sections.configuration.GodboltLanguages.get(this.language)
+        if (conf === undefined)
+            console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: missing configuration for language ${this.language}`)
+        if (typeof conf.default_main_function === 'undefined' || conf.default_main_function === undefined)
+            console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: bad configuration for language ${this.language} : missing default main function definition`)
+        if (conf.default_main_function.indexOf(code_placeholder) === -1)
+            console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: in configuration for language ${this.language}, ill-formed default main function definition (missing placeholder)`)
+        
+        return conf.default_main_function.replace(ParsedCode.code_placeholder, this.code)
+    }
+
+    ce = {}
+    #metadata_ce_parser = new Map([
+        [ 'compiler_id',         (value) => { this.ce.compiler_id         = value } ],
+        [ 'compilation_options', (value) => { this.ce.compilation_options = value } ],
+        [ 'libs',                (value) => { this.ce.libs                = value } ],
+        [ 'add_main',            (value) => { this.ce.add_main            = Boolean(value) } ]
+    ])
+    #metadata_parser = new Map([
+        [ 'language', (value) => { this.language = value} ],
+        [ 'CE', (value) => { this.language = value} ],
+    ])
+
     constructor(code_content) {
-        var lines = code_content.split('\n')
+
+        code_content.split('\n')
             .filter((line) => {
                 return line.startsWith(ParsedCode.tag)
             }).map((line) => {
                 return line.substr(ParsedCode.tag.length)
-            }).forEach((adcs_metadata_tag) => {
-                console.log(`>>>>>>> [${adcs_metadata_tag}]`)
+            }).forEach((value) => {
+                console.log(`>>>>>>> [${value}]`)
+
+                let pair, parser
+                if (value.startsWith(ParsedCode.tag_ce)) {
+                // CE
+                    pair = value.substr(ParsedCode.tag_ce.length).split('=')
+                    parser = this.#metadata_ce_parser
+                }
+                else {
+                // default
+                    pair = value.split('=')
+                    parser = this.#metadata_parser
+                }
+
+                if (pair.length != 2)
+                    console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
+                parser(pair[0], pair[1])
             })
 
-
-        // this.metadatas
-        // this.code
-        // this.includes_factory
+        // keep only lines that are not metadatas
+        this.code = code_content.split('\n')
+            .filter((line) => {
+                return ! line.startsWith(ParsedCode.tag)
+            })
+            .join('\n')
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
@@ -186,6 +237,11 @@ class SendToGodboltButton extends HTMLButtonElement {
         let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
         if (configuration === undefined)
             console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
+
+        // TODO: check:
+        //      ParsedData.language
+        //  vs. hljs    https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md
+        //  vs. godbolt https://godbolt.org/api/languages
 
         // TODO: local metadata can override compiler_id, options
         let data = {
