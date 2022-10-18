@@ -50,14 +50,30 @@
 if (typeof hljs === 'undefined')
     console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
 
+var awesome_doc_code_sections = {}
+    awesome_doc_code_sections.configuration = {}
+    awesome_doc_code_sections.configuration.GodboltLanguages =  new Map()
+    // key   : language_hljs_name
+    // value : {
+    //      language_id,    // not mandatory, if same as key. Refers to https://godbolt.org/api/languages
+    //      compiler_id,
+    //      default_options // not mandatory
+    // }
+
 class ParsedCodeContent {
     constructor(code_content) {
         var lines = code_content.split('\n')
 
         // search for "// @awesome-doc-code-sections:"
 
-        // @awesome-doc-code-sections:language=cpp
-        // @awesome-doc-code-sections:include 
+        // @awesome-doc-code-sections:language=cpp                  // use for CE compiler-id and hljs
+        // @awesome-doc-code-sections:include=prefix:remote
+        // @awesome-doc-code-sections:CE:compiler_id
+        // @awesome-doc-code-sections:CE:compilation_options
+        // @awesome-doc-code-sections:CE:libs
+
+        // @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
+        // @awesome-doc-code-sections:encompass_with_main_function  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
     }
 }
 
@@ -145,13 +161,6 @@ class SendToGodboltButton extends HTMLButtonElement {
         );
     }
 
-    // TODO: examples metadata
-    //  - cpp-main: encompass code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
-    //  - compilation-options
-    // TODO: replace header with absolute raw URL
-    // TODO: configuration for all of these ?
-    //  - map { language => compiler }
-    //  simple "onMetaData(key:value, requestModifier)"
     onClickSend() {
         let codeSectionElement = this.parentElement.parentElement
         if (codeSectionElement === undefined
@@ -161,19 +170,25 @@ class SendToGodboltButton extends HTMLButtonElement {
         // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
         console.log('awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: : sending ...')
     
+        let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
+        if (configuration === undefined)
+            console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
+
+        // TODO: local metadata can override compiler_id, options
         let data = {
             "sessions": [{
                 "id": 1,
-                "language": "c++", // TODO: detect language
+                "language": configuration.language_id,
                 "source": codeSectionElement.textContent,
-                "compilers":  [],
+                "compilers":  [ ],
                 "executors": [{
                     "compiler":
                     {
-                        "id": "clang1400",
+                        "id": configuration.compiler_id,
                         "libs": [ ],
-                        "options": "-O2 -std=c++20"
+                        "options": configuration.default_options || "" // TODO: can be override localy
                     }
+                    // TODO: exec
                 }]
             }]
         };
@@ -213,6 +228,7 @@ class CodeSection extends HTMLElement {
         this.language = language;
 
         // TODO: parse for specific format (or use regex + specific tags ?)
+        // - See ParsedCodeContent hereabove
         // - expected output tag
         // - {code}{separator}{expected_output}
         
@@ -284,6 +300,17 @@ class CodeSection extends HTMLElement {
         console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${multines.length + single_lines.length} elements ...`)
         multines.each(replace_by_HTMLElement)
         single_lines.each(replace_by_HTMLElement)
+    }
+
+    get hljs_language() {
+        let code = $(this).find("pre code")
+        if (code.length == 0)
+            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed element`)
+        
+        let result = code[0].classList.toString().replace(/hljs language-/g, '')
+        if (result.indexOf(' ') !== -1)
+            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed code hljs classList`)
+        return result
     }
 }
 customElements.define(CodeSection.HTMLElement_name, CodeSection);
@@ -496,6 +523,7 @@ highlightjs_stylesheet_href_mutationObserver.observe(
     }
 )
 
+// TODO: move to awesome-doc-code-sections_dark-mode.js
 class ToggleDarkMode /*StaticObserver*/ {
 // Handle dark/light mode info,
 // altering document class-list by adding `dark-mode` or `light-mode`
@@ -625,15 +653,14 @@ customElements.define(ToggleDarkModeButton.HTMLElement_name, ToggleDarkModeButto
 
 // ============
 
-var awesome_doc_code_sections = {}
-    awesome_doc_code_sections.HTML_elements = {}
-    awesome_doc_code_sections.HTML_elements.CopyToClipboardButton = CopyToClipboardButton
-    awesome_doc_code_sections.HTML_elements.SendToGodboltButton   = SendToGodboltButton
-    awesome_doc_code_sections.HTML_elements.ToggleDarkModeButton  = ToggleDarkModeButton
-    awesome_doc_code_sections.HTML_elements.CodeSection           = CodeSection
-    awesome_doc_code_sections.HTML_elements.RemoteCodeSection     = RemoteCodeSection
-    awesome_doc_code_sections.ThemeSelector = ThemeSelector
-    awesome_doc_code_sections.ToggleDarkMode = ToggleDarkMode
+awesome_doc_code_sections.HTML_elements = {}
+awesome_doc_code_sections.HTML_elements.CopyToClipboardButton = CopyToClipboardButton
+awesome_doc_code_sections.HTML_elements.SendToGodboltButton   = SendToGodboltButton
+awesome_doc_code_sections.HTML_elements.ToggleDarkModeButton  = ToggleDarkModeButton
+awesome_doc_code_sections.HTML_elements.CodeSection           = CodeSection
+awesome_doc_code_sections.HTML_elements.RemoteCodeSection     = RemoteCodeSection
+awesome_doc_code_sections.ThemeSelector = ThemeSelector
+awesome_doc_code_sections.ToggleDarkMode = ToggleDarkMode
 
 // TODO: make sure that doxygen elements are also still clickable with pure doxygen (not doxygen-awesome-css)
 awesome_doc_code_sections.initialize_doxygenCodeSections = function() {
