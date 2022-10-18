@@ -66,6 +66,9 @@
                     language_id     : 'c++',
                     compiler_id     : 'clang1500',
                     default_options : '-O2 -std=c++20',
+                    default_main_function : `auto main() -> int {
+                        ${awesome_doc_code_sections.ParsedCode.code_placeholder}
+                    }`
                 }
             ]
         ])

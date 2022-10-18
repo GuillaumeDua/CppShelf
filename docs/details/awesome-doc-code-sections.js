@@ -60,22 +60,35 @@ var awesome_doc_code_sections = {}
     //      default_options // not mandatory
     // }
 
-class ParsedCodeContent {
+class ParsedCode {
+// @awesome-doc-code-sections:language=cpp                  // use for CE compiler-id and hljs
+// @awesome-doc-code-sections:include=prefix:remote
+// @awesome-doc-code-sections:CE:compiler_id
+// @awesome-doc-code-sections:CE:compilation_options
+// @awesome-doc-code-sections:CE:libs
+// @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
+// @awesome-doc-code-sections:encompass_with_main_function  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
+
+    static tag              = '// @awesome-doc-code-sections:'
+    static code_placeholder = '${code_placeholder}'
+
     constructor(code_content) {
         var lines = code_content.split('\n')
+            .filter((line) => {
+                return line.startsWith(ParsedCode.tag)
+            }).map((line) => {
+                return line.substr(ParsedCode.tag.length)
+            }).forEach((adcs_metadata_tag) => {
+                console.log(`>>>>>>> [${adcs_metadata_tag}]`)
+            })
 
-        // search for "// @awesome-doc-code-sections:"
 
-        // @awesome-doc-code-sections:language=cpp                  // use for CE compiler-id and hljs
-        // @awesome-doc-code-sections:include=prefix:remote
-        // @awesome-doc-code-sections:CE:compiler_id
-        // @awesome-doc-code-sections:CE:compilation_options
-        // @awesome-doc-code-sections:CE:libs
-
-        // @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
-        // @awesome-doc-code-sections:encompass_with_main_function  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
+        // this.metadatas
+        // this.code
+        // this.includes_factory
     }
 }
+awesome_doc_code_sections.ParsedCode = ParsedCode
 
 // ============
 // HTMLElements
@@ -223,6 +236,9 @@ class CodeSection extends HTMLElement {
             language = this.getAttribute('language') || undefined
         if (language !== undefined && !language.startsWith("language-"))
             language = `language-${language}`
+
+        // WIP
+        this.codeContent = new ParsedCode(code)
 
         this.code = code;
         this.language = language;
