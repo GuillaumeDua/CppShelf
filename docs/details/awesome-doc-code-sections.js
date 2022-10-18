@@ -111,8 +111,8 @@ class ParsedCode {
         [ 'add_main',            (value) => { this.ce.add_main            = Boolean(value) } ]
     ])
     #metadata_parser = new Map([
-        [ 'language', (value) => { this.language = value} ],
-        [ 'CE', (value) => { this.language = value} ],
+        [ 'language',                (value) => { this.language = value} ],
+        [ 'includes_transformation', (value) => { console.log("TODO") } ]
     ])
 
     constructor(code_content) {
@@ -144,7 +144,10 @@ class ParsedCode {
                 if (pair.length != 2)
                     console.warn(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
 
-                parser(pair[0], pair[1])
+                let parsing_function = parser.get(pair[0])
+                if (parsing_function === undefined)
+                    console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown key [${pair[0]}]`)
+                parsing_function(pair[1])
             })
 
         // keep only lines that are not metadatas
@@ -156,9 +159,15 @@ class ParsedCode {
 
         // user-provided delimiters
         let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
-        let matched = code_content.match(regexp)
+        let matched = code_content.matchAll(regexp)
+        let content = Array
+            .from(matched)
+            .map((value) => {
+                return value[1]
+            })
+            .join('')
 
-        this.#code_value = (matched !== null ? matched[1] : this.#ce_code_value)
+        this.#code_value = (content !== '' ? content : this.#ce_code_value)
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode

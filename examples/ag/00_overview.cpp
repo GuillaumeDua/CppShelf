@@ -1,5 +1,7 @@
 // @awesome-doc-code-sections:language=cpp
-// @awesome-doc-code-sections:include <csl/ag.hpp>
+// @awesome-doc-code-sections:include_transformation:..=https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main
+
+#include "../includes/ag/csl/ag.hpp"
 
 struct S { char c; int i; };
 
