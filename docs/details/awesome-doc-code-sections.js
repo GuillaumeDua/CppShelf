@@ -72,13 +72,21 @@ class ParsedCode {
 // @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
 // @awesome-doc-code-sections:begin,end
 
-    static tag              = '// @awesome-doc-code-sections:'
-    static tag_ce           = 'CE:'
-    static code_placeholder = '${code_placeholder}'
+    static tag                  = '// @awesome-doc-code-sections:'
+    static tag_ce               = 'CE:'
+    static code_placeholder     = '${code_placeholder}'
+    static code_section_begin   = 'begin'
+    static code_section_end     = 'end'
 
+    #code_value = ''
+    #ce_code_value = ''
+
+    get code() {
+        return this.#code_value
+    }
     get ce_code() {
         if (! this.ce.add_main)
-            return this.code()
+            return this.#ce_code_value
         
         // encompass code with a defaut main function
         let conf = awesome_doc_code_sections.configuration.GodboltLanguages.get(this.language)
@@ -88,8 +96,11 @@ class ParsedCode {
             console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: bad configuration for language ${this.language} : missing default main function definition`)
         if (conf.default_main_function.indexOf(code_placeholder) === -1)
             console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: in configuration for language ${this.language}, ill-formed default main function definition (missing placeholder)`)
-        
-        return conf.default_main_function.replace(ParsedCode.code_placeholder, this.code)
+
+        // We use `code_value` here instead of `ce_code_value` as the user explicitly requested to add a main
+        //  this allow users to have specific main for the internal compilation/tests of examples,
+        //  yet use relevant examples in the documentation
+        return conf.default_main_function.replace(ParsedCode.code_placeholder, this.#code_value)
     }
 
     ce = {}
@@ -110,7 +121,11 @@ class ParsedCode {
             .filter((line) => {
                 return line.startsWith(ParsedCode.tag)
             }).map((line) => {
-                return line.substr(ParsedCode.tag.length)
+                let value = line.substr(ParsedCode.tag.length)
+                if (value == ParsedCode.code_section_begin
+                ||  value == ParsedCode.code_section_end)
+                    return '' // abort
+                return value
             }).forEach((value) => {
                 console.log(`>>>>>>> [${value}]`)
 
@@ -127,16 +142,23 @@ class ParsedCode {
                 }
 
                 if (pair.length != 2)
-                    console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
+                    console.warn(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
+
                 parser(pair[0], pair[1])
             })
 
         // keep only lines that are not metadatas
-        this.code = code_content.split('\n')
+        this.#ce_code_value = code_content.split('\n')
             .filter((line) => {
                 return ! line.startsWith(ParsedCode.tag)
             })
             .join('\n')
+
+        // user-provided delimiters
+        let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
+        let matched = code_content.match(regexp)
+
+        this.#code_value = (matched !== null ? matched[1] : this.#ce_code_value)
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
