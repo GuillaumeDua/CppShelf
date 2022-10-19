@@ -86,7 +86,7 @@ class ParsedCode {
         return this.#code_value
     }
     get ce_code() {
-        if (! this.ce.add_main)
+        if (! this.ce_options.add_main)
             return this.#ce_code_value
         
         // encompass code with a defaut main function
@@ -104,21 +104,52 @@ class ParsedCode {
         return conf.default_main_function.replace(ParsedCode.code_placeholder, this.#code_value)
     }
 
-    ce = {}
+    ce_options = {}
+    code_modifiers = new Array()
 
     #parsers = new Map([
     // ':'-separated metadata-tag recursive parsing
         [   // specific CE options
             'CE',  new Map([
-                [ 'compiler_id',         (value) => { this.ce.compiler_id         = value } ],
-                [ 'compilation_options', (value) => { this.ce.compilation_options = value } ],
-                [ 'libs',                (value) => { this.ce.libs                = value } ],
-                [ 'add_main',            (value) => { this.ce.add_main            = Boolean(value) } ]
+                [ 'compiler_id',         (value) => { this.ce_options.compiler_id         = value } ],
+                [ 'compilation_options', (value) => { this.ce_options.compilation_options = value } ],
+                [ 'libs',                (value) => { this.ce_options.libs                = value } ],
+                [ 'add_main',            (value) => {
+                    let modifier = (code) => {
+
+                        if (typeof this.language === 'undefined' || this.language === undefined)
+                            console.error(
+                                `awesome-doc-code-sections.js:ParsedCode::constructor: no configuration (yet) for language : [${this.language}].\n`
+                                `\tAdditional info: language value must appear BEFORE add_main in awesome-doc-code-sections metadatas`
+                            )
+
+                        let language_configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(this.language)
+                        if (language_configuration === undefined)
+                            console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: no configuration for language : [${value}]`)
+
+                        if (typeof configuration.default_main_function === 'undefined' || configuration.default_main_function === 'undefined')
+                        console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: no configuration for language : [${value}]`)
+
+                        return 
+                    }
+                    code_modifiers.push(modifier)
+                } ]
             ])
         ],
         // other simple options
         [ 'language',                (value) => { this.language = value} ],
-        [ 'includes_transformation', (value) => { console.log("TODO: to_replace|replacement") } ]
+        [ 'includes_transformation', (value) => { 
+            let pair = value.split('|') // to_replace|replacement
+            if (pair.length != 2)
+                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unexpected includes_transformation value : [${value}]. Expects: to_replace|replacement`)
+
+            // includes replacement modifier
+            let modifier = (code) => {
+                const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
+                return code.replace(regex, pair[1])
+            }
+            code_modifiers.push(modifier)
+        } ]
     ])
 
     constructor(code_content) {

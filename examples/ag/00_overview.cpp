@@ -1,4 +1,4 @@
-// @awesome-doc-code-sections::language=cpp
+// @awesome-doc-code-sections language=cpp
 // @awesome-doc-code-sections::includes_transformation=..|https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main
 
 #include "../includes/ag/csl/ag.hpp"
