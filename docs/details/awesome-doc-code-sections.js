@@ -63,15 +63,16 @@ var awesome_doc_code_sections = {}
     //      default_options // not mandatory
     // }
 
+// TODO : simplify this (use JSon as configuration format ?)
 class ParsedCode {
-// @awesome-doc-code-sections:language=cpp                  // use for CE compiler-id and hljs
-// @awesome-doc-code-sections:include=prefix:remote
-// @awesome-doc-code-sections:CE:compiler_id
-// @awesome-doc-code-sections:CE:compilation_options
-// @awesome-doc-code-sections:CE:libs
-// @awesome-doc-code-sections:CE:add_main  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
-// @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
-// @awesome-doc-code-sections:begin,end
+// @awesome-doc-code-sections::language=cpp                  // use for CE compiler-id and hljs
+// @awesome-doc-code-sections::include=prefix:remote
+// @awesome-doc-code-sections::expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
+// @awesome-doc-code-sections::begin,end
+// @awesome-doc-code-sections::CE::compiler_id
+// @awesome-doc-code-sections::CE::compilation_options
+// @awesome-doc-code-sections::CE::libs
+// @awesome-doc-code-sections::CE::add_main  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
 
     static tag_separator        = '::'
     static tag                  = `// @awesome-doc-code-sections${ParsedCode.tag_separator}`
@@ -105,7 +106,25 @@ class ParsedCode {
     }
 
     ce_options = {}
-    code_modifiers = new Array()
+    transformations = new Map([
+        [ 'code',       new Array(
+            (code_value) => {
+                // user-provided delimiters
+                let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
+                let matched = code_value.matchAll(regexp)
+                let content = Array
+                    .from(matched)
+                    .map((value) => {
+                        return value[1]
+                    })
+                    .join('')
+
+                return (content !== '' ? content : code_value)
+            }
+        ) ],
+        [ 'ce_code',    new Array() ],
+        [ 'both',       new Array() ]
+    ])
 
     #parsers = new Map([
     // ':'-separated metadata-tag recursive parsing
@@ -114,26 +133,7 @@ class ParsedCode {
                 [ 'compiler_id',         (value) => { this.ce_options.compiler_id         = value } ],
                 [ 'compilation_options', (value) => { this.ce_options.compilation_options = value } ],
                 [ 'libs',                (value) => { this.ce_options.libs                = value } ],
-                [ 'add_main',            (value) => {
-                    let modifier = (code) => {
-
-                        if (typeof this.language === 'undefined' || this.language === undefined)
-                            console.error(
-                                `awesome-doc-code-sections.js:ParsedCode::constructor: no configuration (yet) for language : [${this.language}].\n`
-                                `\tAdditional info: language value must appear BEFORE add_main in awesome-doc-code-sections metadatas`
-                            )
-
-                        let language_configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(this.language)
-                        if (language_configuration === undefined)
-                            console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: no configuration for language : [${value}]`)
-
-                        if (typeof configuration.default_main_function === 'undefined' || configuration.default_main_function === 'undefined')
-                        console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: no configuration for language : [${value}]`)
-
-                        return 
-                    }
-                    code_modifiers.push(modifier)
-                } ]
+                [ 'add_main',            (value) => { this.ce_options.add_main = true             } ]
             ])
         ],
         // other simple options
@@ -143,12 +143,12 @@ class ParsedCode {
             if (pair.length != 2)
                 console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unexpected includes_transformation value : [${value}]. Expects: to_replace|replacement`)
 
-            // includes replacement modifier
-            let modifier = (code) => {
+            // includes replacement transformation
+            let transformation = (code) => {
                 const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
                 return code.replace(regex, pair[1])
             }
-            code_modifiers.push(modifier)
+            this.transformations.get('both').push(transformation)
         } ]
     ])
 
@@ -185,24 +185,30 @@ class ParsedCode {
                 parsing_function(pair[1])
             })
 
-        // keep only lines that are not metadatas
-        this.#ce_code_value = code_content.split('\n')
+        this.#code_value = this.#ce_code_value = code_content
+
+        // apply transformations
+        this.transformations.get('both').forEach((transformation) => {
+            this.#code_value = transformation(this.#code_value)
+            this.#ce_code_value = transformation(this.#ce_code_value)
+        })
+        this.transformations.get('code').forEach((transformation) => {
+            this.#code_value = transformation(this.#code_value)
+        })
+        this.transformations.get('ce_code').forEach((transformation) => {
+            this.#ce_code_value = transformation(this.#ce_code_value)
+        })
+
+        // Remove metadatas
+        let clean_metadatas = (value) => {
+            return value.split('\n')
             .filter((line) => {
                 return ! line.startsWith(ParsedCode.tag)
             })
             .join('\n')
-
-        // user-provided delimiters
-        let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
-        let matched = code_content.matchAll(regexp)
-        let content = Array
-            .from(matched)
-            .map((value) => {
-                return value[1]
-            })
-            .join('')
-
-        this.#code_value = (content !== '' ? content : this.#ce_code_value)
+        }
+        this.#code_value    = clean_metadatas(this.#code_value)
+        this.#ce_code_value = clean_metadatas(this.#ce_code_value)
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
