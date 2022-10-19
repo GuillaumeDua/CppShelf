@@ -15,11 +15,11 @@
 
 <div class='awesome-doc-code-sections_code-section'>
 <pre><code>
-// @awesome-doc-code-sections:language=cpp
-// @awesome-doc-code-sections:include=prefix:remote
-// @awesome-doc-code-sections:CE:compiler_id
-// @awesome-doc-code-sections:CE:compilation_options
-// @awesome-doc-code-sections:CE:libs=
+// @awesome-doc-code-sections::language=cpp
+// @awesome-doc-code-sections::includes_transformation=to_replace|replacement
+// @awesome-doc-code-sections::CE::compiler_id
+// @awesome-doc-code-sections::CE::compilation_options
+// @awesome-doc-code-sections::CE::libs=fmt
 auto i = 42;
 
 struct A{ int i; float f; };

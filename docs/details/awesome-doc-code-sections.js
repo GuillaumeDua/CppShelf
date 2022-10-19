@@ -48,6 +48,7 @@
 // TODO: highlightjs makes clickable code elements not clickable anymore. Fix that ?
 //          https://stackoverflow.com/questions/74114767/highlightjs-how-to-create-custom-clickable-sequence-of-characters
 // TODO: hide warnings for undefined/fallback hljs language
+// TODO: soft errors (replace HTMLElement content with red error message, rather than stopping the process)
 
 if (typeof hljs === 'undefined')
     console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
@@ -57,7 +58,7 @@ var awesome_doc_code_sections = {}
     awesome_doc_code_sections.configuration.GodboltLanguages =  new Map()
     // key   : language_hljs_name
     // value : {
-    //      language_id,    // not mandatory, if same as key. Refers to https://godbolt.org/api/languages
+    //      language,       // not mandatory, if same as key. Refers to https://godbolt.org/api/languages
     //      compiler_id,
     //      default_options // not mandatory
     // }
@@ -72,8 +73,8 @@ class ParsedCode {
 // @awesome-doc-code-sections:expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
 // @awesome-doc-code-sections:begin,end
 
-    static tag                  = '// @awesome-doc-code-sections:'
-    static tag_ce               = 'CE:'
+    static tag_separator        = '::'
+    static tag                  = `// @awesome-doc-code-sections${ParsedCode.tag_separator}`
     static code_placeholder     = '${code_placeholder}'
     static code_section_begin   = 'begin'
     static code_section_end     = 'end'
@@ -104,15 +105,20 @@ class ParsedCode {
     }
 
     ce = {}
-    #metadata_ce_parser = new Map([
-        [ 'compiler_id',         (value) => { this.ce.compiler_id         = value } ],
-        [ 'compilation_options', (value) => { this.ce.compilation_options = value } ],
-        [ 'libs',                (value) => { this.ce.libs                = value } ],
-        [ 'add_main',            (value) => { this.ce.add_main            = Boolean(value) } ]
-    ])
-    #metadata_parser = new Map([
+
+    #parsers = new Map([
+    // ':'-separated metadata-tag recursive parsing
+        [   // specific CE options
+            'CE',  new Map([
+                [ 'compiler_id',         (value) => { this.ce.compiler_id         = value } ],
+                [ 'compilation_options', (value) => { this.ce.compilation_options = value } ],
+                [ 'libs',                (value) => { this.ce.libs                = value } ],
+                [ 'add_main',            (value) => { this.ce.add_main            = Boolean(value) } ]
+            ])
+        ],
+        // other simple options
         [ 'language',                (value) => { this.language = value} ],
-        [ 'includes_transformation', (value) => { console.log("TODO") } ]
+        [ 'includes_transformation', (value) => { console.log("TODO: to_replace|replacement") } ]
     ])
 
     constructor(code_content) {
@@ -129,18 +135,16 @@ class ParsedCode {
             }).forEach((value) => {
                 console.log(`>>>>>>> [${value}]`)
 
-                let pair, parser
-                if (value.startsWith(ParsedCode.tag_ce)) {
-                // CE
-                    pair = value.substr(ParsedCode.tag_ce.length).split('=')
-                    parser = this.#metadata_ce_parser
-                }
-                else {
-                // default
-                    pair = value.split('=')
-                    parser = this.#metadata_parser
-                }
+                let parser = this.#parsers
 
+                let separator_index
+                while ((separator_index = value.indexOf(ParsedCode.tag_separator)) !== -1) {
+                    parser = parser.get(value.substr(0, separator_index))
+                    value = value.substr(separator_index + ParsedCode.tag_separator.length)
+                    if (parser === undefined)
+                        console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown parser for tag [${value}]`)
+                }
+                let pair = value.split('=')
                 if (pair.length != 2)
                     console.warn(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
 
@@ -270,7 +274,7 @@ class SendToGodboltButton extends HTMLButtonElement {
             console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
 
         // TODO: check:
-        //      ParsedData.language
+        //      ParsedData.language vs. configuration.language
         //  vs. hljs    https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md
         //  vs. godbolt https://godbolt.org/api/languages
 
@@ -278,7 +282,7 @@ class SendToGodboltButton extends HTMLButtonElement {
         let data = {
             "sessions": [{
                 "id": 1,
-                "language": configuration.language_id,
+                "language": configuration.language,
                 "source": codeSectionElement.textContent,
                 "compilers":  [ ],
                 "executors": [{
@@ -363,9 +367,13 @@ class CodeSection extends HTMLElement {
             copy_button.style.zIndex = code_node.style.zIndex + 1
         code_node.appendChild(copy_button)
 
+        // TODO: don't add CE button if language is not supported (ex: json, bash, console output, etc...)
+        // let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
+        // if (configuration !== undefined)
+
         let CE_button = new SendToGodboltButton
             CE_button.style.zIndex = code_node.style.zIndex + 1
-        let CE_button_node = code_node.appendChild(CE_button)
+        code_node.appendChild(CE_button)
 
         this.innerHTML = code_node.outerHTML;
     }
