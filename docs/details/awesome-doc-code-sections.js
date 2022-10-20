@@ -55,23 +55,13 @@ if (typeof hljs === 'undefined')
 
 var awesome_doc_code_sections = {}
     awesome_doc_code_sections.configuration = {}
-    awesome_doc_code_sections.configuration.GodboltLanguages =  new Map()
+    awesome_doc_code_sections.configuration.GodboltLanguages = new Map()
     // key   : language_hljs_name
     // value : {
     //      language,       // not mandatory, if same as key. Refers to https://godbolt.org/api/languages
     //      compiler_id,
     //      default_options // not mandatory
     // }
-
-    // WIP:
-    // let value = new ParsedCode(`// @awesome-doc-code-sections::language=cpp
-    // // @awesome-doc-code-sections::includes_transformation=to_replace|replacement
-    // // @awesome-doc-code-sections::CE::compiler_id=clang1400
-    // // @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
-    // // @awesome-doc-code-sections::CE::libs=fmt
-    
-    // auto i = 42; // test
-    // return i;`)
 
 // TODO : simplify this (use JSon as configuration format ?)
 class ParsedCode {
@@ -97,7 +87,7 @@ class ParsedCode {
     ce_code = ''
 
     ce_options = {}
-    transformations = new Map([
+    #transformations = new Map([
         [ 'code',       new Array(
             (code) => {
                 // user-provided delimiters
@@ -139,13 +129,13 @@ class ParsedCode {
                 const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
                 return code.replace(regex, pair[1])
             }
-            this.transformations.get('code').push(transformation)
+            this.#transformations.get('code').push(transformation)
 
             transformation = (code) => {
                 const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
                 return code.replace(regex, pair[2])
             }
-            this.transformations.get('ce_code').push(transformation)
+            this.#transformations.get('ce_code').push(transformation)
         } ]
     ])
 
@@ -178,29 +168,29 @@ class ParsedCode {
 
         // Parse metadatas
         code_content.split('\n')
-            .forEach((value) => {
-                console.log(`>>>>>>> [${value}]`)
+            .forEach((line) => {
+                console.log(`>>>>>>> [${line}]`)
 
                 // endsWith '// @awesome-doc-code-sections::CE::line::.*$'
 
-                if (value.startsWith(ParsedCode.tag.length)) {
+                if (line.startsWith(ParsedCode.tag)) {
                     let value = line.substr(ParsedCode.tag.length)
                     this.#ParseMetadata(value)
                     return
                 }
-                this.code    += `${value}\n`
-                this.ce_code += `${value}\n`
+                this.code    += `${line}\n`
+                this.ce_code += `${line}\n`
             })
 
         // apply transformations
-        this.transformations.get('both').forEach((transformation) => {
+        this.#transformations.get('both').forEach((transformation) => {
             this.code = transformation(this.code)
             this.ce_code = transformation(this.ce_code)
         })
-        this.transformations.get('code').forEach((transformation) => {
+        this.#transformations.get('code').forEach((transformation) => {
             this.code = transformation(this.code)
         })
-        this.transformations.get('ce_code').forEach((transformation) => {
+        this.#transformations.get('ce_code').forEach((transformation) => {
             this.ce_code = transformation(this.ce_code)
         })
     }
@@ -374,18 +364,10 @@ class CodeSection extends HTMLElement {
             language = this.getAttribute('language') || undefined
         if (language !== undefined && !language.startsWith("language-"))
             language = `language-${language}`
+        this.language = language; // hljs language
 
-        // WIP
         this.codeContent = new ParsedCode(code)
-        // this.code = code;
 
-        this.language = language;
-
-        // TODO: parse for specific format (or use regex + specific tags ?)
-        // - See ParsedCodeContent hereabove
-        // - expected output tag
-        // - {code}{separator}{expected_output}
-        
         if (this.code !== undefined && this.code.length != 0)
             this.load();
         else
@@ -472,8 +454,6 @@ class CodeSection extends HTMLElement {
     }
 }
 customElements.define(CodeSection.HTMLElement_name, CodeSection);
-
-// TODO : Optionaly wrap in table/tr/th/td ?
 
 class RemoteCodeSection extends CodeSection {
 // Fetch some code as texts based on the `code_url` parameter (or `url` attribute),

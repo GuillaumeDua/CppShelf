@@ -20,7 +20,6 @@
 // @awesome-doc-code-sections::CE::compiler_id=clang1400
 // @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
 // @awesome-doc-code-sections::CE::libs=fmt
-// @awesome-doc-code-sections::CE::add_main
 
 auto i = 42; // test
 return i;
