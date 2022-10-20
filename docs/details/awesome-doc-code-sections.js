@@ -63,55 +63,46 @@ var awesome_doc_code_sections = {}
     //      default_options // not mandatory
     // }
 
+    // WIP:
+    // let value = new ParsedCode(`// @awesome-doc-code-sections::language=cpp
+    // // @awesome-doc-code-sections::includes_transformation=to_replace|replacement
+    // // @awesome-doc-code-sections::CE::compiler_id=clang1400
+    // // @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
+    // // @awesome-doc-code-sections::CE::libs=fmt
+    
+    // auto i = 42; // test
+    // return i;`)
+
 // TODO : simplify this (use JSon as configuration format ?)
 class ParsedCode {
+// @awesome-doc-code-sections::split     // create a table/tr/td ? tr0: code, tr1: output
+//  `code` as an array ? or multiples ParsedCode (ParsedCode.next() ?)
+
 // @awesome-doc-code-sections::language=cpp                  // use for CE compiler-id and hljs
-// @awesome-doc-code-sections::include=prefix:remote
-// @awesome-doc-code-sections::expected_output_delimiter     // create a table/tr/td ? tr0: code, tr1: output
-// @awesome-doc-code-sections::begin,end
-// @awesome-doc-code-sections::CE::compiler_id
-// @awesome-doc-code-sections::CE::compilation_options
-// @awesome-doc-code-sections::CE::libs
-// @awesome-doc-code-sections::CE::add_main  // code in an basic `auto main() -> int{ /* code here ...*/ }` when sending the request to CE
+// @awesome-doc-code-sections::CE::compiler_id=clang1500
+// @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
+// @awesome-doc-code-sections::CE::libs=fmt
+// @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
+
+// @awesome-doc-code-sections::block::begin,end
+// @awesome-doc-code-sections::CE::line::skip
+// @awesome-doc-code-sections::CE::line::replace_with=
 
     static tag_separator        = '::'
     static tag                  = `// @awesome-doc-code-sections${ParsedCode.tag_separator}`
-    static code_placeholder     = '${code_placeholder}'
     static code_section_begin   = 'begin'
     static code_section_end     = 'end'
 
-    #code_value = ''
-    #ce_code_value = ''
-
-    get code() {
-        return this.#code_value
-    }
-    get ce_code() {
-        if (! this.ce_options.add_main)
-            return this.#ce_code_value
-        
-        // encompass code with a defaut main function
-        let conf = awesome_doc_code_sections.configuration.GodboltLanguages.get(this.language)
-        if (conf === undefined)
-            console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: missing configuration for language ${this.language}`)
-        if (typeof conf.default_main_function === 'undefined' || conf.default_main_function === undefined)
-            console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: bad configuration for language ${this.language} : missing default main function definition`)
-        if (conf.default_main_function.indexOf(code_placeholder) === -1)
-            console.error(`awesome-doc-code-sections.js:ParsedCode::ce_code: in configuration for language ${this.language}, ill-formed default main function definition (missing placeholder)`)
-
-        // We use `code_value` here instead of `ce_code_value` as the user explicitly requested to add a main
-        //  this allow users to have specific main for the internal compilation/tests of examples,
-        //  yet use relevant examples in the documentation
-        return conf.default_main_function.replace(ParsedCode.code_placeholder, this.#code_value)
-    }
+    code    = ''
+    ce_code = ''
 
     ce_options = {}
     transformations = new Map([
         [ 'code',       new Array(
-            (code_value) => {
+            (code) => {
                 // user-provided delimiters
                 let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
-                let matched = code_value.matchAll(regexp)
+                let matched = code.matchAll(regexp)
                 let content = Array
                     .from(matched)
                     .map((value) => {
@@ -119,7 +110,7 @@ class ParsedCode {
                     })
                     .join('')
 
-                return (content !== '' ? content : code_value)
+                return (content !== '' ? content : code)
             }
         ) ],
         [ 'ce_code',    new Array() ],
@@ -132,83 +123,86 @@ class ParsedCode {
             'CE',  new Map([
                 [ 'compiler_id',         (value) => { this.ce_options.compiler_id         = value } ],
                 [ 'compilation_options', (value) => { this.ce_options.compilation_options = value } ],
-                [ 'libs',                (value) => { this.ce_options.libs                = value } ],
-                [ 'add_main',            (value) => { this.ce_options.add_main = true             } ]
+                [ 'libs',                (value) => { this.ce_options.libs                = value } ]
             ])
         ],
         // other simple options
-        [ 'language',                (value) => { this.language = value} ],
-        [ 'includes_transformation', (value) => { 
-            let pair = value.split('|') // to_replace|replacement
-            if (pair.length != 2)
-                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unexpected includes_transformation value : [${value}]. Expects: to_replace|replacement`)
+        [ 'language',                (value) => { this.language = value } ],
+        [ 'includes_transformation', (value) => {
+
+            let pair = value.split('|') // [ local_prefix, example_prefix, remote_prefix ]
+            if (pair.length != 3)
+                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unexpected includes_transformation value : [${value}]. Expects: local_prefix|example_prefix|remote_prefix`)
 
             // includes replacement transformation
             let transformation = (code) => {
                 const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
                 return code.replace(regex, pair[1])
             }
-            this.transformations.get('both').push(transformation)
+            this.transformations.get('code').push(transformation)
+
+            transformation = (code) => {
+                const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
+                return code.replace(regex, pair[2])
+            }
+            this.transformations.get('ce_code').push(transformation)
         } ]
     ])
 
+    #ParseMetadata(value) {
+
+        console.log(`>>>>>>> ParsedCode::ParseMetadata [${value}]`)
+
+        let parser = this.#parsers
+
+        let separator_index
+        while ((separator_index = value.indexOf(ParsedCode.tag_separator)) !== -1) {
+            parser = parser.get(value.substr(0, separator_index))
+            value = value.substr(separator_index + ParsedCode.tag_separator.length)
+            if (parser === undefined)
+                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown parser for tag [${value}]`)
+        }
+        let pair = value.split('=')
+        if (pair.length != 2)
+            console.warn(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
+
+        let parsing_function = parser.get(pair[0])
+        if (parsing_function === undefined)
+            console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown key [${pair[0]}]`)
+        parsing_function(pair[1])
+    }
+
     constructor(code_content) {
 
+        // Positional metadatas
+
+        // Parse metadatas
         code_content.split('\n')
-            .filter((line) => {
-                return line.startsWith(ParsedCode.tag)
-            }).map((line) => {
-                let value = line.substr(ParsedCode.tag.length)
-                if (value == ParsedCode.code_section_begin
-                ||  value == ParsedCode.code_section_end)
-                    return '' // abort
-                return value
-            }).forEach((value) => {
+            .forEach((value) => {
                 console.log(`>>>>>>> [${value}]`)
 
-                let parser = this.#parsers
+                // endsWith '// @awesome-doc-code-sections::CE::line::.*$'
 
-                let separator_index
-                while ((separator_index = value.indexOf(ParsedCode.tag_separator)) !== -1) {
-                    parser = parser.get(value.substr(0, separator_index))
-                    value = value.substr(separator_index + ParsedCode.tag_separator.length)
-                    if (parser === undefined)
-                        console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown parser for tag [${value}]`)
+                if (value.startsWith(ParsedCode.tag.length)) {
+                    let value = line.substr(ParsedCode.tag.length)
+                    this.#ParseMetadata(value)
+                    return
                 }
-                let pair = value.split('=')
-                if (pair.length != 2)
-                    console.warn(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
-
-                let parsing_function = parser.get(pair[0])
-                if (parsing_function === undefined)
-                    console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown key [${pair[0]}]`)
-                parsing_function(pair[1])
+                this.code    += `${value}\n`
+                this.ce_code += `${value}\n`
             })
-
-        this.#code_value = this.#ce_code_value = code_content
 
         // apply transformations
         this.transformations.get('both').forEach((transformation) => {
-            this.#code_value = transformation(this.#code_value)
-            this.#ce_code_value = transformation(this.#ce_code_value)
+            this.code = transformation(this.code)
+            this.ce_code = transformation(this.ce_code)
         })
         this.transformations.get('code').forEach((transformation) => {
-            this.#code_value = transformation(this.#code_value)
+            this.code = transformation(this.code)
         })
         this.transformations.get('ce_code').forEach((transformation) => {
-            this.#ce_code_value = transformation(this.#ce_code_value)
+            this.ce_code = transformation(this.ce_code)
         })
-
-        // Remove metadatas
-        let clean_metadatas = (value) => {
-            return value.split('\n')
-            .filter((line) => {
-                return ! line.startsWith(ParsedCode.tag)
-            })
-            .join('\n')
-        }
-        this.#code_value    = clean_metadatas(this.#code_value)
-        this.#ce_code_value = clean_metadatas(this.#ce_code_value)
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
@@ -306,10 +300,13 @@ class SendToGodboltButton extends HTMLButtonElement {
         // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
         console.log('awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: : sending ...')
     
-        let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
-        if (configuration === undefined)
-            console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
-
+        var get_configuration = function() {
+            
+            let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
+            if (configuration === undefined)
+                console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
+            return configuration
+        }
         // TODO: check:
         //      ParsedData.language vs. configuration.language
         //  vs. hljs    https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md
@@ -319,15 +316,15 @@ class SendToGodboltButton extends HTMLButtonElement {
         let data = {
             "sessions": [{
                 "id": 1,
-                "language": configuration.language,
-                "source": codeSectionElement.textContent,
+                "language": codeSectionElement.ce_options.language || get_configuration().language,
+                "source": codeSectionElement.ce_code,
                 "compilers":  [ ],
                 "executors": [{
                     "compiler":
                     {
-                        "id": configuration.compiler_id,
-                        "libs": [ ],
-                        "options": configuration.default_options || "" // TODO: can be override localy
+                        "id": codeSectionElement.ce_options.compiler_id || get_configuration().compiler_id,
+                        "libs": codeSectionElement.ce_options.libs || [ ],
+                        "options": codeSectionElement.ce_options.compilation_options || get_configuration().default_options
                     }
                     // TODO: exec
                 }]
@@ -336,6 +333,9 @@ class SendToGodboltButton extends HTMLButtonElement {
     
         // CE /clientstate API
         let body  = JSON.stringify(data);
+
+        console.log(`sending request : ${body} ...`)
+
         let state = btoa(body);
         let url   = "https://godbolt.org/clientstate/" + encodeURIComponent(state);
     
@@ -354,6 +354,16 @@ class CodeSection extends HTMLElement {
 
     static HTMLElement_name = 'awesome-doc-code-sections_code-section'
 
+    get code() {
+        return this.codeContent.code
+    }
+    get ce_code() {
+        return this.codeContent.ce_code
+    }
+    get ce_options() {
+        return this.codeContent.ce_options
+    }
+
     constructor(code, language) {
         super();
 
@@ -367,8 +377,8 @@ class CodeSection extends HTMLElement {
 
         // WIP
         this.codeContent = new ParsedCode(code)
+        // this.code = code;
 
-        this.code = code;
         this.language = language;
 
         // TODO: parse for specific format (or use regex + specific tags ?)
@@ -376,7 +386,7 @@ class CodeSection extends HTMLElement {
         // - expected output tag
         // - {code}{separator}{expected_output}
         
-        if (code !== undefined)
+        if (this.code !== undefined && this.code.length != 0)
             this.load();
         else
             this.innerHTML = '<p>awesome-doc-code-sections:CodeSection : missing code</p>'
@@ -512,7 +522,8 @@ class RemoteCodeSection extends CodeSection {
     #load() {
 
         let apply_code = (code) => {
-            super.code = code;
+            // super.code = code;
+            super.codeContent = new ParsedCode(code)
             super.load();
         }
 

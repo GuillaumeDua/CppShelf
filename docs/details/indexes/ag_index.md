@@ -16,7 +16,7 @@
 <div class='awesome-doc-code-sections_code-section'>
 <pre><code>
 // @awesome-doc-code-sections::language=cpp
-// @awesome-doc-code-sections::includes_transformation=to_replace|replacement
+// @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
 // @awesome-doc-code-sections::CE::compiler_id=clang1400
 // @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
 // @awesome-doc-code-sections::CE::libs=fmt
