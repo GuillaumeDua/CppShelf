@@ -63,7 +63,7 @@ var awesome_doc_code_sections = {}
     //      default_options // not mandatory
     // }
 
-// TODO : simplify this (use JSon as configuration format ?)
+    // TODO : simplify this (use JSon as configuration format ?)
 class ParsedCode {
 // @awesome-doc-code-sections::split     // create a table/tr/td ? tr0: code, tr1: output
 //  `code` as an array ? or multiples ParsedCode (ParsedCode.next() ?)
@@ -78,62 +78,26 @@ class ParsedCode {
 // @awesome-doc-code-sections::CE::line::skip
 // @awesome-doc-code-sections::CE::line::replace_with=
 
-    static tag_separator        = '::'
-    static tag                  = `// @awesome-doc-code-sections${ParsedCode.tag_separator}`
-    static code_section_begin   = 'begin'
-    static code_section_end     = 'end'
-
     code    = ''
     ce_code = ''
 
     ce_options = {}
     #transformations = new Map([
-        [ 'code',       new Array(
-            (code) => {
-                // user-provided delimiters
-                let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
-                let matched = code.matchAll(regexp)
-                let content = Array
-                    .from(matched)
-                    .map((value) => {
-                        return value[1]
-                    })
-                    .join('')
-
-                return (content !== '' ? content : code)
-            }
-        ) ],
+        [ 'code',       new Array() ],
         [ 'ce_code',    new Array() ],
         [ 'both',       new Array() ]
     ])
 
     #parsers = new Map([
-    // ':'-separated metadata-tag recursive parsing
-        [   // specific CE options
-            'CE',  new Map([
-                [ 'compiler_id',         (value) => { this.ce_options.compiler_id         = value } ],
-                [ 'compilation_options', (value) => { this.ce_options.compilation_options = value } ],
-                [ 'libs',                (value) => { this.ce_options.libs                = value } ]
-            ])
-        ],
-        // other simple options
-        [ 'language',                (value) => { this.language = value } ],
         [ 'includes_transformation', (value) => {
 
             let pair = value.split('|') // [ local_prefix, example_prefix, remote_prefix ]
-            if (pair.length != 3)
+            if (pair.length != 2)
                 console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unexpected includes_transformation value : [${value}]. Expects: local_prefix|example_prefix|remote_prefix`)
-
-            // includes replacement transformation
-            let transformation = (code) => {
-                const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
-                return code.replace(regex, pair[1])
-            }
-            this.#transformations.get('code').push(transformation)
 
             transformation = (code) => {
                 const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
-                return code.replace(regex, pair[2])
+                return code.replace(regex, pair[1])
             }
             this.#transformations.get('ce_code').push(transformation)
         } ]
@@ -162,9 +126,31 @@ class ParsedCode {
         parsing_function(pair[1])
     }
 
+    static TOTO = {}
+
     constructor(code_content) {
 
-        // Positional metadatas
+        // CE options
+        let regexp = new RegExp(`// @awesome-doc-code-sections::CE=({(.*\n//.*)+})`, 'gmi')
+        let result = code_content.matchAll(regexp).next() // expect exactly 1 match
+        if (result.value !== undefined) {
+            this.ce_options = result.value[1].replaceAll('\n//', '')
+            console.log(`>>>>>>>>>>>>>>>>>>>>> debug : [${this.ce_options}]`)
+            this.ce_options = JSON.parse(this.ce_options)
+            ParsedCode.TOTO = this.ce_options
+            code_content = code_content.substr(result.value.index + result.value[0].length)
+        }
+
+        // let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
+        // let matched = code.matchAll(regexp)
+        // let content = Array
+        //     .from(matched)
+        //     .map((value) => {
+        //         return value[1]
+        //     })
+        //     .join('')
+
+        // return (content !== '' ? content : code)
 
         // Parse metadatas
         code_content.split('\n')

@@ -15,11 +15,17 @@
 
 <div class='awesome-doc-code-sections_code-section'>
 <pre><code>
-// @awesome-doc-code-sections::language=cpp
-// @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
-// @awesome-doc-code-sections::CE::compiler_id=clang1400
-// @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
-// @awesome-doc-code-sections::CE::libs=fmt
+// some comment here
+// ...
+// @awesome-doc-code-sections::CE={
+//  "language"            : "cpp",
+//  "compiler_id"         : "clang1400",
+//  "compilation_options" : "-O2 -std=c++20",
+//  "libs"                : [ "fmt" ]
+//  }
+// @awesome-doc-code-sections::includes_transformation=csl|https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl
+
+#include "csl/ag.hpp"
 
 auto main() -> int {
 // @awesome-doc-code-sections::block::begin
@@ -28,23 +34,6 @@ return i;
 // @awesome-doc-code-sections::block::end
 }
 
-</code></pre>
-</div>
-
-<div class='awesome-doc-code-sections_code-section'>
-<pre><code>
-// @awesome-doc-code-sections::language=cpp
-// @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
-// @awesome-doc-code-sections::CE::compiler_id
-// @awesome-doc-code-sections::CE::compilation_options
-// @awesome-doc-code-sections::CE::libs=fmt
-auto i = 42;
-
-struct A{ int i; float f; };
-static_assert(csl::ag::size<A>::value == 2);
-static_assert(csl::ag::size_v<A>      == 2);
-
-// comment
 </code></pre>
 </div>
 
