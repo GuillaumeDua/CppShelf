@@ -67,6 +67,7 @@ var awesome_doc_code_sections = {}
 class ParsedCode {
 // @awesome-doc-code-sections::split     // create a table/tr/td ? tr0: code, tr1: output
 //  `code` as an array ? or multiples ParsedCode (ParsedCode.next() ?)
+// @awesome-doc-code-sections::keep : keep tag anyway as comment (for documentation purpose)
 
 // @awesome-doc-code-sections::language=cpp                  // use for CE compiler-id and hljs
 // @awesome-doc-code-sections::CE::compiler_id=clang1500
@@ -74,7 +75,7 @@ class ParsedCode {
 // @awesome-doc-code-sections::CE::libs=fmt
 // @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
 
-// @awesome-doc-code-sections::block::begin,end
+// @awesome-doc-code-sections::show::block::begin,end
 // @awesome-doc-code-sections::CE::line::skip
 // @awesome-doc-code-sections::CE::line::replace_with=
 
@@ -128,29 +129,40 @@ class ParsedCode {
 
     static TOTO = {}
 
+    static tag = '// @awesome-doc-code-sections'
     constructor(code_content) {
 
         // CE options
-        let regexp = new RegExp(`// @awesome-doc-code-sections::CE=({(.*\n//.*)+})`, 'gmi')
+        let regexp = new RegExp(`${ParsedCode.tag}::CE=({(.*\n//.*)+}\n?)`, 'gm')
         let result = code_content.matchAll(regexp).next() // expect exactly 1 match
         if (result.value !== undefined) {
             this.ce_options = result.value[1].replaceAll('\n//', '')
-            console.log(`>>>>>>>>>>>>>>>>>>>>> debug : [${this.ce_options}]`)
             this.ce_options = JSON.parse(this.ce_options)
-            ParsedCode.TOTO = this.ce_options
-            code_content = code_content.substr(result.value.index + result.value[0].length)
+            code_content = code_content.slice(0, result.value.index)
+                         + code_content.slice(result.value.index + result.value[0].length)
         }
 
-        // let regexp = `${ParsedCode.code_section_begin}\n(.*)${ParsedCode.code_section_end}\n`;
-        // let matched = code.matchAll(regexp)
-        // let content = Array
-        //     .from(matched)
-        //     .map((value) => {
-        //         return value[1]
-        //     })
-        //     .join('')
+        // Example: keep block
+        regexp = new RegExp(
+            `(${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`,
+            'gm'
+        )
+        let matched = code_content.matchAll(regexp)
+        let content = Array
+            .from(matched)
+            .map((value) => {
+                return value.groups.block !== undefined
+                    ? value.groups.block 
+                    : value.groups.line
+            })
+            .join('\n')
+
+        if (content.length != 0)
+            ParsedCode.TOTO = content
 
         // return (content !== '' ? content : code)
+
+        // @awesome-doc-code-sections::keep
 
         // Parse metadatas
         code_content.split('\n')

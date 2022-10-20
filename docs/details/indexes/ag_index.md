@@ -17,6 +17,7 @@
 <pre><code>
 // some comment here
 // ...
+
 // @awesome-doc-code-sections::CE={
 //  "language"            : "cpp",
 //  "compiler_id"         : "clang1400",
@@ -25,13 +26,13 @@
 //  }
 // @awesome-doc-code-sections::includes_transformation=csl|https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl
 
-#include "csl/ag.hpp"
+#include "csl/ag.hpp" // @awesome-doc-code-sections::show::line
 
 auto main() -> int {
-// @awesome-doc-code-sections::block::begin
+// @awesome-doc-code-sections::show::block::begin
 auto i = 42; // test
 return i;
-// @awesome-doc-code-sections::block::end
+// @awesome-doc-code-sections::show::block::end
 }
 
 </code></pre>
