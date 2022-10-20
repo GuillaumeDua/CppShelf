@@ -21,8 +21,12 @@
 // @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
 // @awesome-doc-code-sections::CE::libs=fmt
 
+auto main() -> int {
+// @awesome-doc-code-sections::block::begin
 auto i = 42; // test
 return i;
+// @awesome-doc-code-sections::block::end
+}
 
 </code></pre>
 </div>
@@ -30,7 +34,7 @@ return i;
 <div class='awesome-doc-code-sections_code-section'>
 <pre><code>
 // @awesome-doc-code-sections::language=cpp
-// @awesome-doc-code-sections::includes_transformation=to_replace|replacement
+// @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
 // @awesome-doc-code-sections::CE::compiler_id
 // @awesome-doc-code-sections::CE::compilation_options
 // @awesome-doc-code-sections::CE::libs=fmt
@@ -44,16 +48,9 @@ static_assert(csl::ag::size_v<A>      == 2);
 </code></pre>
 </div>
 
-<div class='awesome-doc-code-sections_code-section' language='cpp'>
-auto i = 42;
-// comment
-</div>
+<!-- \include examples/ag/00_overview.cpp
 
-\include examples/ag/00_overview.cpp
-
-Example is here :
-
-<div class='awesome-doc-code-sections_remote-code-section' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div>
+<div class='awesome-doc-code-sections_remote-code-section' url='https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/.gitignore'></div> -->
 
 <!-- 
     equivalent to
