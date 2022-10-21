@@ -28,6 +28,8 @@
 
 #include "csl/ag.hpp" // @awesome-doc-code-sections::show::line
 
+// @awesome-doc-code-sections::includes_transformation=toto/titi|tata/tutu
+
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin
 

@@ -81,51 +81,7 @@ class ParsedCode {
 
     code    = ''
     ce_code = ''
-
     ce_options = {}
-    #transformations = new Map([
-        [ 'code',       new Array() ],
-        [ 'ce_code',    new Array() ],
-        [ 'both',       new Array() ]
-    ])
-
-    #parsers = new Map([
-        [ 'includes_transformation', (value) => {
-
-            let pair = value.split('|') // [ local_prefix, example_prefix, remote_prefix ]
-            if (pair.length != 2)
-                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unexpected includes_transformation value : [${value}]. Expects: local_prefix|example_prefix|remote_prefix`)
-
-            transformation = (code) => {
-                const regex = new RegExp(`(\s*\#.*[\"|\<"])(${pair[0]})(\w*[\"|\>"])`, 'g')
-                return code.replace(regex, pair[1])
-            }
-            this.#transformations.get('ce_code').push(transformation)
-        } ]
-    ])
-
-    #ParseMetadata(value) {
-
-        console.log(`>>>>>>> ParsedCode::ParseMetadata [${value}]`)
-
-        let parser = this.#parsers
-
-        let separator_index
-        while ((separator_index = value.indexOf(ParsedCode.tag_separator)) !== -1) {
-            parser = parser.get(value.substr(0, separator_index))
-            value = value.substr(separator_index + ParsedCode.tag_separator.length)
-            if (parser === undefined)
-                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown parser for tag [${value}]`)
-        }
-        let pair = value.split('=')
-        if (pair.length != 2)
-            console.warn(`awesome-doc-code-sections.js:ParsedCode::constructor: ill-formed key/value pair [${value}], expect 'key=value' format`)
-
-        let parsing_function = parser.get(pair[0])
-        if (parsing_function === undefined)
-            console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: unknown key [${pair[0]}]`)
-        parsing_function(pair[1])
-    }
 
     static TOTO = {}
 
@@ -134,7 +90,9 @@ class ParsedCode {
 
         // CE options
         let regexp = new RegExp(`${ParsedCode.tag}::CE=({(.*\n//.*)+}\n?)`, 'gm')
-        let matches = [...code_content.matchAll(regexp)]
+        let matches = [...code_content.matchAll(regexp)] // expect exactly 1 match
+        if (matches.length > 1)
+            console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: multiples CE configurations`)
         matches.map((match) => {
             let result = match[1].replaceAll('\n//', '')
             // remove from original content
@@ -142,54 +100,43 @@ class ParsedCode {
                          + code_content.slice(match.index + match[0].length)
             return result
         }).forEach((value) => {
-            // expect exactly 1 match
-            if (typeof this.ce_options !== 'undefined' && this.ce_options !== undefined)
-                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: multiples CE configurations`)
             this.ce_options = JSON.parse(value)
         })
 
         // Example: show block, line
-        regexp = new RegExp(`(${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`, 'gm')
+        regexp = new RegExp(`(^${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`, 'gm')
         matches = [...code_content.matchAll(regexp)]
-        let content = matches
+        let code_only_show = matches
+        // TODO: reverse() so we can use indexes to remove elements rather than replace()
             .map((match) => {
-                return match.groups.block !== undefined
+                let result = match.groups.block !== undefined
                     ? match.groups.block 
                     : match.groups.line
+                // remove from original content
+                code_content = code_content.replace(match[0], result)
+                return result
             })
             .join('\n')
-        code = (content.length !== 0 ? content : code)
-        
 
-        // @awesome-doc-code-sections::keep
+        this.code = (code_only_show !== "" ? code_only_show : code_content)
+        this.ce_code = code_content
 
-        // Parse metadatas
-        code_content.split('\n')
-            .forEach((line) => {
-                console.log(`>>>>>>> [${line}]`)
-
-                // endsWith '// @awesome-doc-code-sections::CE::line::.*$'
-
-                if (line.startsWith(ParsedCode.tag)) {
-                    let value = line.substr(ParsedCode.tag.length)
-                    this.#ParseMetadata(value)
-                    return
-                }
-                this.code    += `${line}\n`
-                this.ce_code += `${line}\n`
+        // includes_transformation
+        regexp = new RegExp(`^${ParsedCode.tag}::includes_transformation=([^\\|]+)\\|(.*)$`, 'gm')
+        matches = [...this.ce_code.matchAll(regexp)]
+        matches
+            .reverse()
+            .map((match) => {
+                this.ce_code = this.ce_code.slice(0, match.index)
+                             + this.ce_code.slice(match.index + match[0].length)
+                return new Array(match[1], match[2])
             })
-
-        // apply transformations
-        this.#transformations.get('both').forEach((transformation) => {
-            this.code = transformation(this.code)
-            this.ce_code = transformation(this.ce_code)
-        })
-        this.#transformations.get('code').forEach((transformation) => {
-            this.code = transformation(this.code)
-        })
-        this.#transformations.get('ce_code').forEach((transformation) => {
-            this.ce_code = transformation(this.ce_code)
-        })
+            .forEach((value) => {
+                console.log(`>>>>>> include replacement : [${value[0]}] into [${value[1]}]`)
+                // replace includes
+                const regex = new RegExp(`(\s*\#.*[\"|\<"])(${value[0]})(\w*[\"|\>"])`, 'g')
+                this.ce_code.replace(regex, value[1])
+            })
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
@@ -368,7 +315,7 @@ class CodeSection extends HTMLElement {
         if (this.code !== undefined && this.code.length != 0)
             this.load();
         else
-            this.innerHTML = '<p>awesome-doc-code-sections:CodeSection : missing code</p>'
+            this.innerHTML = '<p style="color:red; border-style: solid; border-color: red;">awesome-doc-code-sections:CodeSection : missing code</p>'
     }
 
     connectedCallback() {
