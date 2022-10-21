@@ -79,14 +79,15 @@ class ParsedCode {
 // @awesome-doc-code-sections::CE::line::skip
 // @awesome-doc-code-sections::CE::line::replace_with=
 
+    static tag = '// @awesome-doc-code-sections'
+
     code    = ''
     ce_code = ''
     ce_options = {}
 
-    static TOTO = {}
-
-    static tag = '// @awesome-doc-code-sections'
     constructor(code_content) {
+
+        // TODO: regexes: non-greedy any (.*?)
 
         // CE options
         let regexp = new RegExp(`${ParsedCode.tag}::CE=({(.*\n//.*)+}\n?)`, 'gm')
@@ -102,6 +103,8 @@ class ParsedCode {
         }).forEach((value) => {
             this.ce_options = JSON.parse(value)
         })
+
+        // TODO: skip block, line
 
         // Example: show block, line
         regexp = new RegExp(`(^${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`, 'gm')
@@ -122,21 +125,14 @@ class ParsedCode {
         this.ce_code = code_content
 
         // includes_transformation
-        regexp = new RegExp(`^${ParsedCode.tag}::includes_transformation=([^\\|]+)\\|(.*)$`, 'gm')
-        matches = [...this.ce_code.matchAll(regexp)]
-        matches
-            .reverse()
-            .map((match) => {
-                this.ce_code = this.ce_code.slice(0, match.index)
-                             + this.ce_code.slice(match.index + match[0].length)
-                return new Array(match[1], match[2])
-            })
-            .forEach((value) => {
-                console.log(`>>>>>> include replacement : [${value[0]}] into [${value[1]}]`)
+        if (this.ce_options.includes_transformation !== undefined) {
+            this.ce_options.includes_transformation.forEach((value) => {
                 // replace includes
-                const regex = new RegExp(`(\s*\#.*[\"|\<"])(${value[0]})(\w*[\"|\>"])`, 'g')
-                this.ce_code.replace(regex, value[1])
+                
+                const regex = new RegExp(`^(\\s*\\#.*?[\\"|\\<"].*?)(${value[0]})(.*?[\\"|\\>"])`, 'gm')
+                this.ce_code = this.ce_code.replace(regex, `$1${value[1]}$3`)
             })
+        }
     }
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
@@ -241,6 +237,7 @@ class SendToGodboltButton extends HTMLButtonElement {
                 console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
             return configuration
         }
+
         // TODO: check:
         //      ParsedData.language vs. configuration.language
         //  vs. hljs    https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md
@@ -279,6 +276,8 @@ class SendToGodboltButton extends HTMLButtonElement {
 }
 customElements.define(SendToGodboltButton.HTMLElement_name, SendToGodboltButton, {extends: 'button'});
 
+// TODO: BasicCodeSection (no ParsedCode)
+
 class CodeSection extends HTMLElement {
 // Code section, with synthax-coloration provided by highlightjs
 // Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
@@ -289,13 +288,14 @@ class CodeSection extends HTMLElement {
     static HTMLElement_name = 'awesome-doc-code-sections_code-section'
 
     get code() {
-        return this.codeContent.code
+        return this.parsed_code.code
     }
     get ce_code() {
-        return this.codeContent.ce_code
+        console.log(`>>>>>> DEBUG ${this.parsed_code.ce_code}`)
+        return this.parsed_code.ce_code
     }
     get ce_options() {
-        return this.codeContent.ce_options
+        return this.parsed_code.ce_options
     }
 
     constructor(code, language) {
@@ -310,7 +310,8 @@ class CodeSection extends HTMLElement {
             language = `language-${language}`
         this.language = language; // hljs language
 
-        this.codeContent = new ParsedCode(code)
+        this.parsed_code = new ParsedCode(code)
+        console.log(`>>>>>> DEBUG ${this.parsed_code.ce_code}`)
 
         if (this.code !== undefined && this.code.length != 0)
             this.load();
@@ -447,7 +448,7 @@ class RemoteCodeSection extends CodeSection {
 
         let apply_code = (code) => {
             // super.code = code;
-            super.codeContent = new ParsedCode(code)
+            super.parsed_code = new ParsedCode(code)
             super.load();
         }
 

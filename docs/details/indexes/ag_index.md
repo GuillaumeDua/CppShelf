@@ -22,13 +22,13 @@
 //  "language"            : "cpp",
 //  "compiler_id"         : "clang1400",
 //  "compilation_options" : "-O2 -std=c++20",
-//  "libs"                : [ "fmt" ]
+//  "libs"                : [ "fmt" ],
+//  "includes_transformation" : [
+//        [ "csl/",       "https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/" ]
+//  ]
 //  }
-// @awesome-doc-code-sections::includes_transformation=csl|https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl
-
 #include "csl/ag.hpp" // @awesome-doc-code-sections::show::line
 
-// @awesome-doc-code-sections::includes_transformation=toto/titi|tata/tutu
 
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin
