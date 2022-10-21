@@ -134,33 +134,32 @@ class ParsedCode {
 
         // CE options
         let regexp = new RegExp(`${ParsedCode.tag}::CE=({(.*\n//.*)+}\n?)`, 'gm')
-        let result = code_content.matchAll(regexp).next() // expect exactly 1 match
-        if (result.value !== undefined) {
-            this.ce_options = result.value[1].replaceAll('\n//', '')
-            this.ce_options = JSON.parse(this.ce_options)
-            code_content = code_content.slice(0, result.value.index)
-                         + code_content.slice(result.value.index + result.value[0].length)
-        }
+        let matches = [...code_content.matchAll(regexp)]
+        matches.map((match) => {
+            let result = match[1].replaceAll('\n//', '')
+            // remove from original content
+            code_content = code_content.slice(0, match.index)
+                         + code_content.slice(match.index + match[0].length)
+            return result
+        }).forEach((value) => {
+            // expect exactly 1 match
+            if (typeof this.ce_options !== 'undefined' && this.ce_options !== undefined)
+                console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: multiples CE configurations`)
+            this.ce_options = JSON.parse(value)
+        })
 
-        // Example: keep block
-        regexp = new RegExp(
-            `(${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`,
-            'gm'
-        )
-        let matched = code_content.matchAll(regexp)
-        let content = Array
-            .from(matched)
-            .map((value) => {
-                return value.groups.block !== undefined
-                    ? value.groups.block 
-                    : value.groups.line
+        // Example: show block, line
+        regexp = new RegExp(`(${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`, 'gm')
+        matches = [...code_content.matchAll(regexp)]
+        let content = matches
+            .map((match) => {
+                return match.groups.block !== undefined
+                    ? match.groups.block 
+                    : match.groups.line
             })
             .join('\n')
-
-        if (content.length != 0)
-            ParsedCode.TOTO = content
-
-        // return (content !== '' ? content : code)
+        code = (content.length !== 0 ? content : code)
+        
 
         // @awesome-doc-code-sections::keep
 

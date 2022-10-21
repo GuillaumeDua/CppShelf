@@ -30,6 +30,7 @@
 
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin
+
 auto i = 42; // test
 return i;
 // @awesome-doc-code-sections::show::block::end
