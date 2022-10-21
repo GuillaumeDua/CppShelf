@@ -298,7 +298,6 @@ class CodeSection extends HTMLElement {
         return this.parsed_code.code
     }
     get ce_code() {
-        console.log(`>>>>>> DEBUG ${this.parsed_code.ce_code}`)
         return this.parsed_code.ce_code
     }
     get ce_options() {
@@ -386,12 +385,9 @@ class CodeSection extends HTMLElement {
             value.replaceWith(node);
         };
 
-        var multines        = $('body').find(`div[class=${CodeSection.HTMLElement_name}] pre code`)
-        var single_lines    = $('body').find(`div[class=${CodeSection.HTMLElement_name}]`)
-
-        console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${multines.length + single_lines.length} elements ...`)
-        multines.each(replace_by_HTMLElement)
-        single_lines.each(replace_by_HTMLElement)
+        let elements = $('body').find(`div[class=${CodeSection.HTMLElement_name}]`)
+        console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${elements.length} element(s) ...`)
+        elements.each(replace_by_HTMLElement)
     }
 
     get hljs_language() {
@@ -776,7 +772,7 @@ awesome_doc_code_sections.initialize_doxygenCodeSections = function() {
 
         let lines = $(value).find('div[class=fragment] div[class=line]')
 
-        // WIP
+        // WIP: keep doc ref links
         let links = lines.find('a[class="code"]')
         links.each((index, value) => {
             doc_ref_links.set(value.textContent, value.href)
@@ -806,7 +802,7 @@ awesome_doc_code_sections.initialize_doxygenCodeSections = function() {
             $(value).replaceWith(node)
     })
 
-    // documentation reference links
+    // WIP: documentation reference links
     doc_ref_links.forEach((values, keys) => {
         // console.log(">>>>>>> " + value.href + " => " + value.textContent)
         console.log(">>>>>>> " + values + " => " + keys)
@@ -820,17 +816,18 @@ awesome_doc_code_sections.initialize_doxygenCodeSections = function() {
 awesome_doc_code_sections.initialize_PreCodeHTMLElements = function() {
 
     $('body').find('pre code').each((index, value) => { // filter
+
         if ($(value).parent().parent().prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_"))
             return
         
-            let existing_node = $(value).parent()
+        let existing_node = $(value).parent()
 
-            let language = value.getAttribute('language')
-            let code = existing_node.text()
+        let language = value.getAttribute('language')
+        let code = existing_node.text()
 
-            let node = new CodeSection(code, language);
-                node.setAttribute('language', language)
-            existing_node.replaceWith(node);
+        let node = new CodeSection(code, language);
+            node.setAttribute('language', language)
+        existing_node.replaceWith(node);
     })
 
     // TODO: same for only code elements ?
