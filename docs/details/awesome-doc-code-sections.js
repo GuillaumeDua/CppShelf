@@ -87,6 +87,11 @@ class ParsedCode {
 
     constructor(code_content) {
 
+        this.#parse(code_content)
+        this.#apply_ce_transformations()
+    }
+
+    #parse(code_content) {
         // TODO: regexes: non-greedy any (.*?)
 
         // CE options
@@ -123,6 +128,8 @@ class ParsedCode {
 
         this.code = (code_only_show !== "" ? code_only_show : code_content)
         this.ce_code = code_content
+    }
+    #apply_ce_transformations() {
 
         // includes_transformation
         if (this.ce_options.includes_transformation !== undefined) {
