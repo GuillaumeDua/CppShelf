@@ -144,6 +144,37 @@ class ParsedCode {
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
 
+class ce_API {
+// fetch CE API information asynchronously
+
+    static languages = undefined
+
+    static #static_initializer = (async function(){
+        ce_API.#fetch_languages()
+    })()
+
+    static async #fetch_languages() {
+        try {
+            let response = await fetch('https://godbolt.org/api/languages')
+            let datas = await response.text()
+
+            console.log(datas)
+            let text = datas.split('\n')
+            text.shift() // remove header
+            ce_API.languages = text.map((value) => {
+            // keep only ids
+                return value.slice(0, value.indexOf(' '))
+            })
+        }
+        catch (error) {
+            console.error(
+                "awesome-doc-code-sections.js:SendToGodboltButton: godbolt API exception (ce_languages)\n" +
+                "\t" + error
+            )
+        }
+    }
+}
+
 // ============
 // HTMLElements
 
@@ -233,8 +264,6 @@ class SendToGodboltButton extends HTMLButtonElement {
         if (codeSectionElement === undefined
         ||  codeSectionElement.tagName != CodeSection.HTMLElement_name.toUpperCase())
             console.log("awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: unexpected parent.parent element (must be CodeSection)")
-
-        // TODO: godbolt CE API (and inject csl::ag header include<raw_github_path.hpp>)
         console.log('awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: : sending ...')
     
         var get_configuration = function() {
@@ -317,7 +346,6 @@ class CodeSection extends HTMLElement {
         this.language = language; // hljs language
 
         this.parsed_code = new ParsedCode(code)
-        console.log(`>>>>>> DEBUG ${this.parsed_code.ce_code}`)
 
         if (this.code !== undefined && this.code.length != 0)
             this.load();
