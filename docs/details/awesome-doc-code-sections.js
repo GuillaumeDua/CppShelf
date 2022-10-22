@@ -273,6 +273,11 @@ class SendToGodboltButton extends HTMLButtonElement {
                 console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
             return configuration
         }
+        var get_language = function() {
+            return ce_API.languages.includes(codeSectionElement.ce_options.language)
+                ? codeSectionElement.ce_options.language
+                : get_configuration().language
+        }
 
         // TODO: check:
         //      ParsedData.language vs. configuration.language
@@ -283,7 +288,7 @@ class SendToGodboltButton extends HTMLButtonElement {
         let data = {
             "sessions": [{
                 "id": 1,
-                "language": codeSectionElement.ce_options.language || get_configuration().language,
+                "language": get_language(),
                 "source": codeSectionElement.ce_code,
                 "compilers":  [ ],
                 "executors": [{
