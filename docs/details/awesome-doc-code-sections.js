@@ -49,6 +49,7 @@
 //          https://stackoverflow.com/questions/74114767/highlightjs-how-to-create-custom-clickable-sequence-of-characters
 // TODO: hide warnings for undefined/fallback hljs language
 // TODO: soft errors (replace HTMLElement content with red error message, rather than stopping the process)
+// TODO: make Initialize_DivHTMLElements generic
 
 if (typeof hljs === 'undefined')
     console.error('awesome-doc-code-sections.js: depends on highlightjs, which is missing')
@@ -154,11 +155,11 @@ class ce_API {
     })()
 
     static async #fetch_languages() {
+    // https://godbolt.org/api/languages
         try {
             let response = await fetch('https://godbolt.org/api/languages')
             let datas = await response.text()
 
-            console.log(datas)
             let text = datas.split('\n')
             text.shift() // remove header
             ce_API.languages = text.map((value) => {
@@ -172,6 +173,19 @@ class ce_API {
                 "\t" + error
             )
         }
+    }
+
+    static open_in_new_tab(request_data) {
+    // https://godbolt.org/clientstate/
+
+        console.log(request_data)
+
+        let body  = JSON.stringify(request_data);
+        let state = btoa(body); // base64 encoding
+        let url   = "https://godbolt.org/clientstate/" + encodeURIComponent(state);
+    
+        // Open in a new tab
+        window.open(url, "_blank");
     }
 }
 
@@ -261,9 +275,12 @@ class SendToGodboltButton extends HTMLButtonElement {
 
     onClickSend() {
         let codeSectionElement = this.parentElement.parentElement
+
+        console.log(codeSectionElement)
+
         if (codeSectionElement === undefined
-        ||  codeSectionElement.tagName != CodeSection.HTMLElement_name.toUpperCase())
-            console.log("awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: unexpected parent.parent element (must be CodeSection)")
+        ||  codeSectionElement.tagName.match(`\w+${CodeSection.HTMLElement_name.toUpperCase()}`) === '')
+            console.error("awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: unexpected parent.parent element (must be an - optionaly Basic - CodeSection)")
         console.log('awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: : sending ...')
     
         var get_configuration = function() {
@@ -273,91 +290,82 @@ class SendToGodboltButton extends HTMLButtonElement {
                 console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
             return configuration
         }
+        var get_ce_options = function() {
+            return typeof codeSectionElement.ce_options === 'undefined' || codeSectionElement.ce_options === undefined
+                ? get_configuration()
+                : codeSectionElement.ce_options
+        }
         var get_language = function() {
-            return ce_API.languages.includes(codeSectionElement.ce_options.language)
-                ? codeSectionElement.ce_options.language
+        //      hljs    https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md
+        //  vs. godbolt https://godbolt.org/api/languages
+            return ce_API.languages.includes(get_ce_options().language)
+                ? get_ce_options().language
                 : get_configuration().language
         }
+        var get_code = function() {
+            let result = codeSectionElement.ce_code || codeSectionElement.code
+            if (result === undefined)
+                console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing code`)
+            return result
+        }
 
-        // TODO: check:
-        //      ParsedData.language vs. configuration.language
-        //  vs. hljs    https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md
-        //  vs. godbolt https://godbolt.org/api/languages
-
-        // TODO: local metadata can override compiler_id, options
+        // build request as JSon
         let data = {
             "sessions": [{
                 "id": 1,
                 "language": get_language(),
-                "source": codeSectionElement.ce_code,
+                "source": get_code(),
                 "compilers":  [ ],
                 "executors": [{
                     "compiler":
                     {
-                        "id": codeSectionElement.ce_options.compiler_id || get_configuration().compiler_id,
-                        "libs": codeSectionElement.ce_options.libs || [ ],
-                        "options": codeSectionElement.ce_options.compilation_options || get_configuration().default_options
+                        "id": get_ce_options().compiler_id || get_configuration().compiler_id,
+                        "libs": get_ce_options().libs || [ ],
+                        "options": get_ce_options().compilation_options || get_configuration().default_options
                     }
                     // TODO: exec
                 }]
             }]
         };
-    
         // CE /clientstate API
-        let body  = JSON.stringify(data);
-
-        console.log(`sending request : ${body} ...`)
-
-        let state = btoa(body);
-        let url   = "https://godbolt.org/clientstate/" + encodeURIComponent(state);
-    
-        // Open in a new tab
-        window.open(url, "_blank");
+        ce_API.open_in_new_tab(data)
     }
 }
 customElements.define(SendToGodboltButton.HTMLElement_name, SendToGodboltButton, {extends: 'button'});
 
-// TODO: BasicCodeSection (no ParsedCode)
-
-class CodeSection extends HTMLElement {
-// Code section, with synthax-coloration provided by highlightjs
+class BasicCodeSection extends HTMLElement {
+// Basic code section (meaning, no metadata parsing), with synthax-coloration provided by highlightjs
 // Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
 // otherwise it is automatically detected based on fetched code content
 //
-// <CodeSection language='cpp'>[some code here]</CodeSection>
-
-    static HTMLElement_name = 'awesome-doc-code-sections_code-section'
-
-    get code() {
-        return this.parsed_code.code
-    }
-    get ce_code() {
-        return this.parsed_code.ce_code
-    }
-    get ce_options() {
-        return this.parsed_code.ce_options
-    }
-
+// <BasicCodeSection language='cpp'>[some code here]</BasicCodeSection>
+    
+    static HTMLElement_name = 'awesome-doc-code-sections_basic-code-section'
+    
     constructor(code, language) {
         super();
 
-        // arguments
-        if (code === undefined && this.textContent !== undefined)
-            code = this.textContent
-        if (! language)
-            language = this.getAttribute('language') || undefined
-        if (language !== undefined && !language.startsWith("language-"))
-            language = `language-${language}`
-        this.language = language; // hljs language
+        try {
+            // arguments
+            if (code === undefined && this.textContent !== undefined)
+                code = this.textContent
+            if (! language)
+                language = this.getAttribute('language') || undefined
+            if (language !== undefined && !language.startsWith("language-"))
+                language = `language-${language}`
 
-        this.parsed_code = new ParsedCode(code)
+            this.language = language
+            this.code = code
 
-        if (this.code !== undefined && this.code.length != 0)
+            if (this.code === undefined || this.code.length == 0)
+                throw 'invalid or empty code'
             this.load();
-        else
-            this.innerHTML = '<p style="color:red; border-style: solid; border-color: red;">awesome-doc-code-sections:CodeSection : missing code</p>'
+        }
+        catch (error) {
+            this.innerHTML = `<p style="color:red; border-style: solid; border-color: red;">awesome-doc-code-sections:BasicCodeSection: error : ${error}</p>`
+        }
     }
-
+    
     connectedCallback() {
     }
 
@@ -394,6 +402,78 @@ class CodeSection extends HTMLElement {
     static Initialize_DivHTMLElements() {
     // expected formats :
     //
+    // <div class='awesome-doc-code-sections_basic-code-section' [language='cpp']>
+    //  one line of code here
+    // </div>
+    //
+    // <div class='awesome-doc-code-sections_basic-code-section' [language='cpp']>
+    //   <pre>
+    //      <code>
+    //  mutiples
+    //  lines of
+    //  code here
+    //      </code>
+    //   </pre>
+    // </div>
+
+        let replace_by_HTMLElement = (index, value) => {
+    
+            let language = value.getAttribute('language')
+            let code = value.textContent
+                        .replace(/^\s+/g, '').replace(/\s+$/g, '') // remove enclosing empty lines
+            let node = new BasicCodeSection(code, language);
+                node.setAttribute('language', language)
+            value.replaceWith(node);
+        };
+
+        let elements = $('body').find(`div[class=${BasicCodeSection.HTMLElement_name}]`)
+        console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${elements.length} element(s) ...`)
+        elements.each(replace_by_HTMLElement)
+    }
+
+    get hljs_language() {
+        let code = $(this).find("pre code")
+        if (code.length == 0)
+            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed element`)
+        
+        let result = code[0].classList.toString().replace(/hljs language-/g, '')
+        if (result.indexOf(' ') !== -1)
+            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed code hljs classList`)
+        return result
+    }
+}
+customElements.define(BasicCodeSection.HTMLElement_name, BasicCodeSection);
+
+class CodeSection extends BasicCodeSection {
+// Code section, with synthax-coloration provided by highlightjs
+// Additionaly, the language code language can be forced (`code_language` parameter, or `language` attributes),
+// otherwise it is automatically detected based on fetched code content
+//
+// <CodeSection language='cpp'>[some code here]</CodeSection>
+
+    static HTMLElement_name = 'awesome-doc-code-sections_code-section'
+
+    get ce_code() {
+        return this.parsed_code.ce_code
+    }
+    get ce_options() {
+        return this.parsed_code.ce_options
+    }
+
+    constructor(code, language) {
+        let parsed_code = undefined
+        try             { parsed_code = new ParsedCode(code) }
+        catch (error)   {
+            this.innerHTML = `<p style="color:red; border-style: solid; border-color: red;">awesome-doc-code-sections:CodeSection: error : ${error}</p>`
+            return
+        }
+        super(parsed_code.code, language);
+        this.parsed_code = parsed_code
+    }
+
+    static Initialize_DivHTMLElements() {
+    // expected formats :
+    //
     // <div class='awesome-doc-code-sections_code-section' [language='cpp']>
     //  one line of code here
     // </div>
@@ -421,17 +501,6 @@ class CodeSection extends HTMLElement {
         let elements = $('body').find(`div[class=${CodeSection.HTMLElement_name}]`)
         console.log(`awesome-doc-code-sections.js:CodeSection : Initialize_DivHTMLElements : replacing ${elements.length} element(s) ...`)
         elements.each(replace_by_HTMLElement)
-    }
-
-    get hljs_language() {
-        let code = $(this).find("pre code")
-        if (code.length == 0)
-            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed element`)
-        
-        let result = code[0].classList.toString().replace(/hljs language-/g, '')
-        if (result.indexOf(' ') !== -1)
-            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed code hljs classList`)
-        return result
     }
 }
 customElements.define(CodeSection.HTMLElement_name, CodeSection);
@@ -777,6 +846,7 @@ awesome_doc_code_sections.HTML_elements = {}
 awesome_doc_code_sections.HTML_elements.CopyToClipboardButton = CopyToClipboardButton
 awesome_doc_code_sections.HTML_elements.SendToGodboltButton   = SendToGodboltButton
 awesome_doc_code_sections.HTML_elements.ToggleDarkModeButton  = ToggleDarkModeButton
+awesome_doc_code_sections.HTML_elements.BasicCodeSection      = BasicCodeSection
 awesome_doc_code_sections.HTML_elements.CodeSection           = CodeSection
 awesome_doc_code_sections.HTML_elements.RemoteCodeSection     = RemoteCodeSection
 awesome_doc_code_sections.ThemeSelector = ThemeSelector
@@ -922,6 +992,8 @@ awesome_doc_code_sections.initialize = function() {
             // replace <select/> with proper HTML elements
             awesome_doc_code_sections.ThemeSelector.Initialize_SelectHTMLElements();
             // replace <div/> with proper HTML elements
+            // TODO: Make generic
+            awesome_doc_code_sections.HTML_elements.BasicCodeSection.Initialize_DivHTMLElements();
             awesome_doc_code_sections.HTML_elements.CodeSection.Initialize_DivHTMLElements();
             awesome_doc_code_sections.HTML_elements.RemoteCodeSection.Initialize_DivHTMLElements();
 
