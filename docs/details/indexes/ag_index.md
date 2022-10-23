@@ -24,11 +24,13 @@
 //  "compilation_options" : "-O2 -std=c++20",
 //  "libs"                : [ {"id": "fmt", "version": "trunk"} ],
 //  "includes_transformation" : [
-//        [ "csl/",       "https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/" ]
-//  ]
+//        [ "csl/",       "https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/" ],
+//        [ "toto",       "iostream" ]
+//  ],
+//  "add_in_doc_execution" : true
 //  }
-#include "csl/ag.hpp" // @awesome-doc-code-sections::show::line
-
+// #include "csl/ag.hpp" // @awesome-doc-code-sections::show::line
+#include <csl/ag.hpp> // @awesome-doc-code-sections::show::line
 
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin

@@ -64,7 +64,6 @@ var awesome_doc_code_sections = {}
     //      default_options // not mandatory
     // }
 
-    // TODO : simplify this (use JSon as configuration format ?)
 class ParsedCode {
 // @awesome-doc-code-sections::split     // create a table/tr/td ? tr0: code, tr1: output
 //  `code` as an array ? or multiples ParsedCode (ParsedCode.next() ?)
@@ -188,7 +187,7 @@ class ce_API {
     }
     static get_execution_result_for(ce_options, code) {
     // https://godbolt.org/api/compiler/${compiler_id}/compile
-        const body = {
+        let body = {
             "source": code,
             "compiler": ce_options.compiler_id,
             "options": {
@@ -211,9 +210,15 @@ class ce_API {
         }
         const options = {
             method: 'POST',
-            body: JSON.stringify(body)  
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(body)
         };
-        fetch(`https://godbolt.org/api/compiler/${compiler_id}/compile`, options)
+
+        console.log(body)
+
+        fetch(`https://godbolt.org/api/compiler/${ce_options.compiler_id}/compile`, options)
             .then(response => response.text())
             .then(response => {
                 console.log(response) // WIP
@@ -507,6 +512,14 @@ class CodeSection extends BasicCodeSection {
         }
         super(parsed_code.code, language);
         this.parsed_code = parsed_code
+
+        if (this.parsed_code.ce_options.add_in_doc_execution)
+            this.#add_execution_panel()
+    }
+
+    #add_execution_panel() {
+
+        ce_API.get_execution_result_for(this.ce_options, this.ce_code)
     }
 
     static Initialize_DivHTMLElements() {
