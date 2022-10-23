@@ -174,7 +174,6 @@ class ce_API {
             )
         }
     }
-
     static open_in_new_tab(request_data) {
     // https://godbolt.org/clientstate/
 
@@ -186,6 +185,39 @@ class ce_API {
     
         // Open in a new tab
         window.open(url, "_blank");
+    }
+    static get_execution_result_for(ce_options, code) {
+    // https://godbolt.org/api/compiler/${compiler_id}/compile
+        const body = {
+            "source": code,
+            "compiler": ce_options.compiler_id,
+            "options": {
+                "userArguments": ce_options.compilation_options,
+                "executeParameters": {
+                    "args": ce_options.execute_parameters_args || [],
+                    "stdin": ce_options.execute_parameters_stdin || ""
+                },
+                "compilerOptions": {
+                    "executorRequest": true
+                },
+                "filters": {
+                    "execute": true
+                },
+                "tools": [],
+                "libraries": ce_options.libs || []
+            },
+            "lang": ce_options.language,
+            "allowStoreCodeDebug": true
+        }
+        const options = {
+            method: 'POST',
+            body: JSON.stringify(body)  
+        };
+        fetch(`https://godbolt.org/api/compiler/${compiler_id}/compile`, options)
+            .then(response => response.text())
+            .then(response => {
+                console.log(response) // WIP
+            });
     }
 }
 
@@ -315,7 +347,13 @@ class SendToGodboltButton extends HTMLButtonElement {
                 "id": 1,
                 "language": get_language(),
                 "source": get_code(),
-                "compilers":  [ ],
+                "compilers":  [
+                    {
+                        "id": get_ce_options().compiler_id || get_configuration().compiler_id,
+                        "libs": get_ce_options().libs || [ ],
+                        "options": get_ce_options().compilation_options || get_configuration().default_options
+                    }
+                ],
                 "executors": [{
                     "compiler":
                     {
