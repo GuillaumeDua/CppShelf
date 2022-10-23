@@ -144,14 +144,44 @@ class ParsedCode {
 }
 awesome_doc_code_sections.ParsedCode = ParsedCode
 
+class remote_resources_cache {
+    #remote_files = new Map() // uri -> text
+
+    static async #fetch_remote_file(uri) {
+
+        try {
+            let response = await fetch(uri)
+            return await response.text()
+        }
+        catch (error) {
+            console.error(
+                "awesome-doc-code-sections.js:remote_resources_cache: error\n" +
+                "\t" + error
+            )
+        }
+    }
+
+    async get(uri) {
+        if (! this.#remote_files.has(uri)) {
+            this.#remote_files.set(
+                uri,
+                await remote_resources_cache.#fetch_remote_file(uri)
+            )
+        }
+        return this.#remote_files.get(uri)
+    }
+}
+
 class ce_API {
 // fetch CE API information asynchronously
-
-    static languages = undefined
 
     static #static_initializer = (async function(){
         ce_API.#fetch_languages()
     })()
+
+    // cache
+    static languages = undefined
+    static #remote_files_cache = new remote_resources_cache()
 
     static async #fetch_languages() {
     // https://godbolt.org/api/languages
@@ -168,7 +198,7 @@ class ce_API {
         }
         catch (error) {
             console.error(
-                "awesome-doc-code-sections.js:SendToGodboltButton: godbolt API exception (ce_languages)\n" +
+                "awesome-doc-code-sections.js:ce_API: godbolt API exception (fetch_languages)\n" +
                 "\t" + error
             )
         }
@@ -185,44 +215,63 @@ class ce_API {
         // Open in a new tab
         window.open(url, "_blank");
     }
-    static get_execution_result_for(ce_options, code) {
+    static async get_execution_result_for(ce_options, code) {
     // https://godbolt.org/api/compiler/${compiler_id}/compile
-        let body = {
-            "source": code,
-            "compiler": ce_options.compiler_id,
-            "options": {
-                "userArguments": ce_options.compilation_options,
-                "executeParameters": {
-                    "args": ce_options.execute_parameters_args || [],
-                    "stdin": ce_options.execute_parameters_stdin || ""
+
+        // POST /api/compiler/<compiler-id>/compile endpoint is not working with remote header-files in `#include`s PP directions
+        // https://github.com/compiler-explorer/compiler-explorer/issues/4190
+        let matches = [...code.matchAll(/^\s*\#\s*include\s+[\"|\<](\w+\:\/\/.*?)[\"|\>]/gm)].reverse()
+
+        let promises_map = matches.map(async function(match) {
+
+            let downloaded_file_content = await ce_API.#remote_files_cache.get(match[1])
+            console.log(`>>>>> fetched : [${downloaded_file_content}]`)
+            code = code.replace(match[0], `// download[${match[0]}]::begin\n${downloaded_file_content}\n// download[${match[0]}]::end`)
+        })
+
+        let fetch_result = () => {
+            // Build & send the request
+            let body = {
+                "source": code,
+                "compiler": ce_options.compiler_id,
+                "options": {
+                    "userArguments": ce_options.compilation_options,
+                    "executeParameters": {
+                        "args": ce_options.execute_parameters_args || [],
+                        "stdin": ce_options.execute_parameters_stdin || ""
+                    },
+                    "compilerOptions": {
+                        "executorRequest": true
+                    },
+                    "filters": {
+                        "execute": true
+                    },
+                    "tools": [],
+                    "libraries": ce_options.libs || []
                 },
-                "compilerOptions": {
-                    "executorRequest": true
+                "lang": ce_options.language,
+                "allowStoreCodeDebug": true
+            }
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
                 },
-                "filters": {
-                    "execute": true
-                },
-                "tools": [],
-                "libraries": ce_options.libs || []
-            },
-            "lang": ce_options.language,
-            "allowStoreCodeDebug": true
+                body: JSON.stringify(body)
+            };
+
+            console.log(body)
+
+            fetch(`https://godbolt.org/api/compiler/${ce_options.compiler_id}/compile`, options)
+                .then(response => response.text())
+                .then(response => {
+                    console.log(response) // WIP
+                });
         }
-        const options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(body)
-        };
 
-        console.log(body)
-
-        fetch(`https://godbolt.org/api/compiler/${ce_options.compiler_id}/compile`, options)
-            .then(response => response.text())
-            .then(response => {
-                console.log(response) // WIP
-            });
+        return await Promise.all(promises_map).then(() => {
+            fetch_result()
+        })
     }
 }
 
