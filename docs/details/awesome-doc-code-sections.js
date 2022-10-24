@@ -215,7 +215,7 @@ class ce_API {
         // Open in a new tab
         window.open(url, "_blank");
     }
-    static async get_execution_result_for(ce_options, code) {
+    static async fetch_execution_result(ce_options, code) {
     // https://godbolt.org/api/compiler/${compiler_id}/compile
 
         // POST /api/compiler/<compiler-id>/compile endpoint is not working with remote header-files in `#include`s PP directions
@@ -225,7 +225,9 @@ class ce_API {
         let promises_map = matches.map(async function(match) {
 
             let downloaded_file_content = await ce_API.#remote_files_cache.get(match[1])
-            code = code.replace(match[0], `// download[${match[0]}]::begin\n${downloaded_file_content}\n// download[${match[0]}]::end`)
+            console.log(`>>>>> fetched downloaded_file_content length == ${downloaded_file_content.length}`)
+            let match_0_token = match[0].replaceAll('\n', '')
+            code = code.replace(match[0], `// download[${match_0_token}]::begin\n${downloaded_file_content}\n// download[${match_0_token}]::end`)
         })
 
         // Build & send the request
@@ -563,7 +565,14 @@ class CodeSection extends BasicCodeSection {
 
     #add_execution_panel() {
 
-        ce_API.get_execution_result_for(this.ce_options, this.ce_code)
+        // todo: loading panel
+        let code_node = document.createElement('pre');
+            code_node.style.zIndex = 1;
+            code_node.style.position = 'relative'
+        let code = code_node.appendChild(document.createElement('code'));
+            code.textContent = this.code
+
+        ce_API.fetch_execution_result(this.ce_options, this.ce_code)
             .then((result) => {
                 console.log('fetched: ' + result)
             })
@@ -944,7 +953,6 @@ awesome_doc_code_sections.initialize_ButtonsAutoHide = function() {
         )   auto_hide_element(node_containing_button, $(value))
     })
 }
-
 awesome_doc_code_sections.initialize = function() {
 
     $(function() {
