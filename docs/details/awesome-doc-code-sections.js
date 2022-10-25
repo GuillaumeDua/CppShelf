@@ -459,6 +459,8 @@ class BasicCodeSection extends HTMLElement {
 
     load() {
 
+        this.style.marginTop = '10px'
+
         // code content
         let code_node = document.createElement('pre');
             code_node.style.zIndex = 1;
@@ -568,25 +570,24 @@ class CodeSection extends BasicCodeSection {
         if (code_node === undefined || code_node.tagName !== 'PRE')
             console.error()
 
-        this.style.display = 'flex'
-        this.style.alignItems = 'stretch'
-        this.style.alignContent = 'center'
+        this.style.display = 'table'
+        this.style.width = '100%'
 
         // left panel: code
-        code_node.style.float = 'left'
-        code_node.style.width = '100%'
-        code_node.style.height = 'auto'
-        code_node.style.margin = 'auto'
+        code_node.style.display = 'table-cell'
 
         // right panel: loading
-        let loading_animation = document.createElement('img');
-            loading_animation.src = 'loading.gif'
-            loading_animation.loading = 'lazy'
-            loading_animation.style.float = 'right'
-            loading_animation.style.margin = 'auto'
-            loading_animation.style.marginLeft = '10px'
-            loading_animation.style.height = 'auto'
-
+        let loading_animation = document.createElement('div');
+            loading_animation.style.backgroundImage = 'url("loading.gif")'
+            loading_animation.style.backgroundSize = 'contain'
+            loading_animation.style.backgroundRepeat = 'no-repeat'
+            loading_animation.style.backgroundPosition = 'center'
+            loading_animation.style.display = 'table-cell'
+            loading_animation.style.border = '1px solid var(--primary-color)'
+            loading_animation.style.borderRadius = '5px'
+            
+            loading_animation.style.width = '100px'
+            
         this.appendChild(loading_animation)
 
         // ce_API.fetch_execution_result(this.ce_options, this.ce_code)
