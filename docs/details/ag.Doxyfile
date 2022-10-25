@@ -950,6 +950,7 @@ HTML_EXTRA_STYLESHEET  += ./docs/details/doxygen-awesome-css/doxygen-awesome-sid
 
 HTML_EXTRA_FILES       += ./docs/details/images/favicon_shelf.ico
 HTML_EXTRA_FILES       += ./docs/details/images/gh-pages-logo.png
+HTML_EXTRA_FILES       += ./docs/details/images/loading.gif
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-interactive-toc.js
