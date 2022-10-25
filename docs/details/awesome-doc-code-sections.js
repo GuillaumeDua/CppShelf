@@ -568,26 +568,24 @@ class CodeSection extends BasicCodeSection {
         if (code_node === undefined || code_node.tagName !== 'PRE')
             console.error()
 
-        this.style.borderColor = 'red'
-        this.style.borderWidth = 2
-        this.style.borderStyle = 'solid'
-
         this.style.display = 'flex'
         this.style.alignItems = 'stretch'
-        this.style.margin = ''
+        this.style.alignContent = 'center'
 
         // left panel: code
+        code_node.style.float = 'left'
         code_node.style.width = '100%'
-        // code_node.style.float = 'left'
+        code_node.style.height = 'auto'
+        code_node.style.margin = 'auto'
 
         // right panel: loading
         let loading_animation = document.createElement('img');
             loading_animation.src = 'loading.gif'
             loading_animation.loading = 'lazy'
             loading_animation.style.float = 'right'
-
+            loading_animation.style.margin = 'auto'
+            loading_animation.style.marginLeft = '10px'
             loading_animation.style.height = 'auto'
-            // loading_animation.style.position = 'relative';
 
         this.appendChild(loading_animation)
 
