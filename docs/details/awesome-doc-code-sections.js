@@ -461,29 +461,25 @@ class BasicCodeSection extends HTMLElement {
     load() {
 
         this.style.display = 'flex'
-        // this.style.flexWrap = 'nowarp'
+        this.style.flexWrap = 'nowarp'
         this.style.width = '100%'
         this.style.height = '100%'
-        // this.style.margin = 'auto' // 10px 
+        this.style.margin = 'auto'
         this.style.border = '2px solid blue'
 
         // code content
         let code_node = document.createElement('pre');
             code_node.style.zIndex = 1;
             code_node.style.position = 'relative'
-            // code_node.style.display = 'table-cell'
             code_node.style.display = 'flex'
-
-            code_node.style.border = '2px solid green'
-            
             code_node.style.height = '100%'
             code_node.style.width = '100%'
             code_node.style.margin = 'auto'
+
+            code_node.style.border = '2px solid green'
             
-            // code_node.style.minwidth = '50%'
         let code = document.createElement('code');
             code.style.border = '2px solid red'
-            // code.style.display = 'flex'
             code.style.height = '100%'
             code.style.width = '100%'
             code.style.margin = 'auto'
@@ -592,10 +588,6 @@ class CodeSection extends BasicCodeSection {
         if (code_node === undefined || code_node.tagName !== 'PRE')
             console.error('awesome-doc-code-sections.js:CodeSection::add_execution_panel : ill-formed firstChild')
 
-        // left panel: code
-        
-        // code_node.style.height = '100%'
-
         // right panel: loading
         let loading_animation = document.createElement('div');
             loading_animation.style.backgroundImage = 'url("loading.gif")'
@@ -610,6 +602,7 @@ class CodeSection extends BasicCodeSection {
             // loading_animation.style.margin = 'auto'
         this.appendChild(loading_animation)
 
+
         // right panel: replace with result
         ce_API.fetch_execution_result(this.ce_options, this.ce_code)
             .then((result) => {
@@ -617,6 +610,8 @@ class CodeSection extends BasicCodeSection {
                 // todo: animate
 
                 let right_panel_element = new BasicCodeSection(result)
+                right_panel_element.style.border = '1px solid pink'
+                right_panel_element.style.overflow = 'hidden'
                 loading_animation.replaceWith(right_panel_element)
             })
     }
