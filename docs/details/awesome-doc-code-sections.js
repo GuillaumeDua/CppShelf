@@ -459,8 +459,9 @@ class BasicCodeSection extends HTMLElement {
 
     load() {
 
-        // this.style.border = '1px solid blue'
+        this.style.border = '2px solid blue'
         this.style.width = '100%'
+        this.style.height = '100%'
         this.style.margin = 'auto' // 10px 
         this.style.display = 'table'
 
@@ -468,15 +469,16 @@ class BasicCodeSection extends HTMLElement {
         let code_node = document.createElement('pre');
             code_node.style.zIndex = 1;
             code_node.style.position = 'relative'
-            code_node.style.margin = 'auto'
-            code_node.style.border = '1px solid green'
-            code_node.style.height = '100%'
+            // code_node.style.margin = 'auto'
+            code_node.style.border = '2px solid green'
+            // code_node.style.height = '100%'
             code_node.style.display = 'table-cell'
             // code_node.style.width = '100%'
             // code_node.style.minwidth = '50%'
         let code = code_node.appendChild(document.createElement('code'));
-            code.style.margin = 'auto'
-            code.style.height = '100%'
+            // code.style.margin = 'auto'
+            code.style.height = '90%'
+            code.style.border = '2px solid red'
             code.textContent = this.code
 
         code.classList.add('hljs')
@@ -581,10 +583,8 @@ class CodeSection extends BasicCodeSection {
         if (code_node === undefined || code_node.tagName !== 'PRE')
             console.error()
 
-        this.style.display = 'table'
-
         // left panel: code
-        code_node.style.border = '1px solid blue'
+        
         code_node.style.height = '100%'
 
         // right panel: loading
@@ -605,12 +605,12 @@ class CodeSection extends BasicCodeSection {
             .then((result) => {
                 console.log('fetched: ' + result)
                 // todo: animate
-                let right_panel_element = document.createElement('div')
-                    right_panel_element.style.display = 'table-cell'
-                    right_panel_element.style.border = '1px solid red'
-                    right_panel_element.style.margin = 'auto'
-                let right_panel_code = new BasicCodeSection(result)
-                    right_panel_element.appendChild(right_panel_code)
+                // let right_panel_element = document.createElement('div')
+                //     right_panel_element.style.display = 'table-cell'
+                //     right_panel_element.style.border = '1px solid red'
+                //     right_panel_element.style.margin = 'auto'
+                let right_panel_element = new BasicCodeSection(result)
+                    // right_panel_element.appendChild(right_panel_code)
 
                 loading_animation.replaceWith(right_panel_element)
             })

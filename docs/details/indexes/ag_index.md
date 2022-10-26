@@ -42,6 +42,8 @@ return i;
 </code></pre>
 </div>
 
+<br />
+
 <div class='awesome-doc-code-sections_code-section'>
 <pre><code>
 // some comment here
@@ -71,6 +73,8 @@ return i;
 }
 </code></pre>
 </div>
+
+<br />
 
 <div class='awesome-doc-code-sections_basic-code-section' language="cpp">
 <pre><code>
