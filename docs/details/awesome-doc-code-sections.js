@@ -572,9 +572,12 @@ class CodeSection extends BasicCodeSection {
 
         this.style.display = 'table'
         this.style.width = '100%'
+        this.style.border = '1px solid green'
 
         // left panel: code
-        code_node.style.display = 'table-cell'
+        code_node.style.width = 'auto'
+        code_node.style.border = '1px solid blue'
+        // code_node.style.height = '100%'
 
         // right panel: loading
         let loading_animation = document.createElement('div');
@@ -582,19 +585,26 @@ class CodeSection extends BasicCodeSection {
             loading_animation.style.backgroundSize = 'contain'
             loading_animation.style.backgroundRepeat = 'no-repeat'
             loading_animation.style.backgroundPosition = 'center'
-            loading_animation.style.display = 'table-cell'
+
             loading_animation.style.border = '1px solid var(--primary-color)'
             loading_animation.style.borderRadius = '5px'
-            
+
+            loading_animation.style.display = 'table-cell'
             loading_animation.style.width = '100px'
-            
         this.appendChild(loading_animation)
 
-        // ce_API.fetch_execution_result(this.ce_options, this.ce_code)
-        //     .then((result) => {
-        //         console.log('fetched: ' + result)
-        //         // todo: animate
-        //     })
+        // right panel: replace with result
+        ce_API.fetch_execution_result(this.ce_options, this.ce_code)
+            .then((result) => {
+                console.log('fetched: ' + result)
+                // todo: animate
+                let right_panel_element = new BasicCodeSection(result)
+                    right_panel_element.style.display = 'table-cell'
+                    right_panel_element.style.width = 'auto'
+                    right_panel_element.style.border = '1px solid red'
+                    // right_panel_element.style.height = '100%'
+                loading_animation.replaceWith(right_panel_element)
+            })
     }
 
     static Initialize_DivHTMLElements() {
@@ -960,6 +970,8 @@ awesome_doc_code_sections.initialize_ButtonsAutoHide = function() {
     }
 
     $('body').find('button[is^=awesome-doc-code-sections_el_]').each((index, value) => {
+
+        console.log('resizing ....')
 
         let node_containing_button = $(value).parent().parent()
 

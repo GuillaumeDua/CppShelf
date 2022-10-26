@@ -60,11 +60,12 @@ return i;
 //  }
 
 #include <csl/ag.hpp> // @awesome-doc-code-sections::show::line
+#include <iostream>
 
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin
-
-auto i = 42; // test
+std::cout << "a\nb\nc\nd\ne\nf";
+auto i = 42; // this is a pretty long comment, don't you think so ?
 return i;
 // @awesome-doc-code-sections::show::block::end
 }
@@ -87,10 +88,8 @@ return i;
 //  }
 #include "csl/ag.hpp" // @awesome-doc-code-sections::show::line
 
-
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin
-
 auto i = 42; // test
 return i;
 // @awesome-doc-code-sections::show::block::end
