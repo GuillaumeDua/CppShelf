@@ -471,14 +471,17 @@ class BasicCodeSection extends HTMLElement {
             code_node.style.position = 'relative'
             // code_node.style.margin = 'auto'
             code_node.style.border = '2px solid green'
-            // code_node.style.height = '100%'
+            code_node.style.height = '100%'
             code_node.style.display = 'table-cell'
-            // code_node.style.width = '100%'
+            code_node.style.margin = 'auto'
+            code_node.style.width = '100%'
             // code_node.style.minwidth = '50%'
         let code = code_node.appendChild(document.createElement('code'));
             // code.style.margin = 'auto'
-            code.style.height = '90%'
+            code.style.height = '100%'
+            code.style.width = '100%'
             code.style.border = '2px solid red'
+            code.style.margin = 'auto'
             code.textContent = this.code
 
         code.classList.add('hljs')
