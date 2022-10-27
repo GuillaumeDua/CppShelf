@@ -460,29 +460,25 @@ class BasicCodeSection extends HTMLElement {
 
     load() {
 
-        this.style.display = 'table'
-
+        this.style.display = 'flex'
+        this.style.alignItems = 'stretch'
+        this.style.boxSizing = 'border-box'
         this.style.width = '100%'
-        this.style.height = '100%'
-        this.style.margin = 'auto'
-        this.style.border = '2px solid blue'
 
         // code content
         let code_node = document.createElement('pre');
             code_node.style.zIndex = 1;
             code_node.style.position = 'relative'
-
-            code_node.style.height = '100%'
+            code_node.style.boxSizing = 'border-box'
+            code_node.style.top = 0
+            code_node.style.left = 0
             code_node.style.width = '100%'
-            code_node.style.margin = 'auto'
-
-            code_node.style.border = '2px solid green'
+            code_node.style.margin = 0
             
         let code = document.createElement('code');
-            code.style.border = '2px solid red'
             code.style.height = '100%'
             code.style.width = 'auto'
-            // code.style.margin = 'auto'
+            code.style.boxSizing = 'border-box'
             code.textContent = this.code
         code_node.appendChild(code)
 
@@ -584,8 +580,8 @@ class CodeSection extends BasicCodeSection {
 
     #add_execution_panel() {
 
-        let code_node = this.firstChild
-        if (code_node === undefined || code_node.tagName !== 'PRE')
+        let left_panel = this.firstChild
+        if (left_panel === undefined || left_panel.tagName !== 'PRE')
             console.error('awesome-doc-code-sections.js:CodeSection::add_execution_panel : ill-formed firstChild')
 
         // right panel: loading
@@ -609,11 +605,14 @@ class CodeSection extends BasicCodeSection {
                 // todo: animate
 
                 let right_panel_element = new BasicCodeSection(result)
-                right_panel_element.style.border = '1px solid pink'
-                right_panel_element.style.overflow = 'auto'
-                right_panel_element.style.display = 'table-cell'
 
-                this.style.height = 'fit-content'
+                right_panel_element.style.width = '50%'
+                left_panel.style.width = '50%'
+
+                // right_panel_element.style.overflow = 'auto'
+                // right_panel_element.style.display = 'table-cell'
+
+                // this.style.height = 'fit-content'
                 loading_animation.replaceWith(right_panel_element)
             })
     }
