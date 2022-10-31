@@ -359,8 +359,6 @@ class SendToGodboltButton extends HTMLButtonElement {
         this.style.position = 'absolute';
         this.style.top = 5 + 'px';
         this.style.right = 55 + 'px';
-        
-        this.style.borderRadius = 3
 
         this.addEventListener(
             'click',
@@ -621,27 +619,44 @@ class CodeSection extends BasicCodeSection {
             loading_animation.style.backgroundPosition = 'center'
             loading_animation.style.border = '1px solid var(--primary-color)'
             loading_animation.style.borderRadius = '5px'
-            loading_animation.style.display = 'table-cell'
             loading_animation.style.width = '100px'
-            // loading_animation.style.height = '100%'
-            // loading_animation.style.margin = 'auto'
         this.appendChild(loading_animation)
 
         // right panel: replace with result
         ce_API.fetch_execution_result(this.ce_options, this.ce_code)
             .then((result) => {
                 console.log('fetched: ' + result)
-                // todo: animate
 
-                let right_panel_element = new BasicCodeSection(result)
+                // CE header: parse & remove
+                let regex = new RegExp('# Compilation provided by Compiler Explorer at https://godbolt.org/\n\n(# Compiler exited with result code (-?\\d+))')
+                let regex_result = regex.exec(result)
 
-                right_panel_element.style.width = '50%'
+                if (regex_result === null || regex_result.length != 3) {
+                    return {
+                        value : result,
+                        error : 'unknown',
+                        return_code : -1
+                    }
+                }
+                
+                return {
+                    value : result.substring(regex_result[0].length - regex_result[1].length), // trim off header
+                    error : undefined,
+                    return_code : regex_result[2]
+                }
+            })
+            .then((result) => {
+
+                let right_panel_element = new BasicCodeSection(result.value)
+                    right_panel_element.style.width = '50%'
+                    right_panel_element.title = 'Compilation provided by Compiler Explorer at https://godbolt.org/'
+                    right_panel_element.style.padding 
+                    right_panel_element.style.paddingTop = '1px'
+                    right_panel_element.style.backgroundColor = result.return_code == -1
+                    ? 'red'
+                    : 'green'
+
                 left_panel.style.width = '50%'
-
-                // right_panel_element.style.overflow = 'auto'
-                // right_panel_element.style.display = 'table-cell'
-
-                // this.style.height = 'fit-content'
                 loading_animation.replaceWith(right_panel_element)
             })
     }

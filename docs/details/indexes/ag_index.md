@@ -70,6 +70,7 @@ std::cout << "a\nb\nc\nd\ne\nf";
 auto i = 42; // this is a pretty long comment, don't you think so ?
 return i;
 // @awesome-doc-code-sections::show::block::end
+caca
 }
 </code></pre>
 </div>
