@@ -174,14 +174,16 @@ class remote_resources_cache {
 }
 
 class ce_API {
-// fetch CE API information asynchronously
+// fetch CE API informations asynchronously
 
     static #static_initializer = (async function(){
         ce_API.#fetch_languages()
+        // ce_API.#fetch_compilers() // not used for now, disabled to save cache memory
     })()
 
     // cache
     static languages = undefined
+    static compilers = undefined
     static #remote_files_cache = new remote_resources_cache()
 
     static async #fetch_languages() {
@@ -200,6 +202,26 @@ class ce_API {
         catch (error) {
             console.error(
                 "awesome-doc-code-sections.js:ce_API: godbolt API exception (fetch_languages)\n" +
+                "\t" + error
+            )
+        }
+    }
+    static async #fetch_compilers() {
+    // https://godbolt.org/api/compilers
+        try {
+            let response = await fetch('https://godbolt.org/api/compilers')
+            let datas = await response.text()
+
+            let text = datas.split('\n')
+            text.shift() // remove header
+            ce_API.languages = text.map((value) => {
+            // keep only ids
+                return value.slice(0, value.indexOf(' '))
+            })
+        }
+        catch (error) {
+            console.error(
+                "awesome-doc-code-sections.js:ce_API: godbolt API exception (fetch_compilers)\n" +
                 "\t" + error
             )
         }
