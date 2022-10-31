@@ -295,7 +295,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
         this.style.zIndex = 2;
         this.style.position = 'absolute';
         this.style.top = 5 + 'px';
-        this.style.right = 55 + 'px';
+        this.style.right = 5 + 'px';
 
         this.onclick = function(){
 
@@ -336,7 +336,8 @@ class SendToGodboltButton extends HTMLButtonElement {
         this.style.zIndex = 2;
         this.style.position = 'absolute';
         this.style.top = 5 + 'px';
-        this.style.right = 5 + 'px';
+        this.style.right = 55 + 'px';
+        
         this.style.borderRadius = 3
 
         this.addEventListener(
@@ -492,13 +493,13 @@ class BasicCodeSection extends HTMLElement {
             copy_button.style.zIndex = code_node.style.zIndex + 1
         code_node.appendChild(copy_button)
 
-        // TODO: don't add CE button if language is not supported (ex: json, bash, console output, etc...)
-        // let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
-        // if (configuration !== undefined)
-
-        let CE_button = new SendToGodboltButton
+        let code_hljs_language = BasicCodeSection.get_code_hljs_language(code)
+        if (// ce_API.languages.has(code_hljs_language)
+            awesome_doc_code_sections.configuration.GodboltLanguages.has(code_hljs_language)) {
+            let CE_button = new SendToGodboltButton
             CE_button.style.zIndex = code_node.style.zIndex + 1
-        code_node.appendChild(CE_button)
+            code_node.appendChild(CE_button)
+        }
 
         this.innerHTML = code_node.outerHTML;
     }
@@ -535,15 +536,21 @@ class BasicCodeSection extends HTMLElement {
         elements.each(replace_by_HTMLElement)
     }
 
+    static get_code_hljs_language(code_tag) {
+        if (code_tag === undefined || code_tag.tagName !== 'CODE')
+            console.error(`awesome-doc-code-sections.js:CodeSection::get_code_hljs_language(get): bad input`)
+
+        let result = code_tag.classList.toString().replace(/hljs language-/g, '')
+        if (result.indexOf(' ') !== -1)
+            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed code hljs classList`)
+        return result
+    }
+
     get hljs_language() {
         let code = $(this).find("pre code")
         if (code.length == 0)
             console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed element`)
-
-        let result = code[0].classList.toString().replace(/hljs language-/g, '')
-        if (result.indexOf(' ') !== -1)
-            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed code hljs classList`)
-        return result
+        return get_code_hljs_language(code[0])
     }
 }
 customElements.define(BasicCodeSection.HTMLElement_name, BasicCodeSection);
