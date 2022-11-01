@@ -66,26 +66,26 @@ var awesome_doc_code_sections = {}
     // }
 
 class ParsedCode {
-// TODO: update this
-//
-// @awesome-doc-code-sections::keep : keep tag anyway as comment (for documentation purpose)
+// TODO: @awesome-doc-code-sections::keep : keep tag anyway as comment (for documentation purpose)
 
-// @awesome-doc-code-sections::language=cpp                  // use for CE compiler-id and hljs
-// @awesome-doc-code-sections::CE::compiler_id=clang1500
-// @awesome-doc-code-sections::CE::compilation_options=-O2 -std=c++20
-// @awesome-doc-code-sections::CE::libs=fmt
-// @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
-
+// @awesome-doc-code-sections::CE={
+//  "language"            : "c++",
+//  "compiler_id"         : "clang1400",
+//  "compilation_options" : "-O2 -std=c++20",
+//  "libs"                : [ {"id": "fmt", "version": "trunk"} ],
+//  "includes_transformation" : [
+//     // <documentation> <replacement>
+//        [ "csl/",       "https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/" ],
+//        [ "toto",       "iostream" ]
+//  ],
+//  "add_in_doc_execution" : true
+//  }
 // @awesome-doc-code-sections::skip::block::begin,end : range to [skip] (no parsing, removed from documentation & execution)
 // @awesome-doc-code-sections::skip::line             : line  to [skip]
 // @awesome-doc-code-sections::show::block::begin,end : range to [show] (documentation side only. The rest is still part of the execution code)
 //                                                      if there is at least one occurence, the rest is by default hidden
 // @awesome-doc-code-sections::show::line             : line  to [show]
 //                                                      if there is at least one occurence, the rest is by default hidden
-
-
-// @awesome-doc-code-sections::CE::line::skip
-// @awesome-doc-code-sections::CE::line::replace_with=
 
     static tag = '// @awesome-doc-code-sections'
 
@@ -254,8 +254,6 @@ class ce_API {
     static open_in_new_tab(request_data) {
     // https://godbolt.org/clientstate/
 
-        console.log(request_data)
-
         let body  = JSON.stringify(request_data);
         let state = btoa(body); // base64 encoding
         let url   = "https://godbolt.org/clientstate/" + encodeURIComponent(state);
@@ -266,10 +264,12 @@ class ce_API {
     static async fetch_execution_result(ce_options, code) {
     // https://godbolt.org/api/compiler/${compiler_id}/compile
 
+        if (ce_options.compiler_id === undefined)
+            throw 'awesome-doc-code-sections.js::ce_API::open_in_new_tab: invalid argument, missing .compiler_id'
+
         // POST /api/compiler/<compiler-id>/compile endpoint is not working with remote header-files in `#include`s PP directions
         // https://github.com/compiler-explorer/compiler-explorer/issues/4190
         let matches = [...code.matchAll(/^\s*\#\s*include\s+[\"|\<](\w+\:\/\/.*?)[\"|\>]/gm)].reverse()
-
         let promises_map = matches.map(async function(match) {
 
             let downloaded_file_content = await ce_API.#remote_files_cache.get(match[1])
@@ -308,8 +308,6 @@ class ce_API {
                 },
                 body: JSON.stringify(body)
             };
-
-            console.log(body)
 
             return await fetch(`https://godbolt.org/api/compiler/${ce_options.compiler_id}/compile`, options)
                 .then(response => response.text())
@@ -388,7 +386,6 @@ class SendToGodboltButton extends HTMLButtonElement {
         this.addEventListener(
             'click',
             () => {
-                console.log("awesome-doc-code-sections.js:SendToGodboltButton : clicked !")
                 this.innerHTML = SendToGodboltButton.successIcon
                 this.style.fill = 'green'
 
@@ -414,9 +411,9 @@ class SendToGodboltButton extends HTMLButtonElement {
 
         var get_configuration = function() {
 
-            let configuration = awesome_doc_code_sections.configuration.CE.get(codeSectionElement.hljs_language)
+            let configuration = awesome_doc_code_sections.configuration.CE.get(codeSectionElement.language)
             if (configuration === undefined)
-                console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
+                console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for language [${codeSectionElement.language}]`)
             return configuration
         }
         var get_ce_options = function() {
@@ -486,10 +483,10 @@ class BasicCodeSection extends HTMLElement {
                 code = this.textContent
             if (! language)
                 language = this.getAttribute('language') || undefined
-            if (language !== undefined && !language.startsWith("language-"))
-                language = `language-${language}`
+            if (language !== undefined && language.startsWith("language-"))
+                language = language.replace('language-', '')
 
-            this.language = language
+            this._language = language
             this.code = code
 
             if (this.code === undefined || this.code.length == 0)
@@ -529,16 +526,19 @@ class BasicCodeSection extends HTMLElement {
         code_node.appendChild(code)
 
         code.classList.add('hljs')
-        if (this.language !== undefined && this.language !== null)
-            code.classList.add(`${this.language}`);
+        if (this._language !== undefined && this._language !== null)
+            code.classList.add(`language-${this._language}`);
         hljs.highlightElement(code)
 
-        // buttons
+        // buttons : copy-to-clipboard
         let copy_button = new CopyToClipboardButton()
             copy_button.style.zIndex = code_node.style.zIndex + 1
         code_node.appendChild(copy_button)
 
+        // buttons : send-to-godbolt (only if a CE configuration for that language exists)
         let code_hljs_language = BasicCodeSection.get_code_hljs_language(code)
+        if (this._language !== undefined && code_hljs_language !== this._language) // unlikely
+            console.warn(`awesome-doc-code-sections.js:CodeSection::load : incompatible language specification (user-specified is ${this._language}, detected is ${code_hljs_language})`)
         if (// ce_API.languages.has(code_hljs_language)
             awesome_doc_code_sections.configuration.CE.has(code_hljs_language)) {
             let CE_button = new SendToGodboltButton
@@ -583,18 +583,22 @@ class BasicCodeSection extends HTMLElement {
 
     static get_code_hljs_language(code_tag) {
         if (code_tag === undefined || code_tag.tagName !== 'CODE')
-            console.error(`awesome-doc-code-sections.js:CodeSection::get_code_hljs_language(get): bad input`)
+            console.error(`awesome-doc-code-sections.js:CodeSection::get_code_hljs_language(): bad input`)
 
         let result = code_tag.classList.toString().replace(/hljs language-/g, '')
         if (result.indexOf(' ') !== -1)
-            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed code hljs classList`)
+            console.error(`awesome-doc-code-sections.js:CodeSection::get_code_hljs_language(): ill-formed code hljs classList`)
         return result
     }
 
-    get hljs_language() {
+    get language() {
+
+        if (this._language !== undefined)
+            return this._language
+
         let code = $(this).find("pre code")
         if (code.length == 0)
-            console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed element`)
+            console.error(`awesome-doc-code-sections.js:CodeSection::language(get): ill-formed element`)
         return BasicCodeSection.get_code_hljs_language(code[0])
     }
 }
@@ -651,7 +655,6 @@ class CodeSection extends BasicCodeSection {
         // right panel: replace with result
         ce_API.fetch_execution_result(this.ce_options, this.ce_code)
             .then((result) => {
-                console.log('fetched: ' + result)
 
                 // CE header: parse & remove
                 let regex = new RegExp('# Compilation provided by Compiler Explorer at https://godbolt.org/\n\n(# Compiler exited with result code (-?\\d+))')
@@ -730,7 +733,7 @@ class RemoteCodeSection extends CodeSection {
     static HTMLElement_name = 'awesome-doc-code-sections_remote-code-section'
 
     constructor(code_url, language) {
-        super();
+        super(); // defered initialization in `#load`
 
         if (code_url === undefined && this.getAttribute('url') != undefined)
             code_url = this.getAttribute('url')
@@ -747,12 +750,12 @@ class RemoteCodeSection extends CodeSection {
         }
 
         this.code_url = code_url;
-        super.language = language;
+        super._language = language;
 
         this.#load();
     }
 
-    static get_url_extension( url ) {
+    static get_url_extension(url) {
         try {
             return url.split(/[#?]/)[0].split('.').pop().trim();
         }
@@ -765,8 +768,7 @@ class RemoteCodeSection extends CodeSection {
 
         let apply_code = (code) => {
         // defered initialization
-            // super.code = code;
-            super.parsed_code = new ParsedCode(code, hljs_language)
+            super.parsed_code = new ParsedCode(code, super.language)
             super.load();
         }
 
