@@ -1,5 +1,10 @@
-// @awesome-doc-code-sections::language=cpp
-// @awesome-doc-code-sections::includes_transformation=../includes/ag/||https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/
+// @awesome-doc-code-sections::CE={
+//  "language"            : "c++",
+//  "includes_transformation" : [
+//        [ "csl/",       "https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/" ]
+//  ],
+//  "add_in_doc_execution" : true
+//  }
 
 #include "../includes/ag/csl/ag.hpp"
 
@@ -12,11 +17,15 @@ static_assert(
 static_assert(std::same_as<char,  csl::ag::element_t<0, S>>);
 static_assert(std::same_as<int,   csl::ag::element_t<1, S>>);
 
-S value{ 'A', 41 }; ++std::get<1>(value);
+auto main() -> int {
 
-using namespace csl::ag::io;
-std::cout << "value: " << value << '\n';
-// (wip) compatibility with `fmt` and `std::print` will be available soon
+    S value{ 'A', 41 };
+    ++std::get<1>(value);
+
+    using namespace csl::ag::io;
+    std::cout << "value: " << value << '\n';
+    // (wip) compatibility with `fmt` and `std::print` will be available soon
+}
 
 // @awesome-doc-code-sections:expected_output position=right
 

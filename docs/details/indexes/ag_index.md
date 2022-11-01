@@ -67,11 +67,38 @@ return i;
 auto main() -> int {
 // @awesome-doc-code-sections::show::block::begin
 std::cout << "a\nb\nc\nd\ne\nf";
+std::cerr << "some stderr output\n";
+std::cout << "a\nb\nc\nd\ne\nf";
 auto i = 42; // this is a pretty long comment, don't you think so ?
 return i;
 // @awesome-doc-code-sections::show::block::end
-caca
 }
+
+</code></pre>
+</div>
+
+<br />
+
+<div class='awesome-doc-code-sections_code-section' language="cpp">
+<pre><code>
+// some comment here
+// ...
+
+// @awesome-doc-code-sections::CE={
+//  "add_in_doc_execution" : true
+//  }
+
+
+auto main() -> int {
+  return 42;
+}
+
+// @awesome-doc-code-sections::skip::block::begin
+// skip me !
+// and me !
+// and me too !
+// @awesome-doc-code-sections::skip::block::end
+
 </code></pre>
 </div>
 

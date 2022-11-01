@@ -57,7 +57,7 @@ if (typeof hljs === 'undefined')
 
 var awesome_doc_code_sections = {}
     awesome_doc_code_sections.configuration = {}
-    awesome_doc_code_sections.configuration.GodboltLanguages = new Map()
+    awesome_doc_code_sections.configuration.CE = new Map()
     // key   : language_hljs_name
     // value : {
     //      language,       // not mandatory, if same as key. Refers to https://godbolt.org/api/languages
@@ -66,8 +66,8 @@ var awesome_doc_code_sections = {}
     // }
 
 class ParsedCode {
-// @awesome-doc-code-sections::split     // create a table/tr/td ? tr0: code, tr1: output
-//  `code` as an array ? or multiples ParsedCode (ParsedCode.next() ?)
+// TODO: update this
+//
 // @awesome-doc-code-sections::keep : keep tag anyway as comment (for documentation purpose)
 
 // @awesome-doc-code-sections::language=cpp                  // use for CE compiler-id and hljs
@@ -86,7 +86,14 @@ class ParsedCode {
     ce_code = ''
     ce_options = {}
 
-    constructor(code_content) {
+    constructor(code_content, language) {
+
+        console.log(`-------------- language = ${language}`)
+        console.log(awesome_doc_code_sections.configuration.CE)
+
+        // apply default configuration for given - non-mandatory - language
+        if (awesome_doc_code_sections.configuration.CE.has(language))
+            this.ce_options = awesome_doc_code_sections.configuration.CE.get(language)
 
         this.#parse(code_content)
         this.#apply_ce_transformations()
@@ -107,10 +114,21 @@ class ParsedCode {
                          + code_content.slice(match.index + match[0].length)
             return result
         }).forEach((value) => {
-            this.ce_options = JSON.parse(value)
+
+            console.log(this.ce_options)
+
+            this.ce_options = {
+                ...this.ce_options,
+                ...JSON.parse(value)
+            }
+
+            console.log(this.ce_options)
         })
 
         // TODO: skip block, line
+        // code_content.replaceAll(
+        //     new RegExp(`^${ParsedCode.tag}::skip::block::begin\n.*\n${ParsedCode.tag}::skip::block::end\n`), 'mg'
+        // )
 
         // Example: show block, line
         regexp = new RegExp(`(^${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`, 'gm')
@@ -389,7 +407,7 @@ class SendToGodboltButton extends HTMLButtonElement {
 
         var get_configuration = function() {
 
-            let configuration = awesome_doc_code_sections.configuration.GodboltLanguages.get(codeSectionElement.hljs_language)
+            let configuration = awesome_doc_code_sections.configuration.CE.get(codeSectionElement.hljs_language)
             if (configuration === undefined)
                 console.error(`awesome-doc-code-sections.js:SendToGodboltButton::onClickSend: missing configuration for hljs language [${codeSectionElement.hljs_language}]`)
             return configuration
@@ -515,7 +533,7 @@ class BasicCodeSection extends HTMLElement {
 
         let code_hljs_language = BasicCodeSection.get_code_hljs_language(code)
         if (// ce_API.languages.has(code_hljs_language)
-            awesome_doc_code_sections.configuration.GodboltLanguages.has(code_hljs_language)) {
+            awesome_doc_code_sections.configuration.CE.has(code_hljs_language)) {
             let CE_button = new SendToGodboltButton
             CE_button.style.zIndex = code_node.style.zIndex + 1
             code_node.appendChild(CE_button)
@@ -570,7 +588,7 @@ class BasicCodeSection extends HTMLElement {
         let code = $(this).find("pre code")
         if (code.length == 0)
             console.error(`awesome-doc-code-sections.js:CodeSection::hljs_language(get): ill-formed element`)
-        return get_code_hljs_language(code[0])
+        return BasicCodeSection.get_code_hljs_language(code[0])
     }
 }
 customElements.define(BasicCodeSection.HTMLElement_name, BasicCodeSection);
@@ -593,8 +611,9 @@ class CodeSection extends BasicCodeSection {
 
     constructor(code, language) {
         let parsed_code = undefined
-        try             { parsed_code = new ParsedCode(code) }
+        try             { parsed_code = new ParsedCode(code, language) }
         catch (error)   {
+            super()
             this.innerHTML = `<p style="color:red; border-style: solid; border-color: red;">awesome-doc-code-sections:CodeSection: error : ${error}</p>`
             return
         }
@@ -653,8 +672,8 @@ class CodeSection extends BasicCodeSection {
                     right_panel_element.style.padding 
                     right_panel_element.style.paddingTop = '1px'
                     right_panel_element.style.backgroundColor = result.return_code == -1
-                    ? 'red'
-                    : 'green'
+                        ? 'red'
+                        : 'green'
 
                 left_panel.style.width = '50%'
                 loading_animation.replaceWith(right_panel_element)
@@ -711,10 +730,6 @@ class RemoteCodeSection extends CodeSection {
         if (language === undefined && this.getAttribute('language') != undefined)
             language = this.getAttribute('language')
 
-        // TODO: parse for specific format (or use regex + specific tags ?)
-        // - expected output tag
-        // - {code}{separator}{expected_output}
-
         if (code_url === undefined) {
             this.innerHTML = '<p>awesome-doc-code-sections:RemoteCodeSection : missing code_url</p>'
             return
@@ -742,8 +757,9 @@ class RemoteCodeSection extends CodeSection {
     #load() {
 
         let apply_code = (code) => {
+        // defered initialization
             // super.code = code;
-            super.parsed_code = new ParsedCode(code)
+            super.parsed_code = new ParsedCode(code, hljs_language)
             super.load();
         }
 
