@@ -322,6 +322,39 @@ class ce_API {
 // ============
 // HTMLElements
 
+awesome_doc_code_sections.auto_hide_buttons_resize_observer = new ResizeObserver(entries => {
+    for (let entry of entries) {
+
+        let auto_hide_elements = (container, elements) => {
+
+            elements.each((index, element) => element.hidden = true)
+            container.onmouseover = () => {
+                elements.each((index, element) => { element.hidden = false })
+            }
+            container.onmouseout = () => {
+                elements.each((index, element) => element.hidden = true)
+            }
+        }
+        let no_auto_hide_elements = (container, elements) => {
+
+            elements.each((index, element) => { element.hidden = false })
+            container.onmouseout = null
+            container.onmouseover = null
+        }
+
+        // cheaper than proper AABB to check if code's content overlap
+        let functor = (awesome_doc_code_sections.options.auto_hide_buttons
+            ||  entry.target.clientWidth < 500
+            ||  entry.target.clientHeight < 50)
+            ? auto_hide_elements
+            : no_auto_hide_elements
+        ;
+
+        let elements = $(entry.target).find('button[is^=awesome-doc-code-sections_el_]')
+        functor(entry.target, elements)
+    }
+});
+
 class CopyToClipboardButton extends HTMLButtonElement {
 // Copy text context of this previousSibling HTMLelement
 
@@ -342,7 +375,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
         this.style.top = 5 + 'px';
         this.style.right = 5 + 'px';
 
-        this.onclick = function(){
+        this.addEventListener('click', function(){
 
             this.innerHTML = CopyToClipboardButton.successIcon
             this.style.fill = 'green'
@@ -360,7 +393,7 @@ class CopyToClipboardButton extends HTMLButtonElement {
                 this.style.fill = 'black'
                 this.innerHTML = CopyToClipboardButton.copyIcon
             }, CopyToClipboardButton.successDuration);
-        }
+        })
     }
 }
 customElements.define(CopyToClipboardButton.HTMLElement_name, CopyToClipboardButton, {extends: 'button'});
@@ -401,8 +434,6 @@ class SendToGodboltButton extends HTMLButtonElement {
 
     onClickSend() {
         let codeSectionElement = this.parentElement.parentElement
-
-        console.log(codeSectionElement)
 
         if (codeSectionElement === undefined
         ||  codeSectionElement.tagName.match(`\w+${CodeSection.HTMLElement_name.toUpperCase()}`) === '')
@@ -547,6 +578,7 @@ class BasicCodeSection extends HTMLElement {
         }
 
         this.innerHTML = code_node.outerHTML;
+        awesome_doc_code_sections.auto_hide_buttons_resize_observer.observe(this.firstChild /* code_node */)
     }
 
     static Initialize_DivHTMLElements() {
@@ -1035,34 +1067,6 @@ awesome_doc_code_sections.options = new class{
     }
 }()
 
-awesome_doc_code_sections.initialize_ButtonsAutoHide = function() {
-// TODO: How to do that dynamically (resize event, observer, etc.)?
-
-    let auto_hide_element = (container, element) => {
-        element.hide()
-        container.mouseover(() => {
-            element.show()
-        });
-        container.mouseout(() => {
-            element.hide()
-        });
-    }
-
-    $('body').find('button[is^=awesome-doc-code-sections_el_]').each((index, value) => {
-
-        console.log('resizing ....')
-
-        let node_containing_button = $(value).parent().parent()
-
-        if (!node_containing_button.prop('nodeName').toLowerCase().startsWith("awesome-doc-code-sections_"))
-            return // unlikely
-
-        if (awesome_doc_code_sections.options.auto_hide_buttons
-        ||  node_containing_button.width() < 400
-        // ||  node_containing_button.width() < (window.screen.availWidth / 2)
-        )   auto_hide_element(node_containing_button, $(value))
-    })
-}
 awesome_doc_code_sections.initialize = function() {
 
     $(function() {
@@ -1097,8 +1101,6 @@ awesome_doc_code_sections.initialize = function() {
                 console.log(`awesome-doc-code-sections.js:initialize: existing pre-code compatiblity ...`)
                 awesome_doc_code_sections.initialize_PreCodeHTMLElements();
             }
-
-            awesome_doc_code_sections.initialize_ButtonsAutoHide()
         })
     })
 }
