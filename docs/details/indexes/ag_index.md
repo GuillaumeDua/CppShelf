@@ -93,6 +93,8 @@ auto main() -> int {
   return 42;
 }
 
+BAD CODE // @awesome-doc-code-sections::skip::line 
+
 // @awesome-doc-code-sections::skip::block::begin
 // skip me !
 // and me !

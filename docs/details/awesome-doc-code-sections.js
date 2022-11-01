@@ -76,7 +76,14 @@ class ParsedCode {
 // @awesome-doc-code-sections::CE::libs=fmt
 // @awesome-doc-code-sections::includes_transformation=local_prefix|example_prefix|remote_prefix
 
-// @awesome-doc-code-sections::show::block::begin,end
+// @awesome-doc-code-sections::skip::block::begin,end : range to [skip] (no parsing, removed from documentation & execution)
+// @awesome-doc-code-sections::skip::line             : line  to [skip]
+// @awesome-doc-code-sections::show::block::begin,end : range to [show] (documentation side only. The rest is still part of the execution code)
+//                                                      if there is at least one occurence, the rest is by default hidden
+// @awesome-doc-code-sections::show::line             : line  to [show]
+//                                                      if there is at least one occurence, the rest is by default hidden
+
+
 // @awesome-doc-code-sections::CE::line::skip
 // @awesome-doc-code-sections::CE::line::replace_with=
 
@@ -119,8 +126,14 @@ class ParsedCode {
         })
 
         // skip block, line (documentation & execution sides)
+        // block
         code_content = code_content.replaceAll(
-            new RegExp(`^${ParsedCode.tag}::skip::block::begin\n(.*?\n)*${ParsedCode.tag}::skip::block::end$`, 'gm'),
+            new RegExp(`^${ParsedCode.tag}::skip::block::begin\n(.*?\n)*${ParsedCode.tag}::skip::block::end\\s*$`, 'gm'),
+            ''
+        )
+        // line
+        code_content = code_content.replaceAll(
+            new RegExp(`^.*?\\s+${ParsedCode.tag}::skip::line\\s*$`, 'gm'),
             ''
         )
 
