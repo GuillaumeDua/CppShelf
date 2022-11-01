@@ -88,9 +88,6 @@ class ParsedCode {
 
     constructor(code_content, language) {
 
-        console.log(`-------------- language = ${language}`)
-        console.log(awesome_doc_code_sections.configuration.CE)
-
         // apply default configuration for given - non-mandatory - language
         if (awesome_doc_code_sections.configuration.CE.has(language))
             this.ce_options = awesome_doc_code_sections.configuration.CE.get(language)
@@ -100,10 +97,9 @@ class ParsedCode {
     }
 
     #parse(code_content) {
-        // TODO: regexes: non-greedy any (.*?)
 
         // CE options
-        let regexp = new RegExp(`${ParsedCode.tag}::CE=({(.*\n//.*)+}\n?)`, 'gm')
+        let regexp = new RegExp(`${ParsedCode.tag}::CE=({(.*?\n//.*?)+}\n?)`, 'gm')
         let matches = [...code_content.matchAll(regexp)] // expect exactly 1 match
         if (matches.length > 1)
             console.error(`awesome-doc-code-sections.js:ParsedCode::constructor: multiples CE configurations`)
@@ -115,23 +111,21 @@ class ParsedCode {
             return result
         }).forEach((value) => {
 
-            console.log(this.ce_options)
-
+            // Merge CE configuration. Local can override global.
             this.ce_options = {
                 ...this.ce_options,
                 ...JSON.parse(value)
             }
-
-            console.log(this.ce_options)
         })
 
-        // TODO: skip block, line
-        // code_content.replaceAll(
-        //     new RegExp(`^${ParsedCode.tag}::skip::block::begin\n.*\n${ParsedCode.tag}::skip::block::end\n`), 'mg'
-        // )
+        // skip block, line (documentation & execution sides)
+        code_content = code_content.replaceAll(
+            new RegExp(`^${ParsedCode.tag}::skip::block::begin\n(.*?\n)*${ParsedCode.tag}::skip::block::end$`, 'gm'),
+            ''
+        )
 
-        // Example: show block, line
-        regexp = new RegExp(`(^${ParsedCode.tag}::show::block::begin\n(?<block>(^.*$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*)\s*${ParsedCode.tag}::show::line$)`, 'gm')
+        // show block, line (documentation side)
+        regexp = new RegExp(`(^${ParsedCode.tag}::show::block::begin\n(?<block>(^.*?$\n)+)${ParsedCode.tag}::show::block::end\n?)|(^(?<line>.*?)\s*${ParsedCode.tag}::show::line$)`, 'gm')
         matches = [...code_content.matchAll(regexp)]
         let code_only_show = matches
         // TODO: reverse() so we can use indexes to remove elements rather than replace()
