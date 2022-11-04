@@ -956,8 +956,8 @@ HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-fra
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-interactive-toc.js
 HTML_EXTRA_FILES       += ./docs/details/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
 
-HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections/images/loading.gif
-HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections/images/loading.svg
+HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections/images/loading_animation.gif
+HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections/images/loading_animation.svg
 HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections/awesome-doc-code-sections.js
 HTML_EXTRA_FILES       += ./docs/details/awesome-doc-code-sections/awesome-doc-code-sections_dark-mode.js
 
