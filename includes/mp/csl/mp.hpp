@@ -169,7 +169,7 @@ namespace csl::mp {
 
     // nth element
     //  wip benchmarks : https://www.build-bench.com/b/gysn2DDajc38cdeUbNHnjmtKKvA
-    #if false
+#if false
     // disabled, as csl::mp::filters_t relies on tuple for now
     template <std::size_t index, typename>
     struct nth_element;
@@ -207,7 +207,7 @@ namespace csl::mp {
     template <typename T, typename pack_type>
     constexpr std::size_t index_of_v = pack_element<pack_type>::template index_of_<T>::index;
     // rindex_of -> index_of_v<T, reverse<pack_type>>
-    #endif
+#endif
 
     // todo : index_of<T, pack_t>
 
@@ -316,13 +316,13 @@ namespace csl::mp {
     template <typename pack, typename... ttps>
     using cat_t = cat<pack, ttps...>;
 
-    // unfold_to
+    // unfold_into
     template <template <typename...> typename destination, typename ... Ts>
-    struct unfold_to : std::type_identity<destination<Ts...>>{};
+    struct unfold_into : std::type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
-    struct unfold_to<destination, from<Ts...>> : std::type_identity<destination<Ts...>>{};
+    struct unfold_into<destination, from<Ts...>> : std::type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, typename ... from>
-    using unfold_to_t = typename unfold_to<destination, from...>::type;
+    using unfold_into_t = typename unfold_into<destination, from...>::type;
 
     // flat_cat
     template <typename, typename ...>
@@ -330,11 +330,11 @@ namespace csl::mp {
     template <template <typename...> typename pack_type, typename ... Ts, typename ... rest>
     struct flat_cat<pack_type<Ts...>, rest...>
     : std::type_identity<
-        unfold_to_t<pack_type, decltype(std::tuple_cat(
+        unfold_into_t<pack_type, decltype(std::tuple_cat(
             std::tuple<Ts...>{},
             std::conditional_t<
                 is_instance_of_v<pack_type, rest>,
-                unfold_to_t<std::tuple, rest>,
+                unfold_into_t<std::tuple, rest>,
                 std::tuple<rest>
             >{}...
         ))>
@@ -352,10 +352,10 @@ namespace csl::mp {
     template <template <typename ...> typename pack_type, typename ... Ts>
     struct flatten_once<pack_type<Ts...>>
     : std::type_identity<
-        unfold_to_t<pack_type, decltype(std::tuple_cat(
+        unfold_into_t<pack_type, decltype(std::tuple_cat(
             std::conditional_t<
                 is_instance_of_v<pack_type, Ts>,
-                unfold_to_t<std::tuple, Ts>,
+                unfold_into_t<std::tuple, Ts>,
                 std::tuple<Ts>
             >{}...
         ))>
@@ -394,7 +394,7 @@ namespace csl::mp {
     // rindex_of
     template <typename T, typename ... Ts>
     struct rindex_of {
-        constexpr static std::size_t value = rindex_of<T, unfold_to_t<pack, Ts...>>::value;
+        constexpr static std::size_t value = rindex_of<T, unfold_into_t<pack, Ts...>>::value;
     };
     template <typename T, template <typename...> typename pack, typename ... Ts>
     struct rindex_of<T, pack<Ts...>> {
@@ -411,7 +411,7 @@ namespace csl::mp {
     // index_of
     template <typename T, typename ... Ts>
     struct index_of {
-        constexpr static std::size_t value = index_of<T, unfold_to_t<pack, Ts...>>::value;
+        constexpr static std::size_t value = index_of<T, unfold_into_t<pack, Ts...>>::value;
     };
     template <typename T, template <typename ...> typename pack, typename ... Ts>
     struct index_of<T, pack<Ts...>> {
@@ -479,7 +479,7 @@ namespace csl::mp {
 
         using tuple_type = typename deduplicate_impl<Ts...>::type;
     public:
-        using type = unfold_to_t<type_pack, tuple_type>;
+        using type = unfold_into_t<type_pack, tuple_type>;
     };
     template <typename T>
     using deduplicate_t = typename deduplicate<T>::type;
