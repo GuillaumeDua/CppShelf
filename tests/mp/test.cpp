@@ -25,6 +25,16 @@ namespace test::reverse_integer_sequence {
         reverse_sequence<std::index_sequence<0,1,2,3,4>>
     >);
 }
+namespace test::index_of {
+
+    using namespace csl::mp;
+
+    using pack_type = pack<double, char, int, float, int, bool>;
+    // static_assert(2 ==       index_of_v<int, pack_type>);
+    // static_assert(2 == first_index_of_v<int, pack_type>);
+    // static_assert(1 ==      rindex_of_v<int, pack_type>);
+    // static_assert(1 ==  last_index_of_v<int, pack_type>);
+}
 
 namespace test::nth {
     using pack_type = csl::mp::pack<int, char, double, bool, float>;
