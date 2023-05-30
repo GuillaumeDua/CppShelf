@@ -15,28 +15,16 @@
 // sequences
 namespace csl::mp::seq {
     // reverse_integer_sequence
+    template <typename T>
+    struct reverse_integer_sequence_impl;
     template <typename T, T ... values>
-    class reverse_integer_sequence {
-        // todo : remove if compilers support lambdas in non-evaluated context
-        constexpr static decltype(auto) impl() {
-            return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                constexpr auto values_as_array = std::array<T, sizeof...(values)>{ values... };
-                return std::integer_sequence<
-                    T,
-                    std::get<(sizeof...(values) - 1 - indexes)>(values_as_array)...
-                >{};
-            }(std::make_index_sequence<sizeof...(values)>());
-        }
-    public:
-        using type = decltype(impl());
-    };
-    template <typename T, T ... values>
-    struct reverse_integer_sequence<std::integer_sequence<T, values...>> : reverse_integer_sequence<T, values...>{};
-    template <typename T, std::size_t ... values>
-    using reverse_integer_sequence_t = typename reverse_integer_sequence<T, values...>::type;
-
-    template <std::size_t size>
-    using make_reversed_index_sequence = reverse_integer_sequence_t<std::make_index_sequence<size>>;
+    struct reverse_integer_sequence_impl<std::integer_sequence<T, values...>> : std::type_identity<
+        std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    >{};
+    template <typename T>
+    using reverse_sequence = typename reverse_integer_sequence_impl<T>::type;
+    template <std::size_t I>
+    using make_reverse_index_sequence = reverse_sequence<std::make_index_sequence<I>>;
 
     // type_of<values...>
     template <auto value, auto ... values>
