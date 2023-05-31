@@ -27,6 +27,15 @@ namespace test::strong_type::type_traits {
     static_assert(not std::is_same_v<char,       tt::tag_type_t<meters>>);
     static_assert(not has_type<tt::tag_type<meters_tag>>);
 }
+namespace test::strong_type::concepts {
+
+    namespace c = csl::ensure::concepts;
+    using meters = csl::ensure::strong_type<int, struct meters_tag>;
+
+    static_assert(c::StrongType<meters>);
+    static_assert(c::NotStrongType<int>);
+    static_assert(c::StrongTypeOf<meters, int>);
+}
 namespace test::strong_type::comparisons {
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
     static_assert(42 == meters{ 42 });

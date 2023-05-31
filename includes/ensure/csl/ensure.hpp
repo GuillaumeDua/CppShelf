@@ -86,9 +86,8 @@ namespace csl::ensure::concepts {
     concept StrongType = csl::ensure::type_traits::is_strong_type_v<T>;
     template <typename T>
     concept NotStrongType = not csl::ensure::type_traits::is_strong_type_v<T>;
-
     template <typename strong_type, typename T>
-    concept StrongTypeOf = true;
+    concept StrongTypeOf = csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
 }
 
 // TODO: useless ? (implicit conversion is enough)
