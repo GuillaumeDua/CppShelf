@@ -1,1 +1,0 @@
-// https://raw.githubusercontent.com/GuillaumeDua/GCL_CPP/master/includes/gcl/pattern/strong_type.hpp

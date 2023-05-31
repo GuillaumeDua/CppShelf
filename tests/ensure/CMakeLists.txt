@@ -1,4 +1,4 @@
-set(component_name strong_types)
+set(component_name ensure)
 set(test_name test_${PROJECT_NAME}_${component_name}_compile_time)
 
 add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp)

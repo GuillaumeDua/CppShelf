@@ -18,7 +18,7 @@ set(CSL_COMPONENT_LIST
     mp
     wf
     ag
-    strong_types
+    ensure
 )
 
 ### Components - tests
