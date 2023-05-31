@@ -1,10 +1,12 @@
 #pragma once
 
-// WIP: strong_types
+// strong_types: implicit conversion is enough for the following operations:
 // - Conversion utilities
 // - Comparison operators: (==, !=, <, >, etc.)
 // - Arithmetic binary operators: (+, -, *, /, etc.)
 // -            unary operators:  (++, --, !, implicit bool conversion ?)
+
+// WIP
 // - Type-traits, concepts
 // - Serialization support: opt-in in csl::srl side
 
@@ -24,44 +26,45 @@ namespace csl::ensure
         using reference = T&;
         using const_reference = const T &;
 
-        explicit strong_types(const_reference arg)
+        constexpr explicit strong_types(const_reference arg)
         requires std::copy_constructible<T>
         : value(arg)
         {}
-        explicit strong_types(T&& arg)
+        constexpr explicit strong_types(T&& arg)
         requires std::move_constructible<T>
         : value{ std::forward<decltype(arg)>(arg) }
         {}
 
-        reference       underlying()        { return value; }
-        const_reference underlying() const  { return value; }
+        constexpr reference       underlying()        { return value; }
+        constexpr const_reference underlying() const  { return value; }
 
-        operator reference ()               { return underlying(); }
-        operator const_reference () const   { return underlying(); }
+        constexpr operator reference ()               { return underlying(); }
+        constexpr operator const_reference () const   { return underlying(); }
 
     private:
         T value;
     };
 }
 
+// TODO: useless ? (implicit conversion is enough)
 #if defined(__cpp_impl_three_way_comparison)
 // comparisons
 template <typename T, std::three_way_comparable_with<T> U, typename T_tag>
-auto operator<=>(
+constexpr auto operator<=>(
     const csl::ensure::strong_types<T, T_tag> & lhs,
     const U & rhs
 ){
     return static_cast<const T &>(lhs) <=> rhs;
 }
 template <typename T, std::three_way_comparable_with<T> U, typename U_tag>
-auto operator<=>(
+constexpr auto operator<=>(
     const T & lhs,
     const csl::ensure::strong_types<U, U_tag> & rhs
 ){
     return lhs <=> static_cast<const U &>(rhs);
 }
 template <typename T, std::three_way_comparable_with<T> U, typename T_tag, typename U_tag>
-auto operator<=>(
+constexpr auto operator<=>(
     const csl::ensure::strong_types<T, T_tag> & lhs,
     const csl::ensure::strong_types<U, U_tag> & rhs
 )
