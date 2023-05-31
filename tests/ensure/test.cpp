@@ -28,7 +28,6 @@ namespace test::strong_type::type_traits {
     static_assert(not has_type<tt::tag_type<meters_tag>>);
 }
 namespace test::strong_type::concepts {
-
     namespace c = csl::ensure::concepts;
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
@@ -37,10 +36,27 @@ namespace test::strong_type::concepts {
     static_assert(c::StrongTypeOf<meters, int>);
 }
 namespace test::strong_type::comparisons {
+
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
+
     static_assert(42 == meters{ 42 });
     static_assert(meters{ 42 } == 42);
     static_assert(meters{ 42 } == meters{ 42 });
+
+    // static_assert(std::three_way_comparable_with<meters, meters>);
+    // static_assert(std::three_way_comparable_with<meters, const int>);
+    // static_assert(std::three_way_comparable_with<int,    const meters>);
+}
+namespace test::strong_type::arithmetic {
+
+    using meters = csl::ensure::strong_type<int, struct meters_tag>;
+
+    template <typename T, typename U>
+    concept supports_plus = requires { std::declval<T&>() + std::declval<const U &>(); };
+
+    static_assert(supports_plus<meters, meters>);
+    static_assert(supports_plus<meters, int>);
+    static_assert(supports_plus<int,    meters>);
 }
 
 auto main() -> int {
