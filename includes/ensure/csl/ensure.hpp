@@ -54,7 +54,7 @@ namespace csl::ensure::type_traits {
     template <typename T>
     constexpr bool is_strong_type_v = is_strong_type<T>::value;
 
-// is_strong_type
+// is_strong_type_of
     template <typename, typename>
     struct is_strong_type_of : std::false_type{};
     template <typename T, typename strong_underlying_t, typename strong_tag_t>
