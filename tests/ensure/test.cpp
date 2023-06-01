@@ -39,13 +39,13 @@ namespace test::strong_type::comparisons {
 
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
-    static_assert(42 == meters{ 42 });
-    static_assert(meters{ 42 } == 42);
-    static_assert(meters{ 42 } == meters{ 42 });
+    static_assert(42 == meters{ 42 });                  // NOLINT
+    static_assert(meters{ 42 } == 42);                  // NOLINT
+    static_assert(meters{ 42 } == meters{ 42 });    // NOLINT 
 
-    // static_assert(std::three_way_comparable_with<meters, meters>);
-    // static_assert(std::three_way_comparable_with<meters, const int>);
-    // static_assert(std::three_way_comparable_with<int,    const meters>);
+    static_assert(std::three_way_comparable_with<meters, meters>);
+    static_assert(std::three_way_comparable_with<meters, const int>);
+    static_assert(std::three_way_comparable_with<int,    const meters>);
 }
 namespace test::strong_type::arithmetic {
 
@@ -58,7 +58,24 @@ namespace test::strong_type::arithmetic {
     static_assert(supports_plus<meters, int>);
     static_assert(supports_plus<int,    meters>);
 }
+namespace implicit_conversion {
 
-auto main() -> int {
-    
+    constexpr void func(int){}
+
+    using cm = csl::ensure::strong_type<int, struct cm_tag>;
+    static_assert(std::invocable<decltype(func), cm>);
 }
+namespace test::overload_resolution {
+
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    using cm = csl::ensure::strong_type<int, struct cm_tag>;
+
+    constexpr int func(int){ return 0; }
+    constexpr int func(mm){ return 1;}
+    constexpr int func(cm){ return 2; }
+
+    static_assert(1 == func(mm{42}));    // NOLINT
+    static_assert(2 == func(cm{42}));    // NOLINT
+}
+
+auto main() -> int {}
