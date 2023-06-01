@@ -21,7 +21,7 @@ namespace csl::ensure
 {
 	template <typename T, typename /*type_tag*/>
     struct strong_type
-    {
+    {   // explicit constructor, implicit conversion
         using underlying_type = T;
         using reference = T&;
         using const_reference = const T &;
@@ -38,8 +38,8 @@ namespace csl::ensure
         constexpr reference       underlying()        { return value; }
         constexpr const_reference underlying() const  { return value; }
 
-        constexpr operator reference ()               { return underlying(); }
-        constexpr operator const_reference () const   { return underlying(); }
+        constexpr operator reference ()               { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator const_reference () const   { return underlying(); }  // NOLINT not explicit on purpose
 
     private:
         T value;
@@ -89,33 +89,6 @@ namespace csl::ensure::concepts {
     template <typename strong_type, typename T>
     concept StrongTypeOf = csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
 }
-
-// TODO: useless ? (implicit conversion is enough)
-#if defined(__cpp_impl_three_way_comparison)
-// comparisons
-template <typename T, std::three_way_comparable_with<T> U, typename T_tag>
-constexpr auto operator<=>(
-    const csl::ensure::strong_type<T, T_tag> & lhs,
-    const U & rhs
-){
-    return static_cast<const T &>(lhs) <=> rhs;
-}
-template <typename T, std::three_way_comparable_with<T> U, typename U_tag>
-constexpr auto operator<=>(
-    const T & lhs,
-    const csl::ensure::strong_type<U, U_tag> & rhs
-){
-    return lhs <=> static_cast<const U &>(rhs);
-}
-template <typename T, std::three_way_comparable_with<T> U, typename T_tag, typename U_tag>
-constexpr auto operator<=>(
-    const csl::ensure::strong_type<T, T_tag> & lhs,
-    const csl::ensure::strong_type<U, U_tag> & rhs
-)
-{
-    return static_cast<const T &>(lhs) <=> static_cast<const U &>(rhs);
-}
-#endif
 
 #if defined(__has_include)
 #if __has_include(<iostream>)
