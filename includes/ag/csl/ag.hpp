@@ -1957,6 +1957,7 @@ namespace std { // NOLINT(cert-dcl58-cpp)
 // csl::ag::io
 #include <string_view>
 
+// TODO: remove this coupling with gcl
 namespace gcl::cx::details {
     struct type_prefix_tag { constexpr static std::string_view value = "T = "; };
     struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
@@ -2016,6 +2017,7 @@ namespace gcl::cx {
     template <auto value>
     constexpr inline auto value_name_v = value_name<value>();
 }
+// TODO: remove this coupling with gcl
 namespace gcl::pattern
 {
 	template <typename T, typename>

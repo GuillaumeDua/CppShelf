@@ -18,6 +18,7 @@ set(CSL_COMPONENT_LIST
     mp
     wf
     ag
+    ensure
 )
 
 ### Components - tests
