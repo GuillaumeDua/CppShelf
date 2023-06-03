@@ -24,8 +24,15 @@
 namespace csl::mp {
     template <std::size_t I>
     using index = std::integral_constant<std::size_t, I>;
+
+    // type_identity
+#if defined(__cpp_lib_type_identity)
+    template <typename T>
+    using type_identity = typename std::type_identity<T>;
+#else
     template <typename T>
     struct type_identity{ using type = T; };
+#endif
 }
 namespace csl::mp::details {
 
