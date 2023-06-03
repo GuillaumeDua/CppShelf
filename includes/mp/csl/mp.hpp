@@ -79,11 +79,15 @@ namespace csl::mp {
         Ts...
     >{};
 
+    // TODO: algos -> csl::mp::tuple -> tuple_like interface
+
     // size
     template <typename>
     struct tuple_size;
     template <typename ... Ts>
-    struct tuple_size<tuple<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
+    struct tuple_size<tuple<Ts...>> : std::integral_constant<std::size_t,
+        sizeof...(Ts)
+    >{};
     template <typename tuple_type>
     constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
 
@@ -91,7 +95,9 @@ namespace csl::mp {
     template <typename, typename>
     struct count;
     template <typename T, typename ... Ts>
-    struct count<T, tuple<Ts...>> : std::integral_constant<std::size_t, (std::is_same_v<T, Ts> + ...)>{};
+    struct count<T, tuple<Ts...>> : std::integral_constant<std::size_t,
+        (std::is_same_v<T, Ts> + ...)
+    >{};
     template <typename T, typename tuple_type>
     constexpr std::size_t count_v = count<T, tuple_type>::value;
 
@@ -99,7 +105,9 @@ namespace csl::mp {
     template <template <typename> typename, typename>
     struct count_if;
     template <template <typename> typename trait, typename ... Ts>
-    struct count_if<trait, csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t, (trait<Ts>::value + ...)>{};
+    struct count_if<trait, csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t,
+        (trait<Ts>::value + ...)
+    >{};
     template <template <typename> typename trait, typename tuple_type>
     constexpr std::size_t count_if_v = count_if<trait, tuple_type>::value;
 
@@ -107,7 +115,9 @@ namespace csl::mp {
     template <std::size_t, typename>
     struct tuple_element;
     template <std::size_t index, typename ... Ts>
-    struct tuple_element<index, tuple<Ts...>> : tuple<Ts...>::template nth_<index>{};
+    struct tuple_element<index, tuple<Ts...>>
+        : tuple<Ts...>::template nth_<index>
+    {};
     template <std::size_t index, typename tuple_type>
     using tuple_element_t = typename tuple_element<index, tuple_type>::type;
 
@@ -118,8 +128,7 @@ namespace csl::mp {
     template <typename, typename>
     struct index_of;
     template <typename T, typename ... Ts>
-    struct index_of<T, tuple<Ts...>> : std::integral_constant<
-        std::size_t,
+    struct index_of<T, tuple<Ts...>> : std::integral_constant<std::size_t,
         tuple<Ts...>::template index_of_<T>::index
     >{};
     template <typename T, typename tuple_type>
@@ -129,9 +138,21 @@ namespace csl::mp {
     template <template <typename...> typename, typename>
     struct unfold_into;
     template <template <typename...> typename destination, typename ... Ts>
-    struct unfold_into<destination, tuple<Ts...>> : type_identity<destination<Ts...>>{};
+    struct unfold_into<destination, tuple<Ts...>> : type_identity<
+        destination<Ts...>
+    >{};
     template <template <typename...> typename destination, typename tuple_type>
     using unfold_into_t = typename unfold_into<destination, tuple_type>::type;
+
+    // transform
+    template <template <typename> typename, typename>
+    struct transform;
+    template <template <typename> typename trait, typename ... Ts>
+    struct transform<trait, csl::mp::tuple<Ts...>> : type_identity<
+        typename csl::mp::tuple<typename trait<Ts>::type...>
+    >{};
+    template <template <typename> typename trait, typename tuple_type>
+    using transform_t = typename transform<trait, tuple_type>::type;
 
     // last_index_of
     // is_unique
@@ -139,7 +160,7 @@ namespace csl::mp {
     // filter
     // deduplicate
 }
-
+// TODO: range-like algos ( pipe, shift operators, etc... )
 
 
 
