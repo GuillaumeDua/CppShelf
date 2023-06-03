@@ -19,6 +19,104 @@
 
 // ---
 
+// tuple
+
+namespace csl::mp {
+    template <std::size_t I>
+    using index = std::integral_constant<std::size_t, I>;
+    template <typename T>
+    struct type_identity{ using type = T; };
+}
+namespace csl::mp::details {
+
+    template <std::size_t I, typename T>
+    struct tuple_element {
+        constexpr static std::size_t index = I;
+        using type = T;
+
+        // index-to-type mapping
+        constexpr static tuple_element<I, T> deduce_type(mp::index<I>);
+        // type-to-index mapping
+        constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
+    };
+
+    template <typename ... Ts>
+    struct tuple_impl : Ts... {
+        using Ts::deduce_type...;
+        using Ts::deduce_index...;
+
+        template <std::size_t I>
+        using nth_ = decltype(deduce_type(index<I>{}));
+        template <typename T>
+        using index_of_ = decltype(deduce_index(type_identity<T>{}));
+    };
+
+    template <typename sequence_type, typename ... Ts>
+    struct make_tuple;
+    template <std::size_t ... indexes, typename ... Ts>
+    struct make_tuple<std::index_sequence<indexes...>, Ts...> : type_identity<
+        typename mp::details::tuple_impl<mp::details::tuple_element<indexes, Ts>...>
+    >{};
+    template <typename sequence_type, typename ... Ts>
+    using make_tuple_t = typename make_tuple<sequence_type, Ts...>::type;
+}
+namespace csl::mp {
+
+    template <typename ... Ts>
+    struct tuple : mp::details::make_tuple_t<
+        std::make_index_sequence<sizeof...(Ts)>,
+        Ts...
+    >{};
+
+    // size
+    template <typename>
+    struct tuple_size;
+    template <typename ... Ts>
+    struct tuple_size<tuple<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
+    template <typename tuple_type>
+    constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
+
+    // type-by-index
+    template <std::size_t, typename>
+    struct tuple_element;
+    template <std::size_t index, typename ... Ts>
+    struct tuple_element<index, tuple<Ts...>> : tuple<Ts...>::template nth_<index>{};
+    template <std::size_t index, typename tuple_type>
+    using tuple_element_t = typename tuple_element<index, tuple_type>::type;
+
+    template <std::size_t index, typename T>
+    using nth = tuple_element_t<index, T>;
+
+    // index-by-type
+    template <typename, typename>
+    struct index_of;
+    template <typename T, typename ... Ts>
+    struct index_of<T, tuple<Ts...>> : std::integral_constant<
+        std::size_t,
+        tuple<Ts...>::template index_of_<T>::index
+    >{};
+    template <typename T, typename tuple_type>
+    constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
+
+    // foreach
+    // count, count_if
+}
+
+
+
+
+
+
+
+
+
+
+
+// ===================
+// -- OLD, to refactor
+// ===================
+
+
 // cpp shelf library : metaprogramming
 // sequences
 namespace csl::mp::seq {
