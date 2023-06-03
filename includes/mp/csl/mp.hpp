@@ -80,6 +80,14 @@ namespace csl::mp {
     template <typename tuple_type>
     constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
 
+    // count
+    template <typename, typename>
+    struct count;
+    template <typename T, typename ... Ts>
+    struct count<T, tuple<Ts...>> : std::integral_constant<std::size_t, (std::is_same_v<T, Ts> + ...)>{};
+    template <typename T, typename tuple_type>
+    constexpr std::size_t count_v = count<T, tuple_type>::value;
+
     // type-by-index
     template <std::size_t, typename>
     struct tuple_element;
