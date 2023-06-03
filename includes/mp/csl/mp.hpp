@@ -11,6 +11,14 @@
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
+// [WIP] organisation refactoring
+//  sequences::* : op on sequences
+//  seq types    : sequences definitions
+//  tuple
+//  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
+
+// ---
+
 // cpp shelf library : metaprogramming
 // sequences
 namespace csl::mp::seq {
