@@ -84,6 +84,15 @@ namespace csl::mp {
     template <typename T, typename tuple_type>
     constexpr std::size_t count_v = count<T, tuple_type>::value;
 
+    // count_if
+    template <template <typename> typename, typename>
+    struct count_if;
+    template <template <typename> typename trait, typename ... Ts>
+    struct count_if<trait, csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t, (trait<Ts>::value + ...)>{};
+    template <template <typename> typename trait, typename tuple_type>
+    constexpr std::size_t count_if_v = count_if<trait, tuple_type>::value;
+
+
     // type-by-index
     template <std::size_t, typename>
     struct tuple_element;
@@ -107,7 +116,6 @@ namespace csl::mp {
     constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
 
     // foreach
-    // count, count_if
 }
 
 
