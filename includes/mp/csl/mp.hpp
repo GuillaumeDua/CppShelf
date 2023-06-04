@@ -57,6 +57,8 @@ namespace csl::mp::details {
         template <typename T>
         using index_of_ = decltype(deduce_index(type_identity<T>{}));
     };
+    template <>
+    struct tuple_impl<>{};
 
     template <typename sequence_type, typename ... Ts>
     struct make_tuple;
@@ -150,9 +152,10 @@ namespace csl::mp {
     template <template <typename> typename trait, typename tuple_type>
     using transform_t = typename transform<trait, tuple_type>::type;
 
+    // WIP: https://godbolt.org/z/oadn3d9dG
+
     // last_index_of
     // is_unique
-    // transform
     // filter
     // deduplicate
 }
