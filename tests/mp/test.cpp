@@ -13,6 +13,19 @@ namespace test::tuples::tuple_cat {
     using t3_expected = csl::mp::tuple<int, char, double, float>;
     using t3 = csl::mp::tuple_cat_result_t<t1, t2>;
     static_assert(std::is_same_v<t3, t3_expected>);
+
+    static_assert(std::is_same_v<
+        csl::mp::tuple<>,
+        csl::mp::tuple_cat_result_t<>
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::tuple<>,
+        csl::mp::tuple_cat_result_t<csl::mp::tuple<>>
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::tuple<>,
+        csl::mp::tuple_cat_result_t<csl::mp::tuple<>, csl::mp::tuple<>>
+    >);
 }
 
 namespace test::reverse_integer_sequence {
