@@ -216,9 +216,9 @@ namespace csl::mp {
             using tuples_type = std::remove_cvref_t<decltype(tuples)>;
             using type = csl::mp::tuple<
                 csl::mp::tuple_element_t<
-                    indexes_map.tuple_index[indexes],
+                    indexes_map.element_index[indexes],
                     std::remove_cvref_t<csl::mp::tuple_element_t<
-                        indexes_map.element_index[indexes],
+                        indexes_map.tuple_index[indexes],
                         tuples_type
                     >>
                 >...
