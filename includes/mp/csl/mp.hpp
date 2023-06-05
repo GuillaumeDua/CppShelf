@@ -162,72 +162,76 @@ namespace csl::mp {
     requires (sizeof...(tuples) not_eq 0)
     {
         constexpr auto size = (... + csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>);
-        // TODO: if constexpr size == 0 return tuple{};
 
-        // scenario:
-        // t0 = [ a b . . . ]
-        // t1 = [ . . c d . ]
-        // t2 = [ . . . . e ]
+        if constexpr (size == 0)
+            return csl::mp::tuple<>{};
+        else
+        {
+            constexpr auto indexes_map = [&](){
 
-        //  tuple_I    || element_I
-        // --------------------------
-        // [ . . . . . ][ . . . . . ]
-        // --------------------------
-        // [ 0 . . . . ][ 0 . . . . ]
-        // [ 0 0 . . . ][ 0 1 . . . ]
-        // --------------------------
-        // [ 0 0 1 . . ][ 0 1 0 . . ]
-        // [ 0 0 1 1 . ][ 0 1 0 1 . ]
-        // --------------------------
-        // [ 0 0 1 1 2 ][ 0 1 0 1 0 ]
+                // scenario:
+                // t0 = [ a b . . . ]
+                // t1 = [ . . c d . ]
+                // t2 = [ . . . . e ]
 
-        constexpr auto indexes_map = [&](){
+                //  tuple_I    || element_I
+                // --------------------------
+                // [ . . . . . ][ . . . . . ]
+                // --------------------------
+                // [ 0 . . . . ][ 0 . . . . ]
+                // [ 0 0 . . . ][ 0 1 . . . ]
+                // --------------------------
+                // [ 0 0 1 . . ][ 0 1 0 . . ]
+                // [ 0 0 1 1 . ][ 0 1 0 1 . ]
+                // --------------------------
+                // [ 0 0 1 1 2 ][ 0 1 0 1 0 ]
 
-            struct {
-                std::size_t tuple_index[size];   // NOLINT(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
-                std::size_t element_index[size]; // NOLINT(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
-            } mapped_indexes{};
+                struct {
+                    std::size_t tuple_index[size];
+                    std::size_t element_index[size];
+                } mapped_indexes{};
 
-            auto create_indexes_for = [
-                &,
-                tuple_index = std::size_t{0},
-                offset = std::size_t{0}
-            ]<std::size_t ... indexes>(std::index_sequence<indexes...>) mutable {
+                auto create_indexes_for = [
+                    &,
+                    tuple_index = std::size_t{0},
+                    offset = std::size_t{0}
+                ]<std::size_t ... indexes>(std::index_sequence<indexes...>) mutable {
 
-                ((
-                    (mapped_indexes.tuple_index  [offset + indexes] = tuple_index),
-                    (mapped_indexes.element_index[offset + indexes] = indexes)
-                ), ...);
+                    ((
+                        (mapped_indexes.tuple_index  [offset + indexes] = tuple_index),
+                        (mapped_indexes.element_index[offset + indexes] = indexes)
+                    ), ...);
 
-                offset += sizeof...(indexes);
-                ++tuple_index;
-            };
+                    offset += sizeof...(indexes);
+                    ++tuple_index;
+                };
 
-            // create indexes for each tuple
-            ((create_indexes_for(std::make_index_sequence<
-                csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>
-            >{})), ...);
+                // create indexes for each tuple
+                ((create_indexes_for(std::make_index_sequence<
+                    csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>
+                >{})), ...);
 
-            return mapped_indexes;
-        }();
+                return mapped_indexes;
+            }();
 
-        return []<std::size_t ... indexes>(auto && tuples, std::index_sequence<indexes...>){
+            return []<std::size_t ... indexes>(auto && tuples, std::index_sequence<indexes...>){
 
-            using tuples_type = std::remove_cvref_t<decltype(tuples)>;
-            using type = csl::mp::tuple<
-                csl::mp::tuple_element_t<
-                    indexes_map.element_index[indexes],
-                    std::remove_cvref_t<csl::mp::tuple_element_t<
-                        indexes_map.tuple_index[indexes],
-                        tuples_type
-                    >>
-                >...
-            >;
-            return type{};
-        }(
-            csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ /* fwd(tuples)... */ },
-            std::make_index_sequence<size>{}
-        );
+                using tuples_type = std::remove_cvref_t<decltype(tuples)>;
+                using type = csl::mp::tuple<
+                    csl::mp::tuple_element_t<
+                        indexes_map.element_index[indexes],
+                        std::remove_cvref_t<csl::mp::tuple_element_t<
+                            indexes_map.tuple_index[indexes],
+                            tuples_type
+                        >>
+                    >...
+                >;
+                return type{};
+            }(
+                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ /* fwd(tuples)... */ },
+                std::make_index_sequence<size>{}
+            );
+        }
     }
 
     template <typename ... tuple_types>
