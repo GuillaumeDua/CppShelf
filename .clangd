@@ -1,0 +1,9 @@
+CompileFlags:
+    Add: [-std=c++20, -xc++, -Wall] 
+    Compiler: clang++-16
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+Hover:
+  ShowAKA: No

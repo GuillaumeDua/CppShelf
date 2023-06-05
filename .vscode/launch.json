@@ -25,7 +25,7 @@
             "preLaunchTask": "C/C++: g++ build active file",
             "miDebuggerPath": "/usr/bin/gdb"
         },
-        {
+        {   // TODO: lldb
             "name": "clang++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
