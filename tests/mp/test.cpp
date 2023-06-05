@@ -6,6 +6,15 @@
 #include <concepts>
 #include <iostream> // debug only
 
+namespace test::tuples::tuple_cat {
+    using t1 = csl::mp::tuple<int, char>;
+    using t2 = csl::mp::tuple<double, float>;
+
+    using t3_expected = csl::mp::tuple<int, char, double, float>;
+    using t3 = csl::mp::tuple_cat_result_t<t1, t2>;
+    static_assert(std::is_same_v<t3, t3_expected>);
+}
+
 namespace test::reverse_integer_sequence {
     
     using namespace csl::mp::seq;
