@@ -59,7 +59,7 @@ namespace csl::mp::details {
         template <std::size_t I>
         using nth_ = decltype(deduce_type(index<I>{}));
         template <typename T>
-        using index_of_ = decltype(deduce_index(type_identity<T>{}));
+        using by_index_ = decltype(deduce_index(type_identity<T>{}));
     };
     template <>
     struct tuple_impl<>{};
@@ -240,6 +240,19 @@ namespace csl::mp {
     >{};
     template <typename ... tuple_types>
     using tuple_cat_result_t = typename tuple_cat_result<tuple_types...>::type;
+
+    // contains
+    template <typename, typename>
+    struct contains;
+    template <typename T, typename ... Ts>
+    struct contains<T, tuple<Ts...>> : std::bool_constant<
+        requires { tuple<Ts...>::template by_type_<T>::index; }
+    >{};
+    template <typename T, typename tuple_type>
+    constexpr bool contains_v = contains<T, tuple_type>::value;
+
+    // set_union
+    // set_intersect
 
     // last_index_of
     // is_unique
