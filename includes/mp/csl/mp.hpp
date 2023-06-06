@@ -237,7 +237,7 @@ namespace csl::mp {
     template <typename ... tuple_types>
     using tuple_cat_result_t = typename tuple_cat_result<tuple_types...>::type;
 
-    // contains
+    // contains - known limitation: only for valid tuples
     template <typename, typename>
     struct contains;
     template <typename T, typename ... Ts>
@@ -246,6 +246,24 @@ namespace csl::mp {
     >{};
     template <typename T, typename tuple_type>
     constexpr bool contains_v = contains<T, tuple_type>::value;
+
+    // have_duplicates
+    template <typename>
+    struct has_duplicates;
+    template <typename ... Ts>
+    struct has_duplicates<tuple<Ts...>> : std::bool_constant<
+        not ((requires {
+            tuple<Ts...>::template by_type_<Ts>::index;
+        }) and ...)
+    >{};
+    template <typename tuple_type>
+    constexpr bool has_duplicates_v = has_duplicates<tuple_type>::value;
+
+    // is_valid
+    template <typename T>
+    struct is_valid : std::negation<has_duplicates<T>>{};
+    template <typename T>
+    constexpr bool is_valid_v = is_valid<T>::value;
 
     // set_union
     // set_intersect
