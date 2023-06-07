@@ -27,6 +27,17 @@ namespace test::tuples::tuple_cat {
         csl::mp::tuple_cat_result_t<csl::mp::tuple<>, csl::mp::tuple<>>
     >);
 }
+namespace test::tuples::set_union {
+    using T1 = csl::mp::tuple<int, char>;
+    using T2 = csl::mp::tuple<int, double>;
+    
+    // wtf: clang and gcc does not produce the same result
+    //  because of contains_v<int, T1>
+    static_assert(std::is_same_v<
+        csl::mp::set_union_t<T1, T2>,
+        csl::mp::tuple<int, char, double>
+    >);
+}
 
 namespace test::reverse_integer_sequence {
     
