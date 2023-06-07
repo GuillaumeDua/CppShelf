@@ -266,6 +266,25 @@ namespace csl::mp {
     constexpr bool is_valid_v = is_valid<T>::value;
 
     // set_union
+    template <typename, typename>
+    struct set_union;
+    template <typename ... Ts, typename ... Us>
+    struct set_union<tuple<Ts...>, tuple<Us...>> : std::type_identity<
+        decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return tuple_cat(
+                tuple<Ts...>{},
+                std::conditional_t<
+                    contains_v<Us, tuple<Ts...>>,
+                    tuple<>,
+                    tuple<Us>
+                >{}...
+            );
+        }(std::make_index_sequence<sizeof...(Ts)>{}))
+    >{};
+    template <typename T, typename U>
+    using set_union_t = typename set_union<T, U>::type;
+    
+
     // set_intersect
 
     // last_index_of
