@@ -242,7 +242,7 @@ namespace csl::mp {
     struct contains;
     template <typename T, typename ... Ts>
     struct contains<T, tuple<Ts...>> : std::bool_constant<
-        requires { tuple<Ts...>::template by_type_<T>::index; }
+        requires { typename tuple<Ts...>::template by_type_<T>; }
     >{};
     template <typename T, typename tuple_type>
     constexpr bool contains_v = contains<T, tuple_type>::value;
@@ -270,16 +270,14 @@ namespace csl::mp {
     struct set_union;
     template <typename ... Ts, typename ... Us>
     struct set_union<tuple<Ts...>, tuple<Us...>> : std::type_identity<
-        decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return tuple_cat(
-                tuple<Ts...>{},
-                std::conditional_t<
-                    contains_v<Us, tuple<Ts...>>,
-                    tuple<>,
-                    tuple<Us>
-                >{}...
-            );
-        }(std::make_index_sequence<sizeof...(Ts)>{}))
+        decltype(tuple_cat(
+            tuple<Ts...>{},
+            std::conditional_t<
+                contains_v<Us, tuple<Ts...>>,
+                tuple<>,
+                tuple<Us>
+            >{}...
+        ))
     >{};
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
