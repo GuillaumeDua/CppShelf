@@ -246,7 +246,7 @@ namespace csl::mp {
     struct contains;
     template <typename T, typename ... Ts>
     struct contains<T, tuple<Ts...>> : std::bool_constant<
-        requires { typename tuple<Ts...>::template by_type_<T>; }
+        requires { std::void_t<typename tuple<Ts...>::template by_type_<T>>(); }
     >{};
     template <typename T, typename tuple_type>
     constexpr bool contains_v = contains<T, tuple_type>::value;
