@@ -282,8 +282,21 @@ namespace csl::mp {
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
     
-
-    // set_intersect
+    // set_intersection
+    template <typename, typename>
+    struct set_intersection;
+    template <typename ... Ts, typename ... Us>
+    struct set_intersection<tuple<Ts...>, tuple<Us...>> : std::type_identity<
+        decltype(tuple_cat(
+                std::conditional_t<
+                    contains_v<Us, tuple<Ts...>>,
+                    tuple<Us>,
+                    tuple<>
+                >{}...
+            ))
+    >{};
+    template <typename T, typename U>
+    using set_intersection_t = typename set_intersection<T, U>::type;
 
     // last_index_of
     // is_unique
