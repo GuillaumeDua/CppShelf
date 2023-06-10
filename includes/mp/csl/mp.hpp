@@ -1,4 +1,7 @@
 #pragma once
+// cpp shelf library : metaprogramming utility
+// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
+// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 #if not __cplusplus >= 202002L
 # error "csl/mp.hpp requires C++20"
@@ -324,7 +327,7 @@ namespace csl::mp {
 // ===================
 
 
-// cpp shelf library : metaprogramming
+
 // sequences
 namespace csl::mp::seq {
     // reverse_integer_sequence
