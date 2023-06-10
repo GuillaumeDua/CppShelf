@@ -4,6 +4,7 @@
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 #include <type_traits>
+#include <concepts>
 #include <utility>
 #include <tuple>
 // todo : remove dependency on std::tuple and std::integer_sequence
@@ -23,19 +24,20 @@
 // ---
 
 // tuple
+// TODO(@Guss): structured-binding (std::tuple_size, std::tuple_element)
+// TODO(@Guss): concepts: tuple_interface, empty_tuple, etc.
 
 namespace csl::mp {
     template <std::size_t I>
     using index = std::integral_constant<std::size_t, I>;
 
-    // type_identity
-    #if defined(__cpp_lib_type_identity)
-        template <typename T>
-        using type_identity = typename std::type_identity<T>;
-    #else
-        template <typename T>
-        struct type_identity{ using type = T; };
-    #endif
+#if defined(__cpp_lib_type_identity)
+    template <typename T>
+    using type_identity = typename std::type_identity<T>;
+#else
+    template <typename T>
+    struct type_identity{ using type = T; };
+#endif
 }
 namespace csl::mp::details {
 
@@ -58,7 +60,7 @@ namespace csl::mp::details {
         template <std::size_t I>
         using nth_ = decltype(deduce_type(index<I>{}));
         template <typename T>
-        using by_index_ = decltype(deduce_index(type_identity<T>{}));
+        using by_type_ = decltype(deduce_index(type_identity<T>{}));
     };
     template <>
     struct tuple_impl<>{};
@@ -79,8 +81,6 @@ namespace csl::mp {
         std::make_index_sequence<sizeof...(Ts)>,
         Ts...
     >{};
-
-    // TODO: algos -> csl::mp::tuple -> tuple_like interface
 
     // size
     template <typename>
@@ -116,9 +116,7 @@ namespace csl::mp {
     template <std::size_t, typename>
     struct tuple_element;
     template <std::size_t index, typename ... Ts>
-    struct tuple_element<index, tuple<Ts...>>
-        : tuple<Ts...>::template nth_<index>
-    {};
+    struct tuple_element<index, tuple<Ts...>> : tuple<Ts...>::template nth_<index>{};
     template <std::size_t index, typename tuple_type>
     using tuple_element_t = typename tuple_element<index, tuple_type>::type;
 
@@ -130,18 +128,16 @@ namespace csl::mp {
     struct index_of;
     template <typename T, typename ... Ts>
     struct index_of<T, tuple<Ts...>> : std::integral_constant<std::size_t,
-        tuple<Ts...>::template index_of_<T>::index
+        tuple<Ts...>::template by_type_<T>::index
     >{};
     template <typename T, typename tuple_type>
-    constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
+    constexpr std::size_t by_type_v = index_of<T, tuple_type>::value;
 
     // unfold_into
     template <template <typename...> typename, typename>
     struct unfold_into;
     template <template <typename...> typename destination, typename ... Ts>
-    struct unfold_into<destination, tuple<Ts...>> : type_identity<
-        destination<Ts...>
-    >{};
+    struct unfold_into<destination, tuple<Ts...>> : type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, typename tuple_type>
     using unfold_into_t = typename unfold_into<destination, tuple_type>::type;
 
@@ -156,8 +152,8 @@ namespace csl::mp {
     using transform_t = typename transform<trait, tuple_type>::type;
 
     // tuple_cat
-    auto tuple_cat(){ return csl::mp::tuple{}; }
-    auto tuple_cat(auto && ... tuples)
+    constexpr auto tuple_cat(){ return csl::mp::tuple{}; }
+    constexpr auto tuple_cat(auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
         constexpr auto size = (... + csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>);
@@ -233,6 +229,7 @@ namespace csl::mp {
         }
     }
 
+    // tuple_cat_result
     template <typename ... tuple_types>
     struct tuple_cat_result : csl::mp::type_identity<
         decltype(tuple_cat(std::declval<tuple_types>()...))
@@ -240,7 +237,8 @@ namespace csl::mp {
     template <typename ... tuple_types>
     using tuple_cat_result_t = typename tuple_cat_result<tuple_types...>::type;
 
-    // contains - known limitation: only for valid tuples
+    // contains
+    // TODO(Guss): allow contains only for is_valid, or switch impl to std::same_as or ...
     template <typename, typename>
     struct contains;
     template <typename T, typename ... Ts>
@@ -274,17 +272,17 @@ namespace csl::mp {
     template <typename ... Ts, typename ... Us>
     struct set_union<tuple<Ts...>, tuple<Us...>> : std::type_identity<
         decltype(tuple_cat(
-            tuple<Ts...>{},
-            std::conditional_t<
-                contains_v<Us, tuple<Ts...>>,
-                tuple<>,
-                tuple<Us>
-            >{}...
-        ))
+                tuple<Ts...>{},
+                std::conditional_t<
+                    contains_v<Us, tuple<Ts...>>,
+                    tuple<>,
+                    tuple<Us>
+                >{}...
+            ))
     >{};
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
-    
+
     // set_intersection
     template <typename, typename>
     struct set_intersection;
@@ -302,27 +300,18 @@ namespace csl::mp {
     using set_intersection_t = typename set_intersection<T, U>::type;
 
     // last_index_of
-    // is_unique
+    // is_unique : ((index_of_v<T> == last_index_of_v<T>) and ...)
     // filter
-    // deduplicate
+    // deduplicate / make_valid
+
+    // fwd_as_tuple
+    // get<I>, get<T>
+
+    // compatibility with std::tuple_element for structured binding
+
+    // flatten_once
+    // flatten / make_flat
 }
-
-// TODO: range-like algos ( pipe, shift operators, etc... )
-
-
-
-
-
-
-
-
-
-
-// ===================
-// -- OLD, to refactor
-// ===================
-
-
 
 // sequences
 namespace csl::mp::seq {
@@ -366,6 +355,21 @@ namespace csl::mp::seq {
         return get<index, values...>;
     }
 }
+
+
+// TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, etc...)
+
+
+
+
+
+// ===================
+// -- OLD, to refactor
+// ===================
+
+
+
+#if false
 
 namespace csl::mp {
     // pack
@@ -793,6 +797,8 @@ namespace csl::mp {
     template <typename T>
     using deduplicate_t = typename deduplicate<T>::type;
 }
+
+#endif
 
 #undef fwd
 #undef static_dependent_error

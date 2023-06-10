@@ -1,4 +1,4 @@
-#include "./flat.hpp"
+// #include "./flat.hpp"
 
 #include <csl/mp.hpp>
 
@@ -65,6 +65,7 @@ namespace test::reverse_integer_sequence {
         reverse_sequence<std::index_sequence<0,1,2,3,4>>
     >);
 }
+#if false
 namespace test::index_of {
 
     using namespace csl::mp;
@@ -86,6 +87,7 @@ namespace test::nth {
         csl::mp::index_of_v<char, pack_type> == 1
     );
 }
+#endif
 // namespace test::index {
 //     using namespace csl::mp;
 
