@@ -67,6 +67,7 @@ foreach(component_name IN LISTS CSL_COMPONENT_LIST)
 endforeach()
 
 ## Tests
+# - each components can have multiples tests, as long as their build targets are grouped into ${component_name}_build_all_test
 list(LENGTH CSL_TESTS_LIST CSL_TESTS_LIST_length)
 if (${CSL_TESTS_LIST_length} EQUAL 0)
     return()
@@ -87,9 +88,11 @@ endif()
 foreach(component_name IN LISTS CSL_TESTS_LIST)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
 endforeach()
+
+## Examples
 foreach(component_name IN LISTS CSL_TESTS_LIST)
     if (NOT EXISTS ${PROJECT_SOURCE_DIR}/examples/${component_name}/CMakeLists.txt)
-        message(AUTHOR_WARNING "[${CMAKE_PROJECT_NAME}] : csl::${component_name} has no examples available, skipping ...")
+        # message(AUTHOR_WARNING "[${CMAKE_PROJECT_NAME}] : csl::${component_name} has no examples available, skipping ...")
         continue()
     endif()
     add_subdirectory(${PROJECT_SOURCE_DIR}/examples/${component_name})

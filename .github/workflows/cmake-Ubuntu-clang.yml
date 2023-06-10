@@ -3,7 +3,7 @@ name: cmake-Ubuntu-clang
 on: [push, pull_request]
 
 env:
-  relase_id: 16
+  release_id: 16
   CC:   clang-16
   CXX:  clang++-16
   libstdcpp_release_id: 12
@@ -17,7 +17,7 @@ jobs:
         matrix:
             BUILD_TYPE: [Debug, Release]
             STL_IMPLEMENTATION: [libstdc++, libc++ -lc++abi]
-            CSL_COMPONENTS: [wf, mp]
+            CSL_COMPONENTS: [wf, mp, ag, ensure]
 
     steps:
     - uses: actions/checkout@v2
@@ -25,37 +25,40 @@ jobs:
     - name: Initialize compiler (Clang)
       run: |
           sudo apt update
-          sudo apt install libstdc++-$libstdcpp_release_id-dev
+          sudo apt install ninja-build libstdc++-$libstdcpp_release_id-dev
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" $release_id all
           sudo update-alternatives \
-            --install /usr/bin/clang clang /usr/bin/clang-$relase_id 100
+            --install /usr/bin/clang clang /usr/bin/clang-$release_id 100
           sudo update-alternatives \
-            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$relase_id 100
-          sudo apt install libc++1-$relase_id libc++-$relase_id-dev libc++abi-$relase_id-dev libc++abi1-$relase_id
+            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$release_id 100
+          sudo apt install libc++1-$release_id libc++-$release_id-dev libc++abi-$release_id-dev libc++abi1-$release_id
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}} - ${{matrix.STL_IMPLEMENTATION}}
       run: |
-        cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
-        cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
-      
-    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
+        cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
+        cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}
+    
+    # build cache configuration
+    - name: cmake cache - (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |
         cmake \
             -DCMAKE_CXX_FLAGS="-stdlib=${{matrix.STL_IMPLEMENTATION}}"                              \
-            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                   \
             -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}    \
             -S ${{github.workspace}}                                                                \
-            -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
+            -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}                               \
+            -G Ninja
 
-    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
+    # build compile-time and runtime tests
+    - name: ${{matrix.CSL_COMPONENTS}} cmake build all tests (runs compile-time tests) - (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |
         cmake \
-            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
-            --config ${{matrix.BUILD_TYPE}}
+            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}  \
+            --config ${{matrix.BUILD_TYPE}}                                 \
+            --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
 
-    # Tests
-    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
-      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
+    # run runtime tests
+    - name: ${{matrix.CSL_COMPONENTS}} Runs runtime tests - (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
+      working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}
       shell: bash
       run: ctest -R csl_validate_${{matrix.CSL_COMPONENTS}}
