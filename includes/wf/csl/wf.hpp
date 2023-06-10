@@ -1,4 +1,7 @@
 #pragma once
+// cpp shelf library : workflow utility
+// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
+// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 // Evolutions :
 //  - Consider P1985 "Universal template declaration"

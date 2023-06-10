@@ -1,4 +1,7 @@
 #pragma once
+// cpp shelf library : aggregates utility
+// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
+// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 #include <array>
 #include <tuple>
