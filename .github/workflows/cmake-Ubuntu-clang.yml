@@ -28,7 +28,7 @@ jobs:
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
         cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       
-    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |
         cmake \
             -DCMAKE_C_COMPILER=/usr/bin/clang-${{matrix.CLANG_COMPILER_VERSIONS}}                                           \
@@ -45,13 +45,14 @@ jobs:
             -S ${{github.workspace}}                                                                                        \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
 
-    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       run: |
         cmake \
-            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
-            --config ${{matrix.BUILD_TYPE}}
+            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}  \
+            --config ${{matrix.BUILD_TYPE}}                                 \
+            --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
 
-    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
+    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
       run: ctest -R csl_test_${{matrix.CSL_COMPONENTS}}

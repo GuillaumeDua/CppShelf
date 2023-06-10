@@ -33,3 +33,8 @@ add_test(
 	NAME 	${PROJECT_NAME}_test_${component_name}_cxx17
 	COMMAND $<TARGET_FILE:${test_name}>
 )
+
+# Tests: all
+add_custom_target("${component_name}_build_all_tests"
+	DEPENDS ${TEST_LIST}
+)

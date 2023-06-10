@@ -1,7 +1,9 @@
 set(component_name ag)
+set(TEST_LIST "")
 
 # Test: default (no bitfield support)
 set(test_name test_${PROJECT_NAME}_${component_name}_compile_time)
+list(APPEND TEST_LIST ${test_name})
 
 add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/without_bitfield_support.cpp)
 target_include_directories(${test_name}
@@ -22,6 +24,7 @@ add_test(
 # --- Tests: opt-ins---
 # Test: with bitfield support (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 set(test_name test_${PROJECT_NAME}_${component_name}_bitfield_support_compile_time)
+list(APPEND TEST_LIST ${test_name})
 
 add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/with_bitfield_support.cpp)
 target_include_directories(${test_name}
