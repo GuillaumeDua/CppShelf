@@ -238,17 +238,20 @@ namespace csl::mp {
     using tuple_cat_result_t = typename tuple_cat_result<tuple_types...>::type;
 
     // contains
-    // TODO(Guss): allow contains only for is_valid, or switch impl to std::same_as or ...
+    // benchmark (~ +10% perfs): https://build-bench.com/b/uZluytW6RILwmbT8SpMrpfiINoA
     template <typename, typename>
     struct contains;
     template <typename T, typename ... Ts>
+    requires requires { std::void_t<typename tuple<Ts...>::template by_type_<T>>(); }
+    struct contains<T, tuple<Ts...>> : std::true_type{};
+    template <typename T, typename ... Ts>
     struct contains<T, tuple<Ts...>> : std::bool_constant<
-        requires { std::void_t<typename tuple<Ts...>::template by_type_<T>>(); }
+        (std::same_as<T, Ts> or ...)
     >{};
     template <typename T, typename tuple_type>
     constexpr bool contains_v = contains<T, tuple_type>::value;
 
-    // have_duplicates
+    // has_duplicates
     template <typename>
     struct has_duplicates;
     template <typename ... Ts>
