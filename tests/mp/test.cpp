@@ -6,6 +6,16 @@
 #include <concepts>
 #include <iostream> // debug only
 
+namespace test::tuples::contains {
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    static_assert(csl::mp::contains_v<int, with_duplicates>);
+    static_assert(csl::mp::contains_v<int, without_duplicates>);
+
+    static_assert(not csl::mp::contains_v<double, with_duplicates>);
+    static_assert(not csl::mp::contains_v<double, without_duplicates>);
+}
 namespace test::tuples::tuple_cat {
     using t1 = csl::mp::tuple<int, char>;
     using t2 = csl::mp::tuple<double, float>;
