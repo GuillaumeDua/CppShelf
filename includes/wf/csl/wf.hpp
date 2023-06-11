@@ -291,17 +291,28 @@ namespace csl::wf::mp {
     struct is_nothrow_invocable_r : std::is_nothrow_invocable_r<R, F, args_types...>{};
     template <typename R, typename F, typename ... args_types>
     struct is_nothrow_invocable_r<R, F, ttps<>, args_types...> : is_nothrow_invocable_r<R, F, args_types...>{};
-    template <typename R, typename F, typename ... ttps_args, typename ... args_types>
+    template <typename R, typename F, typename... ttps_args, typename... args_types>
     struct is_nothrow_invocable_r<R, F, ttps<ttps_args...>, args_types...> {
+    // temporary fix for clang-16 regression
         constexpr static bool value = []() constexpr {
-            if constexpr (requires{
+            constexpr bool evaluated_expression = requires {
                 { std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...) } -> std::convertible_to<R>;
-            }) return noexcept(
-                std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...)
-            );
-            else return false;
+            };
+            if constexpr (evaluated_expression)
+                return noexcept(
+                    std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...));
+            else
+                return false;
         }();
-         
+        // ... ok with clang 15
+        // constexpr static bool value = []() constexpr {
+        //     if constexpr (requires{
+        //         { std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...) } -> std::convertible_to<R>;
+        //     }) return noexcept(
+        //         std::declval<F>().template operator()<ttps_args...>(std::declval<args_types>()...)
+        //     );
+        //     else return false;
+        // }();
     };
     template <typename R, typename F, concepts::ttps ttps_type, typename... args_types>
     struct is_nothrow_invocable_r<R, F, ttps_type, args_types...> : is_nothrow_invocable_r<R, F, std::remove_cvref_t<ttps_type>, args_types...>{};
