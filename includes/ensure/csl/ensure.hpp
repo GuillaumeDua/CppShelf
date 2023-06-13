@@ -23,12 +23,16 @@ namespace csl::ensure
     struct strong_type
     {   // explicit constructor, implicit conversion
         using type = strong_type<T, tag>;
-        
+
         using underlying_type = T;
         using tag_type = tag;
         using reference = T&;
         using const_reference = const T &;
 
+        constexpr explicit strong_type(auto && ... values)
+        requires (std::constructible_from<T, decltype(std::forward<decltype(values)>(values))...>)
+        : value(std::forward<decltype(values)>(values)...)
+        {}
         constexpr explicit strong_type(const_reference arg)
         requires std::copy_constructible<underlying_type>
         : value(arg)
@@ -44,22 +48,27 @@ namespace csl::ensure
         constexpr operator reference ()               { return underlying(); }  // NOLINT not explicit on purpose
         constexpr operator const_reference () const   { return underlying(); }  // NOLINT not explicit on purpose
 
-        auto operator<=>(const type & other) const
+        constexpr auto operator<=>(const type & other) const
         requires std::three_way_comparable<underlying_type> {
             return value <=> other.value;
         }
-        auto operator<=>(const auto & arg) const
+        constexpr auto operator<=>(const auto & arg) const
         requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
                   and std::three_way_comparable_with<underlying_type, decltype(arg)>)
         {
             return value <=> arg;
         }
 
-        auto operator==(const type & other) const
-        requires std::equality_comparable<underlying_type> {
+        constexpr auto operator==(const type & other) const
+        noexcept(noexcept(value == other.value))
+        -> bool
+        requires std::equality_comparable<underlying_type>
+        {
             return value == other.value;
         }
-        auto operator==(const auto & arg) const
+        constexpr auto operator==(const auto & arg) const
+        noexcept(noexcept(value == arg))
+        -> bool
         requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
                   and std::equality_comparable_with<T, decltype(arg)>)
         {
@@ -82,13 +91,24 @@ namespace csl::ensure::type_traits {
 // is_strong_type_of
     template <typename, typename>
     struct is_strong_type_of : std::false_type{};
-    template <typename T, typename strong_underlying_t, typename strong_tag_t>
+    template <typename strong_underlying_t, typename strong_tag_t>
     struct is_strong_type_of<
         csl::ensure::strong_type<strong_underlying_t, strong_tag_t>,
-        T
-    > : std::is_same<T, strong_underlying_t>{};
+        strong_underlying_t
+    > : std::true_type{};
     template <typename strong_type, typename T>
     constexpr bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
+
+// is_tagged_by
+    template <typename, typename>
+    struct is_tagged_by : std::false_type{};
+    template <typename strong_underlying_t, typename strong_tag_t>
+    struct is_tagged_by<
+        csl::ensure::strong_type<strong_underlying_t, strong_tag_t>,
+        strong_tag_t
+    > : std::true_type{};
+    template <typename T, typename U>
+    constexpr bool is_tagged_by_v = is_tagged_by<T, U>::value;
 
 // underlying_type
     template <typename>
@@ -113,6 +133,8 @@ namespace csl::ensure::concepts {
     concept NotStrongType = not csl::ensure::type_traits::is_strong_type_v<T>;
     template <typename strong_type, typename T>
     concept StrongTypeOf = csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
+    template <typename strong_type, typename T>
+    concept TaggedBy = StrongType<T> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
 #if defined(__has_include)
