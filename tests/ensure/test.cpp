@@ -1,4 +1,6 @@
+#include <concepts>
 #include <csl/ensure.hpp>
+#include <type_traits>
 
 namespace test::strong_type::type_traits {
 
@@ -17,6 +19,11 @@ namespace test::strong_type::type_traits {
     static_assert(not tt::is_strong_type_of_v<meters, char>);
     static_assert(not tt::is_strong_type_of_v<int, int>);
 
+    // is_tagged_by
+    static_assert(    tt::is_tagged_by_v<meters, struct meters_tag>);
+    static_assert(not tt::is_tagged_by_v<meters, char>);
+    static_assert(not tt::is_tagged_by_v<int, int>);
+
     // underlying_type
     static_assert(    std::is_same_v<int,  tt::underlying_type_t<meters>>);
     static_assert(not std::is_same_v<char, tt::underlying_type_t<meters>>);
@@ -34,6 +41,14 @@ namespace test::strong_type::concepts {
     static_assert(c::StrongType<meters>);
     static_assert(c::NotStrongType<int>);
     static_assert(c::StrongTypeOf<meters, int>);
+}
+namespace test::strong_type::construction {
+    using String = csl::ensure::strong_type<std::string, struct string_tag>;
+    static_assert(std::constructible_from<String>);
+    static_assert(std::constructible_from<String, std::string&&>);
+    static_assert(std::constructible_from<String, const std::string&>);
+    static_assert(std::constructible_from<String, const char*>);
+    static_assert(std::constructible_from<String, std::size_t, std::string::value_type>);
 }
 namespace test::strong_type::comparisons {
 
