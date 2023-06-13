@@ -19,19 +19,22 @@
 
 namespace csl::ensure
 {
-	template <typename T, typename /*type_tag*/>
+	template <typename T, typename tag>
     struct strong_type
     {   // explicit constructor, implicit conversion
+        using type = strong_type<T, tag>;
+        
         using underlying_type = T;
+        using tag_type = tag;
         using reference = T&;
         using const_reference = const T &;
 
         constexpr explicit strong_type(const_reference arg)
-        requires std::copy_constructible<T>
+        requires std::copy_constructible<underlying_type>
         : value(arg)
         {}
-        constexpr explicit strong_type(T&& arg)
-        requires std::move_constructible<T>
+        constexpr explicit strong_type(underlying_type&& arg)
+        requires std::move_constructible<underlying_type>
         : value{ std::forward<decltype(arg)>(arg) }
         {}
 
@@ -40,6 +43,28 @@ namespace csl::ensure
 
         constexpr operator reference ()               { return underlying(); }  // NOLINT not explicit on purpose
         constexpr operator const_reference () const   { return underlying(); }  // NOLINT not explicit on purpose
+
+        auto operator<=>(const type & other) const
+        requires std::three_way_comparable<underlying_type> {
+            return value <=> other.value;
+        }
+        auto operator<=>(const auto & arg) const
+        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
+                  and std::three_way_comparable_with<underlying_type, decltype(arg)>)
+        {
+            return value <=> arg;
+        }
+
+        auto operator==(const type & other) const
+        requires std::equality_comparable<underlying_type> {
+            return value == other.value;
+        }
+        auto operator==(const auto & arg) const
+        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
+                  and std::equality_comparable_with<T, decltype(arg)>)
+        {
+            return value == arg;
+        }
 
     private:
         T value;
