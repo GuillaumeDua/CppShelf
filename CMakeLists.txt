@@ -15,10 +15,10 @@ endif()
 
 ## Components
 set(CSL_COMPONENT_LIST
-    mp
-    wf
-    ag
-    ensure
+# majors libraries
+    mp wf ag
+# minor libraries
+    ensure colors
 )
 
 ### Components - tests
