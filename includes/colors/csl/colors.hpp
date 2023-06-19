@@ -10,12 +10,18 @@
 #include <optional>
 #include <stdexcept>
 
+// TODO: ensure <cunistd> 's isatty
+
 #ifdef _WIN32
 # include <Windows.h>
 # error "csl::colors: Windows: Not supported yet"
 #endif
 
 namespace csl::colors {
+// "\e["  : start colors scheme
+// "fg;bg"
+// "\e[m" : stop colors scheme
+
     using namespace std::string_view_literals;
 
     constexpr static std::string_view prefix = "\033[1;";
@@ -38,14 +44,15 @@ namespace csl::colors {
         black   = '0',
         red     = '1',
         green   = '2',
-        yellow  = '3',
+        yellow  = '3', brown = '3',
         blue    = '4',
-        magenta = '5',
+        magenta = '5', purple = '5',
         cyan    = '6',
         white   = '7',
     };
 
     // API
+    // TODO(): bright 90-97, 100-107
     template <color> struct foreground{ constexpr static char suffix = '3'; };
     template <color> struct background{ constexpr static char suffix = '4'; };
 
