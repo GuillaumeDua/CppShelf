@@ -38,6 +38,15 @@ namespace csl::mp {
     template <typename T>
     struct type_identity{ using type = T; };
 #endif
+
+    template <typename T>
+    struct is_int : std::is_same<T, int>{};
+
+    template <template <typename ...> typename trait, typename ... Ts>
+    struct bind_front {
+        template <typename ... Us>
+        using type = trait<Ts..., Us...>;
+    };
 }
 namespace csl::mp::details {
 
@@ -103,13 +112,13 @@ namespace csl::mp {
     constexpr std::size_t count_v = count<T, tuple_type>::value;
 
     // count_if
-    template <template <typename> typename, typename>
+    template <template <typename...> typename, typename>
     struct count_if;
-    template <template <typename> typename trait, typename ... Ts>
+    template <template <typename...> typename trait, typename ... Ts>
     struct count_if<trait, csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t,
-        (trait<Ts>::value + ...)
+        (0 + ... + trait<Ts>::value)
     >{};
-    template <template <typename> typename trait, typename tuple_type>
+    template <template <typename...> typename trait, typename tuple_type>
     constexpr std::size_t count_if_v = count_if<trait, tuple_type>::value;
 
     // type-by-index
@@ -304,7 +313,7 @@ namespace csl::mp {
 
     // last_index_of
     // is_unique : ((index_of_v<T> == last_index_of_v<T>) and ...)
-    // filter
+    // filter<trait>
     // deduplicate / make_valid
 
     // fwd_as_tuple

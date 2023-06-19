@@ -2,6 +2,7 @@
 
 #include <csl/mp.hpp>
 
+#include <cstdint>
 #include <type_traits>
 #include <concepts>
 #include <iostream> // debug only
@@ -22,6 +23,15 @@ namespace test::tuples::count {
 
     // empty tuple
     static_assert(0 == csl::mp::count_v<int, csl::mp::tuple<>>);
+}
+namespace test::tuples::count_if {
+    using t = csl::mp::tuple<int, char, bool, double, float>;
+    static_assert(3 == csl::mp::count_if_v<std::is_integral, t>);
+    static_assert(2 == csl::mp::count_if_v<std::is_floating_point, t>);
+
+    // empty tuple
+    using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
+    static_assert(0 == csl::mp::count_if_v<is_int64_t::type, t>);
 }
 namespace test::tuples::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
