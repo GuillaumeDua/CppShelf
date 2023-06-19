@@ -6,6 +6,14 @@
 #include <concepts>
 #include <iostream> // debug only
 
+namespace test::tuples::size {
+    static_assert(0 == csl::mp::tuple_size_v<csl::mp::tuple<>>);
+    static_assert(1 == csl::mp::tuple_size_v<csl::mp::tuple<int>>);
+    static_assert(2 == csl::mp::tuple_size_v<csl::mp::tuple<int, char>>);
+    static_assert(3 == csl::mp::tuple_size_v<csl::mp::tuple<int, char, bool>>);
+    // duplicates
+    static_assert(2 == csl::mp::tuple_size_v<csl::mp::tuple<int, int>>);
+}
 namespace test::tuples::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
