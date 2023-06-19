@@ -14,6 +14,15 @@ namespace test::tuples::size {
     // duplicates
     static_assert(2 == csl::mp::tuple_size_v<csl::mp::tuple<int, int>>);
 }
+namespace test::tuples::count {
+    using t = csl::mp::tuple<int, char, bool, int, double>;
+    static_assert(0 == csl::mp::count_v<float, t>);
+    static_assert(1 == csl::mp::count_v<char, t>);
+    static_assert(2 == csl::mp::count_v<int, t>);
+
+    // empty tuple
+    static_assert(0 == csl::mp::count_v<int, csl::mp::tuple<>>);
+}
 namespace test::tuples::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;

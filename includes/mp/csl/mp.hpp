@@ -97,7 +97,7 @@ namespace csl::mp {
     struct count;
     template <typename T, typename ... Ts>
     struct count<T, tuple<Ts...>> : std::integral_constant<std::size_t,
-        (std::is_same_v<T, Ts> + ...)
+        (0 + ... + std::is_same_v<T, Ts>)
     >{};
     template <typename T, typename tuple_type>
     constexpr std::size_t count_v = count<T, tuple_type>::value;
