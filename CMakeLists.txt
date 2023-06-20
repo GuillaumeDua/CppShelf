@@ -19,6 +19,7 @@ set(CSL_COMPONENT_LIST
     wf
     ag
     ensure
+    functional
 )
 
 ### Components - tests
