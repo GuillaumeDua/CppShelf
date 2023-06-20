@@ -78,6 +78,15 @@ namespace csl::ensure
     private:
         T value;
     };
+
+    template <typename T, typename tag>
+    T & to_underlying(strong_type<T, tag> & value){
+        return static_cast<T&>(value);
+    }
+    template <typename T, typename tag>
+    const T & to_underlying(const strong_type<T, tag> & value){
+        return static_cast<const T&>(value);
+    }
 }
 namespace csl::ensure::type_traits {
 // is_strong_type
