@@ -19,7 +19,10 @@ namespace csl::functional {
 
     // function_trait
     template <typename T> 
-    struct function_trait : function_trait<decltype(&std::remove_cvref_t<T>::operator())>{};
+    struct function_trait;
+    template <typename T>
+    requires requires { &std::remove_cvref_t<T>::operator(); }
+    struct function_trait<T> : function_trait<decltype(&std::remove_cvref_t<T>::operator())>{};
 
     namespace details {
         // helper
@@ -32,6 +35,7 @@ namespace csl::functional {
             // TODO(): is_fun, is_memfun
         };
     }
+
     // member-functions
     template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...)>                         : details::function_trait_impl<R, Args...>{};
     template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) noexcept>                : details::function_trait_impl<R, Args...>{};
@@ -65,6 +69,11 @@ namespace csl::functional {
     template <typename R, typename... Args> struct function_trait<std::function<R(Args...) volatile noexcept>>          : details::function_trait_impl<R, Args...>{};
     template <typename R, typename... Args> struct function_trait<std::function<R(Args...) const volatile>>             : details::function_trait_impl<R, Args...>{};
     template <typename R, typename... Args> struct function_trait<std::function<R(Args...) const volatile noexcept>>    : details::function_trait_impl<R, Args...>{};
+
+    template <typename F>
+    using function_trait_result_t = typename function_trait<F>::result_type;
+    template <typename F>
+    using function_trait_arguments_t = typename function_trait<F>::arguments_type;
 }
 namespace csl::functional::type_traits {
 
@@ -111,6 +120,17 @@ namespace csl::functional::type_traits {
     struct is_nothrow_invocable_r<R, F, arguments<Ts...>> : std::is_nothrow_invocable_r<R, F, Ts...>{};
     template <typename R, typename F, typename arguments_type>
     constexpr bool is_nothrow_invocable_r_v = is_nothrow_invocable_r<R, F, arguments_type>::value;
+
+    // is_simple_callable: one invocation candidate
+    template <typename F, class = void>
+    struct is_simple_callable : std::false_type{};
+    template <typename F>
+    struct is_simple_callable<
+        F,
+        std::void_t<typename csl::functional::function_trait<F>::arguments_type>
+    > : std::true_type{};
+    template <typename F>
+    constexpr bool is_simple_callable_v = is_simple_callable<F>::value;
 }
 namespace csl::functional::concepts {
     // invocable_with
@@ -120,4 +140,7 @@ namespace csl::functional::concepts {
     // nothrow_invocable_with
     template <typename F, typename arguments_type>
     concept nothrow_invocable_with = type_traits::is_nothrow_invocable_v<F, arguments_type>;
+
+    template <typename F>
+    concept simple_callable = type_traits::is_simple_callable_v<F>;
 }
