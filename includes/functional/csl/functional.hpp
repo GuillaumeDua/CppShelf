@@ -98,20 +98,38 @@ namespace csl::functional {
     using function_trait_result_t = typename function_trait<F>::result_type;
     template <typename F>
     using function_trait_arguments_t = typename function_trait<F>::arguments_type;
-}
-namespace csl::functional::type_traits {
+
+    // overload trait
+    template <typename T>
+    struct overload_trait;
+    template <typename... Ts>
+    struct overload_trait<csl::functional::overload<Ts...>> : std::type_identity<
+        std::tuple<function_trait<Ts>...>
+    >{};
+    template <typename T>
+    using overload_trait_t = typename overload_trait<T>::types;
 
     // overload arguments
     template <typename T>
     struct overload_arguments;
     template <typename... Ts>
-    struct overload_arguments<csl::functional::overload<Ts...>> {
-        using types = std::tuple<
-            typename function_trait<decltype(&Ts::operator())>::arguments_type...
-        >;
-    };
+    struct overload_arguments<csl::functional::overload<Ts...>> : std::type_identity<
+        std::tuple<typename function_trait<Ts>::arguments_type...>
+    >{};
     template <typename T>
     using overload_arguments_t = typename overload_arguments<T>::types;
+
+    // overload arguments
+    template <typename T>
+    struct overload_result;
+    template <typename... Ts>
+    struct overload_result<csl::functional::overload<Ts...>> : std::type_identity<
+        std::tuple<typename function_trait<Ts>::result_type...>
+    >{};
+    template <typename T>
+    using overload_result_t = typename overload_result<T>::types;
+}
+namespace csl::functional::type_traits {
 
     // is_invocable
     template <typename F, typename arguments_type>
