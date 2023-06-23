@@ -107,7 +107,7 @@ namespace csl::functional {
         std::tuple<function_trait<Ts>...>
     >{};
     template <typename T>
-    using overload_trait_t = typename overload_trait<T>::types;
+    using overload_trait_t = typename overload_trait<T>::type;
 
     // overload arguments
     template <typename T>
@@ -117,7 +117,7 @@ namespace csl::functional {
         std::tuple<typename function_trait<Ts>::arguments_type...>
     >{};
     template <typename T>
-    using overload_arguments_t = typename overload_arguments<T>::types;
+    using overload_arguments_t = typename overload_arguments<T>::type;
 
     // overload arguments
     template <typename T>
@@ -127,7 +127,7 @@ namespace csl::functional {
         std::tuple<typename function_trait<Ts>::result_type...>
     >{};
     template <typename T>
-    using overload_result_t = typename overload_result<T>::types;
+    using overload_result_t = typename overload_result<T>::type;
 }
 namespace csl::functional::type_traits {
 
