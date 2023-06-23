@@ -4,6 +4,28 @@
 #include <tuple>
 #include <type_traits>
 
+namespace csl::functional::details::type_traits {
+    template <typename T>
+    struct remove_mem_func_pointer;
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...)> : std::type_identity<R(Args...)>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) noexcept> : std::type_identity<R(Args...) noexcept>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) const> : std::type_identity<R(Args...) const>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) const noexcept> : std::type_identity<R(Args...) const noexcept>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) volatile> : std::type_identity<R(Args...) volatile>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) volatile noexcept> : std::type_identity<R(Args...) volatile noexcept>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) const volatile> : std::type_identity<R(Args...) const volatile>{};
+    template <typename R, typename C, typename ... Args>
+    struct remove_mem_func_pointer<R(C::*)(Args...) const volatile noexcept> : std::type_identity<R(Args...) const volatile noexcept>{};
+    template <typename T>
+    using remove_mem_func_pointer_t = typename remove_mem_func_pointer<T>::type;
+}
 namespace csl::functional {
 
     // arguments
@@ -22,7 +44,9 @@ namespace csl::functional {
     struct function_trait;
     template <typename T>
     requires requires { &std::remove_cvref_t<T>::operator(); }
-    struct function_trait<T> : function_trait<decltype(&std::remove_cvref_t<T>::operator())>{};
+    struct function_trait<T> : function_trait<
+        details::type_traits::remove_mem_func_pointer_t<decltype(&std::remove_cvref_t<T>::operator())>
+    >{};
 
     namespace details {
         // helper
@@ -37,14 +61,14 @@ namespace csl::functional {
     }
 
     // member-functions
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...)>                         : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) noexcept>                : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const>                   : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const noexcept>          : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) volatile>                : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) volatile noexcept>       : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const volatile>          : details::function_trait_impl<R, Args...>{};
-    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const volatile noexcept> : details::function_trait_impl<R, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...)>                         : details::function_trait_impl<R, C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) noexcept>                : details::function_trait_impl<R, C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const>                   : details::function_trait_impl<R, const C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const noexcept>          : details::function_trait_impl<R, const C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) volatile>                : details::function_trait_impl<R, volatile C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) volatile noexcept>       : details::function_trait_impl<R, volatile C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const volatile>          : details::function_trait_impl<R, const volatile C, Args...>{};
+    template <typename R, typename C, typename... Args>  struct function_trait<R(C::*)(Args...) const volatile noexcept> : details::function_trait_impl<R, const volatile C, Args...>{};
 
     // function
     template <typename R, typename... Args> struct function_trait<R(Args...)>                                           : details::function_trait_impl<R, Args...>{};
