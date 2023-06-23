@@ -59,6 +59,12 @@ A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
 Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/2)
 
+## [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/functional/csl/functional.hpp)
+
+Function & overload traits
+
+See project's [live demo on godbolt.org](https://godbolt.org/z/ssEW9ferd)
+
 ---
 
 <img src="https://raw.githubusercontent.com/isocpp/logos/master/cpp_logo.svg" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
