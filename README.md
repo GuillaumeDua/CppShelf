@@ -59,7 +59,7 @@ A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
 Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/2)
 
-## [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/functional/csl/functional.hpp)
+### 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/functional/csl/functional.hpp)
 
 Function & overload traits
 
