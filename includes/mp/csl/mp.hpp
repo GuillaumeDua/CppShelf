@@ -356,6 +356,24 @@ namespace csl::mp {
     template <typename T, typename ... Ts>
     constexpr std::size_t rfirst_index_of_v = rfirst_index_of<T, Ts...>::value;
 
+    // last_index_of
+    //  equivalent to (sizeof...(Ts) - rfirst_index_of<T, tuple<Ts...>>)
+    template <typename, typename>
+    struct last_index_of;
+    template <typename T, typename ... Ts> requires is_valid_v<tuple<Ts>...>
+    struct last_index_of<T, tuple<Ts...>> : index_of<T, tuple<Ts...>>{};
+    template <typename T, typename ... Ts> requires (not is_valid_v<tuple<Ts>...>)
+    struct last_index_of<T, tuple<Ts...>> {
+        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            std::size_t pos = std::string::npos;
+            (void)((pos = std::is_same_v<T, Ts> ? indexes : pos), ...);
+            return pos;
+        }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
+        static_assert(value not_eq std::string::npos, "last_index_of : not found");
+    };
+    template <typename T, typename ... Ts>
+    constexpr std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
+
     // set_union
     template <typename, typename>
     struct set_union;
