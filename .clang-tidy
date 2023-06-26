@@ -13,6 +13,7 @@ Checks: '-boost-*,
         misc-*,
         modernize-*,
             -modernize-use-trailing-return-type,
+            -modernize-avoid-c-arrays
         mpi-*,
         performance-*,
         readability-*,

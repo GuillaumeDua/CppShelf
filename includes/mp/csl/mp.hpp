@@ -25,6 +25,50 @@
 //  tuple
 //  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
 
+// sequences
+namespace csl::mp::seq {
+    // reverse_integer_sequence
+    template <typename T>
+    struct reverse_integer_sequence_impl;
+    template <typename T, T ... values>
+    struct reverse_integer_sequence_impl<std::integer_sequence<T, values...>> : std::type_identity<
+        std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    >{};
+    template <typename T>
+    using reverse_sequence = typename reverse_integer_sequence_impl<T>::type;
+    template <std::size_t I>
+    using make_reverse_index_sequence = reverse_sequence<std::make_index_sequence<I>>;
+
+    // type_of<values...>
+    template <auto value, auto ... values>
+    requires (std::is_same_v<decltype(value), decltype(values)> and ...)
+    struct type_of : std::type_identity<decltype(value)>{};
+    template <auto ... values>
+    using type_of_t = typename type_of<values...>::value;
+
+    // type_at<index, (integer_seq|values...)>
+    //  TODO(Guss) : universal template parameters : (values...|std::integer_seq)
+    //  TODO(Guss) : use csl::mp::tuple instead
+    template <std::size_t index, auto ... values>
+    struct value_at : std::integral_constant<
+        decltype(std::get<index>(std::declval<std::tuple<decltype(values)...>>(values...))),
+        std::get<index>(std::tuple<decltype(values)...>{values...})
+    >{};
+
+    // get<index, values...>()
+    template <std::size_t index, auto ... values>
+    requires requires { type_of_t<values...>{}; }
+    constexpr decltype(auto) get() noexcept {
+        constexpr auto storage = std::array<type_of_t<values...>, sizeof...(values)>{values...};
+        return std::get<index>(storage);
+    }
+    // get<index>(seq)
+    template <std::size_t index, typename T, T ... values>
+    constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
+        return get<index, values...>;
+    }
+}
+
 // ---
 
 // tuple
@@ -144,7 +188,7 @@ namespace csl::mp {
         tuple<Ts...>::template by_type_<T>::index
     >{};
     template <typename T, typename tuple_type>
-    constexpr std::size_t by_type_v = index_of<T, tuple_type>::value;
+    constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
 
     // unfold_into
     template <template <typename...> typename, typename>
@@ -195,8 +239,8 @@ namespace csl::mp {
                 // [ 0 0 1 1 2 ][ 0 1 0 1 0 ]
 
                 struct {
-                    std::size_t tuple_index[size];
-                    std::size_t element_index[size];
+                    std::size_t tuple_index[size];      // NOLINT(cppcoreguidelines-avoid-c-arrays
+                    std::size_t element_index[size];    // NOLINT(cppcoreguidelines-avoid-c-arrays
                 } mapped_indexes{};
 
                 auto create_indexes_for = [
@@ -282,19 +326,53 @@ namespace csl::mp {
     template <typename T>
     constexpr bool is_valid_v = is_valid<T>::value;
 
+    // first_index_of
+    template <typename, typename>
+    struct first_index_of;
+    template <typename T, typename ... Ts> requires is_valid_v<tuple<Ts>...>
+    struct first_index_of<T, tuple<Ts...>> : index_of<T, tuple<Ts...>>{};
+    template <typename T, typename ... Ts> requires (not is_valid_v<tuple<Ts>...>)
+    struct first_index_of<T, tuple<Ts...>> {
+        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            std::size_t pos = std::string::npos;
+            (void)((pos = (pos == std::string::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            return pos;
+        }(std::make_index_sequence<sizeof...(Ts)>{});
+        static_assert(value not_eq std::string::npos, "first_index_of : not found");
+    };
+    template <typename T, typename ... Ts>
+    constexpr std::size_t first_index_of_v = first_index_of<T, Ts...>::value;
+
+    // rfirst_index_of
+    template <typename, typename>
+    struct rfirst_index_of;
+    template <typename T, typename ... Ts> requires is_valid_v<tuple<Ts>...>
+    struct rfirst_index_of<T, tuple<Ts...>> : index_of<T, tuple<Ts...>>{};
+    template <typename T, typename ... Ts> requires (not is_valid_v<tuple<Ts>...>)
+    struct rfirst_index_of<T, tuple<Ts...>> {
+        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            std::size_t pos = std::string::npos;
+            (void)((pos = (pos == std::string::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            return pos;
+        }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
+        static_assert(value not_eq std::string::npos, "rfirst_index_of : not found");
+    };
+    template <typename T, typename ... Ts>
+    constexpr std::size_t rfirst_index_of_v = rfirst_index_of<T, Ts...>::value;
+
     // set_union
     template <typename, typename>
     struct set_union;
     template <typename ... Ts, typename ... Us>
     struct set_union<tuple<Ts...>, tuple<Us...>> : std::type_identity<
         decltype(tuple_cat(
-                tuple<Ts...>{},
-                std::conditional_t<
-                    contains_v<Us, tuple<Ts...>>,
-                    tuple<>,
-                    tuple<Us>
-                >{}...
-            ))
+            tuple<Ts...>{},
+            std::conditional_t<
+                contains_v<Us, tuple<Ts...>>,
+                tuple<>,
+                tuple<Us>
+            >{}...
+        ))
     >{};
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
@@ -305,18 +383,25 @@ namespace csl::mp {
     template <typename ... Ts, typename ... Us>
     struct set_intersection<tuple<Ts...>, tuple<Us...>> : std::type_identity<
         decltype(tuple_cat(
-                std::conditional_t<
-                    contains_v<Us, tuple<Ts...>>,
-                    tuple<Us>,
-                    tuple<>
-                >{}...
-            ))
+            std::conditional_t<
+                contains_v<Us, tuple<Ts...>>,
+                tuple<Us>,
+                tuple<>
+            >{}...
+        ))
     >{};
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
 
-    // last_index_of
     // is_unique : ((index_of_v<T> == last_index_of_v<T>) and ...)
+    // template <typename, typename>
+    // struct is_unique;
+    // template <typename T, typename ... Ts>
+    // struct is_unique<T, tuple<Ts...>> : std::bool_constant<
+    //     (index_of_v<T, tuple<Ts...>> == last_index_of_v<T, tuple<Ts...>>)
+    // >{};
+
+    // last_index_of
     // filter<trait>
     // deduplicate / make_valid
 
@@ -327,49 +412,6 @@ namespace csl::mp {
 
     // flatten_once
     // flatten / make_flat
-}
-
-// sequences
-namespace csl::mp::seq {
-    // reverse_integer_sequence
-    template <typename T>
-    struct reverse_integer_sequence_impl;
-    template <typename T, T ... values>
-    struct reverse_integer_sequence_impl<std::integer_sequence<T, values...>> : std::type_identity<
-        std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
-    >{};
-    template <typename T>
-    using reverse_sequence = typename reverse_integer_sequence_impl<T>::type;
-    template <std::size_t I>
-    using make_reverse_index_sequence = reverse_sequence<std::make_index_sequence<I>>;
-
-    // type_of<values...>
-    template <auto value, auto ... values>
-    requires (std::is_same_v<decltype(value), decltype(values)> and ...)
-    struct type_of : std::type_identity<decltype(value)>{};
-    template <auto ... values>
-    using type_of_t = typename type_of<values...>::value;
-
-    // type_at<index, (integer_seq|values...)>
-    //  todo : universal template parameters : (values...|std::integer_seq)
-    template <std::size_t index, auto ... values>
-    struct value_at : std::integral_constant<
-        decltype(std::get<index>(std::declval<std::tuple<decltype(values)...>>(values...))),
-        std::get<index>(std::tuple<decltype(values)...>{values...})
-    >{};
-
-    // get<index, values...>()
-    template <std::size_t index, auto ... values>
-    requires requires { type_of_t<values...>{}; }
-    constexpr decltype(auto) get() noexcept {
-        constexpr auto storage = std::array<type_of_t<values...>, sizeof...(values)>{values...};
-        return std::get<index>(storage);
-    }
-    // get<index>(seq)
-    template <std::size_t index, typename T, T ... values>
-    constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
-        return get<index, values...>;
-    }
 }
 
 
