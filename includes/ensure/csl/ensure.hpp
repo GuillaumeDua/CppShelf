@@ -15,6 +15,7 @@
 //  bounded_integral<lower, upper>
 
 #include <concepts>
+#include <type_traits>
 #include <utility>
 
 namespace csl::ensure
@@ -30,29 +31,34 @@ namespace csl::ensure
         using const_reference = const T &;
 
         constexpr explicit strong_type(auto && ... values)
-        requires (std::constructible_from<T, decltype(std::forward<decltype(values)>(values))...>)
+        noexcept(std::is_nothrow_constructible_v<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
+        requires (std::constructible_from<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
         constexpr explicit strong_type(const_reference arg)
+        noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         requires std::copy_constructible<underlying_type>
         : value(arg)
         {}
         constexpr explicit strong_type(underlying_type&& arg)
+        noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         requires std::move_constructible<underlying_type>
         : value{ std::forward<decltype(arg)>(arg) }
         {}
 
-        constexpr reference       underlying()        { return value; }
-        constexpr const_reference underlying() const  { return value; }
+        constexpr reference       underlying()        noexcept { return value; }
+        constexpr const_reference underlying() const  noexcept { return value; }
 
-        constexpr operator reference ()               { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_reference () const   { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator const_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
 
         constexpr auto operator<=>(const type & other) const
+        noexcept(noexcept(value <=> other.value))
         requires std::three_way_comparable<underlying_type> {
             return value <=> other.value;
         }
         constexpr auto operator<=>(const auto & arg) const
+        noexcept(noexcept(value <=> arg))
         requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
                   and std::three_way_comparable_with<underlying_type, decltype(arg)>)
         {
