@@ -46,6 +46,15 @@ namespace csl::ensure
         : value{ std::forward<decltype(arg)>(arg) }
         {}
 
+        constexpr explicit strong_type()
+        noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
+        requires std::is_default_constructible_v<underlying_type>
+        = default;
+        constexpr ~strong_type()
+        noexcept(std::is_nothrow_destructible_v<underlying_type>)
+        requires std::is_destructible_v<underlying_type>
+        = default;
+
         constexpr reference       underlying()        noexcept { return value; }
         constexpr const_reference underlying() const  noexcept { return value; }
 
@@ -86,11 +95,11 @@ namespace csl::ensure
     };
 
     template <typename T, typename tag>
-    T & to_underlying(strong_type<T, tag> & value){
+    T & to_underlying(strong_type<T, tag> & value) noexcept {
         return static_cast<T&>(value);
     }
     template <typename T, typename tag>
-    const T & to_underlying(const strong_type<T, tag> & value){
+    const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
     }
 }
@@ -169,3 +178,5 @@ namespace csl::io {
 }
 #endif
 #endif
+
+// TODO(Guss): fmt
