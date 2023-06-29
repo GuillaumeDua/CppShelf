@@ -52,6 +52,15 @@ namespace test::tuples::has_duplicates {
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<>>);
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
 }
+namespace testi::tuples::is_valid {
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    static_assert(not csl::mp::is_valid_v<with_duplicates>);
+    static_assert(csl::mp::is_valid_v<without_duplicates>);
+    static_assert(csl::mp::is_valid_v<csl::mp::tuple<>>);
+    static_assert(csl::mp::is_valid_v<csl::mp::tuple<int>>);
+}
 namespace test::tuples::tuple_cat {
     using t1 = csl::mp::tuple<int, char>;
     using t2 = csl::mp::tuple<double, float>;
