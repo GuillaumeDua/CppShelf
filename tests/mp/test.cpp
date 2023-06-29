@@ -43,6 +43,15 @@ namespace test::tuples::contains {
     static_assert(not csl::mp::contains_v<double, with_duplicates>);
     static_assert(not csl::mp::contains_v<double, without_duplicates>);
 }
+namespace test::tuples::has_duplicates {
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    static_assert(csl::mp::has_duplicates_v<with_duplicates>);
+    static_assert(not csl::mp::has_duplicates_v<without_duplicates>);
+    static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<>>);
+    static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
+}
 namespace test::tuples::tuple_cat {
     using t1 = csl::mp::tuple<int, char>;
     using t2 = csl::mp::tuple<double, float>;
@@ -82,6 +91,7 @@ namespace test::tuples::set_intersection {
         csl::mp::tuple<int>
     >);
 }
+
 
 namespace test::reverse_integer_sequence {
     
