@@ -371,8 +371,8 @@ namespace csl::mp {
         }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
         static_assert(value not_eq std::string::npos, "last_index_of : not found");
     };
-    template <typename T, typename ... Ts>
-    constexpr std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
+    template <typename T, typename tuple_type>
+    constexpr std::size_t last_index_of_v = last_index_of<T, tuple_type>::value;
 
     // set_union
     template <typename, typename>
@@ -407,13 +407,18 @@ namespace csl::mp {
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
 
-    // is_unique : ((index_of_v<T> == last_index_of_v<T>) and ...)
-    // template <typename, typename>
-    // struct is_unique;
-    // template <typename T, typename ... Ts>
-    // struct is_unique<T, tuple<Ts...>> : std::bool_constant<
-    //     (index_of_v<T, tuple<Ts...>> == last_index_of_v<T, tuple<Ts...>>)
-    // >{};
+    // is_unique
+    template <typename, typename>
+    struct is_unique;
+    template <typename T, typename ... Ts>
+    requires (not contains_v<T, tuple<Ts...>>)
+    struct is_unique<T, tuple<Ts...>> : std::false_type{};
+    template <typename T, typename ... Ts>
+    struct is_unique<T, tuple<Ts...>> : std::bool_constant<
+        (index_of_v<T, tuple<Ts...>> == last_index_of_v<T, tuple<Ts...>>)
+    >{};
+    template <typename T, typename tuple_type>
+    constexpr bool is_unique_v = is_unique<T, tuple_type>::value;
 
     // last_index_of
     // filter<trait>
