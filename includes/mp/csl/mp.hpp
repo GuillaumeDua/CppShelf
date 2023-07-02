@@ -91,6 +91,11 @@ namespace csl::mp {
         template <typename ... Us>
         using type = trait<Ts..., Us...>;
     };
+    template <template <typename ...> typename trait, typename ... Ts>
+    struct bind_back {
+        template <typename ... Us>
+        using type = trait<Us..., Ts...>;
+    };
 }
 namespace csl::mp::details {
 
@@ -336,8 +341,8 @@ namespace csl::mp {
         }(std::make_index_sequence<sizeof...(Ts)>{});
         static_assert(value not_eq std::string::npos, "first_index_of : not found");
     };
-    template <typename T, typename ... Ts>
-    constexpr std::size_t first_index_of_v = first_index_of<T, Ts...>::value;
+    template <typename T, typename tuple_type>
+    constexpr std::size_t first_index_of_v = first_index_of<T, tuple_type>::value;
 
     // rfirst_index_of
     template <typename, typename>
@@ -353,8 +358,8 @@ namespace csl::mp {
         }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
         static_assert(value not_eq std::string::npos, "rfirst_index_of : not found");
     };
-    template <typename T, typename ... Ts>
-    constexpr std::size_t rfirst_index_of_v = rfirst_index_of<T, Ts...>::value;
+    template <typename T, typename tuple_type>
+    constexpr std::size_t rfirst_index_of_v = rfirst_index_of<T, tuple_type>::value;
 
     // last_index_of
     //  equivalent to (sizeof...(Ts) - rfirst_index_of<T, tuple<Ts...>>)
