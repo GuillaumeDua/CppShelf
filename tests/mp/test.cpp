@@ -7,6 +7,21 @@
 #include <concepts>
 #include <iostream> // debug only
 
+// details
+namespace test::tuples::concepts::deductible {
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    // can_deduce_by_type
+    static_assert(csl::mp::details::concepts::can_deduce_by_type<without_duplicates, int>);
+    static_assert(not csl::mp::details::concepts::can_deduce_by_type<with_duplicates, int>);
+
+    // can_deduce_by_index
+    static_assert(csl::mp::details::concepts::can_deduce_by_index<without_duplicates, 0>);
+    static_assert(csl::mp::details::concepts::can_deduce_by_index<with_duplicates, 0>);
+}
+
+// API
 namespace test::tuples::size {
     static_assert(0 == csl::mp::tuple_size_v<csl::mp::tuple<>>);
     static_assert(1 == csl::mp::tuple_size_v<csl::mp::tuple<int>>);
@@ -52,14 +67,14 @@ namespace test::tuples::has_duplicates {
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<>>);
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
 }
-namespace testi::tuples::is_valid {
+namespace testi::tuples::is_valid_tuple {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
-    static_assert(not csl::mp::is_valid_v<with_duplicates>);
-    static_assert(csl::mp::is_valid_v<without_duplicates>);
-    static_assert(csl::mp::is_valid_v<csl::mp::tuple<>>);
-    static_assert(csl::mp::is_valid_v<csl::mp::tuple<int>>);
+    static_assert(not csl::mp::is_valid_tuple_v<with_duplicates>);
+    static_assert(csl::mp::is_valid_tuple_v<without_duplicates>);
+    static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<>>);
+    static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<int>>);
 }
 namespace test::tuples::tuple_cat {
     using t1 = csl::mp::tuple<int, char>;
@@ -100,7 +115,23 @@ namespace test::tuples::set_intersection {
         csl::mp::tuple<int>
     >);
 }
+namespace test::tuples::indexes {
+// https://godbolt.org/z/cs3eWon9r
+    using invalid_tuple = csl::mp::tuple<char, double, float, int, int>;
+    static_assert(csl::mp::first_index_of_v<int, invalid_tuple> == 3);
+    static_assert(csl::mp::rfirst_index_of_v<int, invalid_tuple> == 1);
+    static_assert(csl::mp::last_index_of_v<int, invalid_tuple> == 4);
 
+    using valid_tuple = csl::mp::tuple<char, double, float, int>;
+    static_assert(csl::mp::index_of_v<int, valid_tuple> == 3);
+    static_assert(csl::mp::first_index_of_v<int, valid_tuple> == 3);
+    static_assert(csl::mp::rfirst_index_of_v<int, valid_tuple> == 0);
+    static_assert(csl::mp::last_index_of_v<int, valid_tuple> == 3);
+}
+// namespace test::tuples::is_unique {
+//     using T1 = csl::mp::tuple<int, char>;
+//     static_assert(csl::mp::is_unique_v<char, T1>);
+// }
 
 namespace test::reverse_integer_sequence {
     

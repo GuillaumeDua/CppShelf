@@ -3,6 +3,10 @@
 // under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
+// About [tuples]:
+//  tuples are considered as valid if csl::mp::is_tuple is true_type, and contains no duplicates
+//  if a given tuple instanciation is not valid, less performant algorithms may be selected
+
 #include <type_traits>
 #include <concepts>
 #include <utility>
@@ -148,7 +152,37 @@ namespace csl::mp {
     template <typename T>
     constexpr bool is_tuple_v = is_tuple<T>::value;
 
-    // TODO: is_valid_tuple / is_trivial_tuple
+    namespace concepts {
+        template <typename T> concept Tuple = is_tuple_v<T>;
+    }
+}
+namespace csl::mp::details::concepts {
+    // deductible: type
+    template <typename tuple_type, typename T>
+    concept can_deduce_by_type = is_tuple_v<tuple_type>
+        and requires { std::void_t<typename tuple_type::template by_type_<T>>(); }
+    ;
+    // deductible: type element
+    template <typename tuple_type, std::size_t I>
+    concept can_deduce_by_index = is_tuple_v<tuple_type>
+        and requires { std::void_t<typename tuple_type::template nth_<I>>(); }
+    ;
+}
+namespace csl::mp {
+
+    template <typename T>
+    struct is_valid_tuple : std::false_type{};
+    template <typename ... Ts>
+    struct is_valid_tuple<tuple<Ts...>> : std::bool_constant<
+    // no duplicates types
+        (true and ... and details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>)
+    >{};
+    template <typename T>
+    constexpr bool is_valid_tuple_v = is_valid_tuple<T>::value;
+
+    namespace concepts {
+        template <typename T> concept ValidTuple = is_valid_tuple_v<T>;
+    }
 
     // size
     template <typename>
@@ -192,13 +226,11 @@ namespace csl::mp {
     using nth = tuple_element_t<index, T>;
 
     // index-by-type
-    template <typename, typename>
-    struct index_of;
-    template <typename T, typename ... Ts>
-    struct index_of<T, tuple<Ts...>> : std::integral_constant<std::size_t,
-        tuple<Ts...>::template by_type_<T>::index
+    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    struct index_of : std::integral_constant<std::size_t,
+        tuple_type::template by_type_<T>::index
     >{};
-    template <typename T, typename tuple_type>
+    template <typename T, concepts::ValidTuple tuple_type>
     constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
 
     // unfold_into
@@ -309,9 +341,8 @@ namespace csl::mp {
     // benchmark (~ +10% perfs): https://build-bench.com/b/uZluytW6RILwmbT8SpMrpfiINoA
     template <typename, typename>
     struct contains;
-    template <typename T, typename ... Ts>
-    requires requires { std::void_t<typename tuple<Ts...>::template by_type_<T>>(); }
-    struct contains<T, tuple<Ts...>> : std::true_type{};
+    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    struct contains<T, tuple_type> : std::true_type{};
     template <typename T, typename ... Ts>
     struct contains<T, tuple<Ts...>> : std::bool_constant<
         (std::same_as<T, Ts> or ...)
@@ -323,26 +354,17 @@ namespace csl::mp {
     template <typename>
     struct has_duplicates;
     template <typename ... Ts>
-    struct has_duplicates<tuple<Ts...>> : std::bool_constant<
-        not ((requires {
-            tuple<Ts...>::template by_type_<Ts>::index;
-        }) and ...)
-    >{};
+    struct has_duplicates<tuple<Ts...>> : std::negation<is_valid_tuple<tuple<Ts...>>>{};
     template <typename tuple_type>
     constexpr bool has_duplicates_v = has_duplicates<tuple_type>::value;
-
-    // is_valid
-    template <typename T>
-    struct is_valid : std::negation<has_duplicates<T>>{};
-    template <typename T>
-    constexpr bool is_valid_v = is_valid<T>::value;
 
     // first_index_of
     template <typename, typename>
     struct first_index_of;
-    template <typename T, typename ... Ts> requires is_valid_v<tuple<Ts>...>
-    struct first_index_of<T, tuple<Ts...>> : index_of<T, tuple<Ts...>>{};
-    template <typename T, typename ... Ts> requires (not is_valid_v<tuple<Ts>...>)
+    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    struct first_index_of<T, tuple_type> : index_of<T, tuple_type>{};
+    template <typename T, typename ... Ts>
+    requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
     struct first_index_of<T, tuple<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             std::size_t pos = std::string::npos;
@@ -357,9 +379,12 @@ namespace csl::mp {
     // rfirst_index_of
     template <typename, typename>
     struct rfirst_index_of;
-    template <typename T, typename ... Ts> requires is_valid_v<tuple<Ts>...>
-    struct rfirst_index_of<T, tuple<Ts...>> : index_of<T, tuple<Ts...>>{};
-    template <typename T, typename ... Ts> requires (not is_valid_v<tuple<Ts>...>)
+    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    struct rfirst_index_of<T, tuple_type> : std::bool_constant<
+        tuple_size_v<tuple_type> - 1 - index_of_v<T, tuple_type>
+    >{};
+    template <typename T, typename ... Ts>
+    requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
     struct rfirst_index_of<T, tuple<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             std::size_t pos = std::string::npos;
@@ -375,15 +400,16 @@ namespace csl::mp {
     //  equivalent to (sizeof...(Ts) - rfirst_index_of<T, tuple<Ts...>>)
     template <typename, typename>
     struct last_index_of;
-    template <typename T, typename ... Ts> requires is_valid_v<tuple<Ts>...>
-    struct last_index_of<T, tuple<Ts...>> : index_of<T, tuple<Ts...>>{};
-    template <typename T, typename ... Ts> requires (not is_valid_v<tuple<Ts>...>)
+    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    struct last_index_of<T, tuple_type> : index_of<T, tuple_type>{};
+    template <typename T, typename ... Ts>
+    requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
     struct last_index_of<T, tuple<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             std::size_t pos = std::string::npos;
             (void)((pos = std::is_same_v<T, Ts> ? indexes : pos), ...);
             return pos;
-        }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
+        }(std::make_index_sequence<sizeof...(Ts)>{});
         static_assert(value not_eq std::string::npos, "last_index_of : not found");
     };
     template <typename T, typename tuple_type>
