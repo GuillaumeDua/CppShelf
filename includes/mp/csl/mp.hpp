@@ -140,6 +140,16 @@ namespace csl::mp {
         Ts...
     >{};
 
+    // is_tuple
+    template <typename>
+    struct is_tuple : std::false_type{};
+    template <typename ... Ts>
+    struct is_tuple<tuple<Ts...>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_tuple_v = is_tuple<T>::value;
+
+    // TODO: is_valid_tuple / is_trivial_tuple
+
     // size
     template <typename>
     struct tuple_size;
