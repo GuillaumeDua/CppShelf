@@ -465,21 +465,39 @@ namespace csl::mp {
     template <typename T, typename tuple_type>
     constexpr bool is_unique_v = is_unique<T, tuple_type>::value;
 
-    // last_index_of
     // filter<trait>
-    // deduplicate / make_valid
+    template <typename, template <typename> typename>
+    struct filter;
+    template <typename ... Ts, template <typename> typename predicate>
+    struct filter<tuple<Ts...>, predicate> : tuple_cat_result<
+        std::conditional_t<predicate<Ts>::value, tuple<Ts>, tuple<>>...
+    >{};
+    template <concepts::Tuple tuple_type, template <typename> typename predicate>
+    using filter_t = typename filter<tuple_type, predicate>::type;
 
-    // fwd_as_tuple
-    // get<I>, get<T>
+    // deduplicate / make_valid
 
     // compatibility with std::tuple_element for structured binding
 
     // flatten_once
     // flatten / make_flat
+
+    // fwd_as_tuple
+    // get<I>, get<T>
+    // // for_each
+    // template <concepts::ValidTuple tuple_type>
+    // void for_each(tuple_type && value, auto && visitor){
+    //     [&](){}();
+    // }
+
+    // // for_each_with_index
+    // template <concepts::ValidTuple tuple_type>
+    // void for_each_with_index(tuple_type && value, auto && visitor){
+    //     [&](){}();
+    // }
 }
 
-
-// TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, etc...)
+// TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 
 
 
