@@ -451,12 +451,14 @@ namespace csl::mp {
     // is_unique
     template <typename, typename>
     struct is_unique;
+    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    struct is_unique<T, tuple_type> : std::true_type{};
     template <typename T, typename ... Ts>
     requires (not contains_v<T, tuple<Ts...>>)
     struct is_unique<T, tuple<Ts...>> : std::false_type{};
     template <typename T, typename ... Ts>
     struct is_unique<T, tuple<Ts...>> : std::bool_constant<
-        (index_of_v<T, tuple<Ts...>> == last_index_of_v<T, tuple<Ts...>>)
+        (first_index_of_v<T, tuple<Ts...>> == last_index_of_v<T, tuple<Ts...>>)
     >{};
     template <typename T, typename tuple_type>
     constexpr bool is_unique_v = is_unique<T, tuple_type>::value;
@@ -466,12 +468,14 @@ namespace csl::mp {
     struct filter;
     template <typename ... Ts, template <typename> typename predicate>
     struct filter<tuple<Ts...>, predicate> : tuple_cat_result<
-        std::conditional_t<predicate<Ts>::value, tuple<Ts>, tuple<>>...
+        std::conditional_t<
+            predicate<Ts>::value,
+            tuple<Ts>, tuple<>
+        >...
     >{};
     template <concepts::Tuple tuple_type, template <typename> typename predicate>
     using filter_t = typename filter<tuple_type, predicate>::type;
 
-    // deduplicate / make_valid
 
     // compatibility with std::tuple_element for structured binding
 
