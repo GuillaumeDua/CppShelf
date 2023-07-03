@@ -116,7 +116,6 @@ namespace test::tuples::set_intersection {
     >);
 }
 namespace test::tuples::indexes {
-// https://godbolt.org/z/cs3eWon9r
     using invalid_tuple = csl::mp::tuple<char, double, float, int, int>;
     static_assert(csl::mp::first_index_of_v<int, invalid_tuple> == 3);
     static_assert(csl::mp::rfirst_index_of_v<int, invalid_tuple> == 1);
@@ -128,10 +127,21 @@ namespace test::tuples::indexes {
     static_assert(csl::mp::rfirst_index_of_v<int, valid_tuple> == 0);
     static_assert(csl::mp::last_index_of_v<int, valid_tuple> == 3);
 }
-// namespace test::tuples::is_unique {
-//     using T1 = csl::mp::tuple<int, char>;
-//     static_assert(csl::mp::is_unique_v<char, T1>);
-// }
+namespace test::tuples::is_unique {
+    using T1 = csl::mp::tuple<int, char>;
+    static_assert(csl::mp::is_unique_v<char, T1>);
+}
+namespace test::tuples::filter {
+    using T1 = csl::mp::tuple<int, double, char, float>;
+    using filtered_integrals = csl::mp::filter_t<T1, std::is_integral>;
+    using filtered_floating = csl::mp::filter_t<T1, std::is_floating_point>;
+
+    using expected_integrals = csl::mp::tuple<int, char>;
+    using expected_floating = csl::mp::tuple<double, float>;
+
+    static_assert(std::is_same_v<filtered_integrals, expected_integrals>);
+    static_assert(std::is_same_v<filtered_floating, expected_floating>);
+}
 
 namespace test::reverse_integer_sequence {
     
