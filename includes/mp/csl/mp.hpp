@@ -464,18 +464,44 @@ namespace csl::mp {
     constexpr bool is_unique_v = is_unique<T, tuple_type>::value;
 
     // filter<trait>
-    template <typename, template <typename> typename>
+    template <typename, template <typename...> typename>
     struct filter;
-    template <typename ... Ts, template <typename> typename predicate>
+    template <typename ... Ts, template <typename...> typename predicate>
     struct filter<tuple<Ts...>, predicate> : tuple_cat_result<
         std::conditional_t<
             predicate<Ts>::value,
             tuple<Ts>, tuple<>
         >...
     >{};
-    template <concepts::Tuple tuple_type, template <typename> typename predicate>
+    template <concepts::Tuple tuple_type, template <typename...> typename predicate>
     using filter_t = typename filter<tuple_type, predicate>::type;
 
+    // deduplicate / make_valid
+    // TODO(Guss): reverse prior to filtering, to preserve order
+    template <typename>
+    struct deduplicate;
+    template <concepts::ValidTuple T>
+    struct deduplicate<T> : type_identity<T>{};
+    template <typename ... Ts>
+    struct deduplicate<tuple<Ts...>> : 
+    //  // equivalent to filter<tuple<Ts...>, bind_back<is_unique, tuple<Ts...>>::type>{};
+    //  tuple_cat_result<
+    //     std::conditional_t<
+    //         is_unique_v<Ts, tuple<Ts...>>,
+    //         tuple<Ts>, tuple<>
+    //     >...
+    // >{};
+    decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        return tuple_cat_result<
+            std::conditional_t<
+                details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>
+                or indexes == first_index_of_v<Ts, tuple<Ts...>>,
+                tuple<Ts>, tuple<>
+            >...
+        >{};
+    }(std::make_index_sequence<tuple_size_v<tuple<Ts...>>>{})){};
+    template <concepts::Tuple tuple_type>
+    using deduplicate_t = typename deduplicate<tuple_type>::type;
 
     // compatibility with std::tuple_element for structured binding
 
@@ -495,6 +521,8 @@ namespace csl::mp {
     // void for_each_with_index(tuple_type && value, auto && visitor){
     //     [&](){}();
     // }
+
+    // apply
 }
 
 // TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)

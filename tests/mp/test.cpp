@@ -147,7 +147,18 @@ namespace test::tuples::filter {
     static_assert(std::is_same_v<filtered_integrals, expected_integrals>);
     static_assert(std::is_same_v<filtered_floating, expected_floating>);
 }
-
+namespace test::tuples::deduplicate {
+    using valid_tuple = csl::mp::tuple<int, char>;
+    using invalid_tuple = csl::mp::tuple<int, char, int>;
+    
+    static_assert(std::is_same_v<valid_tuple,
+        csl::mp::deduplicate_t<valid_tuple>
+    >);
+    static_assert(std::is_same_v<
+        valid_tuple,
+        csl::mp::deduplicate_t<invalid_tuple>
+    >);
+}
 
 // sequences
 namespace test::reverse_integer_sequence {
