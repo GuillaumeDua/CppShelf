@@ -7,7 +7,7 @@
 #include <concepts>
 #include <iostream> // debug only
 
-// details
+// tuples: details
 namespace test::tuples::concepts::deductible {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
@@ -21,7 +21,7 @@ namespace test::tuples::concepts::deductible {
     static_assert(csl::mp::details::concepts::can_deduce_by_index<with_duplicates, 0>);
 }
 
-// API
+// tuples: API
 namespace test::tuples::size {
     static_assert(0 == csl::mp::tuple_size_v<csl::mp::tuple<>>);
     static_assert(1 == csl::mp::tuple_size_v<csl::mp::tuple<int>>);
@@ -77,12 +77,12 @@ namespace testi::tuples::is_valid_tuple {
     static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<int>>);
 }
 namespace test::tuples::tuple_cat {
-    using t1 = csl::mp::tuple<int, char>;
-    using t2 = csl::mp::tuple<double, float>;
+    using T0 = csl::mp::tuple<int, char>;
+    using T1 = csl::mp::tuple<double, float>;
 
-    using t3_expected = csl::mp::tuple<int, char, double, float>;
-    using t3 = csl::mp::tuple_cat_result_t<t1, t2>;
-    static_assert(std::is_same_v<t3, t3_expected>);
+    using T2_expected = csl::mp::tuple<int, char, double, float>;
+    using T2 = csl::mp::tuple_cat_result_t<T0, T1>;
+    static_assert(std::is_same_v<T2, T2_expected>);
 
     static_assert(std::is_same_v<
         csl::mp::tuple<>,
@@ -98,20 +98,20 @@ namespace test::tuples::tuple_cat {
     >);
 }
 namespace test::tuples::set_union {
-    using T1 = csl::mp::tuple<int, char>;
-    using T2 = csl::mp::tuple<int, double>;
+    using T0 = csl::mp::tuple<int, char>;
+    using T1 = csl::mp::tuple<int, double>;
     
     static_assert(std::is_same_v<
-        csl::mp::set_union_t<T1, T2>,
+        csl::mp::set_union_t<T0, T1>,
         csl::mp::tuple<int, char, double>
     >);
 }
 namespace test::tuples::set_intersection {
-    using T1 = csl::mp::tuple<int, char>;
-    using T2 = csl::mp::tuple<int, double>;
+    using T0 = csl::mp::tuple<int, char>;
+    using T1 = csl::mp::tuple<int, double>;
     
     static_assert(std::is_same_v<
-        csl::mp::set_intersection_t<T1, T2>,
+        csl::mp::set_intersection_t<T0, T1>,
         csl::mp::tuple<int>
     >);
 }
@@ -128,8 +128,13 @@ namespace test::tuples::indexes {
     static_assert(csl::mp::last_index_of_v<int, valid_tuple> == 3);
 }
 namespace test::tuples::is_unique {
-    using T1 = csl::mp::tuple<int, char>;
-    static_assert(csl::mp::is_unique_v<char, T1>);
+    using valid_tuple = csl::mp::tuple<int, char>;
+    static_assert(csl::mp::is_unique_v<int, valid_tuple>);
+    static_assert(csl::mp::is_unique_v<char, valid_tuple>);
+
+    using invalid_tuple = csl::mp::tuple<int, char, int>;
+    static_assert(not csl::mp::is_unique_v<int, invalid_tuple>);
+    static_assert(csl::mp::is_unique_v<char, invalid_tuple>);
 }
 namespace test::tuples::filter {
     using T1 = csl::mp::tuple<int, double, char, float>;
@@ -143,6 +148,8 @@ namespace test::tuples::filter {
     static_assert(std::is_same_v<filtered_floating, expected_floating>);
 }
 
+
+// sequences
 namespace test::reverse_integer_sequence {
     
     using namespace csl::mp::seq;
