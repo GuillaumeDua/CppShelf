@@ -19,6 +19,7 @@ Checks: '-boost-*,
             -readability-braces-around-statements,
             -readability-named-parameter,
             -readability-identifier-length
+            -readability-magic-numbers
         '
 
 # WarningsAsErrors: '*'
