@@ -20,6 +20,7 @@ set(CSL_COMPONENT_LIST
     ag
     ensure
     functional
+    typeinfo
 )
 
 ### Components - tests
