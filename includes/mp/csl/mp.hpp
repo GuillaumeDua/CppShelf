@@ -7,6 +7,7 @@
 //  tuples are considered as valid if csl::mp::is_tuple is true_type, and contains no duplicates
 //  if a given tuple instanciation is not valid, less performant algorithms may be selected
 
+#include <bits/utility.h>
 #include <type_traits>
 #include <concepts>
 #include <utility>
@@ -503,8 +504,6 @@ namespace csl::mp {
     template <concepts::Tuple tuple_type>
     using deduplicate_t = typename deduplicate<tuple_type>::type;
 
-    // compatibility with std::tuple_element for structured binding
-
     // flatten_once
     // flatten / make_flat
 
@@ -524,6 +523,13 @@ namespace csl::mp {
 
     // apply
 }
+
+// compatibility with std::tuple_element for structured binding
+// NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
+template <csl::mp::concepts::Tuple T>
+struct std::tuple_size<T> : csl::mp::tuple_size<T>{};
+// NOLINTEND(cert-dcl58-cpp)
+
 
 // TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 

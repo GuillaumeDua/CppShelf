@@ -1,5 +1,6 @@
 // #include "./flat.hpp"
 
+#include <bits/utility.h>
 #include <csl/mp.hpp>
 
 #include <cstdint>
@@ -158,6 +159,15 @@ namespace test::tuples::deduplicate {
         valid_tuple,
         csl::mp::deduplicate_t<invalid_tuple>
     >);
+}
+
+// std::tuple interface/inter-operatiblity
+namespace test::tuples::std_interopterability {
+    using valid_tuple = csl::mp::tuple<int, char>;
+    using invalid_tuple = csl::mp::tuple<int, char, int>;
+
+    static_assert(std::tuple_size_v<valid_tuple> == 2);
+    static_assert(std::tuple_size_v<invalid_tuple> == 3);
 }
 
 // sequences
