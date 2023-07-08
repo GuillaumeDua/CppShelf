@@ -162,12 +162,22 @@ namespace test::tuples::deduplicate {
 }
 
 // std::tuple interface/inter-operatiblity
-namespace test::tuples::std_interopterability {
+namespace test::tuples::std_interopterability::tuple_size {
     using valid_tuple = csl::mp::tuple<int, char>;
     using invalid_tuple = csl::mp::tuple<int, char, int>;
 
     static_assert(std::tuple_size_v<valid_tuple> == 2);
     static_assert(std::tuple_size_v<invalid_tuple> == 3);
+}
+namespace test::tuples::std_interopterability::tuple_element {
+    using valid_tuple = csl::mp::tuple<int, char>;
+    static_assert(std::is_same_v<int,  std::tuple_element_t<0, valid_tuple>>);
+    static_assert(std::is_same_v<char, std::tuple_element_t<1, valid_tuple>>);
+
+    using invalid_tuple = csl::mp::tuple<int, char, int>;
+    static_assert(std::is_same_v<int,  std::tuple_element_t<0, invalid_tuple>>);
+    static_assert(std::is_same_v<char, std::tuple_element_t<1, invalid_tuple>>);
+    static_assert(std::is_same_v<int,  std::tuple_element_t<0, invalid_tuple>>);
 }
 
 // sequences
