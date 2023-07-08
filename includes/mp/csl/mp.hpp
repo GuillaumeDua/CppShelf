@@ -199,6 +199,21 @@ namespace csl::mp {
     template <typename tuple_type>
     constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
 
+    // empty
+    template <typename>
+    struct empty;
+    template <>
+    struct empty<tuple<>> : std::true_type{};
+    template <typename T0, typename ... Ts>
+    struct empty<tuple<T0, Ts...>> : std::false_type{};
+    template <typename T>
+    constexpr bool empty_v = empty<T>::value;
+
+    namespace concepts {
+        template <typename T>
+        concept EmptyTuple = Tuple<T> and empty_v<T>;
+    }
+
     // count
     template <typename, typename>
     struct count;
@@ -267,6 +282,7 @@ namespace csl::mp {
             return csl::mp::tuple<>{};
         else
         {
+            // TODO: use `make_two_dimension_index` from the old `flatten` poc ?
             constexpr auto indexes_map = [&](){
 
                 // scenario:
@@ -530,8 +546,12 @@ namespace csl::mp {
 
 // compatibility with std::tuple_element for structured binding
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
-template <csl::mp::concepts::Tuple T>
-struct std::tuple_size<T> : csl::mp::tuple_size<T>{};
+template <csl::mp::concepts::Tuple tuple_type>
+struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
+
+template <std::size_t index, csl::mp::concepts::Tuple tuple_type>
+struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
+
 // NOLINTEND(cert-dcl58-cpp)
 
 
