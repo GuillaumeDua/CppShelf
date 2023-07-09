@@ -542,6 +542,25 @@ namespace csl::mp {
     // }
 
     // apply
+
+    // projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
+    //  project_by_index<0>(tuple_of_tuplelike) -> tuple{ int, int }
+    //  project_by_index<1>(tuple_of_tuplelike) -> tuple{ char, char }
+
+    // print:
+    //  fmt (opt-in or detected dependencies)
+    //      -> csl::ag-like compact vs. pretty printing
+    //  std::ostream printing
+
+    // concept: tuple-like interface
+    //  std::tuple_size, std::tuple_element
+    // concepts value tuple-like interface
+    //  std::get
+
+    // tuple_storage: if are_same<Ts...> -> use std::array instead
+
+    // make_tuple
+    // to_tuple(csl::ag::concept::aggregate auto && value)
 }
 
 // compatibility with std::tuple_element for structured binding
