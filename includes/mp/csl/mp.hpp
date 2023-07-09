@@ -119,8 +119,21 @@ namespace csl::mp::details {
         constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
     };
 
+    template <std::size_t index, typename T>
+    struct tuple_element_storage {
+        T value;
+    };
+
+    template <typename indexes, typename ... Ts>
+    struct tuple_storage;
+    template <std::size_t ... indexes, typename ... Ts>
+    struct tuple_storage<std::index_sequence<indexes...>, Ts...>
+    : tuple_element_storage<indexes, Ts>...
+    {};
+
     template <typename ... Ts>
     struct tuple_impl : Ts... {
+    // tuple-element indexing
         using Ts::deduce_type...;
         using Ts::deduce_index...;
 
@@ -128,6 +141,18 @@ namespace csl::mp::details {
         using nth_ = decltype(deduce_type(index<I>{}));
         template <typename T>
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
+
+    // storage
+        using index_sequence_type = std::make_index_sequence<sizeof...(Ts)>;
+        using storage_type = tuple_storage<index_sequence_type, Ts...>;
+        storage_type storage;
+
+    // storage accessors
+        // get/at/operator[] -> cvref qualifiers matrix
+        // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
+        // compare/operator<=>
+
+        // visit/operator()
     };
     template <>
     struct tuple_impl<>{};
