@@ -121,11 +121,25 @@ namespace csl::mp::details {
     };
 
     template <typename indexes, typename ... Ts>
-    struct tuple_storage;
+    struct tuple_storage{
+        static_assert([](){ return false; }(), "csl::mp::details::tuple_storage: ill-formed");
+    };
     template <std::size_t ... indexes, typename ... Ts>
     struct tuple_storage<std::index_sequence<indexes...>, Ts...>
     : tuple_element_storage<indexes, Ts>...
-    {};
+    {
+        explicit constexpr tuple_storage(auto && ... args)
+        requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
+        : tuple_element_storage<indexes, Ts>{ fwd(args) }...
+        {}
+
+        constexpr tuple_storage() = default;
+        constexpr ~tuple_storage() = default;
+        constexpr tuple_storage(tuple_storage&&) noexcept = default;
+        constexpr tuple_storage(const tuple_storage &) = default;
+        constexpr tuple_storage & operator=(tuple_storage &&) noexcept = default;
+        constexpr tuple_storage & operator=(const tuple_storage &) = default;
+    };
 
     template <typename ... Ts>
     struct tuple_impl : Ts... {
@@ -137,18 +151,6 @@ namespace csl::mp::details {
         using nth_ = decltype(deduce_type(index<I>{}));
         template <typename T>
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
-
-    // storage
-        using index_sequence_type = std::make_index_sequence<sizeof...(Ts)>;
-        using storage_type = tuple_storage<index_sequence_type, Ts...>;
-        storage_type storage;
-
-    // storage accessors
-        // get/at/operator[] -> cvref qualifiers matrix
-        // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
-        // compare/operator<=>
-
-        // visit/operator()
     };
     template <>
     struct tuple_impl<>{};
@@ -168,7 +170,51 @@ namespace csl::mp {
     struct tuple : mp::details::make_tuple_t<
         std::make_index_sequence<sizeof...(Ts)>,
         Ts...
-    >{};
+    >{
+        using type = tuple<Ts...>;
+        constexpr static auto size = sizeof...(Ts);
+        using index_sequence_type = std::make_index_sequence<size>;
+        using storage_type = details::tuple_storage<index_sequence_type, Ts...>;
+
+    // storage
+        constexpr tuple() = default;
+        constexpr tuple(auto && ... args)
+        requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
+        : storage{ fwd(args)... }
+        {}
+
+        // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
+        template <std::size_t index>
+        [[nodiscard]] constexpr auto & get() & noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            return static_cast<type::template nth_<index>&>(storage);
+        }
+        template <std::size_t index>
+        [[nodiscard]] constexpr const auto & get() const & noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            return static_cast<const type::template nth_<index> &>(storage);
+        }
+        template <std::size_t index>
+        [[nodiscard]] constexpr auto && get() && noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            return static_cast<type::template nth_<index> &&>(std::move(storage));
+        }
+        template <std::size_t index>
+        [[nodiscard]] constexpr const auto && get() const && noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            return static_cast<const type::template nth_<index> &&>(std::move(storage));
+        }
+
+    // storage accessors
+        // get/at/operator[] -> cvref qualifiers matrix
+        // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
+        // compare/operator<=>
+
+        // visit/operator()
+
+    private:
+        storage_type storage;
+    };
 
     // is_tuple
     template <typename>

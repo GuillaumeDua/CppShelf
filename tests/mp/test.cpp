@@ -168,6 +168,25 @@ namespace test::tuples::deduplicate {
     >);
 }
 
+namespace test::tuples::storage::constructors::default_ {
+    using type = csl::mp::tuple<int, char>;
+    auto value = type{};
+}
+namespace test::tuples::storage::constructors::value {
+    using type = csl::mp::tuple<int, char>;
+    auto value = type{ 42, 'a' };
+}
+namespace test::tuples::storage::constructors::copy {
+    using type = csl::mp::tuple<int, char>;
+    auto value = type{ 42, 'a' };
+    auto copy = value;
+}
+namespace test::tuples::storage::constructors::move {
+    using type = csl::mp::tuple<int, char>;
+    auto value = type{ 42, 'a' };
+    auto move_to = std::move(value);
+}
+
 // std::tuple interface/inter-operatiblity
 namespace test::tuples::std_interopterability::tuple_size {
     using valid_tuple = csl::mp::tuple<int, char>;
