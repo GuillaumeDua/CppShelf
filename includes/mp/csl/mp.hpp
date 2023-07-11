@@ -70,7 +70,7 @@ namespace csl::mp::seq {
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
-        return get<index, values...>;
+        return get<index, values...>; // TODO(Guillaume) : impl, test
     }
 }
 
@@ -145,6 +145,13 @@ namespace csl::mp::details {
         constexpr tuple_storage & operator=(const tuple_storage &) = default;
     };
 
+    template <typename>
+    struct tuple_storage_accessor;
+    template <std::size_t index, typename T>
+    struct tuple_storage_accessor<tuple_element<index, T>> : std::type_identity<tuple_element_storage<index, T>>{};
+    template <typename T>
+    using tuple_storage_accessor_t = tuple_storage_accessor<T>::type;
+
     template <typename ... Ts>
     struct tuple_impl : Ts... {
     // tuple-element indexing
@@ -191,22 +198,26 @@ namespace csl::mp {
         template <std::size_t index>
         [[nodiscard]] constexpr auto & get() & noexcept {
             static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
-            return static_cast<type::template nth_<index>&>(storage);
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<accessor&>(storage).value;
         }
         template <std::size_t index>
         [[nodiscard]] constexpr const auto & get() const & noexcept {
             static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
-            return static_cast<const type::template nth_<index> &>(storage);
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<const accessor&>(storage).value;
         }
         template <std::size_t index>
         [[nodiscard]] constexpr auto && get() && noexcept {
             static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
-            return static_cast<type::template nth_<index> &&>(std::move(storage));
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<accessor &&>(std::move(storage)).value;
         }
         template <std::size_t index>
         [[nodiscard]] constexpr const auto && get() const && noexcept {
             static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
-            return static_cast<const type::template nth_<index> &&>(std::move(storage));
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<const accessor &&>(std::move(storage)).value;
         }
 
     // storage accessors

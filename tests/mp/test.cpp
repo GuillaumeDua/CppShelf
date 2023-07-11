@@ -186,6 +186,14 @@ namespace test::tuples::storage::constructors::move {
     auto value = type{ 42, 'a' };
     auto move_to = std::move(value);
 }
+namespace test::tuples::get {
+    using type = csl::mp::tuple<int, char>;
+    constexpr auto value = type{ 42, 'a' };
+
+    static_assert(42 == value.template get<0>());
+    static_assert('a' == value.template get<1>());
+}
+
 
 // std::tuple interface/inter-operatiblity
 namespace test::tuples::std_interopterability::tuple_size {
