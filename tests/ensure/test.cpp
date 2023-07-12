@@ -4,9 +4,6 @@
 
 namespace test::strong_type::type_traits {
 
-    template <typename T>
-    concept has_type = requires { typename T::type; };
-
     namespace tt = csl::ensure::type_traits;
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
@@ -24,16 +21,29 @@ namespace test::strong_type::type_traits {
     static_assert(not tt::is_tagged_by_v<meters, char>);
     static_assert(not tt::is_tagged_by_v<int, int>);
 
+#if __cplusplus >= 202002L
+    template <typename T>
+    concept has_type_v = requires { typename T::type; };
+#else
+    template<class, class = void>
+    struct has_type : std::false_type {};
+    template <class T>
+    struct has_type<T, std::void_t<typename T::type>> : std::true_type {};
+    template <typename T>
+    constexpr bool has_type_v = has_type<T>::value;
+#endif
+
     // underlying_type
     static_assert(    std::is_same_v<int,  tt::underlying_type_t<meters>>);
     static_assert(not std::is_same_v<char, tt::underlying_type_t<meters>>);
-    static_assert(not has_type<tt::underlying_type<int>>);
+    static_assert(not has_type_v<tt::tag_type<meters_tag>>);
 
     // tag_type
     static_assert(    std::is_same_v<meters_tag, tt::tag_type_t<meters>>);
     static_assert(not std::is_same_v<char,       tt::tag_type_t<meters>>);
-    static_assert(not has_type<tt::tag_type<meters_tag>>);
+    static_assert(not has_type_v<tt::underlying_type<int>>);
 }
+#if __cplusplus >= 202002L
 namespace test::strong_type::concepts {
     namespace c = csl::ensure::concepts;
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
@@ -42,6 +52,7 @@ namespace test::strong_type::concepts {
     static_assert(c::NotStrongType<int>);
     static_assert(c::StrongTypeOf<meters, int>);
 }
+#endif
 namespace test::strong_type::construction {
     using String = csl::ensure::strong_type<std::string, struct string_tag>;
     static_assert(std::constructible_from<String>);
@@ -93,4 +104,7 @@ namespace test::overload_resolution {
     static_assert(2 == func(cm{42}));    // NOLINT
 }
 
-auto main() -> int {}
+#include <iostream>
+auto main() -> int {
+    std::cout << "running test for C++ " << __cplusplus << '\n';
+}
