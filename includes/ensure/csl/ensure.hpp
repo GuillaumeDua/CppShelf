@@ -30,6 +30,7 @@ namespace csl::ensure
         using reference = T&;
         using const_reference = const T &;
 
+        #if __cplusplus >= 202002L
         constexpr explicit strong_type(auto && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
         requires (std::constructible_from<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
@@ -40,6 +41,24 @@ namespace csl::ensure
         requires std::copy_constructible<underlying_type>
         : value(arg)
         {}
+        #else
+        template <typename ...Ts>
+        constexpr explicit strong_type(Ts && ... values)
+        noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
+        : value(std::forward<Ts>(values)...)
+        {
+            // TODO: enable_if
+            static_assert(std::is_constructible_v<underlying_type, Ts...>);
+        }
+        constexpr explicit strong_type(const_reference arg)
+        noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
+        : value(arg)
+        {
+            static_assert(std::is_copy_constructible_v<underlying_type>)
+        }
+        #endif
+
+        
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         requires std::move_constructible<underlying_type>
@@ -54,6 +73,8 @@ namespace csl::ensure
         noexcept(std::is_nothrow_destructible_v<underlying_type>)
         requires std::is_destructible_v<underlying_type>
         = default;
+
+        // TODO: assign operators
 
         constexpr reference       underlying()        noexcept { return value; }
         constexpr const_reference underlying() const  noexcept { return value; }
