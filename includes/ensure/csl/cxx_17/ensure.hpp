@@ -1,26 +1,34 @@
 #pragma once
 
-#if not __cplusplus >= 202002L
-#pragma error csl/ensure.hpp requires C++20. Use  csl/cxx_17/ensure.hpp
-#endif
-
-// strong_type: implicit conversion is enough for the following operations:
-// - Conversion utilities
-// - Comparison operators: (==, !=, <, >, etc.)
-// - Arithmetic binary operators: (+, -, *, /, etc.)
-// -            unary operators:  (++, --, !, implicit bool conversion ?)
-
-// WIP
-// - Type-traits, concepts
-// - Serialization support: opt-in in csl::srl side
-
-// WIP
-//  not_null<ptr_type>
-//  bounded_integral<lower, upper>
-
-#include <concepts>
 #include <type_traits>
 #include <utility>
+
+namespace csl::ensure::details::mp {
+#if defined(__cpp_lib_type_identity)
+    template <typename T>
+    using type_identity = typename std::type_identity<T>;
+#else
+    template <typename T>
+    struct type_identity{ using type = T; };
+#endif
+}
+namespace csl::ensure::details::mp::type_traits {
+    // is_equality_comparable_with
+    template <class, class, class = void>
+    struct is_equality_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_equality_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() == std::declval<const U&>())
+    >> : std::true_type {};
+    template <typename T, typename U>
+    constexpr bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
+
+    // is_equality_comparable
+    template <class T>
+    struct is_equality_comparable : is_equality_comparable_with<T, T> {};
+    template <typename T>
+    constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
+}
 
 namespace csl::ensure
 {
@@ -34,31 +42,22 @@ namespace csl::ensure
         using reference = T&;
         using const_reference = const T &;
 
-        constexpr explicit strong_type(auto && ... values)
-        noexcept(std::is_nothrow_constructible_v<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
-        requires (std::constructible_from<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
+        template <typename ...Ts, typename = std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>>>
+        constexpr explicit strong_type(Ts && ... values)
+        noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
+        template <typename = std::enable_if_t<std::is_copy_constructible_v<underlying_type>>>
         constexpr explicit strong_type(const_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
-        requires std::copy_constructible<underlying_type>
         : value(arg)
         {}
         
+        template <typename = std::enable_if_t<std::is_move_constructible_v<underlying_type>>>
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
-        requires std::move_constructible<underlying_type>
         : value{ std::forward<decltype(arg)>(arg) }
         {}
-
-        constexpr explicit strong_type()
-        noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
-        requires std::is_default_constructible_v<underlying_type>
-        = default;
-        constexpr ~strong_type()
-        noexcept(std::is_nothrow_destructible_v<underlying_type>)
-        requires std::is_destructible_v<underlying_type>
-        = default;
 
         // TODO: assign operators
 
@@ -68,31 +67,24 @@ namespace csl::ensure
         constexpr operator reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
         constexpr operator const_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
 
-        constexpr auto operator<=>(const type & other) const
-        noexcept(noexcept(value <=> other.value))
-        requires std::three_way_comparable<underlying_type> {
-            return value <=> other.value;
-        }
-        constexpr auto operator<=>(const auto & arg) const
-        noexcept(noexcept(value <=> arg))
-        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
-                  and std::three_way_comparable_with<underlying_type, decltype(arg)>)
-        {
-            return value <=> arg;
-        }
+        // TODO: comparisons
 
+        template <
+            std::enable_if_t<details::mp::type_traits::is_equality_comparable_v<T>, bool> = true
+        >
         constexpr auto operator==(const type & other) const
         noexcept(noexcept(value == other.value))
         -> bool
-        requires std::equality_comparable<underlying_type>
         {
             return value == other.value;
         }
-        constexpr auto operator==(const auto & arg) const
+        template <
+            typename other_type,
+            std::enable_if_t<details::mp::type_traits::is_equality_comparable_with_v<T, other_type>, bool> = true
+        >
+        constexpr auto operator==(const other_type & arg) const
         noexcept(noexcept(value == arg))
         -> bool
-        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
-                  and std::equality_comparable_with<T, decltype(arg)>)
         {
             return value == arg;
         }
@@ -145,7 +137,7 @@ namespace csl::ensure::type_traits {
     template <typename>
     struct underlying_type;
     template <typename T, typename tag>
-    struct underlying_type<csl::ensure::strong_type<T, tag>> : std::type_identity<T>{};
+    struct underlying_type<csl::ensure::strong_type<T, tag>> : details::mp::type_identity<T>{};
     template <typename T>
     using underlying_type_t = typename underlying_type<T>::type;
 
@@ -153,19 +145,9 @@ namespace csl::ensure::type_traits {
     template <typename>
     struct tag_type;
     template <typename T, typename tag>
-    struct tag_type<csl::ensure::strong_type<T, tag>> : std::type_identity<tag>{};
+    struct tag_type<csl::ensure::strong_type<T, tag>> : details::mp::type_identity<tag>{};
     template <typename T>
     using tag_type_t = typename tag_type<T>::type;
-}
-namespace csl::ensure::concepts {
-    template <typename T>
-    concept StrongType = csl::ensure::type_traits::is_strong_type_v<T>;
-    template <typename T>
-    concept NotStrongType = not csl::ensure::type_traits::is_strong_type_v<T>;
-    template <typename strong_type, typename T>
-    concept StrongTypeOf = csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
-    template <typename strong_type, typename T>
-    concept TaggedBy = StrongType<T> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
 #if defined(__has_include)
@@ -173,11 +155,22 @@ namespace csl::ensure::concepts {
 
 #include <iostream>
 // std::ostream& operator<<
+namespace csl::ensure::details::mp::type_traits {
+    // is_ostream_shiftable
+    template <typename T, class = void>
+    struct is_ostream_shiftable : std::false_type{};
+    template <typename T>
+    struct is_ostream_shiftable<T,  std::void_t<
+        decltype(std::declval<std::ostream&>() << std::declval<const T&>())
+    >> : std::true_type{};
+    template <typename T>
+    constexpr bool is_ostream_shiftable_v = is_ostream_shiftable<T>::value;
+}
 namespace csl::io {
-    template <typename T, typename tag>
-    requires requires {
-        std::declval<std::ostream &>() << std::declval<const T&>();
-    }
+    template <
+        typename T, typename tag,
+        std::enable_if_t<csl::ensure::details::mp::type_traits::is_ostream_shiftable_v<T>, bool> = true
+    >
     std::ostream & operator<<(std::ostream & os, const csl::ensure::strong_type<T, tag> & value){
         const auto & underlying_value = static_cast<const T &>(value);
         return os << underlying_value;
