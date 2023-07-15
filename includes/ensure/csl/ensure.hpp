@@ -163,9 +163,9 @@ namespace csl::ensure::concepts {
     template <typename T>
     concept NotStrongType = not csl::ensure::type_traits::is_strong_type_v<T>;
     template <typename strong_type, typename T>
-    concept StrongTypeOf = csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
+    concept StrongTypeOf = StrongType<strong_type> and csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
     template <typename strong_type, typename T>
-    concept TaggedBy = StrongType<T> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
+    concept TaggedBy = StrongType<strong_type> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
 #if defined(__has_include)

@@ -7,8 +7,9 @@
 #include <csl/cxx_17/ensure.hpp>
 #endif
 #include <type_traits>
+#include <array>
 
-namespace test::utils {
+namespace test::utils::type_traits {
 
 // has_type
 #if __cplusplus >= 202002L
@@ -28,20 +29,16 @@ namespace test::utils {
     template <typename T, typename U>
     concept supports_op_plus_with_v = requires { std::declval<T &>() + std::declval<const U &>(); };
 #else
-    template<class, class, class = void>
-    struct supports_op_plus_with : std::false_type {};
     template <class T, class U>
-    struct supports_op_plus_with<T, U, std::void_t<
-        decltype(std::declval<const T&>() + std::declval<U &&>())>
-    > : std::true_type {};
-    template <class T, class U>
-    constexpr bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
+    constexpr bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::supports_op_plus_with<T,U>::value;
 #endif
 }
 
 namespace test::strong_type::type_traits {
 
     namespace tt = csl::ensure::type_traits;
+
+
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
     // is_strong_type
@@ -61,12 +58,12 @@ namespace test::strong_type::type_traits {
     // underlying_type
     static_assert(    std::is_same_v<int,  tt::underlying_type_t<meters>>);
     static_assert(not std::is_same_v<char, tt::underlying_type_t<meters>>);
-    static_assert(not utils::has_type_v<tt::tag_type<meters_tag>>);
+    static_assert(not utils::type_traits::has_type_v<tt::tag_type<meters_tag>>);
 
     // tag_type
     static_assert(    std::is_same_v<meters_tag, tt::tag_type_t<meters>>);
     static_assert(not std::is_same_v<char,       tt::tag_type_t<meters>>);
-    static_assert(not utils::has_type_v<tt::underlying_type<int>>);
+    static_assert(not utils::type_traits::has_type_v<tt::underlying_type<int>>);
 }
 #if __cplusplus >= 202002L
 namespace test::strong_type::concepts {
@@ -76,10 +73,12 @@ namespace test::strong_type::concepts {
     static_assert(c::StrongType<meters>);
     static_assert(c::NotStrongType<int>);
     static_assert(c::StrongTypeOf<meters, int>);
+    static_assert(c::TaggedBy<meters, meters_tag>);
 }
 #endif
 namespace test::strong_type::construction {
     using String = csl::ensure::strong_type<std::string, struct string_tag>;
+    static_assert(std::is_default_constructible_v<String>);
     static_assert(std::is_constructible_v<String>);
     static_assert(std::is_constructible_v<String, std::string&&>);
     static_assert(std::is_constructible_v<String, const std::string&>);
@@ -99,20 +98,23 @@ namespace test::strong_type::comparisons {
     static_assert(std::three_way_comparable_with<meters, const int>);
     static_assert(std::three_way_comparable_with<int,    const meters>);
 #endif
+
+    using name = csl::ensure::strong_type<std::array<char, 3>, struct name_tag>;
+    // static_assert(std::array{'a', 'b', 'c'} == name{'a', 'b', 'c'})
 }
 namespace test::strong_type::arithmetic {
 
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
-    static_assert(test::utils::supports_op_plus_with_v<meters, meters>);
-    static_assert(test::utils::supports_op_plus_with_v<meters, int>);
-    static_assert(test::utils::supports_op_plus_with_v<int,    meters>);
+    static_assert(utils::type_traits::supports_op_plus_with_v<meters, meters>);
+    static_assert(utils::type_traits::supports_op_plus_with_v<meters, int>);
+    static_assert(utils::type_traits::supports_op_plus_with_v<int,    meters>);
 
     using name = csl::ensure::strong_type<std::string, struct name_tag>;
 
-    // static_assert(test::utils::supports_op_plus_with_v<name, name>);
-    // static_assert(test::utils::supports_op_plus_with_v<name, std::string>);
-    // static_assert(test::utils::supports_op_plus_with_v<std::string, name>);
+    // static_assert(utils::supports_op_plus_with_v<name, name>);
+    // static_assert(utils::supports_op_plus_with_v<name, std::string>);
+    // static_assert(utils::supports_op_plus_with_v<std::string, name>);
 }
 namespace implicit_conversion {
 
