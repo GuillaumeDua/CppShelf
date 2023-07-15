@@ -3,10 +3,10 @@ name: cmake-Ubuntu-clang
 on: [push, pull_request]
 
 env:
-  relase_id: 15
-  CC:   clang-15
-  CXX:  clang++-15
-  libstdcpp_release_id: 11
+  relase_id: 16
+  CC:   clang-16
+  CXX:  clang++-16
+  libstdcpp_release_id: 12
 
 jobs:
   cmake-Ubuntu-clang_build_test:
@@ -23,6 +23,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Initialize compiler (Clang)
+    # sudo add-apt-repository ppa:ubuntu-toolchain-r/test -> latest gcc
     # or sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh ${relase_id})" 
       run: |
           sudo apt update
