@@ -39,8 +39,10 @@ namespace csl::ensure
 
         using underlying_type = T;
         using tag_type = tag;
-        using reference = T&;
-        using const_reference = const T &;
+        using lvalue_reference = T&;
+        using rvalue_reference = T&&;
+        using const_lvalue_reference = const T &;
+        using const_rvalue_reference = const T &&;
 
         template <typename ...Ts, typename = std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>>>
         constexpr explicit strong_type(Ts && ... values)
@@ -48,7 +50,7 @@ namespace csl::ensure
         : value(std::forward<decltype(values)>(values)...)
         {}
         template <typename = std::enable_if_t<std::is_copy_constructible_v<underlying_type>>>
-        constexpr explicit strong_type(const_reference arg)
+        constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         : value(arg)
         {}
@@ -61,11 +63,15 @@ namespace csl::ensure
 
         // TODO: assign operators
 
-        constexpr reference       underlying()        noexcept { return value; }
-        constexpr const_reference underlying() const  noexcept { return value; }
+        constexpr lvalue_reference       underlying()        & noexcept { return value; }
+        constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
+        constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
+        constexpr const_rvalue_reference underlying() const  && noexcept { return static_cast<const_rvalue_reference>(value); }
 
-        constexpr operator reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
         // TODO: comparisons
 

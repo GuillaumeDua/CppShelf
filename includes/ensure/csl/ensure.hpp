@@ -31,15 +31,15 @@ namespace csl::ensure
 
         using underlying_type = T;
         using tag_type = tag;
-        using reference = T&;
-        using const_reference = const T &;
+        using lvalue_reference = T&;
+        using const_lvalue_reference = const T &;
 
         constexpr explicit strong_type(auto && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
         requires (std::constructible_from<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
-        constexpr explicit strong_type(const_reference arg)
+        constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         requires std::copy_constructible<underlying_type>
         : value(arg)
@@ -62,11 +62,11 @@ namespace csl::ensure
 
         // TODO: assign operators
 
-        constexpr reference       underlying()        noexcept { return value; }
-        constexpr const_reference underlying() const  noexcept { return value; }
+        constexpr lvalue_reference       underlying()        noexcept { return value; }
+        constexpr const_lvalue_reference underlying() const  noexcept { return value; }
 
-        constexpr operator reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator lvalue_reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr operator const_lvalue_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
 
         constexpr auto operator<=>(const type & other) const
         noexcept(noexcept(value <=> other.value))

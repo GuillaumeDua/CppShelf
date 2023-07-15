@@ -9,6 +9,8 @@
 #include <type_traits>
 
 namespace test::utils {
+
+// has_type
 #if __cplusplus >= 202002L
     template <typename T>
     concept has_type_v = requires { typename T::type; };
@@ -19,6 +21,21 @@ namespace test::utils {
     struct has_type<T, std::void_t<typename T::type>> : std::true_type {};
     template <typename T>
     constexpr bool has_type_v = has_type<T>::value;
+#endif
+
+// supports_op_plus_with
+#if __cplusplus >= 202002L
+    template <typename T, typename U>
+    concept supports_op_plus_with_v = requires { std::declval<T &>() + std::declval<const U &>(); };
+#else
+    template<class, class, class = void>
+    struct supports_op_plus_with : std::false_type {};
+    template <class T, class U>
+    struct supports_op_plus_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() + std::declval<U &&>())>
+    > : std::true_type {};
+    template <class T, class U>
+    constexpr bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
 #endif
 }
 
@@ -83,20 +100,20 @@ namespace test::strong_type::comparisons {
     static_assert(std::three_way_comparable_with<int,    const meters>);
 #endif
 }
-#if __cplusplus >= 202002L
 namespace test::strong_type::arithmetic {
 
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
-    // TODO: C++17
-    template <typename T, typename U>
-    concept supports_plus = requires { std::declval<T&>() + std::declval<const U &>(); };
+    static_assert(test::utils::supports_op_plus_with_v<meters, meters>);
+    static_assert(test::utils::supports_op_plus_with_v<meters, int>);
+    static_assert(test::utils::supports_op_plus_with_v<int,    meters>);
 
-    static_assert(supports_plus<meters, meters>);
-    static_assert(supports_plus<meters, int>);
-    static_assert(supports_plus<int,    meters>);
+    using name = csl::ensure::strong_type<std::string, struct name_tag>;
+
+    // static_assert(test::utils::supports_op_plus_with_v<name, name>);
+    // static_assert(test::utils::supports_op_plus_with_v<name, std::string>);
+    // static_assert(test::utils::supports_op_plus_with_v<std::string, name>);
 }
-#endif
 namespace implicit_conversion {
 
     constexpr void func(int){}
