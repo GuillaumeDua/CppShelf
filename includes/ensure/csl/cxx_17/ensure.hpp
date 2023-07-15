@@ -112,10 +112,6 @@ namespace csl::ensure
         : value{ std::forward<decltype(arg)>(arg) }
         {}
 
-        // TODO: arythmetic operators
-
-        // TODO: assign operators
-
         constexpr lvalue_reference       underlying()        & noexcept { return value; }
         constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
         constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
@@ -126,20 +122,23 @@ namespace csl::ensure
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
+
+        // TODO: arythmetic operators
+        //  +, -, *, /,
+        //  +=, -=, *=, /=
+
+        // TODO: assign operators
+        // =
+
         // TODO: comparisons
+        // <,>,
+        // <=, >=
 
         template <
-            std::enable_if_t<details::mp::type_traits::is_equality_comparable_v<T>, bool> = true
-        >
-        constexpr auto operator==(const type & other) const
-        noexcept(noexcept(value == other.value))
-        -> bool
-        {
-            return value == other.value;
-        }
-        template <
             typename other_type,
-            std::enable_if_t<details::mp::type_traits::is_equality_comparable_with_v<T, other_type>, bool> = true
+            std::enable_if_t<
+                details::mp::type_traits::is_equality_comparable_with_v<T, other_type>
+            , bool> = true
         >
         constexpr auto operator==(const other_type & arg) const
         noexcept(noexcept(value == arg))

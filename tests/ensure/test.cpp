@@ -1,4 +1,4 @@
-// TODO: cxx_17 cmake target
+// TODO: cxx_17 specific cmake target
 
 #if __cplusplus >= 202002L
 #include <csl/ensure.hpp>
@@ -90,6 +90,7 @@ namespace test::strong_type::comparisons {
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
     static_assert(42 == meters{ 42 });                  // NOLINT
+    static_assert(0 not_eq meters{ 42 });               // NOLINT
     static_assert(meters{ 42 } == 42);                  // NOLINT
     static_assert(meters{ 42 } == meters{ 42 });    // NOLINT 
 
@@ -99,20 +100,32 @@ namespace test::strong_type::comparisons {
     static_assert(std::three_way_comparable_with<int,    const meters>);
 #endif
 
-    using name = csl::ensure::strong_type<std::array<char, 3>, struct name_tag>;
-    // static_assert(std::array{'a', 'b', 'c'} == name{'a', 'b', 'c'})
+    using name = csl::ensure::strong_type<std::string_view, struct name_tag>;
+    static_assert(name{"toto"} == std::string_view{"toto"});
+    static_assert(name{"toto"} not_eq std::string_view{"xxxx"});
+
+    struct compare_but_not_eq {
+        constexpr compare_but_not_eq() = default;
+        constexpr bool operator==(const compare_but_not_eq &) const noexcept { return true; }
+        constexpr bool operator not_eq(const compare_but_not_eq &) = delete;
+    };
+    using strong_compare_but_not_eq = csl::ensure::strong_type<compare_but_not_eq, struct strong_compare_but_not_eq_tag>;
+    static_assert(strong_compare_but_not_eq{} == strong_compare_but_not_eq{});
 }
 namespace test::strong_type::arithmetic {
 
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
+    // using underlying
     static_assert(utils::type_traits::supports_op_plus_with_v<meters, meters>);
     static_assert(utils::type_traits::supports_op_plus_with_v<meters, int>);
     static_assert(utils::type_traits::supports_op_plus_with_v<int,    meters>);
 
+    // using op forwarding
     using name = csl::ensure::strong_type<std::string, struct name_tag>;
+    // namespace tt = csl::ensure::details::mp::type_traits;
 
-    // static_assert(utils::supports_op_plus_with_v<name, name>);
+    // static_assert(tt::supports_op_plus_with_v<name, name>);
     // static_assert(utils::supports_op_plus_with_v<name, std::string>);
     // static_assert(utils::supports_op_plus_with_v<std::string, name>);
 }
