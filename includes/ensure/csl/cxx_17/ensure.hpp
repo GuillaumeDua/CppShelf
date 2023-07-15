@@ -12,7 +12,23 @@ namespace csl::ensure::details::mp {
     struct type_identity{ using type = T; };
 #endif
 }
+namespace csl::ensure::details::mp::type_traits::impl {
+    // is_aggregate_constructible_impl
+    template <class, typename = void, typename ...>
+    struct is_aggregate_constructible_impl : std::false_type{};
+    template <class T, typename ... args_ts>
+    struct is_aggregate_constructible_impl<T, std::void_t<
+        decltype(T{std::declval<args_ts>()...})
+    >, args_ts...> : std::true_type{};
+}
 namespace csl::ensure::details::mp::type_traits {
+
+    // is_aggregate_constructible
+    template <class T, typename ... args_ts>
+    struct is_aggregate_constructible : impl::is_aggregate_constructible_impl<T, void, args_ts...>{};
+    template <class T, typename ... args_ts>
+    constexpr bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
+
     // is_equality_comparable_with
     template <class, class, class = void>
     struct is_equality_comparable_with : std::false_type {};
@@ -28,6 +44,20 @@ namespace csl::ensure::details::mp::type_traits {
     struct is_equality_comparable : is_equality_comparable_with<T, T> {};
     template <typename T>
     constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
+
+    // operator+
+    template<class, class, class = void>
+    struct supports_op_plus_with : std::false_type {};
+    template <class T, class U>
+    struct supports_op_plus_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() + std::declval<U &&>())>
+    > : std::true_type {};
+    template <class T, class U>
+    constexpr bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
+    template <class T>
+    struct supports_op_plus : is_equality_comparable_with<T, T> {};
+    template <typename T>
+    constexpr bool supports_op_plus_v = supports_op_plus<T>::value;
 }
 
 namespace csl::ensure
@@ -44,22 +74,45 @@ namespace csl::ensure
         using const_lvalue_reference = const T &;
         using const_rvalue_reference = const T &&;
 
-        template <typename ...Ts, typename = std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>>>
+        // constructor: aggregate-initialization
+        template <std::enable_if_t<
+            std::is_default_constructible_v<underlying_type>
+        , bool> = true
+        >
+        constexpr explicit strong_type()
+        noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
+        {}
+        template <typename ...Ts, std::enable_if_t<
+            std::is_aggregate_v<T> and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
+        , bool> = true
+        >
+        // constructor: values
+        constexpr explicit strong_type(Ts && ... values)
+        noexcept(noexcept(underlying_type{ std::forward<decltype(values)>(values)... }))
+        : value{ std::forward<decltype(values)>(values)... }
+        {}
+        template <typename ...Ts, std::enable_if_t<
+            std::is_constructible_v<underlying_type, Ts&&...>
+        , bool> = true
+        >
         constexpr explicit strong_type(Ts && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
-        template <typename = std::enable_if_t<std::is_copy_constructible_v<underlying_type>>>
+        // constructor: copy
+        template <std::enable_if_t<std::is_copy_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         : value(arg)
         {}
-        
-        template <typename = std::enable_if_t<std::is_move_constructible_v<underlying_type>>>
+        // constructor: move
+        template <std::enable_if_t<std::is_move_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         : value{ std::forward<decltype(arg)>(arg) }
         {}
+
+        // TODO: arythmetic operators
 
         // TODO: assign operators
 
@@ -68,10 +121,10 @@ namespace csl::ensure
         constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
         constexpr const_rvalue_reference underlying() const  && noexcept { return static_cast<const_rvalue_reference>(value); }
 
-        constexpr operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
         // TODO: comparisons
 
