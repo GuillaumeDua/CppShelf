@@ -22,6 +22,30 @@
 #include <type_traits>
 #include <utility>
 
+namespace csl::ensure::details::concepts::comparison {
+// not using std concepts (std::equality_comparable) here,
+// as given type comparison might not be symetrical for some reasons
+
+    // operator ==
+    template <typename T, typename U>
+    concept equality_with = requires (const T & lhs, const U & rhs){
+        { lhs == rhs } -> std::convertible_to<bool>;
+    }
+    and std::common_reference_with<
+        const std::remove_reference_t<T>&,
+        const std::remove_reference_t<U>&
+    >;
+
+    // operator not_eq
+    template <typename T, typename U>
+    concept not_equality_with = requires (const T & lhs, const U & rhs){
+        { lhs not_eq rhs } -> std::convertible_to<bool>;
+    }
+    and std::common_reference_with<
+        const std::remove_reference_t<T>&,
+        const std::remove_reference_t<U>&
+    >;
+}
 namespace csl::ensure
 {
 	template <typename T, typename tag>
@@ -81,10 +105,11 @@ namespace csl::ensure
             return value <=> arg;
         }
 
+        // operator==
         constexpr auto operator==(const type & other) const
         noexcept(noexcept(value == other.value))
         -> bool
-        requires std::equality_comparable<underlying_type>
+        requires details::concepts::comparison::equality_with<underlying_type, underlying_type>
         {
             return value == other.value;
         }
@@ -92,9 +117,27 @@ namespace csl::ensure
         noexcept(noexcept(value == arg))
         -> bool
         requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
-                  and std::equality_comparable_with<T, decltype(arg)>)
+                  and details::concepts::comparison::equality_with<underlying_type, decltype(arg)>
+                  )
         {
             return value == arg;
+        }
+
+        // operator not_eq
+        constexpr auto operator not_eq(const type & other) const
+        noexcept(noexcept(value not_eq other.value))
+        -> bool
+        requires details::concepts::comparison::not_equality_with<underlying_type, underlying_type>
+        {
+            return value not_eq other.value;
+        }
+        constexpr auto operator not_eq(const auto & arg) const
+        noexcept(noexcept(value not_eq arg))
+        -> bool
+        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
+                  and details::concepts::comparison::not_equality_with<underlying_type, decltype(arg)>)
+        {
+            return value not_eq arg;
         }
 
     private:

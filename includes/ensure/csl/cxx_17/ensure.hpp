@@ -39,6 +39,16 @@ namespace csl::ensure::details::mp::type_traits {
     template <typename T, typename U>
     constexpr bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
 
+    // is_equality_not_comparable_with
+    template <class, class, class = void>
+    struct is_not_equality_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_not_equality_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() not_eq std::declval<const U&>())
+    >> : std::true_type {};
+    template <typename T, typename U>
+    constexpr bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
+
     // is_equality_comparable
     template <class T>
     struct is_equality_comparable : is_equality_comparable_with<T, T> {};
@@ -134,6 +144,9 @@ namespace csl::ensure
         // <,>,
         // <=, >=
 
+        // operator()
+
+        // comparison: operator==
         template <
             typename other_type,
             std::enable_if_t<
@@ -145,6 +158,19 @@ namespace csl::ensure
         -> bool
         {
             return value == arg;
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                details::mp::type_traits::is_not_equality_comparable_with_v<T, other_type>
+            , bool> = true
+        >
+        // comparison: operator not_eq
+        constexpr auto operator not_eq(const other_type & arg) const
+        noexcept(noexcept(value not_eq arg))
+        -> bool
+        {
+            return value not_eq arg;
         }
 
     private:
