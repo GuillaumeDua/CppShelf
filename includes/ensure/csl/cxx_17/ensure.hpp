@@ -144,7 +144,7 @@ namespace csl::ensure
         // <,>,
         // <=, >=
 
-        // operator()
+        // TODO: call operator()
 
         // comparison: operator==
         template <

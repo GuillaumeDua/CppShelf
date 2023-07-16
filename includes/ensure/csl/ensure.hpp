@@ -56,7 +56,9 @@ namespace csl::ensure
         using underlying_type = T;
         using tag_type = tag;
         using lvalue_reference = T&;
+        using rvalue_reference = T&&;
         using const_lvalue_reference = const T &;
+        using const_rvalue_reference = const T &&;
 
         constexpr explicit strong_type(auto && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
@@ -84,14 +86,30 @@ namespace csl::ensure
         requires std::is_destructible_v<underlying_type>
         = default;
 
+        constexpr lvalue_reference       underlying()        & noexcept { return value; }
+        constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
+        constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
+        constexpr const_rvalue_reference underlying() const  && noexcept { return static_cast<const_rvalue_reference>(value); }
+
+        constexpr /*explicit*/ operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+
+        // TODO: arythmetic operators
+        //  +, -, *, /,
+        //  +=, -=, *=, /=
+
         // TODO: assign operators
+        // =
 
-        constexpr lvalue_reference       underlying()        noexcept { return value; }
-        constexpr const_lvalue_reference underlying() const  noexcept { return value; }
+        // TODO: comparisons
+        // <,>,
+        // <=, >=
 
-        constexpr operator lvalue_reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_lvalue_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        // TODO: call operator()
 
+#pragma region comparison
         constexpr auto operator<=>(const type & other) const
         noexcept(noexcept(value <=> other.value))
         requires std::three_way_comparable<underlying_type> {
@@ -105,7 +123,6 @@ namespace csl::ensure
             return value <=> arg;
         }
 
-#pragma region comparison
         // operator==
         constexpr auto operator==(const auto & arg) const
         noexcept(noexcept(value == arg))

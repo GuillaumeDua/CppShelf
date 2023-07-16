@@ -104,6 +104,7 @@ namespace test::strong_type::comparisons {
     static_assert(name{"toto"} == std::string_view{"toto"});
     static_assert(name{"toto"} not_eq std::string_view{"xxxx"});
 
+    // asymetrical comparable
     struct eq_only {
         constexpr eq_only() = default;
         constexpr bool operator==(const eq_only &) const noexcept { return true; }
