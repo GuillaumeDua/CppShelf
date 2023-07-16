@@ -104,13 +104,21 @@ namespace test::strong_type::comparisons {
     static_assert(name{"toto"} == std::string_view{"toto"});
     static_assert(name{"toto"} not_eq std::string_view{"xxxx"});
 
-    struct compare_but_not_eq {
-        constexpr compare_but_not_eq() = default;
-        constexpr bool operator==(const compare_but_not_eq &) const noexcept { return true; }
-        constexpr bool operator not_eq(const compare_but_not_eq &) = delete;
+    struct eq_only {
+        constexpr eq_only() = default;
+        constexpr bool operator==(const eq_only &) const noexcept { return true; }
+        constexpr bool operator not_eq(const eq_only &) = delete;
     };
-    using strong_compare_but_not_eq = csl::ensure::strong_type<compare_but_not_eq, struct strong_compare_but_not_eq_tag>;
-    static_assert(strong_compare_but_not_eq{} == strong_compare_but_not_eq{});
+    using strong_eq_only = csl::ensure::strong_type<eq_only, struct strong_eq_only_tag>;
+    static_assert(strong_eq_only{} == strong_eq_only{});
+
+    struct not_eq_only {
+        constexpr not_eq_only() = default;
+        constexpr bool operator not_eq(const not_eq_only &) const noexcept { return true; }
+        constexpr bool operator ==(const not_eq_only &) = delete;
+    };
+    using strong_not_eq_only = csl::ensure::strong_type<not_eq_only, struct strong_not_eq_only_tag>;
+    static_assert(strong_not_eq_only{} not_eq strong_not_eq_only{});
 }
 namespace test::strong_type::arithmetic {
 

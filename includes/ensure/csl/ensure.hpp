@@ -105,40 +105,24 @@ namespace csl::ensure
             return value <=> arg;
         }
 
+#pragma region comparison
         // operator==
-        constexpr auto operator==(const type & other) const
-        noexcept(noexcept(value == other.value))
-        -> bool
-        requires details::concepts::comparison::equality_with<underlying_type, underlying_type>
-        {
-            return value == other.value;
-        }
         constexpr auto operator==(const auto & arg) const
         noexcept(noexcept(value == arg))
         -> bool
-        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
-                  and details::concepts::comparison::equality_with<underlying_type, decltype(arg)>
-                  )
+        requires details::concepts::comparison::equality_with<underlying_type, decltype(arg)>
         {
             return value == arg;
         }
-
         // operator not_eq
-        constexpr auto operator not_eq(const type & other) const
-        noexcept(noexcept(value not_eq other.value))
-        -> bool
-        requires details::concepts::comparison::not_equality_with<underlying_type, underlying_type>
-        {
-            return value not_eq other.value;
-        }
         constexpr auto operator not_eq(const auto & arg) const
         noexcept(noexcept(value not_eq arg))
         -> bool
-        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
-                  and details::concepts::comparison::not_equality_with<underlying_type, decltype(arg)>)
+        requires details::concepts::comparison::not_equality_with<underlying_type, decltype(arg)>
         {
             return value not_eq arg;
         }
+#pragma endregion
 
     private:
         T value;
