@@ -121,6 +121,13 @@ namespace test::strong_type::comparisons {
     using strong_not_eq_only = csl::ensure::strong_type<not_eq_only, struct strong_not_eq_only_tag>;
     static_assert(strong_not_eq_only{} not_eq strong_not_eq_only{});
 }
+namespace test::strong_type::assign {
+    using name = csl::ensure::strong_type<std::string, struct name_tag>;
+    static_assert(std::is_assignable_v<name&, name&&>);
+    static_assert(std::is_assignable_v<name&, const name&>);
+    static_assert(std::is_assignable_v<name&, const std::string&>);
+    static_assert(std::is_assignable_v<name&, std::string &&>);
+}
 namespace test::strong_type::arithmetic {
 
     using meters = csl::ensure::strong_type<int, struct meters_tag>;

@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <utility>
 
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+
 namespace csl::ensure::details::mp {
 #if defined(__cpp_lib_type_identity)
     template <typename T>
@@ -133,12 +135,34 @@ namespace csl::ensure
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
 
+
         // TODO: arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
-        // TODO: assign operators
-        // =
+        constexpr type & operator=(const type & other)
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>) = default;
+        constexpr type & operator=(type && other)
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
+
+        template <typename arg_type,
+            std::enable_if_t<std::is_assignable_v<underlying_type&, const arg_type&>, bool> = true
+        >
+        constexpr type & operator=(const arg_type & arg)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(arg)>)
+        {
+            value = arg;
+            return *this;
+        }
+        template <typename arg_type,
+            std::enable_if_t<std::is_assignable_v<underlying_type&, arg_type &&>, bool> = true
+        >
+        constexpr type & operator=(arg_type && arg)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(fwd(arg))>)
+        {
+            value = fwd(value);
+            return *this;
+        }
 
         // TODO: comparisons
         // <,>,
@@ -270,5 +294,7 @@ namespace csl::io {
 }
 #endif
 #endif
+
+#undef fwd
 
 // TODO(Guss): fmt

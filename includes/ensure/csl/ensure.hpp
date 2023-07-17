@@ -22,6 +22,8 @@
 #include <type_traits>
 #include <utility>
 
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+
 namespace csl::ensure::details::concepts::comparison {
 // not using std concepts (std::equality_comparable) here,
 // as given type comparison might not be symetrical for some reasons
@@ -100,8 +102,25 @@ namespace csl::ensure
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
-        // TODO: assign operators
-        // =
+        constexpr type & operator=(const type & other)
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>) = default;
+        constexpr type & operator=(type && other)
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
+
+        constexpr type & operator=(const auto & arg)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(arg)>)
+        requires std::assignable_from<underlying_type&, decltype(arg)>
+        {
+            value = arg;
+            return *this;
+        }
+        constexpr type & operator=(auto && arg)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(fwd(arg))>)
+        requires std::assignable_from<underlying_type&, decltype(fwd(arg))>
+        {
+            value = fwd(value);
+            return *this;
+        }
 
         // TODO: comparisons
         // <,>,
@@ -229,5 +248,7 @@ namespace csl::io {
 }
 #endif
 #endif
+
+#undef fwd
 
 // TODO(Guss): fmt
