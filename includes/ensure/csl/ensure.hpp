@@ -176,7 +176,16 @@ namespace csl::io {
         return os << underlying_value;
     }
 }
-#endif
+
+#if defined (FMT_CORE_H_) 
+template <typename T, typename tag>
+requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }
+struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
+  auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) {
+    return formatter<T>::format(value.to_underlying(), context);
+  }
+};
 #endif
 
-// TODO(Guss): fmt
+#endif
+#endif
