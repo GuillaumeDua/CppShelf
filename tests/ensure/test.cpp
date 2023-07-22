@@ -73,7 +73,7 @@ namespace test::strong_type::arithmetic {
     static_assert(supports_plus<meters, int>);
     static_assert(supports_plus<int,    meters>);
 }
-namespace implicit_conversion {
+namespace test::implicit_conversion {
 
     constexpr void func(int){}
 
@@ -91,6 +91,20 @@ namespace test::overload_resolution {
 
     static_assert(1 == func(mm{42}));    // NOLINT
     static_assert(2 == func(cm{42}));    // NOLINT
+}
+#include <iostream>
+namespace test::io_ {
+    void shift_to_ostream_support(){
+        using namespace csl::io;
+        using mm = csl::ensure::strong_type<int, struct mm_tag>;
+        std::cout << mm{42};
+    }
+    void fmt_support(){
+    #if defined (FMT_CORE_H_)
+        using mm = csl::ensure::strong_type<int, struct mm_tag>;
+        fmt::print("value = {}", meters{42});
+    #endif
+    }
 }
 
 auto main() -> int {}
