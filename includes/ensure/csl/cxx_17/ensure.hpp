@@ -134,8 +134,6 @@ namespace csl::ensure
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
-
-
         // TODO: arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=

@@ -21,6 +21,7 @@
 #include <concepts>
 #include <type_traits>
 #include <utility>
+#include <functional>
 
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
@@ -126,7 +127,41 @@ namespace csl::ensure
         // <,>,
         // <=, >=
 
-        // TODO: call operator()
+        // call operator()
+#pragma region invocation
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<lvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) &
+        noexcept(std::is_nothrow_invocable_v<lvalue_reference, arguments_ts&&...>)
+        requires std::invocable<lvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<const_lvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) const &
+        noexcept(std::is_nothrow_invocable_v<const_lvalue_reference, arguments_ts&&...>)
+        requires std::invocable<const_lvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<rvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) &&
+        noexcept(std::is_nothrow_invocable_v<rvalue_reference, arguments_ts&&...>)
+        requires std::invocable<rvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(static_cast<underlying_type&&>(value), fwd(args)...);
+        }
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<const_rvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) const &&
+        noexcept(std::is_nothrow_invocable_v<const_rvalue_reference, arguments_ts&&...>)
+        requires std::invocable<const_rvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(static_cast<const underlying_type&&>(value), fwd(args)...);
+        }
+#pragma endregion
 
 #pragma region comparison
         constexpr auto operator<=>(const type & other) const
@@ -161,7 +196,7 @@ namespace csl::ensure
 #pragma endregion
 
     private:
-        T value;
+        underlying_type value;
     };
 
     template <typename T, typename tag>
