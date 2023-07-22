@@ -27,7 +27,7 @@ jobs:
       run: |
           sudo apt update
           sudo apt install libstdc++-$libstdcpp_release_id-dev
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh) $relase_id"
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh $relase_id)"
           sudo update-alternatives \
             --install /usr/bin/clang clang /usr/bin/clang-$relase_id 100
           sudo update-alternatives \

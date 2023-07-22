@@ -177,7 +177,7 @@ namespace csl::io {
     }
 }
 
-#if defined (FMT_CORE_H_) 
+#if defined (FMT_CORE_H_)
 template <typename T, typename tag>
 requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }
 struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
