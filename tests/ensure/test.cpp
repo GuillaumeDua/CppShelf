@@ -145,7 +145,7 @@ namespace test::strong_type::arithmetic {
     // static_assert(utils::supports_op_plus_with_v<name, std::string>);
     // static_assert(utils::supports_op_plus_with_v<std::string, name>);
 }
-namespace implicit_conversion {
+namespace test::implicit_conversion {
 
     constexpr void func(int){}
 
@@ -163,6 +163,17 @@ namespace test::overload_resolution {
 
     static_assert(1 == func(mm{42}));    // NOLINT
     static_assert(2 == func(cm{42}));    // NOLINT
+}
+namespace test::invocation {
+    using String = csl::ensure::strong_type<std::string, struct string_tag>;
+    constexpr static auto func = [](const String &){};
+    using func_t = decltype(func);
+
+    static_assert(std::is_invocable_v<func_t, const String &>);
+    // TODO(Guss): opt-in implicit cast, explicit by default
+    // static_assert(not std::is_invocable_v<func_t, String &>);
+    // static_assert(not std::is_invocable_v<func_t, String &&>);
+    // static_assert(not std::is_invocable_v<func_t, const String &&>);
 }
 
 #include <iostream>

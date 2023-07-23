@@ -94,6 +94,7 @@ namespace csl::ensure
         constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
         constexpr const_rvalue_reference underlying() const  && noexcept { return static_cast<const_rvalue_reference>(value); }
 
+        // TODO(Guss): default: explicit, opt-in: implicit
         constexpr /*explicit*/ operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
@@ -127,8 +128,12 @@ namespace csl::ensure
         // <,>,
         // <=, >=
 
-        // call operator()
+
 #pragma region invocation
+
+        // WIP: tests
+        // WIP: C++17 retro-compatiblity
+
         template <typename ... arguments_ts>
         constexpr std::invoke_result_t<lvalue_reference, arguments_ts&&...>
         operator()(arguments_ts && ... args) &
@@ -206,6 +211,14 @@ namespace csl::ensure
     template <typename T, typename tag>
     const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
+    }
+    template <typename T, typename tag>
+    T && to_underlying(strong_type<T, tag> && value) noexcept {
+        return static_cast<T&&>(value);
+    }
+    template <typename T, typename tag>
+    const T && to_underlying(const strong_type<T, tag> && value) noexcept {
+        return static_cast<const T&&>(value);
     }
 }
 namespace csl::ensure::type_traits {

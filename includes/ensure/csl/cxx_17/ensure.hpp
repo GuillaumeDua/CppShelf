@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <functional>
 
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
@@ -166,9 +167,58 @@ namespace csl::ensure
         // <,>,
         // <=, >=
 
-        // TODO: call operator()
-
-        // comparison: operator==
+#pragma region comparison
+        template <
+            typename ... arguments_ts,
+            std::enable_if_t<
+                std::is_invocable_v<lvalue_reference, arguments_ts&&...>
+            , bool> = true
+        >
+        constexpr std::invoke_result_t<lvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) &
+        noexcept(std::is_nothrow_invocable_v<lvalue_reference, arguments_ts&&...>)
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <
+            typename ... arguments_ts,
+            std::enable_if_t<
+                std::is_invocable_v<const_lvalue_reference, arguments_ts&&...>
+            , bool> = true
+        >
+        constexpr std::invoke_result_t<const_lvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) const &
+        noexcept(std::is_nothrow_invocable_v<const_lvalue_reference, arguments_ts&&...>)
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <
+            typename ... arguments_ts,
+            std::enable_if_t<
+                std::is_invocable_v<rvalue_reference, arguments_ts&&...>
+            , bool> = true
+        >
+        constexpr std::invoke_result_t<rvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) &&
+        noexcept(std::is_nothrow_invocable_v<rvalue_reference, arguments_ts&&...>)
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <
+            typename ... arguments_ts,
+            std::enable_if_t<
+                std::is_invocable_v<const_rvalue_reference, arguments_ts&&...>
+            , bool> = true
+        >
+        constexpr std::invoke_result_t<const_rvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) const &&
+        noexcept(std::is_nothrow_invocable_v<const_rvalue_reference, arguments_ts&&...>)
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+#pragma endregion
+#pragma region comparison
+        // comparison: operator ==
         template <
             typename other_type,
             std::enable_if_t<
@@ -181,22 +231,23 @@ namespace csl::ensure
         {
             return value == arg;
         }
+        // comparison: operator not_eq
         template <
             typename other_type,
             std::enable_if_t<
                 details::mp::type_traits::is_not_equality_comparable_with_v<T, other_type>
             , bool> = true
         >
-        // comparison: operator not_eq
         constexpr auto operator not_eq(const other_type & arg) const
         noexcept(noexcept(value not_eq arg))
         -> bool
         {
             return value not_eq arg;
         }
+#pragma endregion
 
     private:
-        T value;
+        underlying_type value;
     };
 
     template <typename T, typename tag>
