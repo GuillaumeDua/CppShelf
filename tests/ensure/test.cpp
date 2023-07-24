@@ -85,7 +85,7 @@ namespace test::strong_type::construction {
     static_assert(std::is_constructible_v<String, const char*>);
     static_assert(std::is_constructible_v<String, std::size_t, std::string::value_type>);
 }
-namespace test::strong_type::comparisons {
+namespace test::strong_type::comparisons::eq_not_eq {
 
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
@@ -120,6 +120,15 @@ namespace test::strong_type::comparisons {
     };
     using strong_not_eq_only = csl::ensure::strong_type<not_eq_only, struct strong_not_eq_only_tag>;
     static_assert(strong_not_eq_only{} not_eq strong_not_eq_only{});
+}
+namespace test::strong_type::comparisons::lt_eq_gt {
+    struct less_comparable{
+        constexpr bool operator<(int) const {
+            return true;
+        }
+    };
+    using strong_less_comparable = csl::ensure::strong_type<less_comparable, struct less_comparable_tag>;
+    static_assert(strong_less_comparable{} < 42);
 }
 namespace test::strong_type::assign {
     using name = csl::ensure::strong_type<std::string, struct name_tag>;

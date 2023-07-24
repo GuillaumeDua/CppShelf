@@ -48,6 +48,28 @@ namespace csl::ensure::details::concepts::comparison {
         const std::remove_reference_t<T>&,
         const std::remove_reference_t<U>&
     >;
+
+    // operator<
+    template <typename T, typename U>
+    concept less_than_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs < rhs } -> std::convertible_to<bool>;
+    };
+    // operator>
+    template <typename T, typename U>
+    concept greater_than_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs > rhs } -> std::convertible_to<bool>;
+    };
+
+    // operator<=
+    template <typename T, typename U>
+    concept less_than_or_equal_to_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs <= rhs } -> std::convertible_to<bool>;
+    };
+    // operator>=
+    template <typename T, typename U>
+    concept greater_than_or_equal_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs >= rhs } -> std::convertible_to<bool>;
+    };
 }
 namespace csl::ensure
 {
@@ -124,11 +146,6 @@ namespace csl::ensure
             return *this;
         }
 
-        // TODO: comparisons
-        // <,>,
-        // <=, >=
-
-
 #pragma region invocation
 
         // WIP: tests
@@ -169,6 +186,7 @@ namespace csl::ensure
 #pragma endregion
 
 #pragma region comparison
+
         constexpr auto operator<=>(const type & other) const
         noexcept(noexcept(value <=> other.value))
         requires std::three_way_comparable<underlying_type> {
@@ -182,7 +200,6 @@ namespace csl::ensure
             return value <=> arg;
         }
 
-        // operator==
         constexpr auto operator==(const auto & arg) const
         noexcept(noexcept(value == arg))
         -> bool
@@ -190,7 +207,6 @@ namespace csl::ensure
         {
             return value == arg;
         }
-        // operator not_eq
         constexpr auto operator not_eq(const auto & arg) const
         noexcept(noexcept(value not_eq arg))
         -> bool
@@ -198,6 +214,36 @@ namespace csl::ensure
         {
             return value not_eq arg;
         }
+
+        constexpr auto operator <(const auto & arg) const
+        noexcept(noexcept(value < arg))
+        -> bool
+        requires details::concepts::comparison::less_than_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value < arg;
+        }
+        constexpr auto operator >(const auto & arg) const
+        noexcept(noexcept(value > arg))
+        -> bool
+        requires details::concepts::comparison::greater_than_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value > arg;
+        }
+        constexpr auto operator <=(const auto & arg) const
+        noexcept(noexcept(value <= arg))
+        -> bool
+        requires details::concepts::comparison::less_than_or_equal_to_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value <= arg;
+        }
+        constexpr auto operator >=(const auto & arg) const
+        noexcept(noexcept(value >= arg))
+        -> bool
+        requires details::concepts::comparison::greater_than_or_equal_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value >= arg;
+        }
+
 #pragma endregion
 
     private:
@@ -205,19 +251,19 @@ namespace csl::ensure
     };
 
     template <typename T, typename tag>
-    T & to_underlying(strong_type<T, tag> & value) noexcept {
+    constexpr T & to_underlying(strong_type<T, tag> & value) noexcept {
         return static_cast<T&>(value);
     }
     template <typename T, typename tag>
-    const T & to_underlying(const strong_type<T, tag> & value) noexcept {
+    constexpr const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
     }
     template <typename T, typename tag>
-    T && to_underlying(strong_type<T, tag> && value) noexcept {
+    constexpr T && to_underlying(strong_type<T, tag> && value) noexcept {
         return static_cast<T&&>(value);
     }
     template <typename T, typename tag>
-    const T && to_underlying(const strong_type<T, tag> && value) noexcept {
+    constexpr const T && to_underlying(const strong_type<T, tag> && value) noexcept {
         return static_cast<const T&&>(value);
     }
 }
