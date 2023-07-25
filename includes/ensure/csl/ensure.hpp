@@ -102,6 +102,8 @@ namespace csl::ensure
     const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
     }
+
+    
 }
 namespace csl::ensure::type_traits {
 // is_strong_type
@@ -161,6 +163,11 @@ namespace csl::ensure::concepts {
     concept TaggedBy = StrongType<T> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
+// CPO - std::hash
+#include <functional>
+template <typename T, typename tag>
+struct std::hash<csl::ensure::strong_type<T, tag>> : std::hash<T>{}; // NOLINT(cert-dcl58-cpp)
+
 #if defined(__has_include)
 #if __has_include(<iostream>)
 
@@ -177,6 +184,7 @@ namespace csl::io {
     }
 }
 
+// CPO - fmt::formatter
 #if defined (FMT_CORE_H_)
 template <typename T, typename tag>
 requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }

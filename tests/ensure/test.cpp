@@ -1,6 +1,7 @@
 #include <concepts>
 #include <csl/ensure.hpp>
 #include <type_traits>
+#include <cassert>
 
 namespace test::strong_type::type_traits {
 
@@ -92,6 +93,13 @@ namespace test::overload_resolution {
     static_assert(1 == func(mm{42}));    // NOLINT
     static_assert(2 == func(cm{42}));    // NOLINT
 }
+namespace test::CPO {
+    // std::hash::operator() does not produce an integral constant
+    void std_hash(){
+        using mm = csl::ensure::strong_type<int, struct mm_tag>;
+        assert(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
+    }
+}
 #include <iostream>
 namespace test::io_ {
     void shift_to_ostream_support(){
@@ -107,4 +115,6 @@ namespace test::io_ {
     }
 }
 
-auto main() -> int {}
+auto main() -> int {
+    test::CPO::std_hash();
+}
