@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <cassert>
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 namespace test::strong_type::type_traits {
 
     template <typename T>
@@ -94,15 +96,18 @@ namespace test::overload_resolution {
     static_assert(2 == func(cm{42}));    // NOLINT
 }
 namespace test::CPO {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
     // std::hash::operator() does not produce an integral constant
     void std_hash(){
-        using mm = csl::ensure::strong_type<int, struct mm_tag>;
         assert(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
     }
     void hasher(){
-        using mm = csl::ensure::strong_type<int, struct mm_tag>;
         const auto hasher = csl::ensure::strong_type_hasher{};
         assert(hasher(mm{42}) == std::hash<int>{}(42));
+    }
+    void comparator(){
+        constexpr auto comparator = csl::ensure::strong_type_comparator{};
+        static_assert(comparator(mm{42}, mm{42}));
     }
 }
 #include <iostream>
@@ -120,6 +125,9 @@ namespace test::io_ {
     }
 }
 
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+
 auto main() -> int {
     test::CPO::std_hash();
+    test::CPO::hasher();
 }

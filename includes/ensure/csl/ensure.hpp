@@ -167,9 +167,21 @@ namespace csl::ensure {
     // CPO - hasher
     struct strong_type_hasher {
         auto operator()(const csl::ensure::concepts::StrongType auto & value) const {
+        // TODO(Guss): requires hashable
             using type = std::remove_cvref_t<decltype(value)>;
             using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
             return std::invoke(hasher{}, value);
+        }
+    };
+    // CPO - comparator
+    struct strong_type_comparator
+    {
+        template <csl::ensure::concepts::StrongType T>
+        requires std::equality_comparable<csl::ensure::type_traits::underlying_type_t<T>>
+        constexpr bool operator()(const T & lhs, const T & rhs) const
+        {
+            using comparator = std::equal_to<csl::ensure::type_traits::underlying_type_t<T>>;
+            return std::invoke(comparator{}, lhs, rhs);
         }
     };
 }
