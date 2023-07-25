@@ -102,8 +102,6 @@ namespace csl::ensure
     const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
     }
-
-    
 }
 namespace csl::ensure::type_traits {
 // is_strong_type
@@ -163,10 +161,21 @@ namespace csl::ensure::concepts {
     concept TaggedBy = StrongType<T> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
-// CPO - std::hash
+// STL compatibility/interoperability
 #include <functional>
+namespace csl::ensure {
+    // CPO - hasher
+    struct strong_type_hasher {
+        auto operator()(const csl::ensure::concepts::StrongType auto & value) const {
+            using type = std::remove_cvref_t<decltype(value)>;
+            using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
+            return std::invoke(hasher{}, value);
+        }
+    };
+}
+// CPO - std::hash
 template <typename T, typename tag>
-struct std::hash<csl::ensure::strong_type<T, tag>> : std::hash<T>{}; // NOLINT(cert-dcl58-cpp)
+struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
 
 #if defined(__has_include)
 #if __has_include(<iostream>)

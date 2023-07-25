@@ -99,6 +99,11 @@ namespace test::CPO {
         using mm = csl::ensure::strong_type<int, struct mm_tag>;
         assert(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
     }
+    void hasher(){
+        using mm = csl::ensure::strong_type<int, struct mm_tag>;
+        const auto hasher = csl::ensure::strong_type_hasher{};
+        assert(hasher(mm{42}) == std::hash<int>{}(42));
+    }
 }
 #include <iostream>
 namespace test::io_ {
