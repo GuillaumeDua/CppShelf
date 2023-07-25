@@ -31,7 +31,8 @@ namespace csl::ensure::details::mp::type_traits {
     struct is_aggregate_constructible : impl::is_aggregate_constructible_impl<T, void, args_ts...>{};
     template <class T, typename ... args_ts>
     constexpr bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
-
+}
+namespace csl::ensure::details::mp::type_traits::comparison {
     // is_equality_comparable_with
     template <class, class, class = void>
     struct is_equality_comparable_with : std::false_type {};
@@ -42,7 +43,7 @@ namespace csl::ensure::details::mp::type_traits {
     template <typename T, typename U>
     constexpr bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
 
-    // is_equality_not_comparable_with
+    // operator not_eq
     template <class, class, class = void>
     struct is_not_equality_comparable_with : std::false_type {};
     template <class T, class U>
@@ -52,13 +53,37 @@ namespace csl::ensure::details::mp::type_traits {
     template <typename T, typename U>
     constexpr bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
 
-    // is_equality_comparable
+    // operator==
     template <class T>
     struct is_equality_comparable : is_equality_comparable_with<T, T> {};
     template <typename T>
     constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
 
-    // operator+
+    // WIP:
+    // // operator<
+    // template <typename T, typename U>
+    // concept less_than_comparable_with = requires (const T & lhs, const U & rhs){
+    //     { lhs < rhs } -> std::convertible_to<bool>;
+    // };
+    // // operator>
+    // template <typename T, typename U>
+    // concept greater_than_comparable_with = requires (const T & lhs, const U & rhs){
+    //     { lhs > rhs } -> std::convertible_to<bool>;
+    // };
+
+    // // operator<=
+    // template <typename T, typename U>
+    // concept less_than_or_equal_to_comparable_with = requires (const T & lhs, const U & rhs){
+    //     { lhs <= rhs } -> std::convertible_to<bool>;
+    // };
+    // // operator>=
+    // template <typename T, typename U>
+    // concept greater_than_or_equal_comparable_with = requires (const T & lhs, const U & rhs){
+    //     { lhs >= rhs } -> std::convertible_to<bool>;
+    // };
+}
+namespace csl::ensure::details::mp::type_traits::arythmetic {
+    // operator+(T,U)
     template<class, class, class = void>
     struct supports_op_plus_with : std::false_type {};
     template <class T, class U>
@@ -67,8 +92,9 @@ namespace csl::ensure::details::mp::type_traits {
     > : std::true_type {};
     template <class T, class U>
     constexpr bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
+    // operator+(T, T)
     template <class T>
-    struct supports_op_plus : is_equality_comparable_with<T, T> {};
+    struct supports_op_plus : supports_op_plus_with<T, T> {};
     template <typename T>
     constexpr bool supports_op_plus_v = supports_op_plus<T>::value;
 }
@@ -222,7 +248,7 @@ namespace csl::ensure
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::is_equality_comparable_with_v<T, other_type>
+                details::mp::type_traits::comparison::is_equality_comparable_with_v<T, other_type>
             , bool> = true
         >
         constexpr auto operator==(const other_type & arg) const
@@ -235,7 +261,7 @@ namespace csl::ensure
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::is_not_equality_comparable_with_v<T, other_type>
+                details::mp::type_traits::comparison::is_not_equality_comparable_with_v<T, other_type>
             , bool> = true
         >
         constexpr auto operator not_eq(const other_type & arg) const

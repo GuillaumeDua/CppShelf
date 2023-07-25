@@ -30,7 +30,7 @@ namespace test::utils::type_traits {
     concept supports_op_plus_with_v = requires { std::declval<T &>() + std::declval<const U &>(); };
 #else
     template <class T, class U>
-    constexpr bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::supports_op_plus_with<T,U>::value;
+    constexpr bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::arythmetic::supports_op_plus_with<T,U>::value;
 #endif
 }
 
