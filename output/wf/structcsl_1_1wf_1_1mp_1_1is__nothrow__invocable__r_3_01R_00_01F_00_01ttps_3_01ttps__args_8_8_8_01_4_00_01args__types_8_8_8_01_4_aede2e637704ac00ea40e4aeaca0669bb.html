@@ -105,12 +105,14 @@ template&lt;typename R , typename F , typename ... ttps_args, typename ... args_
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= []() constexpr {</div>
-<div class="line">            <span class="keywordflow">if</span> constexpr (requires{</div>
+<div class="line">            constexpr <span class="keywordtype">bool</span> evaluated_expression = requires {</div>
 <div class="line">                { std::declval&lt;F&gt;().template operator()&lt;ttps_args...&gt;(std::declval&lt;args_types&gt;()...) } -&gt; std::convertible_to&lt;R&gt;;</div>
-<div class="line">            }) <span class="keywordflow">return</span> noexcept(</div>
-<div class="line">                std::declval&lt;F&gt;().template operator()&lt;ttps_args...&gt;(std::declval&lt;args_types&gt;()...)</div>
-<div class="line">            );</div>
-<div class="line">            <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line">            };</div>
+<div class="line">            <span class="keywordflow">if</span> constexpr (evaluated_expression)</div>
+<div class="line">                <span class="keywordflow">return</span> noexcept(</div>
+<div class="line">                    std::declval&lt;F&gt;().<span class="keyword">template</span> <span class="keyword">operator</span>()&lt;ttps_args...&gt;(std::declval&lt;args_types&gt;()...));</div>
+<div class="line">            <span class="keywordflow">else</span></div>
+<div class="line">                <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line">        }()</div>
 </div><!-- fragment -->
 </div>
