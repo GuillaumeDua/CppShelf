@@ -39,19 +39,9 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <class T, class U>
     struct is_equality_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() == std::declval<const U&>())
-    >> : std::true_type {};
+    >> : std::is_convertible<bool, decltype(std::declval<const T&>() == std::declval<const U&>())> {};
     template <typename T, typename U>
     constexpr bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
-
-    // operator not_eq
-    template <class, class, class = void>
-    struct is_not_equality_comparable_with : std::false_type {};
-    template <class T, class U>
-    struct is_not_equality_comparable_with<T, U, std::void_t<
-        decltype(std::declval<const T&>() not_eq std::declval<const U&>())
-    >> : std::true_type {};
-    template <typename T, typename U>
-    constexpr bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
 
     // operator==
     template <class T>
@@ -59,12 +49,40 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <typename T>
     constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
 
+    // is_not_equality_comparable_with
+    template <class, class, class = void>
+    struct is_not_equality_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_not_equality_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() not_eq std::declval<const U&>())
+    >> : std::is_convertible<bool, decltype(std::declval<const T&>() not_eq std::declval<const U&>())> {};
+    template <typename T, typename U>
+    constexpr bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
+
+    // operator not_eq
+    template <class T>
+    struct is_not_equality_comparable : is_not_equality_comparable_with<T, T>{};
+    template <typename T>
+    constexpr bool is_not_equality_comparable_v = is_not_equality_comparable<T>::value;
+
+    // is_less_than_comparable_with
+    template <class, class, class = void>
+    struct is_less_than_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_less_than_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() < std::declval<const U&>())
+    >> : std::is_convertible<bool, decltype(std::declval<const T&>() < std::declval<const U&>())> {};
+    template <typename T, typename U>
+    constexpr bool is_less_than_comparable_with_v = is_less_than_comparable_with<T, U>::value;
+
+    // operator <
+    template <class T>
+    struct is_less_than_comparable : is_less_than_comparable_with<T, T>{};
+    template <typename T>
+    constexpr bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
+
     // WIP:
-    // // operator<
-    // template <typename T, typename U>
-    // concept less_than_comparable_with = requires (const T & lhs, const U & rhs){
-    //     { lhs < rhs } -> std::convertible_to<bool>;
-    // };
+
     // // operator>
     // template <typename T, typename U>
     // concept greater_than_comparable_with = requires (const T & lhs, const U & rhs){
