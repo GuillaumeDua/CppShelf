@@ -81,24 +81,53 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <typename T>
     constexpr bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
 
-    // WIP:
+    // is_more_than_comparable_with
+    template <class, class, class = void>
+    struct is_more_than_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_more_than_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() > std::declval<const U&>())
+    >> : std::is_convertible<bool, decltype(std::declval<const T&>() > std::declval<const U&>())> {};
+    template <typename T, typename U>
+    constexpr bool is_more_than_comparable_with_v = is_more_than_comparable_with<T, U>::value;
 
-    // // operator>
-    // template <typename T, typename U>
-    // concept greater_than_comparable_with = requires (const T & lhs, const U & rhs){
-    //     { lhs > rhs } -> std::convertible_to<bool>;
-    // };
+    // operator >
+    template <class T>
+    struct is_more_than_comparable : is_less_than_comparable_with<T, T>{};
+    template <typename T>
+    constexpr bool is_more_than_comparable_v = is_more_than_comparable<T>::value;
 
-    // // operator<=
-    // template <typename T, typename U>
-    // concept less_than_or_equal_to_comparable_with = requires (const T & lhs, const U & rhs){
-    //     { lhs <= rhs } -> std::convertible_to<bool>;
-    // };
-    // // operator>=
-    // template <typename T, typename U>
-    // concept greater_than_or_equal_comparable_with = requires (const T & lhs, const U & rhs){
-    //     { lhs >= rhs } -> std::convertible_to<bool>;
-    // };
+    // is_less_equal_comparable
+    template <class, class, class = void>
+    struct is_less_equal_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_less_equal_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() <= std::declval<const U&>())
+    >> : std::is_convertible<bool, decltype(std::declval<const T&>() <= std::declval<const U&>())> {};
+    template <typename T, typename U>
+    constexpr bool is_less_equal_comparable_with_v = is_less_equal_comparable_with<T, U>::value;
+
+    // operator <=
+    template <class T>
+    struct is_less_equal_comparable : is_less_than_comparable_with<T, T>{};
+    template <typename T>
+    constexpr bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
+
+    // is_more_equal_comparable
+    template <class, class, class = void>
+    struct is_more_equal_comparable_with : std::false_type {};
+    template <class T, class U>
+    struct is_more_equal_comparable_with<T, U, std::void_t<
+        decltype(std::declval<const T&>() >= std::declval<const U&>())
+    >> : std::is_convertible<bool, decltype(std::declval<const T&>() >= std::declval<const U&>())> {};
+    template <typename T, typename U>
+    constexpr bool is_more_equal_comparable_with_v = is_more_equal_comparable_with<T, U>::value;
+
+    // operator <=
+    template <class T>
+    struct is_more_equal_comparable : is_less_than_comparable_with<T, T>{};
+    template <typename T>
+    constexpr bool is_more_equal_comparable_v = is_more_equal_comparable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::arythmetic {
     // operator+(T,U)
