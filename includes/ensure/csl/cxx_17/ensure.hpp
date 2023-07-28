@@ -109,7 +109,7 @@ namespace csl::ensure::details::mp::type_traits::comparison {
 
     // operator <=
     template <class T>
-    struct is_less_equal_comparable : is_less_than_comparable_with<T, T>{};
+    struct is_less_equal_comparable : is_less_equal_comparable_with<T, T>{};
     template <typename T>
     constexpr bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
 
@@ -125,7 +125,7 @@ namespace csl::ensure::details::mp::type_traits::comparison {
 
     // operator <=
     template <class T>
-    struct is_more_equal_comparable : is_less_than_comparable_with<T, T>{};
+    struct is_more_equal_comparable : is_more_equal_comparable_with<T, T>{};
     template <typename T>
     constexpr bool is_more_equal_comparable_v = is_more_equal_comparable<T>::value;
 }

@@ -126,6 +126,8 @@ namespace csl::ensure
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
+        // TODO: logic operators ?
+
         constexpr type & operator=(const type & other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>) = default;
         constexpr type & operator=(type && other)
