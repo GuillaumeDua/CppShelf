@@ -51,9 +51,9 @@ namespace test::type_traits::comparison::equality {
     static_assert(tt::is_not_equality_comparable_v<not_eq_comparable_t>);
     static_assert(not tt::is_not_equality_comparable_v<eq_comparable_t>);
 }
-namespace test::type_traits::comparison::less_more {
-    struct less_or_eq_comparable{ bool operator<=(const less_or_eq_comparable &) const { return {}; } };
+namespace test::type_traits::comparison::less {
     struct less_than_comparable { bool operator< (const less_than_comparable & ) const { return {}; } };
+    struct less_or_eq_comparable{ bool operator<=(const less_or_eq_comparable &) const { return {}; } };
 
     // operator<
     static_assert(tt::is_less_than_comparable_v<less_than_comparable>);
@@ -61,6 +61,17 @@ namespace test::type_traits::comparison::less_more {
     // operator<=
     static_assert(tt::is_less_equal_comparable_v<less_or_eq_comparable>);
     static_assert(not tt::is_less_equal_comparable_v<less_than_comparable>);
+}
+namespace test::type_traits::comparison::more {
+    struct more_than_comparable { bool operator> (const more_than_comparable & ) const { return {}; } };
+    struct more_or_eq_comparable{ bool operator>=(const more_or_eq_comparable &) const { return {}; } };
+
+    // operator<
+    static_assert(tt::is_more_than_comparable_v<more_than_comparable>);
+    static_assert(not tt::is_more_than_comparable_v<more_or_eq_comparable>);
+    // operator<=
+    static_assert(tt::is_more_equal_comparable_v<more_or_eq_comparable>);
+    static_assert(not tt::is_more_equal_comparable_v<more_than_comparable>);
 }
 namespace test::type_traits::arythmetic {
     namespace tt = csl::ensure::details::mp::type_traits::arythmetic;
