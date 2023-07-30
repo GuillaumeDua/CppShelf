@@ -36,7 +36,6 @@ namespace test::utils::type_traits {
 
 #if __cplusplus >= 202002L
 #else
-// WIP
 namespace test::type_traits::comparison {
     namespace tt = csl::ensure::details::mp::type_traits::comparison;
 }
@@ -80,8 +79,6 @@ namespace test::type_traits::arythmetic {
 namespace test::strong_type::type_traits {
 
     namespace tt = csl::ensure::type_traits;
-
-
     using meters = csl::ensure::strong_type<int, struct meters_tag>;
 
     // is_strong_type

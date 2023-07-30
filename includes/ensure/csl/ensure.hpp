@@ -4,19 +4,23 @@
 #pragma error csl/ensure.hpp requires C++20. Use  csl/cxx_17/ensure.hpp
 #endif
 
-// strong_type: implicit conversion is enough for the following operations:
-// - Conversion utilities
-// - Comparison operators: (==, !=, <, >, etc.)
-// - Arithmetic binary operators: (+, -, *, /, etc.)
-// -            unary operators:  (++, --, !, implicit bool conversion ?)
+// TODO(Guss): strong_type: opt-ins
+// - Implicit conversion utilities to underlying
+// - operators support
+//  - invocation
+//  - comparison (==, !=, <, >, etc.)
+//  - arithmetic binary operators: (+, -, *, /, etc.)
+// -            unary operators:  (++, --, not, implicit bool conversion ?)
 
-// WIP
-// - Type-traits, concepts
-// - Serialization support: opt-in in csl::srl side
+// TODO(Guss): conversion between strong_type<T> and strong_type<U> where T != U
+//  must be explicit and user-defined
+//  exemple: millimeter{42} < meter{1}, where both are strong_type int
 
-// WIP
+// TODO(Guss): Serialization support: opt-in in csl::srl side
+
+// TODO(Guss): : ensure
 //  not_null<ptr_type>
-//  bounded_integral<lower, upper>
+//  clamped/bounded_integral<lower, upper>
 
 #include <concepts>
 #include <type_traits>

@@ -6,7 +6,7 @@ env:
   relase_id: 16
   CC:   clang-16
   CXX:  clang++-16
-  libstdcpp_release_id: 12
+  libstdcpp_release_id: 13
 
 jobs:
   cmake-Ubuntu-clang_build_test:
@@ -28,7 +28,7 @@ jobs:
       run: |
           sudo apt update
           sudo apt install libstdc++-$libstdcpp_release_id-dev
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh $relase_id)"
           sudo update-alternatives \
             --install /usr/bin/clang clang /usr/bin/clang-$relase_id 100
           sudo update-alternatives \
