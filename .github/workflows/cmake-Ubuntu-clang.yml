@@ -31,7 +31,7 @@ jobs:
             libstdc++-$gcc_release_id-dev
           wget https://apt.llvm.org/llvm.sh \
             && chmod +x llvm.sh             \
-            && sudo ./llvm.sh $release_id   \
+            && sudo ./llvm.sh $release_id all  \
             && rm llvm.sh
           sudo update-alternatives \
             --install /usr/bin/clang clang /usr/bin/clang-$release_id 100
