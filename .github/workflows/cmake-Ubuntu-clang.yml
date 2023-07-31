@@ -6,7 +6,7 @@ env:
   release_id: 16
   CC:   clang-16
   CXX:  clang++-16
-  libstdcpp_release_id: 13
+  gcc_release_id: 13
 
 jobs:
   cmake-Ubuntu-clang_build_test:
@@ -26,7 +26,9 @@ jobs:
     # sudo add-apt-repository ppa:ubuntu-toolchain-r/test -> latest gcc
       run: |
           sudo apt update
-          sudo apt install libstdc++-$libstdcpp_release_id-dev
+          sudo apt install \
+            gcc-$gcc_release_id \
+            libstdc++-$gcc_release_id-dev
           wget https://apt.llvm.org/llvm.sh \
             && chmod +x llvm.sh             \
             && sudo ./llvm.sh $release_id   \
