@@ -27,9 +27,9 @@ jobs:
       run: |
           sudo apt update
           sudo apt install libstdc++-$libstdcpp_release_id-dev
-          wget https://apt.llvm.org/llvm.sh
-            && chmod +x llvm.sh
-            && sudo ./llvm.sh $release_id
+          wget https://apt.llvm.org/llvm.sh \
+            && chmod +x llvm.sh             \
+            && sudo ./llvm.sh $release_id   \
             && rm llvm.sh
           sudo update-alternatives \
             --install /usr/bin/clang clang /usr/bin/clang-$relase_id 100
