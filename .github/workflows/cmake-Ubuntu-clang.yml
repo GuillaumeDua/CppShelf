@@ -24,11 +24,10 @@ jobs:
 
     - name: Initialize compiler (Clang)
     # sudo add-apt-repository ppa:ubuntu-toolchain-r/test -> latest gcc
+    # todo: only install clang, libc++, libc++abi
       run: |
           sudo apt update
-          sudo apt install \
-            gcc-$gcc_release_id \
-            libstdc++-$gcc_release_id-dev
+          sudo apt install gcc-$gcc_release_id libstdc++-$gcc_release_id-dev
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh $release_id)"
           sudo update-alternatives \
             --install /usr/bin/clang clang /usr/bin/clang-$release_id 100
