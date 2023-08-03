@@ -28,6 +28,7 @@ jobs:
       run: |
           sudo apt update
           sudo apt install gcc-$gcc_release_id libstdc++-$gcc_release_id-dev
+          sudo apt-get purge --auto-remove llvm python3-lldb-14 llvm-14 # https://github.com/llvm/llvm-project/issues/64182
           wget https://apt.llvm.org/llvm.sh \
             && chmod +x llvm.sh             \
             && sudo ./llvm.sh $release_id   \
