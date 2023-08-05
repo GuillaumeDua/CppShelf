@@ -6,8 +6,12 @@
 #else
 #include <csl/cxx_17/ensure.hpp>
 #endif
+
 #include <type_traits>
 #include <array>
+#include <cassert>
+
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
 namespace test::utils::type_traits {
 
@@ -213,6 +217,7 @@ namespace test::overload_resolution {
     static_assert(1 == func(mm{42}));    // NOLINT
     static_assert(2 == func(cm{42}));    // NOLINT
 }
+
 namespace test::invocation {
     using String = csl::ensure::strong_type<std::string, struct string_tag>;
     constexpr static auto func = [](const String &){};
@@ -228,4 +233,40 @@ namespace test::invocation {
 #include <iostream>
 auto main() -> int {
     std::cout << "running test for C++ " << __cplusplus << '\n';
+
+namespace test::CPO {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    // std::hash::operator() does not produce an integral constant
+    void std_hash(){
+        assert(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
+    }
+    void hasher(){
+        const auto hasher = csl::ensure::strong_type_hasher{};
+        assert(hasher(mm{42}) == std::hash<int>{}(42));
+    }
+    void comparator(){
+        constexpr auto comparator = csl::ensure::strong_type_comparator{};
+        static_assert(comparator(mm{42}, mm{42}));
+    }
+}
+#include <iostream>
+namespace test::io_ {
+    void shift_to_ostream_support(){
+        using namespace csl::io;
+        using mm = csl::ensure::strong_type<int, struct mm_tag>;
+        std::cout << mm{42};
+    }
+    void fmt_support(){
+    #if defined (FMT_CORE_H_)
+        using mm = csl::ensure::strong_type<int, struct mm_tag>;
+        fmt::print("value = {}", meters{42});
+    #endif
+    }
+}
+
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+
+auto main() -> int {
+    test::CPO::std_hash();
+    test::CPO::hasher();
 }

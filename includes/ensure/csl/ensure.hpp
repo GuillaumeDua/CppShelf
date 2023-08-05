@@ -331,6 +331,34 @@ namespace csl::ensure::concepts {
     concept TaggedBy = StrongType<strong_type> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
+// STL compatibility/interoperability
+#include <functional>
+namespace csl::ensure {
+    // CPO - hasher
+    struct strong_type_hasher {
+        auto operator()(const csl::ensure::concepts::StrongType auto & value) const {
+        // TODO(Guss): requires hashable
+            using type = std::remove_cvref_t<decltype(value)>;
+            using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
+            return std::invoke(hasher{}, value);
+        }
+    };
+    // CPO - comparator
+    struct strong_type_comparator
+    {
+        template <csl::ensure::concepts::StrongType T>
+        requires std::equality_comparable<csl::ensure::type_traits::underlying_type_t<T>>
+        constexpr bool operator()(const T & lhs, const T & rhs) const
+        {
+            using comparator = std::equal_to<csl::ensure::type_traits::underlying_type_t<T>>;
+            return std::invoke(comparator{}, lhs, rhs);
+        }
+    };
+}
+// CPO - std::hash
+template <typename T, typename tag>
+struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
+
 #if defined(__has_include)
 #if __has_include(<iostream>)
 
@@ -349,6 +377,18 @@ namespace csl::io {
 #endif
 #endif
 
+// CPO - fmt::formatter
+// TODO(Guss) as opt-in
+#if defined (FMT_CORE_H_)
+template <typename T, typename tag>
+requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }
+struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
+  auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) {
+    return formatter<T>::format(value.to_underlying(), context);
+  }
+};
+#endif
+
 #undef fwd
 
-// TODO(Guss): fmt
+
