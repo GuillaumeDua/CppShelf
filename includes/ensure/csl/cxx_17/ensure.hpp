@@ -324,19 +324,19 @@ namespace csl::ensure
     };
 
     template <typename T, typename tag>
-    T & to_underlying(strong_type<T, tag> & value) noexcept {
+    constexpr T & to_underlying(strong_type<T, tag> & value) noexcept {
         return static_cast<T&>(value);
     }
     template <typename T, typename tag>
-    const T & to_underlying(const strong_type<T, tag> & value) noexcept {
+    constexpr const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
     }
     template <typename T, typename tag>
-    T && to_underlying(strong_type<T, tag> && value) noexcept {
+    constexpr T && to_underlying(strong_type<T, tag> && value) noexcept {
         return static_cast<T&&>(value);
     }
     template <typename T, typename tag>
-    const T && to_underlying(const strong_type<T, tag> && value) noexcept {
+    constexpr const T && to_underlying(const strong_type<T, tag> && value) noexcept {
         return static_cast<const T&&>(value);
     }
 }
@@ -387,6 +387,48 @@ namespace csl::ensure::type_traits {
     template <typename T>
     using tag_type_t = typename tag_type<T>::type;
 }
+
+// STL compatibility/interoperability
+#include <functional>
+namespace csl::ensure {
+    // CPO - hasher
+    struct strong_type_hasher {
+        template <
+            typename T,
+            std::enable_if_t<
+                csl::ensure::type_traits::is_strong_type_v<T>
+            , bool> = true
+        >
+        auto operator()(const T & value) const {
+        // TODO(Guss): requires hashable
+            using type = std::decay_t<decltype(value)>;
+            using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
+            return std::invoke(hasher{}, value);
+        }
+    };
+    // CPO - comparator
+    struct strong_type_comparator
+    {
+        template <
+            typename T,
+            std::enable_if_t<
+                    csl::ensure::type_traits::is_strong_type_v<T>
+                and csl::ensure::details::mp::type_traits::comparison::is_equality_comparable_v<
+                    typename csl::ensure::type_traits::underlying_type_t<T>
+                >
+            , bool> = true
+        >
+        constexpr bool operator()(const T & lhs, const T & rhs) const
+        {
+            using comparator = std::equal_to<csl::ensure::type_traits::underlying_type_t<T>>;
+            return comparator{}(to_underlying(lhs), to_underlying(rhs));
+        }
+    };
+}
+// CPO - std::hash
+template <typename T, typename tag>
+struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
+
 
 #if defined(__has_include)
 #if __has_include(<iostream>)

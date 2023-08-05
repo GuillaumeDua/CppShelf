@@ -230,10 +230,6 @@ namespace test::invocation {
     // static_assert(not std::is_invocable_v<func_t, const String &&>);
 }
 
-#include <iostream>
-auto main() -> int {
-    std::cout << "running test for C++ " << __cplusplus << '\n';
-
 namespace test::CPO {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     // std::hash::operator() does not produce an integral constant
@@ -249,7 +245,6 @@ namespace test::CPO {
         static_assert(comparator(mm{42}, mm{42}));
     }
 }
-#include <iostream>
 namespace test::io_ {
     void shift_to_ostream_support(){
         using namespace csl::io;
@@ -266,7 +261,10 @@ namespace test::io_ {
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
+#include <iostream>
 auto main() -> int {
+    std::cout << "running test for C++ " << __cplusplus << '\n';
+
     test::CPO::std_hash();
     test::CPO::hasher();
 }
