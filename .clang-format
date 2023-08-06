@@ -1,17 +1,19 @@
-# WIP: format
-#
 # Under MIT License
-# Copyright (c) 2021 Guillaume Dua "Guss"
+# Copyright (c) 2023 Guillaume Dua "Guss"
 # Source: https://github.com/GuillaumeDua/CppShelf/blob/main/.clang-format
 # ---
+
+# Still waiting for https://reviews.llvm.org/D33029 ...
+
 BasedOnStyle                                  : Microsoft
 Language                                      : Cpp
 Standard                                      : Latest
+
 AlignAfterOpenBracket                         : BlockIndent # AlwayBreak
-BracedInitializerIndentWidth                  : 4
+# BracedInitializerIndentWidth                  : 4 # TODO: clang-format-17
 AlignArrayOfStructures                        : Right # TODO: test
-AlignOperands                                 : false #AlignAfterOperator
-AlignConsecutiveAssignments                   : Consecutive # None # AcrossEmptyLinesAndComments => dirty with using-alias directives followed by declaration(s)
+AlignOperands                                 : AlignAfterOperator
+AlignConsecutiveAssignments                   : None # AcrossEmptyLinesAndComments => dirty with using-alias directives followed by declaration(s)
 AlignConsecutiveDeclarations                  : 'true'
 AlignConsecutiveMacros:
   Enabled: true
@@ -26,12 +28,13 @@ AllowShortLambdasOnASingleLine                : All
 AllowShortLoopsOnASingleLine                  : 'false'
 AlwaysBreakAfterReturnType                    : None
 AlwaysBreakBeforeMultilineStrings             : 'false' # true
-AlwaysBreakTemplateDeclarations               : 'Yes'
+AlwaysBreakTemplateDeclarations               : Yes
 BreakAfterAttributes                          : Never
 BinPackArguments                              : 'false'
 BinPackParameters                             : 'false'
 ExperimentalAutoDetectBinPacking              : 'false'
 BreakBeforeConceptDeclarations                : 'true'
+IndentRequires                              : 'true'
 BreakBeforeBinaryOperators                    : All # NonAssignment
 BreakBeforeBraces                             : Custom
 BraceWrapping:
@@ -47,7 +50,7 @@ BraceWrapping:
     BeforeCatch             : 'true'
     BeforeElse              : 'true'
     BeforeWhile             : 'true'
-    IndentBraces            : 'false'
+    IndentBraces            : 'true'
     BeforeLambdaBody        : 'false'
     SplitEmptyFunction      : 'false'
     SplitEmptyRecord        : 'false'
@@ -56,9 +59,12 @@ BreakBeforeTernaryOperators   : 'true'
 BreakConstructorInitializers  : BeforeComma
 BreakInheritanceList          : BeforeComma
 BreakStringLiterals           : 'false'
-NamespaceIndentation          : Inner # Inner
-FixNamespaceComments          : 'true'
+NamespaceIndentation          : All # Inner
+FixNamespaceComments          : 'false'
 ColumnLimit                   : 0
+IndentWidth                   : 4
+# PPIndentWidth                 : '-1' # == IndentWidth
+TabWidth                      : 4
 UseTab                        : Never
 IndentWidth                   : 4
 TabWidth                      : 4
@@ -75,8 +81,8 @@ Cpp11BracedListStyle          : true
 AccessModifierOffset          : -4
 EmptyLineAfterAccessModifier  : Always
 EmptyLineBeforeAccessModifier : Always
-IncludeBlocks                 : Regroup
-IndentAccessModifiers         : 'false'
+IncludeBlocks                                 : Regroup
+IndentAccessModifiers         : 'false' 
 IndentCaseBlocks              : 'false'
 IndentCaseLabels              : 'true'
 IndentExternBlock             : Indent
@@ -88,15 +94,12 @@ InsertTrailingCommas          : Wrapped
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 LambdaBodyIndentation         : Signature
 MaxEmptyLinesToKeep           : '1'
-PointerAlignment              : Middle # Left
-QualifierAlignment            : Left # Leave
-# QualifierOrder               : [ 'inline', 'friend', 'constexpr', 'static', 'type', 'const', 'volatile', 'restrict' ]
+PointerAlignment              : Middle # or left
 ReferenceAlignment            : Middle
 ReflowComments                : 'true'
 RequiresClausePosition        : OwnLine
 RequiresExpressionIndentation : OuterScope
-# ShortNamespaceLines
-SeparateDefinitionBlocks      : Leave
+# ShortNamespaceLines 
 SortIncludes                  : Never
 SortUsingDeclarations         : Never
 SpaceAfterCStyleCast          : false
@@ -118,7 +121,7 @@ SpaceInEmptyParentheses       : 'false'
 SpacesBeforeTrailingComments  : 1
 SpacesInAngles                : Never
 SpacesInCStyleCastParentheses : 'false'
-# SpacesInConditionalStatement  : 'false'
+SpacesInConditionalStatement  : 'false'
 SpacesInLineCommentPrefix:
     Minimum : 1
     Maximum : 1
