@@ -1,23 +1,80 @@
 #pragma once
 
-// strong_type: implicit conversion is enough for the following operations:
-// - Conversion utilities
-// - Comparison operators: (==, !=, <, >, etc.)
-// - Arithmetic binary operators: (+, -, *, /, etc.)
-// -            unary operators:  (++, --, !, implicit bool conversion ?)
+#if not __cplusplus >= 202002L
+#pragma error csl/ensure.hpp requires C++20. Use  csl/cxx_17/ensure.hpp
+#endif
 
-// WIP
-// - Type-traits, concepts
-// - Serialization support: opt-in in csl::srl side
+// TODO(Guss): strong_type: opt-ins
+// - Implicit conversion utilities to underlying
+// - operators support
+//  - invocation
+//  - comparison (==, !=, <, >, etc.)
+//  - arithmetic binary operators: (+, -, *, /, etc.)
+// -            unary operators:  (++, --, not, implicit bool conversion ?)
 
-// WIP
+// TODO(Guss): conversion between strong_type<T> and strong_type<U> where T != U
+//  must be explicit and user-defined
+//  exemple: millimeter{42} < meter{1}, where both are strong_type int
+
+// TODO(Guss): Serialization support: opt-in in csl::srl side
+
+// TODO(Guss): : ensure
 //  not_null<ptr_type>
-//  bounded_integral<lower, upper>
+//  clamped/bounded_integral<lower, upper>
 
 #include <concepts>
 #include <type_traits>
 #include <utility>
+#include <functional>
 
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+
+namespace csl::ensure::details::concepts::comparison {
+// not using std concepts (std::equality_comparable) here,
+// as given type comparison might not be symetrical for some reasons
+
+    // operator ==
+    template <typename T, typename U>
+    concept equality_with = requires (const T & lhs, const U & rhs){
+        { lhs == rhs } -> std::convertible_to<bool>;
+    }
+    and std::common_reference_with<
+        const std::remove_reference_t<T>&,
+        const std::remove_reference_t<U>&
+    >;
+
+    // operator not_eq
+    template <typename T, typename U>
+    concept not_equality_with = requires (const T & lhs, const U & rhs){
+        { lhs not_eq rhs } -> std::convertible_to<bool>;
+    }
+    and std::common_reference_with<
+        const std::remove_reference_t<T>&,
+        const std::remove_reference_t<U>&
+    >;
+
+    // operator<
+    template <typename T, typename U>
+    concept less_than_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs < rhs } -> std::convertible_to<bool>;
+    };
+    // operator>
+    template <typename T, typename U>
+    concept greater_than_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs > rhs } -> std::convertible_to<bool>;
+    };
+
+    // operator<=
+    template <typename T, typename U>
+    concept less_than_or_equal_to_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs <= rhs } -> std::convertible_to<bool>;
+    };
+    // operator>=
+    template <typename T, typename U>
+    concept greater_than_or_equal_comparable_with = requires (const T & lhs, const U & rhs){
+        { lhs >= rhs } -> std::convertible_to<bool>;
+    };
+}
 namespace csl::ensure
 {
 	template <typename T, typename tag>
@@ -27,19 +84,22 @@ namespace csl::ensure
 
         using underlying_type = T;
         using tag_type = tag;
-        using reference = T&;
-        using const_reference = const T &;
+        using lvalue_reference = T&;
+        using rvalue_reference = T&&;
+        using const_lvalue_reference = const T &;
+        using const_rvalue_reference = const T &&;
 
         constexpr explicit strong_type(auto && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
         requires (std::constructible_from<underlying_type, decltype(std::forward<decltype(values)>(values))...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
-        constexpr explicit strong_type(const_reference arg)
+        constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         requires std::copy_constructible<underlying_type>
         : value(arg)
         {}
+        
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         requires std::move_constructible<underlying_type>
@@ -55,11 +115,83 @@ namespace csl::ensure
         requires std::is_destructible_v<underlying_type>
         = default;
 
-        constexpr reference       underlying()        noexcept { return value; }
-        constexpr const_reference underlying() const  noexcept { return value; }
+        constexpr lvalue_reference       underlying()        & noexcept { return value; }
+        constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
+        constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
+        constexpr const_rvalue_reference underlying() const  && noexcept { return static_cast<const_rvalue_reference>(value); }
 
-        constexpr operator reference ()               noexcept { return underlying(); }  // NOLINT not explicit on purpose
-        constexpr operator const_reference () const   noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        // TODO(Guss): default: explicit, opt-in: implicit
+        constexpr /*explicit*/ operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+        constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
+
+        // TODO: arythmetic operators
+        //  +, -, *, /,
+        //  +=, -=, *=, /=
+
+        // TODO: logic operators ?
+
+        constexpr type & operator=(const type & other)
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>) = default;
+        constexpr type & operator=(type && other)
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
+
+        constexpr type & operator=(const auto & arg)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(arg)>)
+        requires std::assignable_from<underlying_type&, decltype(arg)>
+        {
+            value = arg;
+            return *this;
+        }
+        constexpr type & operator=(auto && arg)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(fwd(arg))>)
+        requires std::assignable_from<underlying_type&, decltype(fwd(arg))>
+        {
+            value = fwd(value);
+            return *this;
+        }
+
+#pragma region invocation
+
+        // WIP: tests
+        // WIP: C++17 retro-compatiblity
+
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<lvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) &
+        noexcept(std::is_nothrow_invocable_v<lvalue_reference, arguments_ts&&...>)
+        requires std::invocable<lvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<const_lvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) const &
+        noexcept(std::is_nothrow_invocable_v<const_lvalue_reference, arguments_ts&&...>)
+        requires std::invocable<const_lvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(value, fwd(args)...);
+        }
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<rvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) &&
+        noexcept(std::is_nothrow_invocable_v<rvalue_reference, arguments_ts&&...>)
+        requires std::invocable<rvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(static_cast<underlying_type&&>(value), fwd(args)...);
+        }
+        template <typename ... arguments_ts>
+        constexpr std::invoke_result_t<const_rvalue_reference, arguments_ts&&...>
+        operator()(arguments_ts && ... args) const &&
+        noexcept(std::is_nothrow_invocable_v<const_rvalue_reference, arguments_ts&&...>)
+        requires std::invocable<const_rvalue_reference, arguments_ts&&...>
+        {
+            return std::invoke(static_cast<const underlying_type&&>(value), fwd(args)...);
+        }
+#pragma endregion
+
+#pragma region comparison
 
         constexpr auto operator<=>(const type & other) const
         noexcept(noexcept(value <=> other.value))
@@ -74,33 +206,71 @@ namespace csl::ensure
             return value <=> arg;
         }
 
-        constexpr auto operator==(const type & other) const
-        noexcept(noexcept(value == other.value))
-        -> bool
-        requires std::equality_comparable<underlying_type>
-        {
-            return value == other.value;
-        }
         constexpr auto operator==(const auto & arg) const
         noexcept(noexcept(value == arg))
         -> bool
-        requires (not std::same_as<std::remove_cvref_t<decltype(arg)>, type>
-                  and std::equality_comparable_with<T, decltype(arg)>)
+        requires details::concepts::comparison::equality_with<underlying_type, decltype(arg)>
         {
             return value == arg;
         }
+        constexpr auto operator not_eq(const auto & arg) const
+        noexcept(noexcept(value not_eq arg))
+        -> bool
+        requires details::concepts::comparison::not_equality_with<underlying_type, decltype(arg)>
+        {
+            return value not_eq arg;
+        }
+
+        constexpr auto operator <(const auto & arg) const
+        noexcept(noexcept(value < arg))
+        -> bool
+        requires details::concepts::comparison::less_than_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value < arg;
+        }
+        constexpr auto operator >(const auto & arg) const
+        noexcept(noexcept(value > arg))
+        -> bool
+        requires details::concepts::comparison::greater_than_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value > arg;
+        }
+        constexpr auto operator <=(const auto & arg) const
+        noexcept(noexcept(value <= arg))
+        -> bool
+        requires details::concepts::comparison::less_than_or_equal_to_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value <= arg;
+        }
+        constexpr auto operator >=(const auto & arg) const
+        noexcept(noexcept(value >= arg))
+        -> bool
+        requires details::concepts::comparison::greater_than_or_equal_comparable_with<underlying_type, decltype(arg)>
+        {
+            return value >= arg;
+        }
+
+#pragma endregion
 
     private:
-        T value;
+        underlying_type value;
     };
 
     template <typename T, typename tag>
-    T & to_underlying(strong_type<T, tag> & value) noexcept {
+    constexpr T & to_underlying(strong_type<T, tag> & value) noexcept {
         return static_cast<T&>(value);
     }
     template <typename T, typename tag>
-    const T & to_underlying(const strong_type<T, tag> & value) noexcept {
+    constexpr const T & to_underlying(const strong_type<T, tag> & value) noexcept {
         return static_cast<const T&>(value);
+    }
+    template <typename T, typename tag>
+    constexpr T && to_underlying(strong_type<T, tag> && value) noexcept {
+        return static_cast<T&&>(value);
+    }
+    template <typename T, typename tag>
+    constexpr const T && to_underlying(const strong_type<T, tag> && value) noexcept {
+        return static_cast<const T&&>(value);
     }
 }
 namespace csl::ensure::type_traits {
@@ -156,9 +326,9 @@ namespace csl::ensure::concepts {
     template <typename T>
     concept NotStrongType = not csl::ensure::type_traits::is_strong_type_v<T>;
     template <typename strong_type, typename T>
-    concept StrongTypeOf = csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
+    concept StrongTypeOf = StrongType<strong_type> and csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
     template <typename strong_type, typename T>
-    concept TaggedBy = StrongType<T> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
+    concept TaggedBy = StrongType<strong_type> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
 }
 
 // STL compatibility/interoperability
@@ -204,8 +374,11 @@ namespace csl::io {
         return os << underlying_value;
     }
 }
+#endif
+#endif
 
 // CPO - fmt::formatter
+// TODO(Guss) as opt-in
 #if defined (FMT_CORE_H_)
 template <typename T, typename tag>
 requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }
@@ -216,5 +389,6 @@ struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
 };
 #endif
 
-#endif
-#endif
+#undef fwd
+
+

@@ -3,10 +3,10 @@ name: cmake-Ubuntu-clang
 on: [push, pull_request]
 
 env:
-  relase_id: 16
+  release_id: 16
   CC:   clang-16
   CXX:  clang++-16
-  libstdcpp_release_id: 13
+  gcc_release_id: 13
 
 jobs:
   cmake-Ubuntu-clang_build_test:
@@ -23,16 +23,21 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Initialize compiler (Clang)
-    # or sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh ${relase_id})" 
+    # sudo add-apt-repository ppa:ubuntu-toolchain-r/test -> latest gcc
+    # todo: only install clang, libc++, libc++abi
       run: |
           sudo apt update
-          sudo apt install libstdc++-$libstdcpp_release_id-dev
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh $relase_id)"
+          sudo apt install gcc-$gcc_release_id libstdc++-$gcc_release_id-dev
+          sudo apt-get purge --auto-remove llvm python3-lldb-14 llvm-14 # https://github.com/llvm/llvm-project/issues/64182
+          wget https://apt.llvm.org/llvm.sh \
+            && chmod +x llvm.sh             \
+            && sudo ./llvm.sh $release_id   \
+            && rm llvm.sh
           sudo update-alternatives \
-            --install /usr/bin/clang clang /usr/bin/clang-$relase_id 100
+            --install /usr/bin/clang clang /usr/bin/clang-$release_id 100
           sudo update-alternatives \
-            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$relase_id 100
-          sudo apt install libc++1-$relase_id libc++-$relase_id-dev libc++abi-$relase_id-dev libc++abi1-$relase_id
+            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$release_id 100
+          sudo apt install libc++1-$release_id libc++-$release_id-dev libc++abi-$release_id-dev libc++abi1-$release_id
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}} - ${{matrix.STL_IMPLEMENTATION}}
       run: |

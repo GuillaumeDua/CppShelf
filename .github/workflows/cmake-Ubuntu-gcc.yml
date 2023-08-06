@@ -3,9 +3,9 @@ name: cmake-Ubuntu-gcc
 on: [push, pull_request]
 
 env:
-  relase_id: 11
-  CC:   gcc-11
-  CXX:  g++-11
+  relase_id: 13
+  CC:   gcc-13
+  CXX:  g++-13
 
 jobs:
   cmake-Ubuntu-gcc_build_test:
