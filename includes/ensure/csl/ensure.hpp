@@ -361,7 +361,6 @@ struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_ha
 
 #if defined(__has_include)
 #if __has_include(<iostream>)
-
 #include <iostream>
 // std::ostream& operator<<
 namespace csl::io {
@@ -375,18 +374,21 @@ namespace csl::io {
     }
 }
 #endif
-#endif
 
 // CPO - fmt::formatter
-// TODO(Guss) as opt-in
-#if defined (FMT_CORE_H_)
+#if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
+#define FMT_HEADER_ONLY
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 template <typename T, typename tag>
-requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }
+requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>(), std::declval<fmt::format_context &>()); }
 struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
-  auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) {
-    return formatter<T>::format(value.to_underlying(), context);
-  }
+    constexpr static auto format(const csl::ensure::strong_type<T, tag> & value, fmt::format_context & context) {
+        return formatter<T>{}.format(csl::ensure::to_underlying(value), context);
+    }
 };
+#endif
 #endif
 
 #undef fwd

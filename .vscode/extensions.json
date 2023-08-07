@@ -13,6 +13,7 @@
         "hbenl.vscode-test-explorer",
         "ms-vscode.test-adapter-converter",
         "fredericbonnet.cmake-test-adapter",
-        "ms-vscode.cpptools-extension-pack"
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode-remote.remote-containers"
     ]
 }
