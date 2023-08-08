@@ -99,12 +99,20 @@ namespace csl::ensure
         requires std::copy_constructible<underlying_type>
         : value(arg)
         {}
-        
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         requires std::move_constructible<underlying_type>
         : value{ std::forward<decltype(arg)>(arg) }
         {}
+
+        constexpr strong_type(strong_type&&)
+        noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
+        requires std::move_constructible<underlying_type>
+        = default;
+        constexpr strong_type(const strong_type&)
+        noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
+        requires std::copy_constructible<underlying_type>
+        = default;
 
         constexpr explicit strong_type()
         noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
@@ -133,9 +141,13 @@ namespace csl::ensure
         // TODO: logic operators ?
 
         constexpr type & operator=(const type & other)
-        noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>) = default;
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>)
+        requires std::is_assignable_v<lvalue_reference, const_lvalue_reference>
+        = default;
         constexpr type & operator=(type && other)
-        noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
+        noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>)
+        requires std::is_assignable_v<lvalue_reference, rvalue_reference>
+        = default;
 
         constexpr type & operator=(const auto & arg)
         noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(arg)>)
@@ -194,9 +206,9 @@ namespace csl::ensure
 #pragma region comparison
 
         constexpr auto operator<=>(const type & other) const
-        noexcept(noexcept(value <=> other.value))
+        noexcept(noexcept(value <=> other.underlying()))
         requires std::three_way_comparable<underlying_type> {
-            return value <=> other.value;
+            return value <=> other.underlying();
         }
         constexpr auto operator<=>(const auto & arg) const
         noexcept(noexcept(value <=> arg))
@@ -206,12 +218,26 @@ namespace csl::ensure
             return value <=> arg;
         }
 
+        constexpr auto operator==(const type & arg) const
+        noexcept(noexcept(value == arg.underlying()))
+        -> bool
+        requires details::concepts::comparison::equality_with<underlying_type, underlying_type>
+        {
+            return value == arg.underlying();
+        }
         constexpr auto operator==(const auto & arg) const
         noexcept(noexcept(value == arg))
         -> bool
         requires details::concepts::comparison::equality_with<underlying_type, decltype(arg)>
         {
             return value == arg;
+        }
+        constexpr auto operator not_eq(const type & arg) const
+        noexcept(noexcept(value not_eq arg.underlying()))
+        -> bool
+        requires details::concepts::comparison::not_equality_with<underlying_type, underlying_type>
+        {
+            return value not_eq arg.underlying();
         }
         constexpr auto operator not_eq(const auto & arg) const
         noexcept(noexcept(value not_eq arg))
@@ -221,12 +247,27 @@ namespace csl::ensure
             return value not_eq arg;
         }
 
+        constexpr auto operator <(const type & arg) const
+        noexcept(noexcept(value < arg.underlying()))
+        -> bool
+        requires details::concepts::comparison::less_than_comparable_with<underlying_type, underlying_type>
+        {
+            return value < arg.underlying();
+        }
         constexpr auto operator <(const auto & arg) const
         noexcept(noexcept(value < arg))
         -> bool
         requires details::concepts::comparison::less_than_comparable_with<underlying_type, decltype(arg)>
         {
             return value < arg;
+        }
+
+        constexpr auto operator >(const type & arg) const
+        noexcept(noexcept(value > arg.underlying()))
+        -> bool
+        requires details::concepts::comparison::greater_than_comparable_with<underlying_type, underlying_type>
+        {
+            return value > arg.underlying();
         }
         constexpr auto operator >(const auto & arg) const
         noexcept(noexcept(value > arg))
@@ -235,12 +276,29 @@ namespace csl::ensure
         {
             return value > arg;
         }
+
+
+        constexpr auto operator <=(const type & arg) const
+        noexcept(noexcept(value <= arg.underlying()))
+        -> bool
+        requires details::concepts::comparison::less_than_or_equal_to_comparable_with<underlying_type, underlying_type>
+        {
+            return value <= arg.underlying();
+        }
         constexpr auto operator <=(const auto & arg) const
         noexcept(noexcept(value <= arg))
         -> bool
         requires details::concepts::comparison::less_than_or_equal_to_comparable_with<underlying_type, decltype(arg)>
         {
             return value <= arg;
+        }
+
+        constexpr auto operator >=(const type & arg) const
+        noexcept(noexcept(value >= arg.underlying()))
+        -> bool
+        requires details::concepts::comparison::greater_than_or_equal_comparable_with<underlying_type, underlying_type>
+        {
+            return value >= arg.underlying();
         }
         constexpr auto operator >=(const auto & arg) const
         noexcept(noexcept(value >= arg))
@@ -390,5 +448,3 @@ struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
 #endif
 
 #undef fwd
-
-
