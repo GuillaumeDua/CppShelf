@@ -485,5 +485,6 @@ struct fmt::formatter<
 };
 
 #endif
+#endif
 
 #undef fwd
