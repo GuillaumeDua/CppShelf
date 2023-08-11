@@ -252,7 +252,8 @@ namespace test::io_ {
         std::cout << mm{42};
     }
     void fmt_support(){
-    #if defined (FMT_CORE_H_)
+    #if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
+    #define FMT_HEADER_ONLY
         using mm = csl::ensure::strong_type<int, struct mm_tag>;
         fmt::print("value = {}", meters{42});
     #endif
