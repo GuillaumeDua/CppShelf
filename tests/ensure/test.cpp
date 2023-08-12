@@ -1,15 +1,16 @@
 // TODO: cxx_17 specific cmake target
 
 #if __cplusplus >= 202002L
-#include <csl/ensure.hpp>
-#include <concepts>
+# include <csl/ensure.hpp>
+# include <concepts>
 #else
-#include <csl/cxx_17/ensure.hpp>
+# include <csl/cxx_17/ensure.hpp>
 #endif
 
 #include <type_traits>
 #include <array>
 #include <cassert>
+#include <string>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
@@ -246,18 +247,20 @@ namespace test::CPO {
     }
 }
 namespace test::io_ {
+    #if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
     void shift_to_ostream_support(){
         using namespace csl::io;
         using mm = csl::ensure::strong_type<int, struct mm_tag>;
         std::cout << mm{42};
     }
+    #endif
+
+    #if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
     void fmt_support(){
-    #if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
-    #define FMT_HEADER_ONLY
         using mm = csl::ensure::strong_type<int, struct mm_tag>;
         fmt::print("value = {}", meters{42});
-    #endif
     }
+    #endif
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

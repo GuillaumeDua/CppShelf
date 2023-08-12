@@ -429,10 +429,12 @@ namespace csl::ensure {
 template <typename T, typename tag>
 struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
 
+// --- opt-ins supports ---
 
+// opt-in: iostream support
+#if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
 #if defined(__has_include)
 #if __has_include(<iostream>)
-
 #include <iostream>
 // std::ostream& operator<<
 namespace csl::ensure::details::mp::type_traits {
@@ -456,10 +458,19 @@ namespace csl::io {
         return os << underlying_value;
     }
 }
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but __has_include(<iostream>) == false"
+#endif
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but defined(__has_include) == false"
+#endif
 #endif
 
+
+// opt-in: fmt support - (CPO: fmt::formatter)
+#if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
+#if defined(__has_include)
 #if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
-#define FMT_HEADER_ONLY
 #include <fmt/core.h>
 #include <fmt/format.h>
 
@@ -483,7 +494,11 @@ struct fmt::formatter<
         return fmt::formatter<T>{}.format(csl::ensure::to_underlying(value), context);
     }
 };
-
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but (__has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)) == false"
+#endif
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but defined(__has_include) == false"
 #endif
 #endif
 
