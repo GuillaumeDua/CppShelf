@@ -193,11 +193,12 @@ namespace test::strong_type::arithmetic {
 
     // using op forwarding
     using name = csl::ensure::strong_type<std::string, struct name_tag>;
-    // namespace tt = csl::ensure::details::mp::type_traits;
-
-    // static_assert(tt::supports_op_plus_with_v<name, name>);
-    // static_assert(utils::supports_op_plus_with_v<name, std::string>);
-    // static_assert(utils::supports_op_plus_with_v<std::string, name>);
+    // WIP
+    namespace tt = test::utils::type_traits;
+    static_assert(tt::supports_op_plus_with_v<std::string, std::string>);
+    // static_assert(tt::supports_op_plus_with_v<name, std::string>);
+    // static_assert(tt::supports_op_plus_with_v<std::string, name>);
+    // static_assert(tt::arythmetic::supports_op_plus_with_v<name, name>);
 }
 namespace test::implicit_conversion {
 
@@ -267,8 +268,6 @@ namespace test::io_ {
 
 #include <iostream>
 auto main() -> int {
-    std::cout << "running test for C++ " << __cplusplus << '\n';
-
     test::CPO::std_hash();
     test::CPO::hasher();
 }
