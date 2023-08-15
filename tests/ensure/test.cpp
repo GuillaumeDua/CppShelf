@@ -1,15 +1,16 @@
 // TODO: cxx_17 specific cmake target
 
 #if __cplusplus >= 202002L
-#include <csl/ensure.hpp>
-#include <concepts>
+# include <csl/ensure.hpp>
+# include <concepts>
 #else
-#include <csl/cxx_17/ensure.hpp>
+# include <csl/cxx_17/ensure.hpp>
 #endif
 
 #include <type_traits>
 #include <array>
 #include <cassert>
+#include <string>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
@@ -192,11 +193,12 @@ namespace test::strong_type::arithmetic {
 
     // using op forwarding
     using name = csl::ensure::strong_type<std::string, struct name_tag>;
-    // namespace tt = csl::ensure::details::mp::type_traits;
-
-    // static_assert(tt::supports_op_plus_with_v<name, name>);
-    // static_assert(utils::supports_op_plus_with_v<name, std::string>);
-    // static_assert(utils::supports_op_plus_with_v<std::string, name>);
+    // WIP
+    namespace tt = test::utils::type_traits;
+    static_assert(tt::supports_op_plus_with_v<std::string, std::string>);
+    // static_assert(tt::supports_op_plus_with_v<name, std::string>);
+    // static_assert(tt::supports_op_plus_with_v<std::string, name>);
+    // static_assert(tt::arythmetic::supports_op_plus_with_v<name, name>);
 }
 namespace test::implicit_conversion {
 
@@ -246,25 +248,26 @@ namespace test::CPO {
     }
 }
 namespace test::io_ {
+    #if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
     void shift_to_ostream_support(){
         using namespace csl::io;
         using mm = csl::ensure::strong_type<int, struct mm_tag>;
         std::cout << mm{42};
     }
+    #endif
+
+    #if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
     void fmt_support(){
-    #if defined (FMT_CORE_H_)
         using mm = csl::ensure::strong_type<int, struct mm_tag>;
         fmt::print("value = {}", meters{42});
-    #endif
     }
+    #endif
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 #include <iostream>
 auto main() -> int {
-    std::cout << "running test for C++ " << __cplusplus << '\n';
-
     test::CPO::std_hash();
     test::CPO::hasher();
 }

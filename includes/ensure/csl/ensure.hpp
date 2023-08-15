@@ -417,9 +417,12 @@ namespace csl::ensure {
 template <typename T, typename tag>
 struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
 
+// --- opt-ins supports ---
+
+// opt-in: iostream support
+#if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
 #if defined(__has_include)
 #if __has_include(<iostream>)
-
 #include <iostream>
 // std::ostream& operator<<
 namespace csl::io {
@@ -432,19 +435,34 @@ namespace csl::io {
         return os << underlying_value;
     }
 }
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but __has_include(<iostream>) == false"
+#endif
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but defined(__has_include) == false"
 #endif
 #endif
 
-// CPO - fmt::formatter
-// TODO(Guss) as opt-in
-#if defined (FMT_CORE_H_)
+// opt-in: fmt support - (CPO: fmt::formatter)
+#if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
+#if defined(__has_include)
+#if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 template <typename T, typename tag>
-requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>()); }
+requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>(), std::declval<fmt::format_context &>()); }
 struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
-  auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) {
-    return formatter<T>::format(value.to_underlying(), context);
-  }
+    constexpr static auto format(const csl::ensure::strong_type<T, tag> & value, fmt::format_context & context) {
+        return formatter<T>{}.format(csl::ensure::to_underlying(value), context);
+    }
 };
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but (__has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)) == false"
+#endif
+#else
+# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but defined(__has_include) == false"
+#endif
 #endif
 
 #undef fwd
