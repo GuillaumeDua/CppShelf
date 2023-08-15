@@ -65,6 +65,17 @@ Function & overload traits
 
 See project's [live demo on godbolt.org](https://godbolt.org/z/ssEW9ferd)
 
+### 🔬 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/typeinfo/csl/typeinfo.hpp)
+
+Compile-time demangler, for types & values.  
+Inconsistent: for educational and debugging purpose only.
+
+// WIP: https://godbolt.org/z/aYWexET6o
+
+### ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ensure/csl/ensure.hpp)
+
+Interface-safety related components, including a configurable **strong-type** implementation.
+
 ---
 
 <img src="https://raw.githubusercontent.com/isocpp/logos/master/cpp_logo.svg" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
