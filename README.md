@@ -65,7 +65,7 @@ Function & overload traits
 
 See project's [live demo on godbolt.org](https://godbolt.org/z/ssEW9ferd)
 
-### 🔬 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/typeinfo/csl/typeinfo.hpp)
+### 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/typeinfo/csl/typeinfo.hpp)
 
 Compile-time demangler, for types & values.  
 Inconsistent: for educational and debugging purpose only.
