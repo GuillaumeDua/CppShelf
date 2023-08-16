@@ -70,7 +70,7 @@ See project's [live demo on godbolt.org](https://godbolt.org/z/ssEW9ferd)
 Compile-time demangler, for types & values.  
 Inconsistent: for educational and debugging purpose only.
 
-// WIP: https://godbolt.org/z/aYWexET6o
+See project's [live demo on godbolt.org](https://godbolt.org/z/TsEWf5bGa)
 
 ### ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ensure/csl/ensure.hpp)
 
