@@ -88,4 +88,5 @@ namespace csl::typeinfo
     constexpr inline auto value_name_v = value_name<value>();
 
     // TODO(Guss): hash_code, see #93 https://github.com/GuillaumeDua/CppShelf/issues/93
+    //  - update example accordingly
 }
