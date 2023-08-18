@@ -9,7 +9,7 @@ target_link_libraries(${test_name}
 )
 
 add_test(
-	NAME 	${PROJECT_NAME}_validate_${component_name}
+	NAME 	${PROJECT_NAME}_test_${component_name}
 	COMMAND $<TARGET_FILE:${test_name}>
 )
 
@@ -29,6 +29,6 @@ target_link_libraries(${test_name}
 )
 
 add_test(
-	NAME 	${PROJECT_NAME}_validate_${component_name}_cxx_17
+	NAME 	${PROJECT_NAME}_test_${component_name}_cxx_17
 	COMMAND $<TARGET_FILE:${test_name}>
 )
