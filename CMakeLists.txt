@@ -26,14 +26,34 @@ set(CSL_COMPONENT_LIST
     typeinfo
 )
 
+# TODO: fetch_content example in README, for 2-3 components
+
+### Components - build
+option(CSL_BUILD_ALL "Build all csl components" ON) # force all components build
+unset(CSL_ACTIVE_COMPONENT_LIST)
+message(VERBOSE "[${CMAKE_PROJECT_NAME}] CSL_BUILD_ALL set to ${CSL_BUILD_ALL}")
+message(STATUS "[${CMAKE_PROJECT_NAME}] Loading components:")
+list(APPEND CMAKE_MESSAGE_INDENT "  ")
+foreach(component_name IN LISTS CSL_COMPONENT_LIST)
+    option(CSL_BUILD_${component_name} "Build all csl components" ${CSL_BUILD_ALL})
+    message(VERBOSE "[CSL_BUILD_${component_name}] CSL_BUILD_ALL set to ${CSL_BUILD_${component_name}}")
+    message(CHECK_START "csl::${component_name}")
+    if (${CSL_BUILD_${component_name}})
+        message(CHECK_PASS "enabled")
+    else()
+        message(CHECK_FAIL "disabled")
+    endif()
+endforeach()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
+
 ### Components - tests
 option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF) # force all tests
-message(STATUS "[${CMAKE_PROJECT_NAME}] : CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
+message(VERBOSE "[${CMAKE_PROJECT_NAME}] CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
 set(CSL_TESTS_LIST "")
 
 ### Components - add/glue (csl_lib::name)
 function(CSL_ADD_COMPONENT component_name)
-    message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} ...")
+    message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} ...")
 
     # check if component has a custom cmake for custom pre-build/configuration
     set(maybe_component_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/${component_name}.cmake")
@@ -58,9 +78,9 @@ foreach(component_name IN LISTS CSL_COMPONENT_LIST)
     add_dependencies(csl_lib csl::${component_name})
     target_link_libraries(csl_lib INTERFACE csl::${component_name})
     
-    option(CSL_BUILD_TEST_${component_name} "[${CMAKE_PROJECT_NAME}] : csl::${component_name} (tests)" ${CSL_BUILD_ALL_TESTS})
+    option(CSL_BUILD_TEST_${component_name} "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_BUILD_ALL_TESTS})
     if (CSL_BUILD_TEST_${component_name})
-        message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} (tests) ...")
+        message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests) ...")
         LIST(APPEND CSL_TESTS_LIST ${component_name})
     endif()
 endforeach()
@@ -90,6 +110,7 @@ endforeach()
 
 ## Examples
 option(CSL_BUILD_ALL_EXAMPLES "Build all examples for csl" OFF) # force all examples
+list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENT_LIST)
     if (NOT EXISTS ${PROJECT_SOURCE_DIR}/examples/${component_name}/CMakeLists.txt)
         message(AUTHOR_WARNING "[${CMAKE_PROJECT_NAME}] : csl::${component_name} has no examples available, skipping ...")
@@ -97,3 +118,4 @@ foreach(component_name IN LISTS CSL_COMPONENT_LIST)
     endif()
     add_subdirectory(${PROJECT_SOURCE_DIR}/examples/${component_name})
 endforeach()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
