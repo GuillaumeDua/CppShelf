@@ -26,11 +26,11 @@ set(CSL_COMPONENT_LIST
     typeinfo
 )
 
-# TODO: fetch_content example in README, for 2-3 components
+# TODO: fetch_content example in README, for 1, N components
 
 ### Components - build
 option(CSL_BUILD_ALL "Build all csl components" ON) # force all components build
-unset(CSL_ACTIVE_COMPONENT_LIST)
+unset(CSL_ENABLED_COMPONENTS_LIST)
 message(VERBOSE "[${CMAKE_PROJECT_NAME}] CSL_BUILD_ALL set to ${CSL_BUILD_ALL}")
 message(STATUS "[${CMAKE_PROJECT_NAME}] Loading components:")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
@@ -40,6 +40,7 @@ foreach(component_name IN LISTS CSL_COMPONENT_LIST)
     message(CHECK_START "csl::${component_name}")
     if (${CSL_BUILD_${component_name}})
         message(CHECK_PASS "enabled")
+        list(APPEND CSL_ENABLED_COMPONENTS_LIST ${component_name})
     else()
         message(CHECK_FAIL "disabled")
     endif()
@@ -49,10 +50,10 @@ list(POP_BACK CMAKE_MESSAGE_INDENT)
 ### Components - tests
 option(CSL_BUILD_ALL_TESTS "Build all tests for csl" OFF) # force all tests
 message(VERBOSE "[${CMAKE_PROJECT_NAME}] CSL_BUILD_ALL_TESTS set to ${CSL_BUILD_ALL_TESTS} ...")
-set(CSL_TESTS_LIST "")
+set(CSL_ENABLED_TESTS_LIST "")
 
-### Components - add/glue (csl_lib::name)
-function(CSL_ADD_COMPONENT component_name)
+### Components libraries - csl_lib::<name>
+function(csl_create_component_library component_name)
     message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} ...")
 
     # check if component has a custom cmake for custom pre-build/configuration
@@ -71,25 +72,24 @@ function(CSL_ADD_COMPONENT component_name)
 endfunction()
 
 add_library(csl_lib INTERFACE)
-foreach(component_name IN LISTS CSL_COMPONENT_LIST)
-    CSL_ADD_COMPONENT(${component_name})
+foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    csl_create_component_library(${component_name})
     
-    # library glue
     add_dependencies(csl_lib csl::${component_name})
     target_link_libraries(csl_lib INTERFACE csl::${component_name})
-    
-    option(CSL_BUILD_TEST_${component_name} "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_BUILD_ALL_TESTS})
-    if (CSL_BUILD_TEST_${component_name})
-        message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests) ...")
-        LIST(APPEND CSL_TESTS_LIST ${component_name})
-    endif()
 endforeach()
 
 ## Tests
-list(LENGTH CSL_TESTS_LIST CSL_TESTS_LIST_length)
-if (${CSL_TESTS_LIST_length} EQUAL 0)
-    return()
-else()
+foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    option(CSL_BUILD_TEST_${component_name} "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_BUILD_ALL_TESTS})
+    if (CSL_BUILD_TEST_${component_name})
+        message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests) ...")
+        LIST(APPEND CSL_ENABLED_TESTS_LIST ${component_name})
+    endif()
+endforeach()
+
+list(LENGTH CSL_ENABLED_TESTS_LIST CSL_TESTS_LIST_length)
+if (NOT ${CSL_TESTS_LIST_length} EQUAL 0)
     enable_testing()
 
     add_compile_options(-Wall -Wno-unknown-pragmas)
@@ -104,7 +104,7 @@ else()
     # Catch2
 endif()
 
-foreach(component_name IN LISTS CSL_TESTS_LIST)
+foreach(component_name IN LISTS CSL_ENABLED_TESTS_LIST)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
 endforeach()
 
