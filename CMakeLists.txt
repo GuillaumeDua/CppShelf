@@ -31,19 +31,35 @@ set(CSL_COMPONENT_LIST
 ### Components - build
 option(CSL_BUILD_ALL "Build all csl components" ON) # force all components build
 unset(CSL_ENABLED_COMPONENTS_LIST)
+unset(CSL_DISABLED_COMPONENTS_LIST)
 message(VERBOSE "[${CMAKE_PROJECT_NAME}] CSL_BUILD_ALL set to ${CSL_BUILD_ALL}")
-message(STATUS "[${CMAKE_PROJECT_NAME}] Loading components:")
-list(APPEND CMAKE_MESSAGE_INDENT "  ")
+list(APPEND CMAKE_MESSAGE_INDENT "   ")
 foreach(component_name IN LISTS CSL_COMPONENT_LIST)
     option(CSL_BUILD_${component_name} "Build all csl components" ${CSL_BUILD_ALL})
-    message(VERBOSE "[CSL_BUILD_${component_name}] CSL_BUILD_ALL set to ${CSL_BUILD_${component_name}}")
-    message(CHECK_START "csl::${component_name}")
+    message(VERBOSE "[${CMAKE_PROJECT_NAME}]: [CSL_BUILD_${component_name}] CSL_BUILD_ALL set to ${CSL_BUILD_${component_name}}")
     if (${CSL_BUILD_${component_name}})
-        message(CHECK_PASS "enabled")
         list(APPEND CSL_ENABLED_COMPONENTS_LIST ${component_name})
-    else()
-        message(CHECK_FAIL "disabled")
     endif()
+endforeach()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
+
+### Components - enabled vs. disabled
+set(CSL_DISABLED_COMPONENTS_LIST ${CSL_COMPONENT_LIST})
+list(REMOVE_ITEM CSL_DISABLED_COMPONENTS_LIST ${CSL_ENABLED_COMPONENTS_LIST})
+
+#### enabled
+message(STATUS "[${CMAKE_PROJECT_NAME}] enabled components:")
+list(APPEND CMAKE_MESSAGE_INDENT "   ")
+foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    message(STATUS "${CMAKE_PROJECT_NAME}::${component_name}")
+endforeach()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
+
+#### disabled
+message(STATUS "[${CMAKE_PROJECT_NAME}] disabled components:")
+list(APPEND CMAKE_MESSAGE_INDENT "   ")
+foreach(component_name IN LISTS CSL_DISABLED_COMPONENTS_LIST)
+    message(STATUS "${CMAKE_PROJECT_NAME}::${component_name}")
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
