@@ -59,8 +59,8 @@
     "cmake.generator": "Ninja",
     "cmake.configureSettings": {
         "CSL_BUILD_ALL": true,
-        "CSL_BUILD_ALL_TESTS" : true,
-        "CSL_BUILD_ALL_EXAMPLES": true,
+        "CSL_ENABLE_ALL_TESTS" : true,
+        "CSL_ENABLE_ALL_EXAMPLES": true,
         "CMAKE_EXPORT_COMPILE_COMMANDS" : true
     }
 }
