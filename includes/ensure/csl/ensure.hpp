@@ -27,7 +27,7 @@
 #include <utility>
 #include <functional>
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ensure::details::concepts::comparison {
 // not using std concepts (std::equality_comparable) here,
@@ -157,10 +157,10 @@ namespace csl::ensure
             return *this;
         }
         constexpr type & operator=(auto && arg)
-        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(fwd(arg))>)
-        requires std::assignable_from<underlying_type&, decltype(fwd(arg))>
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(csl_fwd(arg))>)
+        requires std::assignable_from<underlying_type&, decltype(csl_fwd(arg))>
         {
-            value = fwd(value);
+            value = csl_fwd(value);
             return *this;
         }
 
@@ -175,7 +175,7 @@ namespace csl::ensure
         noexcept(std::is_nothrow_invocable_v<lvalue_reference, arguments_ts&&...>)
         requires std::invocable<lvalue_reference, arguments_ts&&...>
         {
-            return std::invoke(value, fwd(args)...);
+            return std::invoke(value, csl_fwd(args)...);
         }
         template <typename ... arguments_ts>
         constexpr std::invoke_result_t<const_lvalue_reference, arguments_ts&&...>
@@ -183,7 +183,7 @@ namespace csl::ensure
         noexcept(std::is_nothrow_invocable_v<const_lvalue_reference, arguments_ts&&...>)
         requires std::invocable<const_lvalue_reference, arguments_ts&&...>
         {
-            return std::invoke(value, fwd(args)...);
+            return std::invoke(value, csl_fwd(args)...);
         }
         template <typename ... arguments_ts>
         constexpr std::invoke_result_t<rvalue_reference, arguments_ts&&...>
@@ -191,7 +191,7 @@ namespace csl::ensure
         noexcept(std::is_nothrow_invocable_v<rvalue_reference, arguments_ts&&...>)
         requires std::invocable<rvalue_reference, arguments_ts&&...>
         {
-            return std::invoke(static_cast<underlying_type&&>(value), fwd(args)...);
+            return std::invoke(static_cast<underlying_type&&>(value), csl_fwd(args)...);
         }
         template <typename ... arguments_ts>
         constexpr std::invoke_result_t<const_rvalue_reference, arguments_ts&&...>
@@ -199,7 +199,7 @@ namespace csl::ensure
         noexcept(std::is_nothrow_invocable_v<const_rvalue_reference, arguments_ts&&...>)
         requires std::invocable<const_rvalue_reference, arguments_ts&&...>
         {
-            return std::invoke(static_cast<const underlying_type&&>(value), fwd(args)...);
+            return std::invoke(static_cast<const underlying_type&&>(value), csl_fwd(args)...);
         }
 #pragma endregion
 

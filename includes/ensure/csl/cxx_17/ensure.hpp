@@ -4,7 +4,7 @@
 #include <utility>
 #include <functional>
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ensure::details::mp {
 #if defined(__cpp_lib_type_identity)
@@ -230,9 +230,9 @@ namespace csl::ensure
             std::enable_if_t<std::is_assignable_v<underlying_type&, arg_type &&>, bool> = true
         >
         constexpr type & operator=(arg_type && arg)
-        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(fwd(arg))>)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(csl_fwd(arg))>)
         {
-            value = fwd(value);
+            value = csl_fwd(value);
             return *this;
         }
 
@@ -251,7 +251,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) &
         noexcept(std::is_nothrow_invocable_v<lvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, fwd(args)...);
+            return std::invoke(value, csl_fwd(args)...);
         }
         template <
             typename ... arguments_ts,
@@ -263,7 +263,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) const &
         noexcept(std::is_nothrow_invocable_v<const_lvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, fwd(args)...);
+            return std::invoke(value, csl_fwd(args)...);
         }
         template <
             typename ... arguments_ts,
@@ -275,7 +275,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) &&
         noexcept(std::is_nothrow_invocable_v<rvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, fwd(args)...);
+            return std::invoke(value, csl_fwd(args)...);
         }
         template <
             typename ... arguments_ts,
@@ -287,7 +287,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) const &&
         noexcept(std::is_nothrow_invocable_v<const_rvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, fwd(args)...);
+            return std::invoke(value, csl_fwd(args)...);
         }
 #pragma endregion
 #pragma region comparison

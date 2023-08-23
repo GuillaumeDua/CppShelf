@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <iterator>
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
-#define static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
+#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+#define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
 // [WIP] organisation refactoring
 //  sequences::* : op on sequences
@@ -227,7 +227,7 @@ namespace csl::mp {
     // get<index>
     template <std::size_t index, typename ... Ts>
     constexpr decltype(auto) get(Ts && ... values) noexcept {
-        return std::get<index>(std::tuple<decltype(values)...>{ fwd(values)...});
+        return std::get<index>(std::tuple<decltype(values)...>{ csl_fwd(values)...});
     }
     template <std::size_t index, TupleType T>
     constexpr decltype(auto) get(T && value) noexcept {
@@ -235,7 +235,7 @@ namespace csl::mp {
     }
     template <std::size_t index, typename T, auto ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...> && value) noexcept {
-        return mp::seq::get<index>(fwd(value));
+        return mp::seq::get<index>(csl_fwd(value));
     }
 
     // todo : remove
@@ -491,7 +491,7 @@ namespace csl::mp {
 }
 
 #undef fwd
-#undef static_dependent_error
+#undef csl_static_dependent_error
 
 // wip : https://godbolt.org/z/TfMqM5TaG
 // wip, benchemarked : https://godbolt.org/z/fj4z8sjzh
