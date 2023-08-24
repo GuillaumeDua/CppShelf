@@ -9,8 +9,9 @@ project(csl LANGUAGES CXX)
 set(PROJECT_VERSION 0.1.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-#TODO(Guss): dev vs. consumer profiles
-# - consumer can load 1-N csl lib
+# TODO(Guss): dev vs. consumer profiles
+#   - consumer can load 1-N csl lib
+# TODO(Guss): options to enable opt-in based macro defines
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}] : In-source build not recommended")
@@ -92,19 +93,20 @@ endforeach()
 #     # Catch2
 # endif()
 
+# target_compile_definitions
+
 ### Components libraries - csl_lib::<name>
 function(csl_create_component component_name)
     message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}")
 
-    # check if component has a custom cmake for custom pre-build/configuration
+    # add the component
+    add_library(csl_${component_name}_lib INTERFACE)
+    # check if component has a custom cmake pre-build/configuration to inject
     set(maybe_component_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/${component_name}.cmake")
     if (EXISTS "${maybe_component_custom_cmake_path}")
         message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : custom cmake detected ...")
         include("${maybe_component_custom_cmake_path}")
     endif()
-
-    # add the component
-    add_library(csl_${component_name}_lib INTERFACE)
     target_include_directories(csl_${component_name}_lib INTERFACE
         ${PROJECT_SOURCE_DIR}/includes/${component_name}
     )

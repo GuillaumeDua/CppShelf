@@ -42,7 +42,7 @@ file(WRITE
 ## Generates `as_tuple_view_impl` ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
-set(identities_fwd "fwd(v0)")
+set(identities_fwd "csl_fwd(v0)")
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
     "#pragma region as_tuple_view_impl<N,T>\n"
@@ -59,7 +59,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     )
     string(APPEND identities ",v${ID}")
     string(APPEND identities_decltype ",decltype(v${ID})")
-    string(APPEND identities_fwd ",fwd(v${ID})")
+    string(APPEND identities_fwd ",csl_fwd(v${ID})")
 endforeach()
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
@@ -69,7 +69,7 @@ file(APPEND
 # Generates `element<N, T>` specializations ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
-set(identities_fwd "fwd(v0)")
+set(identities_fwd "csl_fwd(v0)")
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
     "#pragma region element<N, T>\n"
@@ -89,7 +89,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     )
     string(APPEND identities ",v${ID}")
     string(APPEND identities_decltype ",decltype(v${ID})")
-    string(APPEND identities_fwd ",fwd(v${ID})")
+    string(APPEND identities_fwd ",csl_fwd(v${ID})")
 endforeach()
 file(APPEND
     ${ag_as_tuple_view_impl_specialization_filepath}
