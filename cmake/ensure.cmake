@@ -1,0 +1,17 @@
+# opt-in: CSL_ENSURE__OPT_IN__FMT_SUPPORT
+if (TARGET fmt::fmt)
+    option(CSL_ENSURE__OPT_IN__FMT_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name} enable fmt support" ${is_fmt_available})
+    if (${CSL_ENSURE__OPT_IN__FMT_SUPPORT})
+        target_compile_definitions(${component_name} PRIVATE CSL_ENSURE__OPT_IN__FMT_SUPPORT)
+        add_dependencies(${component_name} fmt::fmt)
+        target_link_libraries(${component_name} PRIVATE fmt::fmt)
+    endif()
+elseif(TARGET fmt::fmt-header-only)
+    option(CSL_ENSURE__OPT_IN__FMT_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name} enable fmt support" ${is_fmt_available})
+    if (${CSL_ENSURE__OPT_IN__FMT_SUPPORT})
+        target_compile_definitions(${component_name} PRIVATE CSL_ENSURE__OPT_IN__FMT_SUPPORT)
+        add_dependencies(${component_name} fmt::fmt-header-only)
+        target_link_libraries(${component_name} PRIVATE fmt::fmt-header-only)
+    endif()
+endif()
+
