@@ -1,5 +1,9 @@
 #pragma once
 
+#if not __cplusplus >= 201703L
+# error "csl/typeinfo.hpp requires C++17"
+#endif
+
 // TODO(Guillaume): refactor type_name, value_name when universal template parameter are available
 
 #include <string>

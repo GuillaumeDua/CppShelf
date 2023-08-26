@@ -1,5 +1,9 @@
 #pragma once
 
+#if not __cplusplus >= 202002L
+# error "csl/ag.hpp requires C++20"
+#endif
+
 #include <array>
 #include <tuple>
 #include <concepts>

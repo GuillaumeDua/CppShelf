@@ -1,5 +1,9 @@
 #pragma once
 
+#if not __cplusplus >= 202002L
+# error "csl/functional.hpp requires C++20"
+#endif
+
 #include <functional>
 #include <tuple>
 #include <type_traits>

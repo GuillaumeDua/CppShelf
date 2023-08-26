@@ -1,5 +1,12 @@
 #pragma once
 
+#if not __cplusplus >= 201703L
+# error "csl::ensure: csl/cxx17/ensure.hpp requires C++17"
+#endif
+#if __cplusplus >= 202002L
+# warning "csl::ensure: C++20 available, consider using csl/cxx20/ensure.hpp"
+#endif
+
 #include <type_traits>
 #include <utility>
 #include <functional>
@@ -236,7 +243,7 @@ namespace csl::ensure
             return *this;
         }
 
-        // TODO: comparisons
+        // TODO(Guss): comparisons
         // <,>,
         // <=, >=
 

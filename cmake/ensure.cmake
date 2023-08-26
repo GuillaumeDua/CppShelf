@@ -14,4 +14,3 @@ elseif(TARGET fmt::fmt-header-only)
         target_link_libraries(${component_name} PRIVATE fmt::fmt-header-only)
     endif()
 endif()
-

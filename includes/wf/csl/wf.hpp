@@ -1,5 +1,9 @@
 #pragma once
 
+#if not __cplusplus >= 202002L
+# error "csl/wf.hpp requires C++20"
+#endif
+
 // Evolutions :
 //  - Consider P1985 "Universal template declaration"
 //  - Consider P2347 "Argument type deduction for non-trailing parameter packs" to deduce a single non-trailing parameters pack for function arguments

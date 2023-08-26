@@ -1,5 +1,9 @@
 #pragma once
 
+#if not __cplusplus >= 202002L
+# error "csl/mp.hpp requires C++20"
+#endif
+
 #include <type_traits>
 #include <utility>
 #include <tuple>
