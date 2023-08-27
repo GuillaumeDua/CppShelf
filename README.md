@@ -33,7 +33,7 @@ The libraries here could, once mature enough, become self-contained in a separat
 
 ---
 
-<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="26" height="26" style="Padding: 5px"/>
+<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="25" height="25" style="Padding: 5px"/>
 
 ## Components - nested librairies
 
@@ -78,26 +78,37 @@ Interface-safety related components, including a configurable **strong-type** im
 
 ---
 
-<img src="https://raw.githubusercontent.com/isocpp/logos/master/cpp_logo.svg" alt="" align="left" width="32" height="32" style="Padding: 5px"/>
+## Getting Started - CMake
+
+TODO: fetch_content example in README, for 1, N components
+
+---
+
+<img src="https://raw.githubusercontent.com/isocpp/logos/master/cpp_logo.svg" alt="" align="left" width="25" height="25"/>
 
 ## Supported C++ standard
 
-<br>
+| Library       | C++17 | C++20 | C++23 |
+| ------------- | :---: | :---: | :---- |
+| 📦 ag         | ❌   | ✅   | -     |
+| 🌊 wf         | ❌   | ✅   | *planned*<br>[P1985 - Universal template parameters](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p1985r1.pdf)<br>[P0847 - Deducing this](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0847r5.html) |
+| 🧙‍♂️ mp         | ❌   | ✅   | -     |
+| 🔬 functional | ❌   | ✅   | -     |
+| 🔎 typeinfo   | ❌   | ✅   | -     |
+| ☔ ensure     | ✅   | ✅   | -     |
 
-Currently, **C++20**.
+> 💡 Backward compatibility with **C++17** requires additional effort and IS NOT a priority for now, beside specific requests.
 
-Backward compatibility with **C++17** is mostly doable, but requires additional effort and is not something planned for now.  
-
-Many implementations details will change when **C++23** is [officially supported by compiliers](https://en.cppreference.com/w/cpp/compiler_support).  
+Implementations details might change when **C++23** is [fully supported by compiliers](https://en.cppreference.com/w/cpp/compiler_support).  
 👉 See opened issue [tagged with C++23](https://github.com/GuillaumeDua/CppShelf/issues?q=is%3Aissue+is%3Aopen+label%3AC%2B%2B23).
 
 ## Supported compilers
 
-| Compiler       | Version       | Reason |
-| -------------- | ------------- | ------ |
-| g++            | >= 11.1.0     | C++20  |
-| clang++        | >= 13.0.1     | C++20<br>Decent support of [p0315r4](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0315r4.pdf) |
-| Visual Studio  | *TBD*         | *TBD*  |
+| Compiler       | Min. version  | Recommended | Reason |
+| -------------- | ------------- | ----------- | ------ |
+| `g++`          | >= 11.1.0     | >= 13.2     | C++20  |
+| `clang++`      | >= 13.0.1     | >= 16.0.6   | C++20<br>Decent support of [p0315r4](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0315r4.pdf) |
+| `msvc-cl`      | *TBD*         | *TBD*       | -      |
 
 ---
 

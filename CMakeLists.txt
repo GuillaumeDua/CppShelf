@@ -27,8 +27,6 @@ set(CSL_COMPONENT_LIST
     typeinfo
 )
 
-# TODO: fetch_content example in README, for 1, N components
-
 ### Components - build
 option(CSL_BUILD_ALL "Build all csl components" ON) # force all components build
 unset(CSL_ENABLED_COMPONENTS_LIST)
