@@ -1,11 +1,6 @@
 // TODO: cxx_17 specific cmake target
 
-#if __cplusplus >= 202002L
-# include <csl/ensure.hpp>
-# include <concepts>
-#else
-# include <csl/cxx_17/ensure.hpp>
-#endif
+#include <csl/ensure.hpp>
 
 #include <type_traits>
 #include <array>

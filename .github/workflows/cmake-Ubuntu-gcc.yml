@@ -53,5 +53,5 @@ jobs:
     - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
-      run: ctest -R csl_validate_${{matrix.CSL_COMPONENTS}}
+      run: ctest -R csl_test_${{matrix.CSL_COMPONENTS}}
 
