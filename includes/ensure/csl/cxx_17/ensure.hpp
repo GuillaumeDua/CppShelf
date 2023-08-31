@@ -167,26 +167,27 @@ namespace csl::ensure
         using const_lvalue_reference = const T &;
         using const_rvalue_reference = const T &&;
 
-        // constructor: aggregate-initialization
-        template <std::enable_if_t<
-            std::is_default_constructible_v<underlying_type>
-        , bool> = true
-        >
+        // constructor: defaut
+        template <std::enable_if_t<std::is_default_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type()
         noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
         {}
-        template <typename ...Ts, std::enable_if_t<
-            std::is_aggregate_v<T> and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
-        , bool> = true
+        // constructor: aggregate-initialization
+        template <
+            typename ...Ts,
+            std::enable_if_t<
+                std::is_aggregate_v<T>
+                and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
+            , bool> = true
         >
-        // constructor: values
         constexpr explicit strong_type(Ts && ... values)
         noexcept(noexcept(underlying_type{ std::forward<decltype(values)>(values)... }))
         : value{ std::forward<decltype(values)>(values)... }
         {}
-        template <typename ...Ts, std::enable_if_t<
-            std::is_constructible_v<underlying_type, Ts&&...>
-        , bool> = true
+        // constructor: values
+        template <
+            typename ...Ts,
+            std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>, bool> = true
         >
         constexpr explicit strong_type(Ts && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
@@ -204,6 +205,8 @@ namespace csl::ensure
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         : value{ std::forward<decltype(arg)>(arg) }
         {}
+        // destructor
+        constexpr ~strong_type() noexcept(std::is_nothrow_destructible_v<underlying_type>) = default;
 
         constexpr lvalue_reference       underlying()        & noexcept { return value; }
         constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
@@ -215,7 +218,7 @@ namespace csl::ensure
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
-        // TODO: arythmetic operators
+        // TODO(Guss): arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
@@ -224,7 +227,8 @@ namespace csl::ensure
         constexpr type & operator=(type && other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
 
-        template <typename arg_type,
+        template <
+            typename arg_type,
             std::enable_if_t<std::is_assignable_v<underlying_type&, const arg_type&>, bool> = true
         >
         constexpr type & operator=(const arg_type & arg)
@@ -233,7 +237,8 @@ namespace csl::ensure
             value = arg;
             return *this;
         }
-        template <typename arg_type,
+        template <
+            typename arg_type,
             std::enable_if_t<std::is_assignable_v<underlying_type&, arg_type &&>, bool> = true
         >
         constexpr type & operator=(arg_type && arg)
@@ -247,7 +252,7 @@ namespace csl::ensure
         // <,>,
         // <=, >=
 
-#pragma region comparison
+#pragma region invocation
         template <
             typename ... arguments_ts,
             std::enable_if_t<
@@ -300,6 +305,17 @@ namespace csl::ensure
 #pragma region comparison
         // comparison: operator ==
         template <
+            std::enable_if_t<
+                details::mp::type_traits::comparison::is_equality_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator==(const type & arg) const
+        noexcept(noexcept(value == arg.underlying()))
+        -> bool
+        {
+            return value == arg.underlying();
+        }
+        template <
             typename other_type,
             std::enable_if_t<
                 details::mp::type_traits::comparison::is_equality_comparable_with_v<T, other_type>
@@ -312,6 +328,17 @@ namespace csl::ensure
             return value == arg;
         }
         // comparison: operator not_eq
+        template <
+            std::enable_if_t<
+                details::mp::type_traits::comparison::is_not_equality_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator not_eq(const type & arg) const
+        noexcept(noexcept(value not_eq arg.underlying()))
+        -> bool
+        {
+            return value not_eq arg.underlying();
+        }
         template <
             typename other_type,
             std::enable_if_t<

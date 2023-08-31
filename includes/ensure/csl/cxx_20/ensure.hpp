@@ -166,9 +166,6 @@ namespace csl::ensure
 
 #pragma region invocation
 
-        // WIP: tests
-        // WIP: C++17 retro-compatiblity
-
         template <typename ... arguments_ts>
         constexpr std::invoke_result_t<lvalue_reference, arguments_ts&&...>
         operator()(arguments_ts && ... args) &
