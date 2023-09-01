@@ -351,14 +351,14 @@ namespace csl::ensure
         {
             return value not_eq arg;
         }
-    // comparison: operator <
+    // comparison: operator<
         template <
             std::enable_if_t<
                 details::mp::type_traits::comparison::is_less_than_comparable_v<T>
             , bool> = true
         >
         constexpr auto operator<(const T & arg) const
-        noexcept(noexcept(value < arg))
+        noexcept(noexcept(value < arg.underlying()))
         -> bool
         {
             return value < arg.underlying();
@@ -374,6 +374,30 @@ namespace csl::ensure
         -> bool
         {
             return value < arg;
+        }
+    // comparison: operator<=
+        template <
+            std::enable_if_t<
+                details::mp::type_traits::comparison::is_less_equal_comparable_v<T>
+            , bool> = true
+        >
+        constexpr auto operator<=(const T & arg) const
+        noexcept(noexcept(value <= arg.underlying()))
+        -> bool
+        {
+            return value <= arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                details::mp::type_traits::comparison::is_less_equal_comparable_with_v<T, other_type>
+            , bool> = true
+        >
+        constexpr auto operator<=(const other_type & arg) const
+        noexcept(noexcept(value <= arg))
+        -> bool
+        {
+            return value <= arg;
         }
 
 #pragma endregion
