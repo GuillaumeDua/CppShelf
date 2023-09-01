@@ -303,7 +303,7 @@ namespace csl::ensure
         }
 #pragma endregion
 #pragma region comparison
-        // comparison: operator ==
+    // comparison: operator ==
         template <
             std::enable_if_t<
                 details::mp::type_traits::comparison::is_equality_comparable_v<underlying_type>
@@ -327,7 +327,7 @@ namespace csl::ensure
         {
             return value == arg;
         }
-        // comparison: operator not_eq
+    // comparison: operator not_eq
         template <
             std::enable_if_t<
                 details::mp::type_traits::comparison::is_not_equality_comparable_v<underlying_type>
@@ -351,6 +351,31 @@ namespace csl::ensure
         {
             return value not_eq arg;
         }
+    // comparison: operator <
+        template <
+            std::enable_if_t<
+                details::mp::type_traits::comparison::is_less_than_comparable_v<T>
+            , bool> = true
+        >
+        constexpr auto operator<(const T & arg) const
+        noexcept(noexcept(value < arg))
+        -> bool
+        {
+            return value < arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                details::mp::type_traits::comparison::is_less_than_comparable_with_v<T, other_type>
+            , bool> = true
+        >
+        constexpr auto operator<(const other_type & arg) const
+        noexcept(noexcept(value < arg))
+        -> bool
+        {
+            return value < arg;
+        }
+
 #pragma endregion
 
     private:
