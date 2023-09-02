@@ -206,7 +206,7 @@ namespace csl::ensure
         : value{ std::forward<decltype(arg)>(arg) }
         {}
         // destructor
-        constexpr ~strong_type() noexcept(std::is_nothrow_destructible_v<underlying_type>) = default;
+        ~strong_type() noexcept(std::is_nothrow_destructible_v<underlying_type>) = default;
 
         constexpr lvalue_reference       underlying()        & noexcept { return value; }
         constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
@@ -305,11 +305,13 @@ namespace csl::ensure
 #pragma region comparison
     // comparison: operator ==
         template <
+            typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_equality_comparable_v<underlying_type>
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_equality_comparable_v<underlying_type>
             , bool> = true
         >
-        constexpr auto operator==(const type & arg) const
+        constexpr auto operator==(const other_type & arg) const
         noexcept(noexcept(value == arg.underlying()))
         -> bool
         {
@@ -318,7 +320,8 @@ namespace csl::ensure
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_equality_comparable_with_v<T, other_type>
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_equality_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator==(const other_type & arg) const
@@ -329,11 +332,13 @@ namespace csl::ensure
         }
     // comparison: operator not_eq
         template <
+            typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_not_equality_comparable_v<underlying_type>
+                std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_not_equality_comparable_v<underlying_type>
             , bool> = true
         >
-        constexpr auto operator not_eq(const type & arg) const
+        constexpr auto operator not_eq(const other_type & arg) const
         noexcept(noexcept(value not_eq arg.underlying()))
         -> bool
         {
@@ -342,7 +347,8 @@ namespace csl::ensure
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_not_equality_comparable_with_v<T, other_type>
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_not_equality_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator not_eq(const other_type & arg) const
@@ -351,13 +357,16 @@ namespace csl::ensure
         {
             return value not_eq arg;
         }
+        
     // comparison: operator<
         template <
+            typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_less_than_comparable_v<T>
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_less_than_comparable_v<underlying_type>
             , bool> = true
         >
-        constexpr auto operator<(const T & arg) const
+        constexpr auto operator<(const other_type & arg) const
         noexcept(noexcept(value < arg.underlying()))
         -> bool
         {
@@ -366,7 +375,8 @@ namespace csl::ensure
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_less_than_comparable_with_v<T, other_type>
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_less_than_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator<(const other_type & arg) const
@@ -377,11 +387,13 @@ namespace csl::ensure
         }
     // comparison: operator<=
         template <
+            typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_less_equal_comparable_v<T>
+                std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_less_equal_comparable_v<underlying_type>
             , bool> = true
         >
-        constexpr auto operator<=(const T & arg) const
+        constexpr auto operator<=(const underlying_type & arg) const
         noexcept(noexcept(value <= arg.underlying()))
         -> bool
         {
@@ -390,7 +402,8 @@ namespace csl::ensure
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_less_equal_comparable_with_v<T, other_type>
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_less_equal_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator<=(const other_type & arg) const
@@ -399,6 +412,10 @@ namespace csl::ensure
         {
             return value <= arg;
         }
+
+        // WIP: all comparisons operators supports
+        // WIP: all comparisons operators supports (tests)
+        // WIP: all comparisons operators supports (tests, with ambiguous overload resolution -> implicit conversions)
 
 #pragma endregion
 
