@@ -413,9 +413,41 @@ namespace csl::ensure
             return value <= arg;
         }
 
+
+        // comparison: operator>
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_more_than_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator>(const other_type & arg) const
+        noexcept(noexcept(value > arg.underlying()))
+        -> bool
+        {
+            return value > arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_more_than_comparable_with_v<underlying_type, other_type>
+            , bool> = true
+        >
+        constexpr auto operator>(const other_type & arg) const
+        noexcept(noexcept(value > arg))
+        -> bool
+        {
+            return value > arg;
+        }
+
+
         // WIP: all comparisons operators supports
         // WIP: all comparisons operators supports (tests)
         // WIP: all comparisons operators supports (tests, with ambiguous overload resolution -> implicit conversions)
+
+
 
 #pragma endregion
 

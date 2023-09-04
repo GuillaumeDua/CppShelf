@@ -229,6 +229,7 @@ namespace csl::ensure
         {
             return value == arg;
         }
+
         constexpr auto operator not_eq(const type & arg) const
         noexcept(noexcept(value not_eq arg.underlying()))
         -> bool
