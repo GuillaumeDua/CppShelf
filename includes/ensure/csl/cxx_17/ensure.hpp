@@ -412,9 +412,7 @@ namespace csl::ensure
         {
             return value <= arg;
         }
-
-
-        // comparison: operator>
+    // comparison: operator>
         template <
             typename other_type,
             std::enable_if_t<
@@ -469,11 +467,8 @@ namespace csl::ensure
             return value >= arg;
         }
 
-        // WIP: all comparisons operators supports
-        // WIP: all comparisons operators supports (tests)
-        // WIP: all comparisons operators supports (tests, with ambiguous overload resolution -> implicit conversions)
-
-
+    // WIP: all comparisons operators supports (tests)
+    // WIP: all comparisons operators supports (tests, with ambiguous overload resolution -> implicit conversions)
 
 #pragma endregion
 
