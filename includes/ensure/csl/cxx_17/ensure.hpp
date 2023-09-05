@@ -88,21 +88,21 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <typename T>
     constexpr bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
 
-    // is_more_than_comparable_with
+    // is_greater_than_comparable_with
     template <class, class, class = void>
-    struct is_more_than_comparable_with : std::false_type {};
+    struct is_greater_than_comparable_with : std::false_type {};
     template <class T, class U>
-    struct is_more_than_comparable_with<T, U, std::void_t<
+    struct is_greater_than_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() > std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() > std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr bool is_more_than_comparable_with_v = is_more_than_comparable_with<T, U>::value;
+    constexpr bool is_greater_than_comparable_with_v = is_greater_than_comparable_with<T, U>::value;
 
     // operator >
     template <class T>
-    struct is_more_than_comparable : is_more_than_comparable_with<T, T>{};
+    struct is_greater_than_comparable : is_greater_than_comparable_with<T, T>{};
     template <typename T>
-    constexpr bool is_more_than_comparable_v = is_more_than_comparable<T>::value;
+    constexpr bool is_greater_than_comparable_v = is_greater_than_comparable<T>::value;
 
     // is_less_equal_comparable
     template <class, class, class = void>
@@ -120,21 +120,21 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <typename T>
     constexpr bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
 
-    // is_more_equal_comparable
+    // is_greater_equal_comparable
     template <class, class, class = void>
-    struct is_more_equal_comparable_with : std::false_type {};
+    struct is_greater_equal_comparable_with : std::false_type {};
     template <class T, class U>
-    struct is_more_equal_comparable_with<T, U, std::void_t<
+    struct is_greater_equal_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() >= std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() >= std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr bool is_more_equal_comparable_with_v = is_more_equal_comparable_with<T, U>::value;
+    constexpr bool is_greater_equal_comparable_with_v = is_greater_equal_comparable_with<T, U>::value;
 
     // operator <=
     template <class T>
-    struct is_more_equal_comparable : is_more_equal_comparable_with<T, T>{};
+    struct is_greater_equal_comparable : is_greater_equal_comparable_with<T, T>{};
     template <typename T>
-    constexpr bool is_more_equal_comparable_v = is_more_equal_comparable<T>::value;
+    constexpr bool is_greater_equal_comparable_v = is_greater_equal_comparable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::arythmetic {
     // operator+(T,U)
@@ -417,7 +417,7 @@ namespace csl::ensure
             typename other_type,
             std::enable_if_t<
                 std::is_same_v<type, other_type>
-            and details::mp::type_traits::comparison::is_more_than_comparable_v<underlying_type>
+            and details::mp::type_traits::comparison::is_greater_than_comparable_v<underlying_type>
             , bool> = true
         >
         constexpr auto operator>(const other_type & arg) const
@@ -430,7 +430,7 @@ namespace csl::ensure
             typename other_type,
             std::enable_if_t<
                 not std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_more_than_comparable_with_v<underlying_type, other_type>
+                and details::mp::type_traits::comparison::is_greater_than_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator>(const other_type & arg) const
@@ -444,7 +444,7 @@ namespace csl::ensure
             typename other_type,
             std::enable_if_t<
                 std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_more_equal_comparable_v<underlying_type>
+                and details::mp::type_traits::comparison::is_greater_equal_comparable_v<underlying_type>
             , bool> = true
         >
         constexpr auto operator>=(const underlying_type & arg) const

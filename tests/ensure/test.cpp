@@ -1,6 +1,3 @@
-// TODO: cxx_17 specific cmake target
-
-#include "csl/cxx_20/ensure.hpp"
 #include <csl/ensure.hpp>
 
 #include <type_traits>
@@ -40,8 +37,8 @@ namespace test::strong_type::details::comparison {
     struct not_eq_comparable_t{ bool operator not_eq(const not_eq_comparable_t&) const { return {}; } };
     struct less_than_comparable { bool operator< (const less_than_comparable & ) const { return {}; } };
     struct less_or_eq_comparable{ bool operator<=(const less_or_eq_comparable &) const { return {}; } };
-    struct more_than_comparable { bool operator> (const more_than_comparable & ) const { return {}; } };
-    struct more_or_eq_comparable{ bool operator>=(const more_or_eq_comparable &) const { return {}; } };
+    struct greater_than_comparable { bool operator> (const greater_than_comparable & ) const { return {}; } };
+    struct greater_or_eq_comparable{ bool operator>=(const greater_or_eq_comparable &) const { return {}; } };
 }
 
 namespace test::strong_type::details { // NOLINT(*-concat-nested-namespaces)
@@ -70,8 +67,9 @@ namespace comparison::less {
     static_assert(not cs::less_than_or_equal_to_comparable_with<less_than_comparable, less_than_comparable>);
     static_assert(not cs::less_than_or_equal_to_comparable_with<less_than_comparable, int>);
 }
-namespace comparison::more {
+namespace comparison::greater {
     // operator<
+    static_assert(cs::greater_than_comparable_with<greater_than_comparable, greater_than_comparable>);
     // operator<=
 }
 namespace arythmetic {
@@ -97,13 +95,13 @@ namespace comparison::less {
     static_assert(tt::is_less_equal_comparable_v<less_or_eq_comparable>);
     static_assert(not tt::is_less_equal_comparable_v<less_than_comparable>);
 }
-namespace comparison::more {
-    // operator<
-    static_assert(tt::is_more_than_comparable_v<more_than_comparable>);
-    static_assert(not tt::is_more_than_comparable_v<more_or_eq_comparable>);
-    // operator<=
-    static_assert(tt::is_more_equal_comparable_v<more_or_eq_comparable>);
-    static_assert(not tt::is_more_equal_comparable_v<more_than_comparable>);
+namespace comparison::greater {
+    // operator>
+    static_assert(tt::is_greater_than_comparable_v<greater_than_comparable>);
+    static_assert(not tt::is_greater_than_comparable_v<greater_or_eq_comparable>);
+    // operator>=
+    static_assert(tt::is_greater_equal_comparable_v<greater_or_eq_comparable>);
+    static_assert(not tt::is_greater_equal_comparable_v<greater_than_comparable>);
 }
 namespace arythmetic {
     namespace tt = csl::ensure::details::mp::type_traits::arythmetic;
