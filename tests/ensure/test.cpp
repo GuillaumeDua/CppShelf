@@ -1,5 +1,6 @@
 // TODO: cxx_17 specific cmake target
 
+#include "csl/cxx_20/ensure.hpp"
 #include <csl/ensure.hpp>
 
 #include <type_traits>
@@ -53,14 +54,25 @@ namespace comparison::equality {
     // operator==
     static_assert(cs::equality_with<eq_comparable_t, eq_comparable_t>);
     static_assert(not cs::equality_with<eq_comparable_t, not_eq_comparable_t>);
+    static_assert(not cs::equality_with<less_or_eq_comparable, less_or_eq_comparable>);
     // operator not_eq
     static_assert(cs::not_equality_with<eq_comparable_t, eq_comparable_t>);
     static_assert(cs::not_equality_with<not_eq_comparable_t, not_eq_comparable_t>);
     static_assert(not cs::not_equality_with<not_eq_comparable_t, int>);
 }
 namespace comparison::less {
+    // operator<
+    static_assert(cs::less_than_comparable_with<less_than_comparable, less_than_comparable>);
+    static_assert(not cs::less_than_comparable_with<less_or_eq_comparable, less_or_eq_comparable>);
+    static_assert(not cs::less_than_comparable_with<less_than_comparable, int>);
+    // operator<=
+    static_assert(cs::less_than_or_equal_to_comparable_with<less_or_eq_comparable, less_or_eq_comparable>);
+    static_assert(not cs::less_than_or_equal_to_comparable_with<less_than_comparable, less_than_comparable>);
+    static_assert(not cs::less_than_or_equal_to_comparable_with<less_than_comparable, int>);
 }
 namespace comparison::more {
+    // operator<
+    // operator<=
 }
 namespace arythmetic {
 }
