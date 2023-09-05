@@ -46,8 +46,23 @@ namespace test::strong_type::details::comparison {
 namespace test::strong_type::details { // NOLINT(*-concat-nested-namespaces)
 #if __cplusplus >= 202002L
 // C++20: concepts
-namespace concepts {
-    // WIP
+namespace comparison {
+    namespace cs = csl::ensure::details::concepts::comparison;
+}
+namespace comparison::equality {
+    // operator==
+    static_assert(cs::equality_with<eq_comparable_t, eq_comparable_t>);
+    static_assert(not cs::equality_with<eq_comparable_t, not_eq_comparable_t>);
+    // operator not_eq
+    static_assert(cs::not_equality_with<eq_comparable_t, eq_comparable_t>);
+    static_assert(cs::not_equality_with<not_eq_comparable_t, not_eq_comparable_t>);
+    static_assert(not cs::not_equality_with<not_eq_comparable_t, int>);
+}
+namespace comparison::less {
+}
+namespace comparison::more {
+}
+namespace arythmetic {
 }
 #else
 // C++17: type_traits
