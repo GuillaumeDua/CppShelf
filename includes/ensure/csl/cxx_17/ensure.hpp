@@ -184,7 +184,7 @@ namespace csl::ensure
         noexcept(noexcept(underlying_type{ std::forward<decltype(values)>(values)... }))
         : value{ std::forward<decltype(values)>(values)... }
         {}
-        // constructor: values
+        // constructor: values (piecewise)
         template <
             typename ...Ts,
             std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>, bool> = true
@@ -193,18 +193,22 @@ namespace csl::ensure
         noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
-        // constructor: copy
+        // constructor: value (copy)
         template <std::enable_if_t<std::is_copy_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         : value(arg)
         {}
-        // constructor: move
+        // constructor: value (move)
         template <std::enable_if_t<std::is_move_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         : value{ std::forward<decltype(arg)>(arg) }
         {}
+
+        constexpr strong_type(const strong_type &) = default;
+        constexpr strong_type(strong_type &&) noexcept = default;
+
         // destructor
         ~strong_type() noexcept(std::is_nothrow_destructible_v<underlying_type>) = default;
 
