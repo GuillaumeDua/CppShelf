@@ -7,8 +7,6 @@
 // TODO(Guss): strong_type: opt-ins
 // - Implicit conversion utilities to underlying
 // - operators support
-//  - invocation
-//  - comparison (==, !=, <, >, etc.)
 //  - arithmetic binary operators: (+, -, *, /, etc.)
 // -            unary operators:  (++, --, not, implicit bool conversion ?)
 
@@ -134,11 +132,11 @@ namespace csl::ensure
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
-        // TODO: arythmetic operators
+        // TODO(Guss): arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
-        // TODO: logic operators ?
+        // TODO(Guss): logic operators ?
 
         constexpr type & operator=(const type & other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>)
@@ -165,7 +163,6 @@ namespace csl::ensure
         }
 
 #pragma region invocation
-
         template <typename ... arguments_ts>
         constexpr std::invoke_result_t<lvalue_reference, arguments_ts&&...>
         operator()(arguments_ts && ... args) &
@@ -199,7 +196,6 @@ namespace csl::ensure
             return std::invoke(static_cast<const underlying_type&&>(value), csl_fwd(args)...);
         }
 #pragma endregion
-
 #pragma region comparison
 
         constexpr auto operator<=>(const type & other) const

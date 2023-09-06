@@ -252,10 +252,6 @@ namespace csl::ensure
             return *this;
         }
 
-        // TODO(Guss): comparisons
-        // <,>,
-        // <=, >=
-
 #pragma region invocation
         template <
             typename ... arguments_ts,
