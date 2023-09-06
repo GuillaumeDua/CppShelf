@@ -70,7 +70,12 @@ namespace comparison::less {
 namespace comparison::greater {
     // operator<
     static_assert(cs::greater_than_comparable_with<greater_than_comparable, greater_than_comparable>);
+    static_assert(not cs::greater_than_comparable_with<greater_than_comparable, greater_or_eq_comparable>);
+    static_assert(not cs::greater_than_comparable_with<greater_than_comparable, int>);
     // operator<=
+    static_assert(cs::greater_than_or_equal_comparable_with<greater_or_eq_comparable, greater_or_eq_comparable>);
+    static_assert(not cs::greater_than_or_equal_comparable_with<greater_or_eq_comparable, greater_than_comparable>);
+    static_assert(not cs::greater_than_or_equal_comparable_with<greater_or_eq_comparable, int>);
 }
 namespace arythmetic {
 }
