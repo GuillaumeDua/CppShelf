@@ -88,21 +88,21 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <typename T>
     constexpr bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
 
-    // is_more_than_comparable_with
+    // is_greater_than_comparable_with
     template <class, class, class = void>
-    struct is_more_than_comparable_with : std::false_type {};
+    struct is_greater_than_comparable_with : std::false_type {};
     template <class T, class U>
-    struct is_more_than_comparable_with<T, U, std::void_t<
+    struct is_greater_than_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() > std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() > std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr bool is_more_than_comparable_with_v = is_more_than_comparable_with<T, U>::value;
+    constexpr bool is_greater_than_comparable_with_v = is_greater_than_comparable_with<T, U>::value;
 
     // operator >
     template <class T>
-    struct is_more_than_comparable : is_more_than_comparable_with<T, T>{};
+    struct is_greater_than_comparable : is_greater_than_comparable_with<T, T>{};
     template <typename T>
-    constexpr bool is_more_than_comparable_v = is_more_than_comparable<T>::value;
+    constexpr bool is_greater_than_comparable_v = is_greater_than_comparable<T>::value;
 
     // is_less_equal_comparable
     template <class, class, class = void>
@@ -120,21 +120,21 @@ namespace csl::ensure::details::mp::type_traits::comparison {
     template <typename T>
     constexpr bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
 
-    // is_more_equal_comparable
+    // is_greater_equal_comparable
     template <class, class, class = void>
-    struct is_more_equal_comparable_with : std::false_type {};
+    struct is_greater_equal_comparable_with : std::false_type {};
     template <class T, class U>
-    struct is_more_equal_comparable_with<T, U, std::void_t<
+    struct is_greater_equal_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() >= std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() >= std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr bool is_more_equal_comparable_with_v = is_more_equal_comparable_with<T, U>::value;
+    constexpr bool is_greater_equal_comparable_with_v = is_greater_equal_comparable_with<T, U>::value;
 
     // operator <=
     template <class T>
-    struct is_more_equal_comparable : is_more_equal_comparable_with<T, T>{};
+    struct is_greater_equal_comparable : is_greater_equal_comparable_with<T, T>{};
     template <typename T>
-    constexpr bool is_more_equal_comparable_v = is_more_equal_comparable<T>::value;
+    constexpr bool is_greater_equal_comparable_v = is_greater_equal_comparable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::arythmetic {
     // operator+(T,U)
@@ -167,43 +167,50 @@ namespace csl::ensure
         using const_lvalue_reference = const T &;
         using const_rvalue_reference = const T &&;
 
-        // constructor: aggregate-initialization
-        template <std::enable_if_t<
-            std::is_default_constructible_v<underlying_type>
-        , bool> = true
-        >
+        // constructor: defaut
+        template <std::enable_if_t<std::is_default_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type()
         noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
         {}
-        template <typename ...Ts, std::enable_if_t<
-            std::is_aggregate_v<T> and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
-        , bool> = true
+        // constructor: aggregate-initialization
+        template <
+            typename ...Ts,
+            std::enable_if_t<
+                std::is_aggregate_v<T>
+                and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
+            , bool> = true
         >
-        // constructor: values
         constexpr explicit strong_type(Ts && ... values)
         noexcept(noexcept(underlying_type{ std::forward<decltype(values)>(values)... }))
         : value{ std::forward<decltype(values)>(values)... }
         {}
-        template <typename ...Ts, std::enable_if_t<
-            std::is_constructible_v<underlying_type, Ts&&...>
-        , bool> = true
+        // constructor: values (piecewise)
+        template <
+            typename ...Ts,
+            std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>, bool> = true
         >
         constexpr explicit strong_type(Ts && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
-        // constructor: copy
+        // constructor: value (copy)
         template <std::enable_if_t<std::is_copy_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         : value(arg)
         {}
-        // constructor: move
+        // constructor: value (move)
         template <std::enable_if_t<std::is_move_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         : value{ std::forward<decltype(arg)>(arg) }
         {}
+
+        constexpr strong_type(const strong_type &) = default;
+        constexpr strong_type(strong_type &&) noexcept = default;
+
+        // destructor
+        ~strong_type() noexcept(std::is_nothrow_destructible_v<underlying_type>) = default;
 
         constexpr lvalue_reference       underlying()        & noexcept { return value; }
         constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
@@ -215,7 +222,7 @@ namespace csl::ensure
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
-        // TODO: arythmetic operators
+        // TODO(Guss): arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
@@ -224,7 +231,8 @@ namespace csl::ensure
         constexpr type & operator=(type && other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
 
-        template <typename arg_type,
+        template <
+            typename arg_type,
             std::enable_if_t<std::is_assignable_v<underlying_type&, const arg_type&>, bool> = true
         >
         constexpr type & operator=(const arg_type & arg)
@@ -233,7 +241,8 @@ namespace csl::ensure
             value = arg;
             return *this;
         }
-        template <typename arg_type,
+        template <
+            typename arg_type,
             std::enable_if_t<std::is_assignable_v<underlying_type&, arg_type &&>, bool> = true
         >
         constexpr type & operator=(arg_type && arg)
@@ -243,11 +252,7 @@ namespace csl::ensure
             return *this;
         }
 
-        // TODO(Guss): comparisons
-        // <,>,
-        // <=, >=
-
-#pragma region comparison
+#pragma region invocation
         template <
             typename ... arguments_ts,
             std::enable_if_t<
@@ -298,11 +303,25 @@ namespace csl::ensure
         }
 #pragma endregion
 #pragma region comparison
-        // comparison: operator ==
+    // comparison: operator ==
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_equality_comparable_with_v<T, other_type>
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_equality_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator==(const other_type & arg) const
+        noexcept(noexcept(value == arg.underlying()))
+        -> bool
+        {
+            return value == arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_equality_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator==(const other_type & arg) const
@@ -311,11 +330,25 @@ namespace csl::ensure
         {
             return value == arg;
         }
-        // comparison: operator not_eq
+    // comparison: operator not_eq
         template <
             typename other_type,
             std::enable_if_t<
-                details::mp::type_traits::comparison::is_not_equality_comparable_with_v<T, other_type>
+                std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_not_equality_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator not_eq(const other_type & arg) const
+        noexcept(noexcept(value not_eq arg.underlying()))
+        -> bool
+        {
+            return value not_eq arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_not_equality_comparable_with_v<underlying_type, other_type>
             , bool> = true
         >
         constexpr auto operator not_eq(const other_type & arg) const
@@ -324,6 +357,119 @@ namespace csl::ensure
         {
             return value not_eq arg;
         }
+        
+    // comparison: operator<
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_less_than_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator<(const other_type & arg) const
+        noexcept(noexcept(value < arg.underlying()))
+        -> bool
+        {
+            return value < arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_less_than_comparable_with_v<underlying_type, other_type>
+            , bool> = true
+        >
+        constexpr auto operator<(const other_type & arg) const
+        noexcept(noexcept(value < arg))
+        -> bool
+        {
+            return value < arg;
+        }
+    // comparison: operator<=
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_less_equal_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator<=(const underlying_type & arg) const
+        noexcept(noexcept(value <= arg.underlying()))
+        -> bool
+        {
+            return value <= arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_less_equal_comparable_with_v<underlying_type, other_type>
+            , bool> = true
+        >
+        constexpr auto operator<=(const other_type & arg) const
+        noexcept(noexcept(value <= arg))
+        -> bool
+        {
+            return value <= arg;
+        }
+    // comparison: operator>
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_greater_than_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator>(const other_type & arg) const
+        noexcept(noexcept(value > arg.underlying()))
+        -> bool
+        {
+            return value > arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                not std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_greater_than_comparable_with_v<underlying_type, other_type>
+            , bool> = true
+        >
+        constexpr auto operator>(const other_type & arg) const
+        noexcept(noexcept(value > arg))
+        -> bool
+        {
+            return value > arg;
+        }
+    // comparison: operator>=
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+                and details::mp::type_traits::comparison::is_greater_equal_comparable_v<underlying_type>
+            , bool> = true
+        >
+        constexpr auto operator>=(const underlying_type & arg) const
+        noexcept(noexcept(value >= arg.underlying()))
+        -> bool
+        {
+            return value >= arg.underlying();
+        }
+        template <
+            typename other_type,
+            std::enable_if_t<
+                std::is_same_v<type, other_type>
+            and details::mp::type_traits::comparison::is_less_equal_comparable_with_v<underlying_type, other_type>
+            , bool> = true
+        >
+        constexpr auto operator>=(const other_type & arg) const
+        noexcept(noexcept(value >= arg))
+        -> bool
+        {
+            return value >= arg;
+        }
+
+    // WIP: all comparisons operators supports (tests)
+    // WIP: all comparisons operators supports (tests, with ambiguous overload resolution -> implicit conversions)
+
 #pragma endregion
 
     private:

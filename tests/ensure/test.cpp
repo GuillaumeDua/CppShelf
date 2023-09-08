@@ -1,5 +1,3 @@
-// TODO: cxx_17 specific cmake target
-
 #include <csl/ensure.hpp>
 
 #include <type_traits>
@@ -34,15 +32,59 @@ namespace test::utils::type_traits {
 #endif
 }
 
-#if __cplusplus >= 202002L
-#else
-namespace test::type_traits::comparison {
-    namespace tt = csl::ensure::details::mp::type_traits::comparison;
-}
-namespace test::type_traits::comparison::equality {
+namespace test::strong_type::details::comparison {
     struct eq_comparable_t{ bool operator==(const eq_comparable_t&) const { return {}; } };
     struct not_eq_comparable_t{ bool operator not_eq(const not_eq_comparable_t&) const { return {}; } };
+    struct less_than_comparable { bool operator< (const less_than_comparable & ) const { return {}; } };
+    struct less_or_eq_comparable{ bool operator<=(const less_or_eq_comparable &) const { return {}; } };
+    struct greater_than_comparable { bool operator> (const greater_than_comparable & ) const { return {}; } };
+    struct greater_or_eq_comparable{ bool operator>=(const greater_or_eq_comparable &) const { return {}; } };
+}
 
+namespace test::strong_type::details { // NOLINT(*-concat-nested-namespaces)
+#if __cplusplus >= 202002L
+// C++20: concepts
+namespace comparison {
+    namespace cs = csl::ensure::details::concepts::comparison;
+}
+namespace comparison::equality {
+    // operator==
+    static_assert(cs::equality_with<eq_comparable_t, eq_comparable_t>);
+    static_assert(not cs::equality_with<eq_comparable_t, not_eq_comparable_t>);
+    static_assert(not cs::equality_with<less_or_eq_comparable, less_or_eq_comparable>);
+    // operator not_eq
+    static_assert(cs::not_equality_with<eq_comparable_t, eq_comparable_t>);
+    static_assert(cs::not_equality_with<not_eq_comparable_t, not_eq_comparable_t>);
+    static_assert(not cs::not_equality_with<not_eq_comparable_t, int>);
+}
+namespace comparison::less {
+    // operator<
+    static_assert(cs::less_than_comparable_with<less_than_comparable, less_than_comparable>);
+    static_assert(not cs::less_than_comparable_with<less_or_eq_comparable, less_or_eq_comparable>);
+    static_assert(not cs::less_than_comparable_with<less_than_comparable, int>);
+    // operator<=
+    static_assert(cs::less_than_or_equal_to_comparable_with<less_or_eq_comparable, less_or_eq_comparable>);
+    static_assert(not cs::less_than_or_equal_to_comparable_with<less_than_comparable, less_than_comparable>);
+    static_assert(not cs::less_than_or_equal_to_comparable_with<less_than_comparable, int>);
+}
+namespace comparison::greater {
+    // operator<
+    static_assert(cs::greater_than_comparable_with<greater_than_comparable, greater_than_comparable>);
+    static_assert(not cs::greater_than_comparable_with<greater_than_comparable, greater_or_eq_comparable>);
+    static_assert(not cs::greater_than_comparable_with<greater_than_comparable, int>);
+    // operator<=
+    static_assert(cs::greater_than_or_equal_comparable_with<greater_or_eq_comparable, greater_or_eq_comparable>);
+    static_assert(not cs::greater_than_or_equal_comparable_with<greater_or_eq_comparable, greater_than_comparable>);
+    static_assert(not cs::greater_than_or_equal_comparable_with<greater_or_eq_comparable, int>);
+}
+namespace arythmetic {
+}
+#else
+// C++17: type_traits
+namespace comparison {
+namespace tt = csl::ensure::details::mp::type_traits::comparison;
+}
+namespace comparison::equality {
     // operator==
     static_assert(tt::is_equality_comparable_v<eq_comparable_t>);
     static_assert(not tt::is_equality_comparable_v<not_eq_comparable_t>);
@@ -50,10 +92,7 @@ namespace test::type_traits::comparison::equality {
     static_assert(tt::is_not_equality_comparable_v<not_eq_comparable_t>);
     static_assert(not tt::is_not_equality_comparable_v<eq_comparable_t>);
 }
-namespace test::type_traits::comparison::less {
-    struct less_than_comparable { bool operator< (const less_than_comparable & ) const { return {}; } };
-    struct less_or_eq_comparable{ bool operator<=(const less_or_eq_comparable &) const { return {}; } };
-
+namespace comparison::less {
     // operator<
     static_assert(tt::is_less_than_comparable_v<less_than_comparable>);
     static_assert(not tt::is_less_than_comparable_v<less_or_eq_comparable>);
@@ -61,21 +100,21 @@ namespace test::type_traits::comparison::less {
     static_assert(tt::is_less_equal_comparable_v<less_or_eq_comparable>);
     static_assert(not tt::is_less_equal_comparable_v<less_than_comparable>);
 }
-namespace test::type_traits::comparison::more {
-    struct more_than_comparable { bool operator> (const more_than_comparable & ) const { return {}; } };
-    struct more_or_eq_comparable{ bool operator>=(const more_or_eq_comparable &) const { return {}; } };
-
-    // operator<
-    static_assert(tt::is_more_than_comparable_v<more_than_comparable>);
-    static_assert(not tt::is_more_than_comparable_v<more_or_eq_comparable>);
-    // operator<=
-    static_assert(tt::is_more_equal_comparable_v<more_or_eq_comparable>);
-    static_assert(not tt::is_more_equal_comparable_v<more_than_comparable>);
+namespace comparison::greater {
+    // operator>
+    static_assert(tt::is_greater_than_comparable_v<greater_than_comparable>);
+    static_assert(not tt::is_greater_than_comparable_v<greater_or_eq_comparable>);
+    // operator>=
+    static_assert(tt::is_greater_equal_comparable_v<greater_or_eq_comparable>);
+    static_assert(not tt::is_greater_equal_comparable_v<greater_than_comparable>);
 }
-namespace test::type_traits::arythmetic {
+namespace arythmetic {
     namespace tt = csl::ensure::details::mp::type_traits::arythmetic;
+    // TODO(Guss)
 }
 #endif
+}
+
 namespace test::strong_type::type_traits {
 
     namespace tt = csl::ensure::type_traits;
@@ -202,7 +241,7 @@ namespace test::implicit_conversion {
     using cm = csl::ensure::strong_type<int, struct cm_tag>;
     static_assert(std::is_invocable_v<decltype(func), cm>);
 }
-namespace test::overload_resolution {
+namespace test::overload_resolution::better_match {
 
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     using cm = csl::ensure::strong_type<int, struct cm_tag>;
@@ -213,6 +252,17 @@ namespace test::overload_resolution {
 
     static_assert(1 == func(mm{42}));    // NOLINT
     static_assert(2 == func(cm{42}));    // NOLINT
+}
+namespace test::overload_resolution::match_or_implicit_conversion {
+
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    using cm = csl::ensure::strong_type<int, struct cm_tag>;
+
+    constexpr int func(int){ return 0; }
+    constexpr int func(mm){ return 1;}
+
+    static_assert(1 == func(mm{42}));    // NOLINT
+    static_assert(0 == func(cm{42}));    // NOLINT
 }
 
 namespace test::invocation {
