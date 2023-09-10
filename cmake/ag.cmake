@@ -1,12 +1,12 @@
 set(csl_ag_hpp ${PROJECT_SOURCE_DIR}/includes/ag/csl/ag.hpp)
 if (NOT EXISTS ${csl_ag_hpp})
-    message(FATAL "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : missing file ${csl_ag_hpp}")
+    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : missing file ${csl_ag_hpp}")
 endif()
 
 # Configuration ...
 ## CSL_AG_ENABLE_BITFIELDS_SUPPORT
 option(CSL_AG_ENABLE_BITFIELDS_SUPPORT "csl::ag : enable bitfields support (slower compilation)" FALSE)
-message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_ENABLE_BITFIELDS_SUPPORT set to ${CSL_AG_ENABLE_BITFIELDS_SUPPORT}")
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_ENABLE_BITFIELDS_SUPPORT set to [${CSL_AG_ENABLE_BITFIELDS_SUPPORT}]")
 if (CSL_AG_ENABLE_BITFIELDS_SUPPORT)
     add_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
 else()
@@ -26,9 +26,9 @@ endif()
 # Handle options ...
 ## CSL_AG_MAX_FIELDS_COUNT_OPTION
 set(CSL_AG_MAX_FIELDS_COUNT_OPTION "128" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
-message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION set to ${CSL_AG_MAX_FIELDS_COUNT_OPTION}")
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION set to [${CSL_AG_MAX_FIELDS_COUNT_OPTION}]")
 if (NOT CSL_AG_MAX_FIELDS_COUNT_OPTION MATCHES "^[0-9]+$")
-    message(FATAL "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION is not a valid number")
+    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION is not a valid number")
 endif()
 set(AG_MAX_FIELDS_COUNT ${CSL_AG_MAX_FIELDS_COUNT_OPTION})
 
@@ -108,7 +108,7 @@ string(REGEX REPLACE
 )
 
 if ("${csl_ag_hpp_file_content_with_injection}" STREQUAL "${csl_ag_hpp_file_content}")
-    message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : sources was already up-to-date (no new content was injected)")
+    message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : sources was already up-to-date (no new content was injected)")
 endif()
 
 FILE(WRITE ${csl_ag_hpp} "${csl_ag_hpp_file_content_with_injection}")

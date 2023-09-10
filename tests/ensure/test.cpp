@@ -293,20 +293,19 @@ namespace test::CPO {
     }
 }
 namespace test::io_ {
-    #if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
     void shift_to_ostream_support(){
+        #if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
         using namespace csl::io;
-        using mm = csl::ensure::strong_type<int, struct mm_tag>;
         std::cout << mm{42};
+        #endif
     }
-    #endif
 
-    #if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
     void fmt_support(){
-        using mm = csl::ensure::strong_type<int, struct mm_tag>;
-        fmt::print("value = {}", meters{42});
+        #if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
+        fmt::print("value = {}", mm{42});
+        #endif
     }
-    #endif
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
@@ -315,4 +314,8 @@ namespace test::io_ {
 auto main() -> int {
     test::CPO::std_hash();
     test::CPO::hasher();
+
+    // opt-ins
+    test::io_::shift_to_ostream_support();
+    test::io_::fmt_support();
 }

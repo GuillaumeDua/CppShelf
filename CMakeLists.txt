@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
+set(CMP0077 NEW)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -105,16 +107,18 @@ function(csl_create_component component_name)
 
     # add the component
     add_library(csl_${component_name}_lib INTERFACE)
+    add_library(csl::${component_name} ALIAS csl_${component_name}_lib)
     # check if component has a custom cmake pre-build/configuration to inject
     set(maybe_component_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/${component_name}.cmake")
     if (EXISTS "${maybe_component_custom_cmake_path}")
-        message(STATUS "[${CMAKE_PROJECT_NAME}] : csl::${component_name} : custom cmake detected ...")
+        message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : custom cmake rules detected ...")
+        list(APPEND CMAKE_MESSAGE_INDENT "  ")
         include("${maybe_component_custom_cmake_path}")
+        list(POP_BACK CMAKE_MESSAGE_INDENT)
     endif()
     target_include_directories(csl_${component_name}_lib INTERFACE
         ${PROJECT_SOURCE_DIR}/includes/${component_name}
     )
-    add_library(csl::${component_name} ALIAS csl_${component_name}_lib)
 
     # test
     option(CSL_TEST_${component_name} "[${CMAKE_PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_ENABLE_ALL_TESTS})
