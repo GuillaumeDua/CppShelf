@@ -28,3 +28,9 @@ if (${CSL_ENSURE__OPT_IN__FMT_SUPPORT})
     endif()
 endif()
 
+# opt-in: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT
+option(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable fmt support" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT set to [${CSL_ENSURE__OPT_IN__FMT_SUPPORT}]")
+if (${CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT})
+    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
+endif()

@@ -297,13 +297,13 @@ namespace test::io_ {
     void shift_to_ostream_support(){
         #if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
         using namespace csl::io;
-        std::cout << mm{42};
+        std::cout << "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT: value = " << mm{42} << '\n';
         #endif
     }
 
     void fmt_support(){
         #if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
-        fmt::print("value = {}", mm{42});
+        fmt::print("CSL_ENSURE__OPT_IN__FMT_SUPPORT: value = {}\n", mm{42});
         #endif
     }
 }
