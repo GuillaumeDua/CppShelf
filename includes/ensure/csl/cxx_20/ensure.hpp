@@ -381,6 +381,10 @@ namespace csl::ensure::concepts {
     concept StrongTypeOf = StrongType<strong_type> and csl::ensure::type_traits::is_strong_type_of_v<strong_type, T>;
     template <typename strong_type, typename T>
     concept TaggedBy = StrongType<strong_type> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
+    template <typename T>
+    concept Hashable = StrongType<T> and requires {
+        std::hash<csl::ensure::type_traits::underlying_type_t<T>>{};
+    };
 }
 
 // STL compatibility/interoperability
@@ -388,8 +392,9 @@ namespace csl::ensure::concepts {
 namespace csl::ensure {
     // CPO - hasher
     struct strong_type_hasher {
-        auto operator()(const csl::ensure::concepts::StrongType auto & value) const {
-        // TODO(Guss): requires hashable
+        template <csl::ensure::concepts::StrongType T>
+        requires csl::ensure::concepts::Hashable<T>
+        auto operator()(const T & value) const {
             using type = std::remove_cvref_t<decltype(value)>;
             using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
             return std::invoke(hasher{}, value);

@@ -38,6 +38,13 @@ namespace csl::ensure::details::mp::type_traits {
     struct is_aggregate_constructible : impl::is_aggregate_constructible_impl<T, void, args_ts...>{};
     template <class T, typename ... args_ts>
     constexpr bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
+
+    template <typename T, typename = void>
+    struct is_hashable : std::false_type {};
+    template <typename T>
+    struct is_hashable<T, std::void_t<decltype(std::hash<T>{})>> : std::true_type{};
+    template <typename T>
+    constexpr bool is_hashable_v = is_hashable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::comparison {
     // is_equality_comparable_with
@@ -550,10 +557,10 @@ namespace csl::ensure {
             typename T,
             std::enable_if_t<
                 csl::ensure::type_traits::is_strong_type_v<T>
+            and csl::ensure::details::mp::type_traits::is_hashable_v<T>
             , bool> = true
         >
         auto operator()(const T & value) const {
-        // TODO(Guss): requires hashable
             using type = std::decay_t<decltype(value)>;
             using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
             return std::invoke(hasher{}, value);
