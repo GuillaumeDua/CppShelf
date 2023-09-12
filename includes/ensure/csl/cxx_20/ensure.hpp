@@ -7,6 +7,7 @@
 // TODO(Guss): strong_type: opt-ins
 // - Implicit conversion utilities to underlying
 // - operators support
+// - comparison operators
 //  - arithmetic binary operators: (+, -, *, /, etc.)
 // -            unary operators:  (++, --, not, implicit bool conversion ?)
 
