@@ -74,6 +74,16 @@ namespace csl::ensure::details::concepts::comparison {
         { lhs >= rhs } -> std::convertible_to<bool>;
     };
 }
+namespace csl::ensure::details::concepts::unary_ops {
+    template <typename T>
+    concept prefix_incrementable = requires (T & value){
+        { ++value } -> std::convertible_to<T&>;
+    };
+    template <typename T>
+    concept postfox_incrementable = requires (T & value){
+        { value++ } -> std::convertible_to<T>;
+    };
+}
 namespace csl::ensure
 {
 	template <typename T, typename tag>
@@ -132,12 +142,6 @@ namespace csl::ensure
         constexpr /*explicit*/ operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
-
-        // TODO(Guss): arythmetic operators
-        //  +, -, *, /,
-        //  +=, -=, *=, /=
-
-        // TODO(Guss): logic operators ?
 
         constexpr type & operator=(const type & other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>)
@@ -302,6 +306,14 @@ namespace csl::ensure
         {
             return value >= arg;
         }
+#pragma endregion
+#pragma unary_operators
+// TODO(Guss): logic operators
+
+#pragma endregion
+#pragma arythmetic_operators
+//  +, -, *, /,
+//  +=, -=, *=, /=
 
 #pragma endregion
 
