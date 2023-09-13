@@ -83,6 +83,18 @@ namespace csl::ensure::details::concepts::unary_ops {
     concept postfox_incrementable = requires (T & value){
         { value++ } -> std::convertible_to<T>;
     };
+
+    //  +, -, *, /,
+    //  +=, -=, *=, /=
+
+    template <typename T, typename U>
+    concept compound_assignable_with = requires (T & lhs, const U & rhs){
+        { lhs += rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept addable_with = requires (const T & lhs, const U & rhs){
+        { lhs + rhs };
+    };
 }
 namespace csl::ensure
 {
@@ -202,7 +214,6 @@ namespace csl::ensure
         }
 #pragma endregion
 #pragma region comparison
-
         constexpr auto operator<=>(const type & other) const
         noexcept(noexcept(value <=> other.underlying()))
         requires std::three_way_comparable<underlying_type> {
