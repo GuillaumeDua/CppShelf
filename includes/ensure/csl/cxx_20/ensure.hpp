@@ -83,6 +83,14 @@ namespace csl::ensure::details::concepts::unary_ops {
     concept postfox_incrementable = requires (T & value){
         { value++ } -> std::convertible_to<T>;
     };
+    template <typename T>
+    concept prefix_decrementable = requires (T & value){
+        { --value } -> std::convertible_to<T&>;
+    };
+    template <typename T>
+    concept postfox_decrementable = requires (T & value){
+        { value-- } -> std::convertible_to<T>;
+    };
 
     //  +, -, *, /,
     //  +=, -=, *=, /=
