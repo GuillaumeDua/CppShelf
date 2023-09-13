@@ -29,7 +29,83 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
 // WIP: https://en.cppreference.com/w/cpp/language/operators
-namespace csl::ensure::details::concepts::comparison {
+namespace csl::ensure::details::concepts::operators::assignement {
+
+    template <typename T, typename U>
+    concept compound_assignable_with = requires (T & lhs, const U & rhs){
+        { lhs += rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_substract_with = requires (T & lhs, const U & rhs){
+        { lhs -= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_multiply_with = requires (T & lhs, const U & rhs){
+        { lhs *= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_divide_with = requires (T & lhs, const U & rhs){
+        { lhs /= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_modulo_with = requires (T & lhs, const U & rhs){
+        { lhs %= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_pipe_with = requires (T & lhs, const U & rhs){
+        { lhs |= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_and_with = requires (T & lhs, const U & rhs){
+        { lhs &= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_xor_with = requires (T & lhs, const U & rhs){
+        { lhs ^= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_left_shift_with = requires (T & lhs, const U & rhs){
+        { lhs <<= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_right_shift_with = requires (T & lhs, const U & rhs){
+        { lhs >>= rhs } -> std::convertible_to<T&>;
+    };
+}
+namespace csl::ensure::details::concepts::operators::increment_or_decrement {
+    template <typename T>
+    concept prefix_incrementable = requires (T & value){
+        { ++value } -> std::convertible_to<T&>;
+    };
+    template <typename T>
+    concept postfox_incrementable = requires (T & value){
+        { value++ } -> std::convertible_to<T>;
+    };
+    template <typename T>
+    concept prefix_decrementable = requires (T & value){
+        { --value } -> std::convertible_to<T&>;
+    };
+    template <typename T>
+    concept postfox_decrementable = requires (T & value){
+        { value-- } -> std::convertible_to<T>;
+    };
+}
+
+namespace csl::ensure::details::concepts::operators::arythmetic {
+    // arythmetic
+    template <typename T, typename U>
+    concept addable_with = requires (const T & lhs, const U & rhs){
+        { lhs + rhs };
+    };
+    template <typename T, typename U>
+    concept stubstract_with = requires (const T & lhs, const U & rhs){
+        { lhs - rhs };
+    };
+}
+namespace csl::ensure::details::concepts::operators::logical {
+
+}
+namespace csl::ensure::details::concepts::operators::comparison {
 // not using std concepts (std::equality_comparable) here,
 // as given type comparison might not be symetrical for some reasons
 
@@ -75,81 +151,8 @@ namespace csl::ensure::details::concepts::comparison {
         { lhs >= rhs } -> std::convertible_to<bool>;
     };
 }
-namespace csl::ensure::details::concepts::unary_ops {
+namespace csl::ensure::details::concepts::operators::member_access {
 
-    // assignements
-    template <typename T, typename U>
-    concept compound_assignable_with = requires (T & lhs, const U & rhs){
-        { lhs += rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_substract_with = requires (T & lhs, const U & rhs){
-        { lhs -= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_multiply_with = requires (T & lhs, const U & rhs){
-        { lhs *= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_divide_with = requires (T & lhs, const U & rhs){
-        { lhs /= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_modulo_with = requires (T & lhs, const U & rhs){
-        { lhs %= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_pipe_with = requires (T & lhs, const U & rhs){
-        { lhs |= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_and_with = requires (T & lhs, const U & rhs){
-        { lhs &= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_xor_with = requires (T & lhs, const U & rhs){
-        { lhs ^= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_left_shift_with = requires (T & lhs, const U & rhs){
-        { lhs <<= rhs } -> std::convertible_to<T&>;
-    };
-    template <typename T, typename U>
-    concept compound_right_shift_with = requires (T & lhs, const U & rhs){
-        { lhs >>= rhs } -> std::convertible_to<T&>;
-    };
-    
-    // increment/decrement
-    template <typename T>
-    concept prefix_incrementable = requires (T & value){
-        { ++value } -> std::convertible_to<T&>;
-    };
-    template <typename T>
-    concept postfox_incrementable = requires (T & value){
-        { value++ } -> std::convertible_to<T>;
-    };
-    template <typename T>
-    concept prefix_decrementable = requires (T & value){
-        { --value } -> std::convertible_to<T&>;
-    };
-    template <typename T>
-    concept postfox_decrementable = requires (T & value){
-        { value-- } -> std::convertible_to<T>;
-    };
-
-    // arythmetic
-    template <typename T, typename U>
-    concept addable_with = requires (const T & lhs, const U & rhs){
-        { lhs + rhs };
-    };
-    template <typename T, typename U>
-    concept stubstract_with = requires (const T & lhs, const U & rhs){
-        { lhs - rhs };
-    };
-
-    // logical
-    // comparison
-    // member access
 }
 namespace csl::ensure
 {
@@ -285,14 +288,14 @@ namespace csl::ensure
         constexpr auto operator==(const type & arg) const
         noexcept(noexcept(value == arg.underlying()))
         -> bool
-        requires details::concepts::comparison::equality_with<underlying_type, underlying_type>
+        requires details::concepts::operators::comparison::equality_with<underlying_type, underlying_type>
         {
             return value == arg.underlying();
         }
         constexpr auto operator==(const auto & arg) const
         noexcept(noexcept(value == arg))
         -> bool
-        requires details::concepts::comparison::equality_with<underlying_type, decltype(arg)>
+        requires details::concepts::operators::comparison::equality_with<underlying_type, decltype(arg)>
         {
             return value == arg;
         }
@@ -300,14 +303,14 @@ namespace csl::ensure
         constexpr auto operator not_eq(const type & arg) const
         noexcept(noexcept(value not_eq arg.underlying()))
         -> bool
-        requires details::concepts::comparison::not_equality_with<underlying_type, underlying_type>
+        requires details::concepts::operators::comparison::not_equality_with<underlying_type, underlying_type>
         {
             return value not_eq arg.underlying();
         }
         constexpr auto operator not_eq(const auto & arg) const
         noexcept(noexcept(value not_eq arg))
         -> bool
-        requires details::concepts::comparison::not_equality_with<underlying_type, decltype(arg)>
+        requires details::concepts::operators::comparison::not_equality_with<underlying_type, decltype(arg)>
         {
             return value not_eq arg;
         }
@@ -315,14 +318,14 @@ namespace csl::ensure
         constexpr auto operator <(const type & arg) const
         noexcept(noexcept(value < arg.underlying()))
         -> bool
-        requires details::concepts::comparison::less_than_comparable_with<underlying_type, underlying_type>
+        requires details::concepts::operators::comparison::less_than_comparable_with<underlying_type, underlying_type>
         {
             return value < arg.underlying();
         }
         constexpr auto operator <(const auto & arg) const
         noexcept(noexcept(value < arg))
         -> bool
-        requires details::concepts::comparison::less_than_comparable_with<underlying_type, decltype(arg)>
+        requires details::concepts::operators::comparison::less_than_comparable_with<underlying_type, decltype(arg)>
         {
             return value < arg;
         }
@@ -330,14 +333,14 @@ namespace csl::ensure
         constexpr auto operator >(const type & arg) const
         noexcept(noexcept(value > arg.underlying()))
         -> bool
-        requires details::concepts::comparison::greater_than_comparable_with<underlying_type, underlying_type>
+        requires details::concepts::operators::comparison::greater_than_comparable_with<underlying_type, underlying_type>
         {
             return value > arg.underlying();
         }
         constexpr auto operator >(const auto & arg) const
         noexcept(noexcept(value > arg))
         -> bool
-        requires details::concepts::comparison::greater_than_comparable_with<underlying_type, decltype(arg)>
+        requires details::concepts::operators::comparison::greater_than_comparable_with<underlying_type, decltype(arg)>
         {
             return value > arg;
         }
@@ -346,14 +349,14 @@ namespace csl::ensure
         constexpr auto operator <=(const type & arg) const
         noexcept(noexcept(value <= arg.underlying()))
         -> bool
-        requires details::concepts::comparison::less_than_or_equal_to_comparable_with<underlying_type, underlying_type>
+        requires details::concepts::operators::comparison::less_than_or_equal_to_comparable_with<underlying_type, underlying_type>
         {
             return value <= arg.underlying();
         }
         constexpr auto operator <=(const auto & arg) const
         noexcept(noexcept(value <= arg))
         -> bool
-        requires details::concepts::comparison::less_than_or_equal_to_comparable_with<underlying_type, decltype(arg)>
+        requires details::concepts::operators::comparison::less_than_or_equal_to_comparable_with<underlying_type, decltype(arg)>
         {
             return value <= arg;
         }
@@ -361,14 +364,14 @@ namespace csl::ensure
         constexpr auto operator >=(const type & arg) const
         noexcept(noexcept(value >= arg.underlying()))
         -> bool
-        requires details::concepts::comparison::greater_than_or_equal_comparable_with<underlying_type, underlying_type>
+        requires details::concepts::operators::comparison::greater_than_or_equal_comparable_with<underlying_type, underlying_type>
         {
             return value >= arg.underlying();
         }
         constexpr auto operator >=(const auto & arg) const
         noexcept(noexcept(value >= arg))
         -> bool
-        requires details::concepts::comparison::greater_than_or_equal_comparable_with<underlying_type, decltype(arg)>
+        requires details::concepts::operators::comparison::greater_than_or_equal_comparable_with<underlying_type, decltype(arg)>
         {
             return value >= arg;
         }

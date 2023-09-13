@@ -45,7 +45,7 @@ namespace test::strong_type::details { // NOLINT(*-concat-nested-namespaces)
 #if __cplusplus >= 202002L
 // C++20: concepts
 namespace comparison {
-    namespace cs = csl::ensure::details::concepts::comparison;
+    namespace cs = csl::ensure::details::concepts::operators::comparison;
 }
 namespace comparison::equality {
     // operator==
