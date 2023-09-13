@@ -28,6 +28,7 @@
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
+// WIP: https://en.cppreference.com/w/cpp/language/operators
 namespace csl::ensure::details::concepts::comparison {
 // not using std concepts (std::equality_comparable) here,
 // as given type comparison might not be symetrical for some reasons
@@ -75,6 +76,50 @@ namespace csl::ensure::details::concepts::comparison {
     };
 }
 namespace csl::ensure::details::concepts::unary_ops {
+
+    // assignements
+    template <typename T, typename U>
+    concept compound_assignable_with = requires (T & lhs, const U & rhs){
+        { lhs += rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_substract_with = requires (T & lhs, const U & rhs){
+        { lhs -= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_multiply_with = requires (T & lhs, const U & rhs){
+        { lhs *= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_divide_with = requires (T & lhs, const U & rhs){
+        { lhs /= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_modulo_with = requires (T & lhs, const U & rhs){
+        { lhs %= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_pipe_with = requires (T & lhs, const U & rhs){
+        { lhs |= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_and_with = requires (T & lhs, const U & rhs){
+        { lhs &= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_xor_with = requires (T & lhs, const U & rhs){
+        { lhs ^= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_left_shift_with = requires (T & lhs, const U & rhs){
+        { lhs <<= rhs } -> std::convertible_to<T&>;
+    };
+    template <typename T, typename U>
+    concept compound_right_shift_with = requires (T & lhs, const U & rhs){
+        { lhs >>= rhs } -> std::convertible_to<T&>;
+    };
+    
+    // increment/decrement
     template <typename T>
     concept prefix_incrementable = requires (T & value){
         { ++value } -> std::convertible_to<T&>;
@@ -92,17 +137,19 @@ namespace csl::ensure::details::concepts::unary_ops {
         { value-- } -> std::convertible_to<T>;
     };
 
-    //  +, -, *, /,
-    //  +=, -=, *=, /=
-
-    template <typename T, typename U>
-    concept compound_assignable_with = requires (T & lhs, const U & rhs){
-        { lhs += rhs } -> std::convertible_to<T&>;
-    };
+    // arythmetic
     template <typename T, typename U>
     concept addable_with = requires (const T & lhs, const U & rhs){
         { lhs + rhs };
     };
+    template <typename T, typename U>
+    concept stubstract_with = requires (const T & lhs, const U & rhs){
+        { lhs - rhs };
+    };
+
+    // logical
+    // comparison
+    // member access
 }
 namespace csl::ensure
 {
