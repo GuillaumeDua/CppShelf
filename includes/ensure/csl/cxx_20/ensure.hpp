@@ -383,8 +383,11 @@ namespace csl::ensure
 #pragma arythmetic_operators
 //  +, -, *, /,
 //  +=, -=, *=, /=
-
 #pragma endregion
+
+    // DESIGN: opt-ins as CRTP
+    // - base: https://godbolt.org/z/bbeW9Kq6j
+    // - WIP: diamond interface: https://godbolt.org/z/rnWvsWrsK
 
     private:
         underlying_type value;
