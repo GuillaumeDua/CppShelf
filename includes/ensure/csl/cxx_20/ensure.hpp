@@ -388,7 +388,7 @@ namespace csl::ensure
     // DESIGN: opt-ins as CRTP
     // - base: https://godbolt.org/z/bbeW9Kq6j
     // - diamond interface: https://godbolt.org/z/rnWvsWrsK
-    // - (WIP) https://godbolt.org/z/YYcMjW6ox
+    // - (WIP) https://godbolt.org/z/xhasvxPdh
 
     private:
         underlying_type value;
