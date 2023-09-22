@@ -465,4 +465,4 @@ struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
 #endif
 #endif
 
-#undef fwd
+#undef csl_fwd
