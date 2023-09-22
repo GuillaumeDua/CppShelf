@@ -662,4 +662,4 @@ struct fmt::formatter<
 #endif
 #endif
 
-#undef fwd
+#undef csl_fwd
