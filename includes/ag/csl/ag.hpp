@@ -2232,6 +2232,6 @@ struct fmt::formatter<T, CharT>
     }
 };
 
-#undef fwd
+#undef csl_fwd
 
 #endif

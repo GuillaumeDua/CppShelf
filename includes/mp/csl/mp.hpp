@@ -494,7 +494,7 @@ namespace csl::mp {
     using deduplicate_t = typename deduplicate<T>::type;
 }
 
-#undef fwd
+#undef csl_fwd
 #undef csl_static_dependent_error
 
 // wip : https://godbolt.org/z/TfMqM5TaG
