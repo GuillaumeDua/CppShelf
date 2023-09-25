@@ -394,7 +394,13 @@ namespace csl::ensure
     // - bench: https://quick-bench.com/q/VE2Er2vZ5W96JG_0CjYGoDyEQ2A
     // (same)
     // - Y-class combinator: https://godbolt.org/z/ffhMnvP7o
-    // - WIP: https://godbolt.org/z/7M71czovj
+    // - https://godbolt.org/z/7M71czovj
+    // - BAD: https://godbolt.org/z/vs5j7ocqG
+    // --- 
+    // back to simplicity
+    // - basic: https://godbolt.org/z/4rsf8xd46
+    // - WIP: https://godbolt.org/z/Poxf8KooP
+    // Q: allow only one T + tag association (no matter what `features...` are)
 
     private:
         underlying_type value;
