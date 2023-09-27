@@ -34,9 +34,20 @@ namespace csl::functional {
 
     // arguments
     template <typename ...> struct arguments{};
-    template <typename> struct arguments_size;
-    template <typename ... Ts> struct arguments_size<arguments<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
-    template <typename T> constexpr auto arguments_size_v = arguments_size<T>::value;
+    // arguments_size
+    template <typename>
+    struct arguments_size;
+    template <typename ... Ts>
+    struct arguments_size<arguments<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
+    template <typename T>
+    constexpr auto arguments_size_v = arguments_size<T>::value;
+    // arguments_element
+    template <std::size_t, typename>
+    struct arguments_element;
+    template <std::size_t index, typename... Ts>
+    struct arguments_element<index, arguments<Ts...>> : std::tuple_element<index, std::tuple<Ts...>>{};
+    template <std::size_t index, typename T>
+    using arguments_element_t = typename arguments_element<index, T>::type;
 
     // overload
     template <typename ...> struct overload_bases{};
