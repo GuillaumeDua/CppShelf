@@ -33,29 +33,15 @@ namespace csl::functional::details::type_traits {
 namespace csl::functional {
 
     // arguments
-    template <typename ...> struct arguments{};
-    // arguments_size
-    template <typename>
-    struct arguments_size;
-    template <typename ... Ts>
-    struct arguments_size<arguments<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
-    template <typename T>
-    constexpr auto arguments_size_v = arguments_size<T>::value;
-    // arguments_element
-    template <std::size_t, typename>
-    struct arguments_element;
-    template <std::size_t index, typename... Ts>
-    struct arguments_element<index, arguments<Ts...>> : std::tuple_element<index, std::tuple<Ts...>>{};
-    template <std::size_t index, typename T>
-    using arguments_element_t = typename arguments_element<index, T>::type;
+    template <typename ... Ts> using arguments = std::tuple<Ts...>;
 
     // overload
     template <typename ...> struct overload_bases{};
-    template<class... Ts> struct overload : Ts... {
+    template <class... Ts> struct overload : Ts... {
         using Ts::operator()...;
         using base_types = overload_bases<Ts...>;
     };
-    template<class... Ts> overload(Ts...) -> overload<Ts...>;
+    template <class... Ts> overload(Ts...) -> overload<Ts...>;
 
     // function_trait
     template <typename T> 
