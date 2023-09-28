@@ -73,6 +73,18 @@ namespace test::concepts {
     static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::mem_func_const_noexcept), ns::arguments<sample::user_defined_type, int>>);
 
     // nothrow_invocable_with
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::lambda_const), ns::arguments<int>>);
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::lambda_mutable), ns::arguments<int>>);
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::lambda_const_noexcept), ns::arguments<int>>);
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::func), ns::arguments<int>>);
+    static_assert(ns::concepts::nothrow_invocable_with<decltype(sample::func_noexcept), ns::arguments<int>>);
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::static_mem_func), ns::arguments<int>>);
+    static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::static_mem_func_noexcept), ns::arguments<int>>);
+
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func), ns::arguments<sample::user_defined_type, int>>);
+    static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_noexcept), ns::arguments<sample::user_defined_type, int>>);
+    static_assert(not ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_const), ns::arguments<sample::user_defined_type, int>>);
+    static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_const_noexcept), ns::arguments<sample::user_defined_type, int>>);
 }
 
 // TODO(Guss): overload

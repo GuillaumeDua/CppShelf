@@ -176,7 +176,7 @@ namespace csl::functional::type_traits {
     // is_invocable
     template <typename F, typename arguments_type>
     struct is_invocable {
-        static_assert(details::mp::dependent_false_v<F, arguments_type>, "csl::functional::type_traits::is_invocable: usage: is_invocable<F, arguments<Ts...>>");
+        static_assert(details::mp::dependent_false_v<F, arguments_type>, "requires:is_invocable<F, arguments<Ts...>>");
     };
     template <typename F, typename ... Ts>
     struct is_invocable<F, arguments<Ts...>> : std::is_invocable<F, Ts...>{};
@@ -185,7 +185,9 @@ namespace csl::functional::type_traits {
 
     // is_nothrow_invocable
     template <typename F, typename arguments_type>
-    struct is_nothrow_invocable : std::false_type{};
+    struct is_nothrow_invocable {
+        static_assert(details::mp::dependent_false_v<F, arguments_type>, "requires: is_nothrow_invocable<F, arguments<Ts...>>");
+    };
     template <typename F, typename ... Ts>
     struct is_nothrow_invocable<F, arguments<Ts...>> : std::is_nothrow_invocable<F, Ts...>{};
     template <typename T, typename arguments_type>
@@ -193,7 +195,9 @@ namespace csl::functional::type_traits {
 
     // is_invocable_r
     template <typename R, typename F, typename arguments_type>
-    struct is_invocable_r : std::false_type{};
+    struct is_invocable_r {
+        static_assert(details::mp::dependent_false_v<F, arguments_type>, "requires: is_invocable_r<R, F, arguments<Ts...>>");
+    };
     template <typename R, typename F, typename ... Ts>
     struct is_invocable_r<R, F, arguments<Ts...>> : std::is_invocable_r<R, F, Ts...>{};
     template <typename R, typename F, typename arguments_type>
@@ -201,7 +205,9 @@ namespace csl::functional::type_traits {
 
     // is_nothrow_invocable_r
     template <typename R, typename F, typename arguments_type>
-    struct is_nothrow_invocable_r : std::false_type{};
+    struct is_nothrow_invocable_r {
+        static_assert(details::mp::dependent_false_v<F, arguments_type>, "requires: is_nothrow_invocable_r<R, F, arguments<Ts...>>");
+    };
     template <typename R, typename F, typename ... Ts>
     struct is_nothrow_invocable_r<R, F, arguments<Ts...>> : std::is_nothrow_invocable_r<R, F, Ts...>{};
     template <typename R, typename F, typename arguments_type>

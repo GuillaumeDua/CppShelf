@@ -7,10 +7,10 @@ auto func(int, char) -> bool { return {}; }
 const auto lambda = [](int, char) -> bool { return {}; };
 const auto std_function = std::function{ lambda };
 // non-static member functions
-struct type { auto mem_func(int, char) -> bool { return {}; } };
+struct type { auto mem_func(int, char) -> bool { return {}; } }; // NOLINT(*-convert-member-functions-to-static)
 
 // demo
-auto main(int, char*argv[]) -> int {
+auto main(int, char*[]) -> int {
     using namespace csl::functional;
 
     // function trait: functors
