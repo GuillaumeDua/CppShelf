@@ -16,6 +16,8 @@ namespace csl::functional::details::mp {
     template <typename T>
     struct type_identity{ using type = T; };
 #endif
+    template <typename ...>
+    constexpr auto dependent_false_v = false;
 }
 
 namespace csl::functional::details::type_traits {
@@ -173,7 +175,9 @@ namespace csl::functional::type_traits {
 
     // is_invocable
     template <typename F, typename arguments_type>
-    struct is_invocable : std::false_type{};
+    struct is_invocable {
+        static_assert(details::mp::dependent_false_v<F, arguments_type>, "csl::functional::type_traits::is_invocable: usage: is_invocable<F, arguments<Ts...>>");
+    };
     template <typename F, typename ... Ts>
     struct is_invocable<F, arguments<Ts...>> : std::is_invocable<F, Ts...>{};
     template <typename T, typename arguments_type>
