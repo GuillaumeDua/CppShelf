@@ -1,4 +1,5 @@
 #include <csl/functional.hpp>
+#include <type_traits>
 
 namespace test::sample {
 
@@ -87,7 +88,45 @@ namespace test::concepts {
     static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_const_noexcept), ns::arguments<sample::user_defined_type, int>>);
 }
 
-// TODO(Guss): overload
+namespace test::overloads::utils {
+
+    template <typename overloaded_t>
+    static constexpr void check(){
+
+        using trait = csl::functional::overload_trait_t<overloaded_t>;
+
+        static_assert(std::tuple_size_v<trait> == 3);
+
+        // overload: argument types
+        static_assert(std::is_same_v<
+            typename std::tuple_element_t<0, trait>::arguments_type,
+            csl::functional::arguments<>
+        >);
+        static_assert(std::is_same_v<
+            typename std::tuple_element_t<1, trait>::arguments_type,
+            csl::functional::arguments<int>
+        >);
+        static_assert(std::is_same_v<
+            typename std::tuple_element_t<2, trait>::arguments_type,
+            csl::functional::arguments<char, bool>
+        >);
+        // overload: result types
+        static_assert(std::is_same_v<bool,   typename std::tuple_element_t<0, trait>::result_type>);
+        static_assert(std::is_same_v<float,  typename std::tuple_element_t<1, trait>::result_type>);
+        static_assert(std::is_same_v<double, typename std::tuple_element_t<2, trait>::result_type>);
+    }
+}
+namespace test::overloads {
+     // overload
+    constexpr auto overloaded = csl::functional::overload {
+        []() -> bool { return {}; },
+        [](int) -> float { return {}; },
+        [](char, bool) -> double { return {}; }
+    };
+    using overloaded_t = std::decay_t<decltype(overloaded)>;
+
+    constexpr static void do_checks(){ utils::check<overloaded_t>(); }
+}
 
 auto main() -> int {}
 
