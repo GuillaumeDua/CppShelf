@@ -88,10 +88,10 @@ namespace test::concepts {
     static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_const_noexcept), ns::arguments<sample::user_defined_type, int>>);
 }
 
-namespace test::overloads::utils {
+namespace test::overloads_traits::utils {
 
     template <typename overloaded_t>
-    static constexpr void check(){
+    constexpr void check(){
 
         using trait = csl::functional::overload_trait_t<overloaded_t>;
 
@@ -116,8 +116,8 @@ namespace test::overloads::utils {
         static_assert(std::is_same_v<double, typename std::tuple_element_t<2, trait>::result_type>);
     }
 }
-namespace test::overloads {
-     // overload
+namespace test::overloads_traits::overload {
+
     constexpr auto overloaded = csl::functional::overload {
         []() -> bool { return {}; },
         [](int) -> float { return {}; },
@@ -125,8 +125,38 @@ namespace test::overloads {
     };
     using overloaded_t = std::decay_t<decltype(overloaded)>;
 
-    constexpr static void do_checks(){ utils::check<overloaded_t>(); }
+    constexpr void do_check(){ utils::check<overloaded_t>(); }
 }
+
+// TODO(Guss): overload_set https://godbolt.org/z/YG1x9z3qo
+//  Fs...
+//  T, T::MemFs...
+
+// namespace test::overloads_traits::function {
+    
+//     auto func() -> bool { return {}; }
+//     auto func(int) -> float { return {}; }
+//     auto func(char, bool) -> double { return {}; }
+
+//     constexpr auto overloaded = csl::functional::overload {
+//         static_cast<bool(*)()>(&func)
+//     };
+//     using overloaded_t = std::decay_t<decltype(overloaded)>;
+    
+//     using overloaded_t = std::decay_t<decltype(&func)>;
+
+//     constexpr static void do_checks(){ utils::check<overloaded_t>(); }
+// }
+// namespace test::overloads_traits::user_defined_functor {
+    
+//     struct type {
+//         auto operator()() -> bool { return {}; }
+//         auto operator()(int) -> float { return {}; }
+//         auto operator()(char, bool) -> double { return {}; }
+//     };
+
+//     constexpr static void do_checks(){ utils::check<type>(); }
+// }
 
 auto main() -> int {}
 
