@@ -1,3 +1,5 @@
+# C++ Shelf
+
 <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" height="150" style="Padding: 0px 10px 0px 0px"/>
 
 <div style="position: absolute; top: 0; right: 0;">
@@ -12,8 +14,6 @@ style="position: absolute; top: 0; right: 0; z-index: 3;"
 >
 </a>
 </div>
-
-# C++ Shelf
 
 [![cmake-Ubuntu-clang](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml)
 [![cmake-Ubuntu-gcc](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml)  
@@ -41,8 +41,8 @@ The libraries here could, once mature enough, become self-contained in a separat
 
 A **tuple-like** interface for **aggregates** type.
 
-Project's 
-[documentation](https://guillaumedua.github.io/CppShelf/output/ag/), 
+Project's
+[documentation](https://guillaumedua.github.io/CppShelf/output/ag/),
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
 
 ### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
@@ -50,7 +50,7 @@ Project's
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
 
 See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/wf/), 
+[documentation](https://guillaumedua.github.io/CppShelf/output/wf/),
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
 ### 🧙‍♂️ [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
@@ -63,7 +63,7 @@ Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/2)
 
 Function & overload traits
 
-See project's [live demo on godbolt.org](https://godbolt.org/z/ssEW9ferd)
+See project's [live demo on godbolt.org](https://godbolt.org/z/Gd7fMKK8e)
 
 ### 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/typeinfo/csl/typeinfo.hpp)
 
