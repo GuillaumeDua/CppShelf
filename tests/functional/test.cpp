@@ -30,17 +30,24 @@ namespace test::function {
     using trait = csl::functional::function_trait<decltype(sample::func)>;
     static_assert(std::is_same_v<trait::arguments_type, csl::functional::arguments<int>>);
     static_assert(std::is_same_v<trait::result_type, char>);
+    static_assert(std::tuple_size_v<trait::arguments_type> == 1);
+    static_assert(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, int>);
 }
 namespace test::member_function {
     using trait = csl::functional::function_trait<decltype(&sample::user_defined_type::mem_func)>;
     static_assert(std::is_same_v<trait::arguments_type, csl::functional::arguments<sample::user_defined_type, int>>);
     static_assert(std::is_same_v<trait::result_type, char>);
+    static_assert(std::tuple_size_v<trait::arguments_type> == 2);
+    static_assert(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, sample::user_defined_type>);
+    static_assert(std::is_same_v<std::tuple_element_t<1, trait::arguments_type>, int>);
 }
 namespace test::lambda {
 
     using trait = csl::functional::function_trait<sample::lambda_const_t>;
     static_assert(std::is_same_v<trait::arguments_type, csl::functional::arguments<int>>);
     static_assert(std::is_same_v<trait::result_type, char>);
+    static_assert(std::tuple_size_v<trait::arguments_type> == 1);
+    static_assert(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, int>);
 }
 namespace test::concepts {
 
