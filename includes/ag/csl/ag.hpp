@@ -1938,27 +1938,35 @@ namespace csl::ag {
     using to_tuple_t = typename to_tuple<T>::type;
 }
 // tuple-like interface
+namespace std {
+// NOLINTBEGIN(cert-dcl58-cpp)
 //  N4606 [namespace.std]/1 :
 //  A program may add a template specialization for any standard library template to namespace std
 //  only if the declaration depends on a user-defined type 
 //  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-namespace std { // NOLINT(cert-dcl58-cpp)
+
 // TODO(Guss) : as opt-in, so aggregate are not necessarily tuplelike
 
     template <std::size_t N>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) {
+    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
         return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+    }
+    template <typename T>
+    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+        return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
     }
 
     template <std::size_t N, ::csl::ag::concepts::aggregate T>
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
 
-    // // screw-up the ADL (aggregate structured-binding vs tuplelike)
-    // template <csl::ag::concepts::aggregate T>
-    // struct tuple_size<T> : std::integral_constant<std::size_t, csl::ag::details::fields_count<T>>{};
+    // screw-up the ADL (aggregate structured-binding vs tuplelike)
+    // template <::csl::ag::concepts::aggregate T>
+    // struct tuple_size<T> : std::integral_constant<std::size_t, ::csl::ag::details::fields_count<T>>{};
+// NOLINTEND(cert-dcl58-cpp)
 }
 
 // csl::ag::io
+// REFACTO: #134
 #include <string_view>
 
 // TODO: remove this coupling with gcl
