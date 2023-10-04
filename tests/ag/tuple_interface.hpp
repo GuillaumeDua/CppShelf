@@ -7,18 +7,21 @@
 namespace test::ag {
     template <typename T>
     struct S {
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
         T v;
         const T c_v;
         T & ref = v;
         const T & c_ref = c_v;
         T && rref = std::move(v);
         const T && c_rref = std::move(c_v);
+    // NOLINTEND(*-avoid-const-or-ref-data-members)
     };
     using type = S<int>;
 }
 
 namespace test::ag::size_ {
-    static_assert(csl::ag::size_v<type> == 6);
+    constexpr auto expected_size_v = 6;
+    static_assert(csl::ag::size_v<type> == expected_size_v);
 }
 namespace test::ag::element_ {
 
