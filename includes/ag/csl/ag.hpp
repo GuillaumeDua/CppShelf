@@ -154,10 +154,10 @@ namespace csl::ag::details {
     # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
-    consteval auto fields_count_impl() -> std::size_t {
+    [[nodiscard]] consteval auto fields_count_impl() -> std::size_t {
     // faster algorithm if T is default_initializable (ref fields can be initialized),
     // and no fields is a bitfield.
-        static_assert(not std::is_reference_v<T>);
+        static_assert(not std::is_reference_v<T>, "concepts::aggregate T cannot be cv-ref qualified");
 
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
@@ -176,7 +176,7 @@ namespace csl::ag::details {
     #endif
 
     template <concepts::aggregate T, std::size_t indice>
-    consteval auto fields_count_impl() -> std::size_t {
+    [[nodiscard]] consteval auto fields_count_impl() -> std::size_t {
     // costly algorithm
         static_assert(not std::is_reference_v<T>);
 
