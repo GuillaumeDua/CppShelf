@@ -62,4 +62,8 @@ Enriching type modification traits
 ## WIP
 
 - https://godbolt.org/z/WsozGT8Eb
+- MVE issue: https://godbolt.org/z/xdeqs3rjv
 
+## Questions
+
+- explicit user-defined conversion from aggregate to tuple ? to tuple_view ?
