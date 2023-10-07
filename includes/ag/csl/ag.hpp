@@ -1953,6 +1953,7 @@ namespace std {
     }
     template <typename T>
     constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+        // WIP: tuple_view is bad here, use plain tuple
         return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
     }
 
