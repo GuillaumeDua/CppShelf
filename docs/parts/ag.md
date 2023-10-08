@@ -63,6 +63,11 @@ Enriching type modification traits
 
 - https://godbolt.org/z/WsozGT8Eb
 - MVE issue: https://godbolt.org/z/xdeqs3rjv
+- https://godbolt.org/z/rfee1Mn9E
+
+- MVE issue: https://godbolt.org/z/eco1Pnszb
+
+- WIP: refacto: https://godbolt.org/z/rfee1Mn9E
 
 ## Questions
 

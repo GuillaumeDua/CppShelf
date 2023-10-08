@@ -19,7 +19,7 @@ endif()
 #
 # template <std::size_t N> requires (N == /* 0..AG_MAX_FIELDS_COUNT */)
 # auto as_tuple_view_impl(Aggregate auto && value) {
-#	auto & [ v[0..AG_MAX_FIELDS_COUNT]... ] = value;
+#	auto && [ v[0..AG_MAX_FIELDS_COUNT]... ] = value;
 #	return make_tuple_view<decltype(value)>( v[0..AG_MAX_FIELDS_COUNT]... );
 # }
 
