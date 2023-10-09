@@ -67,7 +67,74 @@ Enriching type modification traits
 
 - MVE issue: https://godbolt.org/z/eco1Pnszb
 
-- WIP: refacto: https://godbolt.org/z/rfee1Mn9E
+- WIP: refacto: https://godbolt.org/z/T3x6n7oec
+
+### dev sample
+
+```cpp
+struct aggregate_type {
+    int v0; int & v1; int && v2; const int v3; const int & v4; const int && v5;
+};
+using tuple_type = std::tuple<
+    int, int &, int &&, const int, const int &, const int &&
+>;
+```
+
+### `std::forward_as_tuple`
+
+```console
+value:       aggregate_type &
+view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
+tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+       int & |       int && | ❌
+       int & |        int & | ✅
+       int & |       int && | ❌
+ const int & | const int && | ❌
+ const int & |  const int & | ✅
+ const int & | const int && | ❌
+
+value:       const aggregate_type &
+view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
+tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const int &&> &
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+ const int & | const int && | ❌
+       int & |        int & | ✅
+       int & |       int && | ❌
+ const int & | const int && | ❌
+ const int & |  const int & | ✅
+ const int & | const int && | ❌
+
+value:       aggregate_type &&
+view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
+tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &&
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+      int && |       int && | ✅
+       int & |        int & | ✅
+      int && |       int && | ✅
+const int && | const int && | ✅
+ const int & |  const int & | ✅
+const int && | const int && | ✅
+
+value:       const aggregate_type &&
+view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
+tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const int &&> &&
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+const int && | const int && | ✅
+       int & |        int & | ✅
+      int && |       int && | ✅
+const int && | const int && | ✅
+ const int & |  const int & | ✅
+const int && | const int && | ✅
+```
 
 ## Questions
 
