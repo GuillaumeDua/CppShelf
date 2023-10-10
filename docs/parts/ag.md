@@ -66,34 +66,55 @@ Enriching type modification traits
 - https://godbolt.org/z/rfee1Mn9E
 - MVE issue: https://godbolt.org/z/eco1Pnszb
 
+---
+
+**Question**: `tuple_view` -> reference_collapsing of owner cvref + field cvref
+
+- `std::get` propagates the owner's cvref-qualifier
+
+    ```cpp
+    template <class T, class... Types>
+    constexpr T& get( tuple<Types...> & t) noexcept;
+    template <class T, class... Types >
+    constexpr T&& get( tuple<Types...> && t) noexcept;
+    template <class T, class... Types >
+    constexpr const T& get( const tuple<Types...> & t) noexcept;
+    template <class T, class... Types >
+    constexpr const T&& get( const tuple<Types...> && t) noexcept;
+    ```
+
+So a `tuple_view` must be consumed using the same cvref semantic as an owning `tuple`.  
+(or should I implement a view_get, as partially-specializing `std::get` is not much of a good idea: `cert-dcl58-cpp` ...).
+
+**WIP**: ⚠️ **bias**: comparing `tuple_value&&` and `decltype(view)&`
+
+ - https://godbolt.org/z/8Y1x86Wdx
+
 ### dev sample
 
 ```cpp
-struct aggregate_type {
-    int v0; int & v1; int && v2; const int v3; const int & v4; const int && v5;
-};
-using tuple_type = std::tuple<
-    int, int &, int &&, const int, const int &, const int &&
->;
+struct aggregate_type        { int v0; int & v1; int && v2; const int v3; const int & v4; const int && v5; };
+using tuple_type = std::tuple< int,    int &,    int &&,    const int,    const int &,    const int && >;
 ```
 
 ### `std::forward_as_tuple`
 
-Live demo [here](https://godbolt.org/z/T3x6n7oec).
+Live demo [here](https://godbolt.org/z/4xbbY8fPE).
 
 ```console
+
 value:       aggregate_type &
 view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
 tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &
 
        tuple |  tuple_view  |  same ?
        ----- |  ----------  |  ----
-       int & |       int && | ❌
        int & |        int & | ✅
-       int & |       int && | ❌
- const int & | const int && | ❌
+       int & |        int & | ✅
+       int & |        int & | ✅
  const int & |  const int & | ✅
- const int & | const int && | ❌
+ const int & |  const int & | ✅
+ const int & |  const int & | ✅
 
 value:       const aggregate_type &
 view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
@@ -101,12 +122,12 @@ tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const 
 
        tuple |  tuple_view  |  same ?
        ----- |  ----------  |  ----
- const int & | const int && | ❌
-       int & |        int & | ✅
-       int & |       int && | ❌
- const int & | const int && | ❌
  const int & |  const int & | ✅
- const int & | const int && | ❌
+       int & |        int & | ✅
+       int & |        int & | ✅
+ const int & |  const int & | ✅
+ const int & |  const int & | ✅
+ const int & |  const int & | ✅
 
 value:       aggregate_type &&
 view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
@@ -114,12 +135,12 @@ tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&
 
        tuple |  tuple_view  |  same ?
        ----- |  ----------  |  ----
-      int && |       int && | ✅
+      int && |        int & | ❌
        int & |        int & | ✅
-      int && |       int && | ✅
-const int && | const int && | ✅
+      int && |        int & | ❌
+const int && |  const int & | ❌
  const int & |  const int & | ✅
-const int && | const int && | ✅
+const int && |  const int & | ❌
 
 value:       const aggregate_type &&
 view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
@@ -127,17 +148,18 @@ tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const 
 
        tuple |  tuple_view  |  same ?
        ----- |  ----------  |  ----
-const int && | const int && | ✅
+const int && |  const int & | ❌
        int & |        int & | ✅
-      int && |       int && | ✅
-const int && | const int && | ✅
+      int && |        int & | ❌
+const int && |  const int & | ❌
  const int & |  const int & | ✅
-const int && | const int && | ✅
+const int && |  const int & | ❌
+
 ```
 
 ### `field_view`
 
-Live demo [here](https://godbolt.org/z/vEYEnc5xe).
+Live demo [here](https://godbolt.org/z/Y89bEzM1f).
 
 ```cpp
 // field_view
@@ -151,6 +173,7 @@ using field_view_t = typename field_view<owner, T>::type;
 ```
 
 ```console
+
 value:       aggregate_type &
 view :       std::tuple<int &, int &, int &&, const int &, const int &, const int &&>
 tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &
@@ -159,10 +182,10 @@ tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&
        ----- |  ----------  |  ----
        int & |        int & | ✅
        int & |        int & | ✅
-       int & |       int && | ❌
+       int & |        int & | ✅
  const int & |  const int & | ✅
  const int & |  const int & | ✅
- const int & | const int && | ❌
+ const int & |  const int & | ✅
 
 value:       const aggregate_type &
 view :       std::tuple<const int &, int &, int &&, const int &, const int &, const int &&>
@@ -172,10 +195,10 @@ tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const 
        ----- |  ----------  |  ----
  const int & |  const int & | ✅
        int & |        int & | ✅
-       int & |       int && | ❌
+       int & |        int & | ✅
  const int & |  const int & | ✅
  const int & |  const int & | ✅
- const int & | const int && | ❌
+ const int & |  const int & | ✅
 
 value:       aggregate_type &&
 view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
@@ -183,12 +206,12 @@ tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&
 
        tuple |  tuple_view  |  same ?
        ----- |  ----------  |  ----
-      int && |       int && | ✅
+      int && |        int & | ❌
        int & |        int & | ✅
-      int && |       int && | ✅
-const int && | const int && | ✅
+      int && |        int & | ❌
+const int && |  const int & | ❌
  const int & |  const int & | ✅
-const int && | const int && | ✅
+const int && |  const int & | ❌
 
 value:       const aggregate_type &&
 view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
@@ -196,12 +219,13 @@ tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const 
 
        tuple |  tuple_view  |  same ?
        ----- |  ----------  |  ----
-const int && | const int && | ✅
+const int && |  const int & | ❌
        int & |        int & | ✅
-      int && |       int && | ✅
-const int && | const int && | ✅
+      int && |        int & | ❌
+const int && |  const int & | ❌
  const int & |  const int & | ✅
-const int && | const int && | ✅
+const int && |  const int & | ❌
+
 ```
 
 ## Questions
