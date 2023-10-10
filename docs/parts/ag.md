@@ -64,10 +64,7 @@ Enriching type modification traits
 - https://godbolt.org/z/WsozGT8Eb
 - MVE issue: https://godbolt.org/z/xdeqs3rjv
 - https://godbolt.org/z/rfee1Mn9E
-
 - MVE issue: https://godbolt.org/z/eco1Pnszb
-
-- WIP: refacto: https://godbolt.org/z/T3x6n7oec
 
 ### dev sample
 
@@ -81,6 +78,8 @@ using tuple_type = std::tuple<
 ```
 
 ### `std::forward_as_tuple`
+
+Live demo [here](https://godbolt.org/z/T3x6n7oec).
 
 ```console
 value:       aggregate_type &
@@ -106,6 +105,75 @@ tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const 
        int & |        int & | ✅
        int & |       int && | ❌
  const int & | const int && | ❌
+ const int & |  const int & | ✅
+ const int & | const int && | ❌
+
+value:       aggregate_type &&
+view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
+tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &&
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+      int && |       int && | ✅
+       int & |        int & | ✅
+      int && |       int && | ✅
+const int && | const int && | ✅
+ const int & |  const int & | ✅
+const int && | const int && | ✅
+
+value:       const aggregate_type &&
+view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
+tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const int &&> &&
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+const int && | const int && | ✅
+       int & |        int & | ✅
+      int && |       int && | ✅
+const int && | const int && | ✅
+ const int & |  const int & | ✅
+const int && | const int && | ✅
+```
+
+### `field_view`
+
+Live demo [here](https://godbolt.org/z/vEYEnc5xe).
+
+```cpp
+// field_view
+template <typename owner, typename T>
+struct field_view : copy_cvref<owner, T>{};
+template <typename owner, typename T>
+requires (std::is_reference_v<T>)
+struct field_view<owner, T> : std::type_identity<T>{};
+template <typename owner, typename T>
+using field_view_t = typename field_view<owner, T>::type;
+```
+
+```console
+value:       aggregate_type &
+view :       std::tuple<int &, int &, int &&, const int &, const int &, const int &&>
+tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+       int & |        int & | ✅
+       int & |        int & | ✅
+       int & |       int && | ❌
+ const int & |  const int & | ✅
+ const int & |  const int & | ✅
+ const int & | const int && | ❌
+
+value:       const aggregate_type &
+view :       std::tuple<const int &, int &, int &&, const int &, const int &, const int &&>
+tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const int &&> &
+
+       tuple |  tuple_view  |  same ?
+       ----- |  ----------  |  ----
+ const int & |  const int & | ✅
+       int & |        int & | ✅
+       int & |       int && | ❌
+ const int & |  const int & | ✅
  const int & |  const int & | ✅
  const int & | const int && | ❌
 
