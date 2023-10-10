@@ -86,6 +86,9 @@ Enriching type modification traits
 So a `tuple_view` must be consumed using the same cvref semantic as an owning `tuple`.  
 (or should I implement a view_get, as partially-specializing `std::get` is not much of a good idea: `cert-dcl58-cpp` ...).
 
+- ✅ Good `make_tuple_view(tuplelike&&)` implementation [here](https://godbolt.org/z/b135YPnMh).
+  - using [quick DSL](https://godbolt.org/z/EsEva354T)
+
 **WIP**: ⚠️ **bias**: comparing `tuple_value&&` and `decltype(view)&`
 
  - https://godbolt.org/z/8Y1x86Wdx
@@ -231,3 +234,6 @@ const int && |  const int & | ❌
 ## Questions
 
 - explicit user-defined conversion from aggregate to tuple ? to tuple_view ?
+- using DSL ?
+  - `aggregate_value | as_tuple`
+  - `aggregate_value | as_tuple_view`
