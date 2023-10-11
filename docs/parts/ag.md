@@ -89,9 +89,9 @@ So a `tuple_view` must be consumed using the same cvref semantic as an owning `t
 - ✅ Good `make_tuple_view(tuplelike&&)` implementation [here](https://godbolt.org/z/b135YPnMh).
   - using [quick DSL](https://godbolt.org/z/EsEva354T)
 
-**WIP**: ⚠️ **bias**: comparing `tuple_value&&` and `decltype(view)&`
-
- - https://godbolt.org/z/8Y1x86Wdx
+WIP: https://godbolt.org/z/59rMGMYMx
+MVE: https://godbolt.org/z/6jjM5Tb4b
+MVE + small tuple factory : https://godbolt.org/z/ahheTT8T9
 
 ### dev sample
 
@@ -229,6 +229,35 @@ const int && |  const int & | ❌
  const int & |  const int & | ✅
 const int && |  const int & | ❌
 
+```
+
+### tuple view factory
+
+// WIP. TODO: forward
+
+```cpp
+namespace mp {
+template <template <typename ...> typename trait, typename ... bound_Ts>
+struct bind_front {
+// TODO: universal template argument
+      template <typename ... Ts>
+      using type = typename trait<bound_Ts..., Ts...>::type;
+
+      template <typename ... Ts>
+      constexpr static auto value = trait<bound_Ts..., Ts...>::value;
+};
+}
+
+template <template <typename ...> typename trait, typename ... bound_Ts>
+[[nodiscard]] auto make_tuple(mp::bind_front<trait, bound_Ts...>, auto && ... values){
+    using type_factory = typename mp::bind_front<trait, bound_Ts...>;
+    using result_type = std::tuple<
+        typename type_factory::template type<decltype(values)>...
+    >;
+    return result_type{
+        static_cast<typename type_factory::template type<decltype(values)>>(values)...
+    };
+}
 ```
 
 ## Questions
