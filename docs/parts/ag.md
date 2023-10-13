@@ -233,7 +233,11 @@ const int && |  const int & | ❌
 
 ### tuple view factory
 
-// WIP, implementation [here](https://godbolt.org/z/6Gb1PK5rv).
+**WIP**, implementation
+
+- [here](https://godbolt.org/z/6Gb1PK5rv)
+- https://godbolt.org/z/xTfaz9TP6
+- IT WORKS ! 😍 https://godbolt.org/z/Wec3eGYGf
 
 ```cpp
 namespace mp {
