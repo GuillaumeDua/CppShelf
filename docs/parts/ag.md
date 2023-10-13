@@ -233,7 +233,7 @@ const int && |  const int & | ❌
 
 ### tuple view factory
 
-// WIP. TODO: forward
+// WIP, implementation [here](https://godbolt.org/z/6Gb1PK5rv).
 
 ```cpp
 namespace mp {
@@ -249,7 +249,7 @@ struct bind_front {
 }
 
 template <template <typename ...> typename trait, typename ... bound_Ts>
-[[nodiscard]] auto make_tuple(mp::bind_front<trait, bound_Ts...>, auto && ... values){
+[[nodiscard]] auto tuple_utils::project/*transform*/(mp::bind_front<trait, bound_Ts...>, auto && ... values){
     using type_factory = typename mp::bind_front<trait, bound_Ts...>;
     using result_type = std::tuple<
         typename type_factory::template type<decltype(values)>...
