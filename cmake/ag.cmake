@@ -57,7 +57,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
 [[nodiscard]] constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
-\treturn std::tuple<decltype(value), ${identities_decltype}>( ${identities_fwd} );
+\treturn std::tuple<${identities_decltype}>( ${identities_fwd} );
 }\n"
     )
     string(APPEND identities ",v${ID}")
@@ -132,7 +132,7 @@ file(READ ${csl_ag__cmake_generated_code__filepath} csl_ag_hpp_to_inject)
 file(READ ${csl_ag_hpp} csl_ag_hpp_file_content)
 string(REGEX REPLACE
     "(\\/\\/ GENERATED CONTENT, DO NOT EDIT MANUALLY !\n)(.*)(\\/\\/ END OF GENERATED CONTENT)"
-    "\\1namespace generated{\n${csl_ag_hpp_to_inject}}\n\\3"
+    "\\1${csl_ag_hpp_to_inject}\\3"
     csl_ag_hpp_file_content_with_injection  # OUTPUT
     "${csl_ag_hpp_file_content}"            # INPUT
 )
