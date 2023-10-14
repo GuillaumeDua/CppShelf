@@ -70,6 +70,11 @@ get(const tuple<Types...>&& t) noexcept;
 
 - [demo](https://godbolt.org/z/edjcnczcq)
 
+**Conclusion**: `tuple_view` -> reference_collapsing of owner cvref + field cvref
+
+So a `tuple_view` must be consumed using the same cvref semantic as an owning `tuple`.  
+*(or should I implement a view_get, as partially-specializing `std::get` is not much of a good idea: `cert-dcl58-cpp` ...)*.
+
 ## WIP
 
 - https://godbolt.org/z/WsozGT8Eb
@@ -79,17 +84,14 @@ get(const tuple<Types...>&& t) noexcept;
 
 ---
 
-**Question**: `tuple_view` -> reference_collapsing of owner cvref + field cvref
-
-So a `tuple_view` must be consumed using the same cvref semantic as an owning `tuple`.  
-(or should I implement a view_get, as partially-specializing `std::get` is not much of a good idea: `cert-dcl58-cpp` ...).
-
 - ✅ Good `make_tuple_view(tuplelike&&)` implementation [here](https://godbolt.org/z/b135YPnMh).
   - using [quick DSL](https://godbolt.org/z/EsEva354T)
 
 WIP: https://godbolt.org/z/59rMGMYMx
 MVE: https://godbolt.org/z/6jjM5Tb4b
 MVE + small tuple factory : https://godbolt.org/z/ahheTT8T9
+
+ISSUE: view and tuple for `std::get<T>`: types might occure more than once
 
 ### dev sample
 
