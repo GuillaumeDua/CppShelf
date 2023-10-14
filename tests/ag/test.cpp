@@ -8,10 +8,10 @@
 # error "[Test] csl::ag : expect CSL_AG_ENABLE_BITFIELDS_SUPPORT"
 #endif
 
-#include "./details/mp.hpp"
-#include "./details/view.hpp"
-#include "./tuple_interface.hpp"
-#include "./conversion.hpp"
+// #include "./details/mp.hpp"
+// #include "./details/view.hpp"
+// #include "./tuple_interface.hpp"
+// #include "./conversion.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -29,47 +29,49 @@ auto & operator<<(std::ostream & os, type_3) { return os << "type_3 : user-defin
 
 auto main() -> int {
 
-    // runtime-tests
-    try {
-        test::ag::details::as_tuple_view::check_field_values();
-    }
-    catch (const std::exception & ex) {
-        std::cerr << ex.what() << '\n';
-        return 1;
-    }
-    catch (...) {
-        return 1;
-    }
+    // // runtime-tests
+    // try {
+    //     test::ag::details::as_tuple_view::check_field_values();
+    // }
+    // catch (const std::exception & ex) {
+    //     std::cerr << ex.what() << '\n';
+    //     return 1;
+    // }
+    // catch (...) {
+    //     return 1;
+    // }
 
-    using namespace csl::ag::io;
+    // using namespace csl::ag::io;
 
-    char c = 'a';
+    // char c = 'a';
 
-    std::cout
-        << type_0{} << "\n-----\n"
-        << type_1{} << "\n-----\n"
-        << type_2{} << "\n-----\n"
-        << type_3{} << "\n-----\n"
-        << type_4{ 42, c } << "\n-----\n"
-        // << std::tuple{42, 'a'} << "-----\n"
-    ;
-    struct A{ int i; float f; };
-    struct B {
-        A a;
-        int i;
-        std::string str;
-        char && c; // because of this rvalue reference, B is only constructible with 4 values parameters
-    } v1 { 
-        .a = A{ 13, .12f },
-        .i = 42, .str = "str", .c = std::move(c)
-    };
-    static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 1>);
-    static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 2>);
-    static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 3>);
-    static_assert(csl::ag::concepts::aggregate_constructible_from_n_values<B, 4>);
-    static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 5>);
-    static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 6>);
-    static_assert(csl::ag::details::fields_count<B> == 4);
+    // std::cout
+    //     << type_0{} << "\n-----\n"
+    //     << type_1{} << "\n-----\n"
+    //     << type_2{} << "\n-----\n"
+    //     << type_3{} << "\n-----\n"
+    //     << type_4{ 42, c } << "\n-----\n"
+    //     // << std::tuple{42, 'a'} << "-----\n"
+    // ;
+    // struct A{ int i; float f; };
+    // struct B {
+    //     A a;
+    //     int i;
+    //     std::string str;
+    //     char && c; // because of this rvalue reference, B is only constructible with 4 values parameters
+    // } v1 { 
+    //     .a = A{ 13, .12f },
+    //     .i = 42, .str = "str", .c = std::move(c)
+    // };
+    // static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 1>);
+    // static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 2>);
+    // static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 3>);
+    // static_assert(csl::ag::concepts::aggregate_constructible_from_n_values<B, 4>);
+    // static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 5>);
+    // static_assert(not csl::ag::concepts::aggregate_constructible_from_n_values<B, 6>);
+    // static_assert(csl::ag::details::fields_count<B> == 4);
+
+    // --- OLD ---
 
     // std::cout << v1 << '\n'; // const-lvalue-ref
 

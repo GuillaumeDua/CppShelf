@@ -45,7 +45,6 @@ file(WRITE
 ## Generates `as_tuple_impl` ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
-set(identities_fwd "csl_fwd(v0)")
 file(APPEND
     ${csl_ag__cmake_generated_code__filepath}
     "#pragma region as_tuple_impl<N,T>\n"
@@ -57,12 +56,11 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
 [[nodiscard]] constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
-\treturn std::tuple<${identities_decltype}>( ${identities_fwd} );
+\treturn std::type_identity<std::tuple<${identities_decltype}>>{};
 }\n"
     )
     string(APPEND identities ",v${ID}")
     string(APPEND identities_decltype ",decltype(v${ID})")
-    string(APPEND identities_fwd ",csl_fwd(v${ID})")
 endforeach()
 file(APPEND
     ${csl_ag__cmake_generated_code__filepath}

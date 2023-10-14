@@ -198,17 +198,18 @@ namespace csl::ag::details {
 #pragma region as_tuple
     namespace generated {
         template <std::size_t N>
-        [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value);
+        [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto &&);
+        // {
+        //     static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        // }
         template <std::size_t>
-        [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto &&) {
-            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
-        }
+        [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto &&);
+        // {
+        //     static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        // }
     }
 
-    constexpr auto as_tuple(concepts::aggregate auto && value) {
-        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
-        return details::generated::as_tuple_impl<size>(csl_fwd(value));
-    }
+    constexpr auto as_tuple(concepts::aggregate auto && value);
     template <typename T>
     using as_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::as_tuple(std::declval<T>()))>::type;
 #pragma endregion
@@ -233,32 +234,32 @@ namespace csl::ag::details::generated {
 template <std::size_t N> requires (N == 1) // NOLINT
  [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
 	auto && [ v0 ] = value;
-	return std::tuple<decltype(v0)>( csl_fwd(v0) );
+	return std::type_identity<std::tuple<decltype(v0)>>{};
 }
 template <std::size_t N> requires (N == 2) // NOLINT
  [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
 	auto && [ v0,v1 ] = value;
-	return std::tuple<decltype(v0),decltype(v1)>( csl_fwd(v0),csl_fwd(v1) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1)>>{};
 }
 template <std::size_t N> requires (N == 3) // NOLINT
  [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
 	auto && [ v0,v1,v2 ] = value;
-	return std::tuple<decltype(v0),decltype(v1),decltype(v2)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2)>>{};
 }
 template <std::size_t N> requires (N == 4) // NOLINT
  [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
 	auto && [ v0,v1,v2,v3 ] = value;
-	return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3)>>{};
 }
 template <std::size_t N> requires (N == 5) // NOLINT
  [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
 	auto && [ v0,v1,v2,v3,v4 ] = value;
-	return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>>{};
 }
 template <std::size_t N> requires (N == 6) // NOLINT
  [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto && value) {
 	auto && [ v0,v1,v2,v3,v4,v5 ] = value;
-	return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>>{};
 }
 #pragma endregion
 #pragma region as_tuple_view_impl<N,T>
@@ -295,12 +296,13 @@ template <std::size_t N> requires (N == 6) // NOLINT
 #pragma endregion
 // END OF GENERATED CONTENT
 }
-// details: glue
 namespace csl::ag::details {
-
-    template <std::size_t N, concepts::aggregate T>
-	struct element;
+    constexpr auto as_tuple(concepts::aggregate auto && value) {
+        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
+        return details::generated::as_tuple_impl<size>(csl_fwd(value));
+    }
 }
+// API
 namespace csl::ag {
 
     // tuple-view
@@ -368,15 +370,15 @@ namespace std {
 
 // TODO(Guss) : as opt-in, so aggregate are not necessarily tuplelike
 
-    template <std::size_t N>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
-        return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
-    }
-    template <typename T>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
-        // WIP: tuple_view is bad here, use plain tuple
-        return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
-    }
+    // template <std::size_t N>
+    // constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+    //     return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+    // }
+    // template <typename T>
+    // constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+    //     // WIP: tuple_view is bad here, use plain tuple
+    //     return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+    // }
 
     template <std::size_t N, ::csl::ag::concepts::aggregate T>
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
