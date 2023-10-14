@@ -198,15 +198,15 @@ namespace csl::ag::details {
 #pragma region as_tuple
     namespace generated {
         template <std::size_t N>
-        [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto &&);
-        // {
-        //     static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
-        // }
+        [[nodiscard]] constexpr auto as_tuple_impl(concepts::aggregate auto &&)
+        {
+            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        }
         template <std::size_t>
-        [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto &&);
-        // {
-        //     static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
-        // }
+        [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto &&)
+        {
+            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        }
     }
 
     constexpr auto as_tuple(concepts::aggregate auto && value);
@@ -370,15 +370,15 @@ namespace std {
 
 // TODO(Guss) : as opt-in, so aggregate are not necessarily tuplelike
 
-    // template <std::size_t N>
-    // constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
-    //     return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
-    // }
-    // template <typename T>
-    // constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
-    //     // WIP: tuple_view is bad here, use plain tuple
-    //     return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
-    // }
+    template <std::size_t N>
+    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+        return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+    }
+    template <typename T>
+    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+        // WIP: tuple_view is bad here, use plain tuple
+        return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+    }
 
     template <std::size_t N, ::csl::ag::concepts::aggregate T>
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
