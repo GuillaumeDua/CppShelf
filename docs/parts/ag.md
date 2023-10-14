@@ -15,49 +15,60 @@ Reference-collapsing applies between:
 
 ## Context: aggregate
 
-For a given type `A` like:
+For a given aggregate type `A` like:
 
 ```cpp
 struct A {
     T           v0;
-    T&          v1;
-    T&&         v2;
+    T &         v1;
+    T &&        v2;
     const T     v3;
     const T &   v4;
     const T &&  v5;
-}
+};
 ```
 
-## `csl::ag::element` / `std::tuple_element_t`
+we want it to be the equivalent of :
 
-- transparent ?
+```cpp
+std::tuple<int, int &, int &&, const int &, const int &, const int &&>
+```
 
-|     ?      |  A  | A&  | A&& | const A | const A & | const A && |
-| ---------- | --- | --- | --- | ------- | --------- | ---------- |
-| T          |     |     |     |         |           |            |
-| T&         |     |     |     |         |           |            |
-| T&&        |     |     |     |         |           |            |
-| const T    |     |     |     |         |           |            |
-| const T &  |     |     |     |         |           |            |
-| const T && |     |     |     |         |           |            |
+## `std::get` cvref-qualifiers propagation / semantic
 
-## `decltype(std::get<T>(aggregate_value))` / `std::get<std::size_t>(tupleview_value)`
+- `std::get` triggers reference-collapsing: propagates the owner's cvref-qualifier through invocation, which might collapse with element's (possibly cvref-qualified) type.
 
-|     ?      |  T  | T&  | T&& | const T | const T & | const T && |
-| ---------- | --- | --- | --- | ------- | --------- | ---------- |
-| T          |     |     |     |         |           |            |
-| T&         |     |     |     |         |           |            |
-| T&&        |     |     |     |         |           |            |
-| const T    |     |     |     |         |           |            |
-| const T &  |     |     |     |         |           |            |
-| const T && |     |     |     |         |           |            |
+```cpp
+// by type
+template <class T, class... Types>
+constexpr T&
+get(tuple<Types...> & t) noexcept;
+template <class T, class... Types>
+constexpr T&&
+get(tuple<Types...> && t) noexcept;
+template <class T, class... Types>
+constexpr const T&
+get(const tuple<Types...> & t) noexcept;
+template <class T, class... Types>
+constexpr const T&&
+get(const tuple<Types...> && t) noexcept;
 
-## Resources
+// by index
+template <std::size_t I, class... Types>
+constexpr typename std::tuple_element<I, tuple<Types...>>::type &
+get(tuple<Types...> & t) noexcept;
+template <std::size_t I, class... Types>
+constexpr typename std::tuple_element<I, tuple<Types...>>::type &&
+get(tuple<Types...> && t) noexcept;
+template <std::size_t I, class... Types>
+constexpr typename std::tuple_element<I, tuple<Types...>>::type const &
+get(const tuple<Types...> & t) noexcept;
+template <std::size_t I, class... Types>
+constexpr typename std::tuple_element<I, tuple<Types...>>::type const &&
+get(const tuple<Types...>&& t) noexcept;
+```
 
-Enriching type modification traits
-
-- initial [P1016](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1016r0.pdf)
-- superseed [P1450](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p1450r3.pdf)
+- [demo](https://godbolt.org/z/edjcnczcq)
 
 ## WIP
 
@@ -69,19 +80,6 @@ Enriching type modification traits
 ---
 
 **Question**: `tuple_view` -> reference_collapsing of owner cvref + field cvref
-
-- `std::get` propagates the owner's cvref-qualifier
-
-    ```cpp
-    template <class T, class... Types>
-    constexpr T& get( tuple<Types...> & t) noexcept;
-    template <class T, class... Types >
-    constexpr T&& get( tuple<Types...> && t) noexcept;
-    template <class T, class... Types >
-    constexpr const T& get( const tuple<Types...> & t) noexcept;
-    template <class T, class... Types >
-    constexpr const T&& get( const tuple<Types...> && t) noexcept;
-    ```
 
 So a `tuple_view` must be consumed using the same cvref semantic as an owning `tuple`.  
 (or should I implement a view_get, as partially-specializing `std::get` is not much of a good idea: `cert-dcl58-cpp` ...).
@@ -164,73 +162,6 @@ const int && |  const int & | ❌
 
 Live demo [here](https://godbolt.org/z/Y89bEzM1f).
 
-```cpp
-// field_view
-template <typename owner, typename T>
-struct field_view : copy_cvref<owner, T>{};
-template <typename owner, typename T>
-requires (std::is_reference_v<T>)
-struct field_view<owner, T> : std::type_identity<T>{};
-template <typename owner, typename T>
-using field_view_t = typename field_view<owner, T>::type;
-```
-
-```console
-
-value:       aggregate_type &
-view :       std::tuple<int &, int &, int &&, const int &, const int &, const int &&>
-tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &
-
-       tuple |  tuple_view  |  same ?
-       ----- |  ----------  |  ----
-       int & |        int & | ✅
-       int & |        int & | ✅
-       int & |        int & | ✅
- const int & |  const int & | ✅
- const int & |  const int & | ✅
- const int & |  const int & | ✅
-
-value:       const aggregate_type &
-view :       std::tuple<const int &, int &, int &&, const int &, const int &, const int &&>
-tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const int &&> &
-
-       tuple |  tuple_view  |  same ?
-       ----- |  ----------  |  ----
- const int & |  const int & | ✅
-       int & |        int & | ✅
-       int & |        int & | ✅
- const int & |  const int & | ✅
- const int & |  const int & | ✅
- const int & |  const int & | ✅
-
-value:       aggregate_type &&
-view :       std::tuple<int &&, int &, int &&, const int &&, const int &, const int &&>
-tuple_value: std::tuple<int, int &, int &&, const int, const int &, const int &&> &&
-
-       tuple |  tuple_view  |  same ?
-       ----- |  ----------  |  ----
-      int && |        int & | ❌
-       int & |        int & | ✅
-      int && |        int & | ❌
-const int && |  const int & | ❌
- const int & |  const int & | ✅
-const int && |  const int & | ❌
-
-value:       const aggregate_type &&
-view :       std::tuple<const int &&, int &, int &&, const int &&, const int &, const int &&>
-tuple_value: const std::tuple<int, int &, int &&, const int, const int &, const int &&> &&
-
-       tuple |  tuple_view  |  same ?
-       ----- |  ----------  |  ----
-const int && |  const int & | ❌
-       int & |        int & | ✅
-      int && |        int & | ❌
-const int && |  const int & | ❌
- const int & |  const int & | ✅
-const int && |  const int & | ❌
-
-```
-
 ### tuple view factory
 
 **WIP**, implementation
@@ -270,3 +201,10 @@ template <template <typename ...> typename trait, typename ... bound_Ts>
 - using DSL ?
   - `aggregate_value | as_tuple`
   - `aggregate_value | as_tuple_view`
+
+## Resources
+
+Enriching type modification traits
+
+- initial [P1016](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1016r0.pdf)
+- superseed [P1450](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p1450r3.pdf)
