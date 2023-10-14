@@ -1,30 +1,26 @@
 #pragma once
 
 #include <csl/ag.hpp>
+#include "tests/type.hpp"
 
 namespace test::ag::conversion::tuple_ {
 
-    template <typename T>
-    struct A {
-        T           v0;
-        T &         v1;
-        T &&        v2;
-        const T     v3;
-        const T &   v4;
-        const T &&  v5;
-    };
-    using type = A<int>;
+    using type = test::ag::type<int>;
 
     using expected_tuple_type = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
-    static_assert(std::same_as<csl::ag::to_tuple_t<type>, expected_tuple_type>);
-    static_assert(std::same_as<csl::ag::to_tuple_t<type&>, expected_tuple_type>);
-    static_assert(std::same_as<csl::ag::to_tuple_t<type&&>, expected_tuple_type>);
-    static_assert(std::same_as<csl::ag::to_tuple_t<const type>, expected_tuple_type>);
-    static_assert(std::same_as<csl::ag::to_tuple_t<const type&>, expected_tuple_type>);
-    static_assert(std::same_as<csl::ag::to_tuple_t<const type&&>, expected_tuple_type>);
 
-    static_assert(std::same_as<
-        csl::ag::to_tuple_t<type>,
-        decltype(csl::ag::as_tuple(std::declval<type>()))
-    >);
+    // csl::ag::to_tuple_t
+    static_assert(std::same_as<expected_tuple_type, csl::ag::to_tuple_t<type>>);
+    static_assert(std::same_as<expected_tuple_type, csl::ag::to_tuple_t<type&>>);
+    static_assert(std::same_as<expected_tuple_type, csl::ag::to_tuple_t<type&&>>);
+    static_assert(std::same_as<expected_tuple_type, csl::ag::to_tuple_t<const type>>);
+    static_assert(std::same_as<expected_tuple_type, csl::ag::to_tuple_t<const type&>>);
+    static_assert(std::same_as<expected_tuple_type, csl::ag::to_tuple_t<const type&&>>);
+
+    static_assert(std::same_as<expected_tuple_type, decltype(csl::ag::as_tuple(std::declval<type>()))>);
+    static_assert(std::same_as<expected_tuple_type, decltype(csl::ag::as_tuple(std::declval<type&>()))>);
+    static_assert(std::same_as<expected_tuple_type, decltype(csl::ag::as_tuple(std::declval<type&&>()))>);
+    static_assert(std::same_as<expected_tuple_type, decltype(csl::ag::as_tuple(std::declval<const type>()))>);
+    static_assert(std::same_as<expected_tuple_type, decltype(csl::ag::as_tuple(std::declval<const type&>()))>);
+    static_assert(std::same_as<expected_tuple_type, decltype(csl::ag::as_tuple(std::declval<const type&&>()))>);
 }

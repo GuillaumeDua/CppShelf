@@ -211,7 +211,7 @@ namespace csl::ag::details {
 
     constexpr auto as_tuple(concepts::aggregate auto && value);
     template <typename T>
-    using as_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::as_tuple(std::declval<T>()))>::type;
+    using as_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::as_tuple(std::declval<std::remove_cvref_t<T>>()))>::type;
 #pragma endregion
 
     template <typename owner_type>
@@ -305,6 +305,22 @@ namespace csl::ag::details {
 // API
 namespace csl::ag {
 
+    // size
+    template <csl::ag::concepts::aggregate T>
+    struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
+	template <csl::ag::concepts::aggregate T>
+	constexpr auto size_v = size<T>::value;
+
+    // to_tuple
+    template <concepts::aggregate T>
+    using to_tuple_t = details::as_tuple_t<T>;
+
+    // element
+	template <std::size_t N, concepts::aggregate T>
+    using element = std::tuple_element<N, details::as_tuple_t<T>>;
+	template <std::size_t N, concepts::aggregate T>
+	using element_t = typename element<N, T>::type;
+
     // tuple-view
     //  factory that creates a lightweight accessor to an existing aggregate value,
     //  preserving cvref semantic
@@ -313,39 +329,22 @@ namespace csl::ag {
         return details::generated::as_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
     template <concepts::aggregate T> requires (std::is_reference_v<T>)
-    struct tuple_view : std::type_identity<decltype(as_tuple_view(std::declval<T>()))>{}; 
+    struct view : std::type_identity<decltype(as_tuple_view(std::declval<T>()))>{}; 
     template <concepts::aggregate T> requires (std::is_reference_v<T>)
-    using tuple_view_t = typename tuple_view<T>::type;
+    using view_t = typename view<T>::type;
 
     // view_element
 	template <std::size_t N, concepts::aggregate T>
     requires (std::is_reference_v<T>)
-    struct view_element : std::tuple_element<N, tuple_view_t<T>>{};
-    // struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
+    struct view_element : std::tuple_element<N, view_t<T>>{};
 	template <std::size_t N, concepts::aggregate T>
 	using view_element_t = typename view_element<N, T>::type;
 
-	// get
+    // get
     template <std::size_t N>
     constexpr decltype(auto) get(concepts::aggregate auto && value) {
         return ::std::get<N>(as_tuple_view(std::forward<decltype(value)>(value)));
     }
-
-    // to_tuple
-    template <concepts::aggregate T>
-    using to_tuple_t = details::as_tuple_t<T>;
-
-	// element
-	template <std::size_t N, concepts::aggregate T>
-    using element = std::tuple_element<N, details::as_tuple_t<T>>;
-	template <std::size_t N, concepts::aggregate T>
-	using element_t = typename element<N, T>::type;
-
-    // size
-    template <csl::ag::concepts::aggregate T>
-    struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
-	template <csl::ag::concepts::aggregate T>
-	constexpr auto size_v = size<T>::value;
 
     // tuple conversion (not view !)
     constexpr auto as_tuple(concepts::aggregate auto && value) {
@@ -360,6 +359,9 @@ namespace csl::ag {
         }(std::make_index_sequence<size_v<value_type>>{});
     }
 }
+
+// -----------------------------------
+
 // tuple-like interface
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp)
@@ -388,6 +390,8 @@ namespace std {
     // struct tuple_size<T> : std::integral_constant<std::size_t, ::csl::ag::details::fields_count<T>>{};
 // NOLINTEND(cert-dcl58-cpp)
 }
+
+// -----------------------------------
 
 // csl::ag::io
 // REFACTO: #134
