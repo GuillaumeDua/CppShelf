@@ -2,26 +2,29 @@
 
 #include <csl/ag.hpp>
 
-#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
+namespace test::ag::conversion::tuple_ {
 
-namespace test::ag::to_tuple_ {
     template <typename T>
-    struct S {
-        T v = {};
-        const T c_v = {};
-        T & ref = v;
-        const T & c_ref = c_v;
-        T && rref = std::move(v);
-        const T && c_rref = std::move(c_v);
+    struct A {
+        T           v0;
+        T &         v1;
+        T &&        v2;
+        const T     v3;
+        const T &   v4;
+        const T &&  v5;
     };
-    using type = S<int>;
+    using type = A<int>;
+
+    using expected_tuple_type = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
+    static_assert(std::same_as<csl::ag::to_tuple_t<type>, expected_tuple_type>);
+    static_assert(std::same_as<csl::ag::to_tuple_t<type&>, expected_tuple_type>);
+    static_assert(std::same_as<csl::ag::to_tuple_t<type&&>, expected_tuple_type>);
+    static_assert(std::same_as<csl::ag::to_tuple_t<const type>, expected_tuple_type>);
+    static_assert(std::same_as<csl::ag::to_tuple_t<const type&>, expected_tuple_type>);
+    static_assert(std::same_as<csl::ag::to_tuple_t<const type&&>, expected_tuple_type>);
 
     static_assert(std::same_as<
         csl::ag::to_tuple_t<type>,
-        std::tuple<int, const int, int&, const int&, int&&, const int&&>
-    >);
-    static_assert(std::same_as<
-        csl::ag::to_tuple_t<type>,
-        decltype(csl::ag::as_tuple(type{1,2}))
+        decltype(csl::ag::as_tuple(std::declval<type>()))
     >);
 }
