@@ -1,5 +1,18 @@
 # `csl::ag` cvref-qualifiers propagation
 
+> TODO:
+>
+> - tuple_type
+> - tuple_view_type
+> - DSL: `aggregate | views::as_tuple`, `tuple | views::as_tuple`
+> - `get<I>`, `get<T>` correctness
+> - `get<T>` -> get index of T, generate view, `get<I>` in view (avoid multiples occurences)
+> - build_bench
+> - namespace generated
+> - Do not push more than 10 (size == 0..9) generated impls
+>
+> [WIP](https://godbolt.org/z/Yhcdrn84M)
+
 ## Context: `std::tuple` cvref-qualifiers propagation
 
 For

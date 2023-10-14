@@ -1,8 +1,8 @@
-#define CSL_AG_ENABLE_BITFIELDS_SUPPORT true
+#define CSL_AG_ENABLE_BITFIELDS_SUPPORT true // force bitfield support. Prefer using CMake cache instead CSL_AG_ENABLE_BITFIELDS_SUPPORT=ON
 #include <csl/ag.hpp>
 
 #if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
-# error "[Test] csl::ag : expect CSL_AG_ENABLE_BITFIELDS_SUPPORT"
+# error "[Test] csl::ag : expect CSL_AG_ENABLE_BITFIELDS_SUPPORT=ON"
 #endif
 
 namespace test::fields_count::trivial_cases {
