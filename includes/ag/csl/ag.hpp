@@ -11,6 +11,8 @@
 #include <utility>
 #include <climits>
 #include <string_view>
+#include <algorithm>
+#include <stdexcept>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
@@ -100,6 +102,7 @@ namespace csl::ag::details::mp {
     using field_view_t = typename field_view<owner, T>::type;
 
     // bind_front
+    // TODO: remove ?
     template <template <typename ...> typename trait, typename ... bound_Ts>
     struct bind_front {
         template <typename ... Ts>
@@ -107,6 +110,22 @@ namespace csl::ag::details::mp {
         template <typename ... Ts>
         constexpr static auto value = trait<bound_Ts..., Ts...>::value;
     };
+
+    template <class, class>
+    struct first_index_of;
+    template <class T, typename... Ts>
+    struct first_index_of<T, std::tuple<Ts...>> : std::integral_constant<std::size_t, 
+        [](){
+            static_assert(sizeof...(Ts));
+            constexpr auto results = std::array{ std::is_same_v<T, Ts>... };
+            const auto it = std::find(std::cbegin(results), std::cend(results), true);
+            if (it == std::cend(results))
+                throw std::runtime_error{"csl::ag::details::mp:first_index_of<T, tuple_type>: no match"};
+            return std::distance(std::cbegin(results), it);
+        }()
+    >{};
+    template <class T, class tuple_type>
+    constexpr auto first_index_of_v = first_index_of<T, tuple_type>::value;
 }
 namespace csl::ag::concepts {
 
@@ -340,13 +359,22 @@ namespace csl::ag {
 	template <std::size_t N, concepts::aggregate T>
 	using view_element_t = typename view_element<N, T>::type;
 
-    // get
+    // get<std::size_t>
     template <std::size_t N>
     constexpr decltype(auto) get(concepts::aggregate auto && value) {
+        static_assert(N < size_v<std::remove_cvref_t<decltype(value)>>, "csl::ag::get<std::size_t>: index >= size_v");
         return ::std::get<N>(as_tuple_view(std::forward<decltype(value)>(value)));
     }
+    // get<T>
+    template <typename T>
+    constexpr decltype(auto) get(concepts::aggregate auto && value) {
+    // using indexes here rather than type, to avoid collisions of cvref-qualified view elements
+        using tuple_t = to_tuple_t<std::remove_cvref_t<decltype(value)>>;
+        constexpr auto index = details::mp::first_index_of_v<T, tuple_t>;
+        return get<index>(std::forward<decltype(value)>(value));
+    }
 
-    // tuple conversion (not view !)
+    // tuple conversion (owning, not view !)
     constexpr auto as_tuple(concepts::aggregate auto && value) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
@@ -374,12 +402,11 @@ namespace std {
 
     template <std::size_t N>
     constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
-        return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+        return csl::ag::get<N>(std::forward<decltype(value)>(value));
     }
     template <typename T>
     constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
-        // WIP: tuple_view is bad here, use plain tuple
-        return std::get<T>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+        return csl::ag::get<T>(std::forward<decltype(value)>(value));
     }
 
     template <std::size_t N, ::csl::ag::concepts::aggregate T>
