@@ -21,7 +21,6 @@ add_test(
 )
 
 # Test : with bitfield support
-# TODO: CSL_AG_ENABLE_BITFIELDS_SUPPORT=ON
 set(test_name test_${PROJECT_NAME}_${component_name}_bitfield_support_compile_time)
 
 add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/test_bitfield_support.cpp)
