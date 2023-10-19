@@ -1,0 +1,36 @@
+#pragma once
+
+#include <csl/ag.hpp>
+
+namespace test::ag::element::types {
+
+    template <typename T>
+    struct aggregate_all_cvref {
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
+        T v;
+        const T c_v;
+        T & ref = v;
+        const T & c_ref = c_v;
+        T && rref = std::move(v);
+        const T && c_rref = std::move(c_v);
+    // NOLINTEND(*-avoid-const-or-ref-data-members)
+    };
+
+    using type = aggregate_all_cvref<int>;
+    using as_tuple_t = csl::ag::to_tuple_t<type>;
+    using expected_tuple_type = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
+    static_assert(std::is_same_v<as_tuple_t, expected_tuple_type>); // see tests/conversion/to_tuple.hpp
+    static_assert(csl::ag::size_v<type> == std::tuple_size_v<as_tuple_t>); // see tests/size.hpp
+
+    template <std::size_t index>
+    constexpr void expect_symetric_element_t(){
+        static_assert(std::is_same_v<
+            csl::ag::element_t<index, type>,
+            std::tuple_element_t<index, as_tuple_t>
+        >);
+    };
+    constexpr static auto _ = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
+        ((expect_symetric_element_t<indexes>()), ...);
+        return {};
+    }(std::make_index_sequence<csl::ag::size_v<type>>{});
+}

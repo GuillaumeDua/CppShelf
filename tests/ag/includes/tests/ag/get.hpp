@@ -11,6 +11,7 @@ namespace test::ag::get_::types {
     using aggregate_ref_2 = struct { int & i; char && c; };
     using aggregate_ref_3 = struct { int & i; char && c; char & cc; };
     
+    // TODO: #include "tests/type.hpp"
     template <typename T>
     struct aggregate_all_cvref {
     // NOLINTBEGIN(*-avoid-const-or-ref-data-members)

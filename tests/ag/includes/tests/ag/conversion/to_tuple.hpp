@@ -6,7 +6,6 @@
 namespace test::ag::conversion::tuple_ {
 
     using type = test::ag::type<int>;
-
     using expected_tuple_type = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
 
     // csl::ag::to_tuple_t
