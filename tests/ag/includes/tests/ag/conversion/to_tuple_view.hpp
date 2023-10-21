@@ -5,7 +5,7 @@
 
 namespace test::ag::conversion::tuple_view_ {
 
-    using type = test::ag::type<int>;
+    using type = test::ag::types::aggregate_all_cvref<int>;
 
      // clang-format off
     using expected_from_lvalue       = std::tuple<      int&,   int &, int &&, const int&,  const int &, const int &&>;

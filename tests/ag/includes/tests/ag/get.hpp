@@ -1,29 +1,8 @@
 #pragma once
 
 #include <csl/ag.hpp>
+#include "tests/type.hpp"
 
-namespace test::ag::get_::types {
-
-    using aggregate_1 = struct { int i; };
-    using aggregate_2 = struct { int i; char c; };
-
-    using aggregate_ref_1 = struct { int & i; };
-    using aggregate_ref_2 = struct { int & i; char && c; };
-    using aggregate_ref_3 = struct { int & i; char && c; char & cc; };
-    
-    // TODO: #include "tests/type.hpp"
-    template <typename T>
-    struct aggregate_all_cvref {
-    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
-        T v;
-        const T c_v;
-        T & ref = v;
-        const T & c_ref = c_v;
-        T && rref = std::move(v);
-        const T && c_rref = std::move(c_v);
-    // NOLINTEND(*-avoid-const-or-ref-data-members)
-    };
-}
 namespace test::ag::get_ {
 
     template <csl::ag::concepts::aggregate T>
@@ -71,12 +50,12 @@ namespace test::ag::get_ {
     }
 
     constexpr auto _ = ensure_symetric_get_types_with_cvref_matrix<
-        types::aggregate_1,
-        types::aggregate_2,
-        types::aggregate_ref_1,
-        types::aggregate_ref_2,
-        types::aggregate_ref_3,
-        types::aggregate_all_cvref<int>
+        test::ag::types::aggregate_1,
+        test::ag::types::aggregate_2,
+        test::ag::types::aggregate_ref_1,
+        test::ag::types::aggregate_ref_2,
+        test::ag::types::aggregate_ref_3,
+        test::ag::types::aggregate_all_cvref<int>
     >();
 
 }

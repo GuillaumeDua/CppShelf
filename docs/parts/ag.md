@@ -12,6 +12,8 @@
 > - Do not push more than 10 (size == 0..9) generated impls
 >
 > [WIP](https://godbolt.org/z/Yhcdrn84M)
+>
+> - Fix all godbolt examples
 
 ## Context: `std::tuple` cvref-qualifiers propagation
 

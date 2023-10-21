@@ -5,7 +5,7 @@
 
 namespace test::ag::conversion::tuple_ {
 
-    using type = test::ag::type<int>;
+    using type = test::ag::types::aggregate_all_cvref<int>;
     using expected_tuple_type = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
 
     // csl::ag::to_tuple_t

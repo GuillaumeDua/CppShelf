@@ -1,22 +1,11 @@
 #pragma once
 
 #include <csl/ag.hpp>
+#include "tests/type.hpp"
 
-namespace test::ag::element::types {
+namespace test::ag::element_ {
 
-    template <typename T>
-    struct aggregate_all_cvref {
-    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
-        T v;
-        const T c_v;
-        T & ref = v;
-        const T & c_ref = c_v;
-        T && rref = std::move(v);
-        const T && c_rref = std::move(c_v);
-    // NOLINTEND(*-avoid-const-or-ref-data-members)
-    };
-
-    using type = aggregate_all_cvref<int>;
+    using type = test::ag::types::aggregate_all_cvref<int>;
     using as_tuple_t = csl::ag::to_tuple_t<type>;
     using expected_tuple_type = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
     static_assert(std::is_same_v<as_tuple_t, expected_tuple_type>); // see tests/conversion/to_tuple.hpp
