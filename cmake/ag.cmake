@@ -1,6 +1,6 @@
-set(csl_ag_hpp ${PROJECT_SOURCE_DIR}/includes/ag/csl/ag.hpp)
-if (NOT EXISTS ${csl_ag_hpp})
-    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : missing file ${csl_ag_hpp}")
+set(csl_ag_hpp_path ${PROJECT_SOURCE_DIR}/includes/ag/csl/ag.hpp)
+if (NOT EXISTS ${csl_ag_hpp_path})
+    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : missing file ${csl_ag_hpp_path}")
 endif()
 
 # Configuration ...
@@ -132,7 +132,7 @@ file(APPEND
 # injects into ag/csl/ag.hpp
 
 file(READ ${csl_ag__cmake_generated_code__filepath} csl_ag_hpp_to_inject)
-file(READ ${csl_ag_hpp} csl_ag_hpp_file_content)
+file(READ ${csl_ag_hpp_path} csl_ag_hpp_file_content)
 string(REGEX REPLACE
     "(\\/\\/ GENERATED CONTENT, DO NOT EDIT MANUALLY !\n)(.*)(\\/\\/ END OF GENERATED CONTENT)"
     "\\1${csl_ag_hpp_to_inject}\\3"
@@ -144,4 +144,4 @@ if ("${csl_ag_hpp_file_content_with_injection}" STREQUAL "${csl_ag_hpp_file_cont
     message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : sources was already up-to-date (no new content was injected)")
 endif()
 
-FILE(WRITE ${csl_ag_hpp} "${csl_ag_hpp_file_content_with_injection}")
+FILE(WRITE ${csl_ag_hpp_path} "${csl_ag_hpp_file_content_with_injection}")
