@@ -20,11 +20,11 @@ namespace test::ag::conversion::tuple_view_ {
     static_assert(std::same_as<expected_from_const_lvalue, csl::ag::view_t<const type&>>);
     static_assert(std::same_as<expected_from_const_rvalue, csl::ag::view_t<const type&&>>);
 
-    // csl::ag::as_tuple_view
-    static_assert(std::same_as<expected_from_lvalue, std::remove_cvref_t<decltype(csl::ag::as_tuple_view(std::declval<type&>()))>>);
-    static_assert(std::same_as<expected_from_rvalue, std::remove_cvref_t<decltype(csl::ag::as_tuple_view(std::declval<type&&>()))>>);
-    static_assert(std::same_as<expected_from_const_lvalue, std::remove_cvref_t<decltype(csl::ag::as_tuple_view(std::declval<const type&>()))>>);
-    static_assert(std::same_as<expected_from_const_rvalue, std::remove_cvref_t<decltype(csl::ag::as_tuple_view(std::declval<const type&&>()))>>);
+    // csl::ag::to_tuple_view
+    static_assert(std::same_as<expected_from_lvalue, std::remove_cvref_t<decltype(csl::ag::to_tuple_view(std::declval<type&>()))>>);
+    static_assert(std::same_as<expected_from_rvalue, std::remove_cvref_t<decltype(csl::ag::to_tuple_view(std::declval<type&&>()))>>);
+    static_assert(std::same_as<expected_from_const_lvalue, std::remove_cvref_t<decltype(csl::ag::to_tuple_view(std::declval<const type&>()))>>);
+    static_assert(std::same_as<expected_from_const_rvalue, std::remove_cvref_t<decltype(csl::ag::to_tuple_view(std::declval<const type&&>()))>>);
 
-    // so csl::ag::view_t same_as decltype(csl::ag::as_tuple_view())
+    // so csl::ag::view_t same_as decltype(csl::ag::to_tuple_view())
 }

@@ -13,12 +13,12 @@ else()
     remove_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
 endif()
 
-# Generates "partial" specializations for `as_tuple_view_impl<N, T>`,
+# Generates "partial" specializations for `to_tuple_view_impl<N, T>`,
 #                                     and `element<N, T>`
 # According to the following template :
 #
 # template <std::size_t N> requires (N == /* 0..AG_MAX_FIELDS_COUNT */)
-# auto as_tuple_view_impl(Aggregate auto && value) {
+# auto to_tuple_view_impl(Aggregate auto && value) {
 #	auto && [ v[0..AG_MAX_FIELDS_COUNT]... ] = value;
 #	return make_tuple_view<decltype(value)>( v[0..AG_MAX_FIELDS_COUNT]... );
 # }
@@ -42,19 +42,19 @@ file(WRITE
 # WIP
 # TODO: one target per generated block
 
-## Generates `as_tuple_impl` ...
+## Generates `make_to_tuple` ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
 file(APPEND
     ${csl_ag__cmake_generated_code__filepath}
-    "#pragma region as_tuple_impl<N,T>\n"
+    "#pragma region make_to_tuple<N,T>\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
     file(APPEND
         ${csl_ag__cmake_generated_code__filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-[[nodiscard]] constexpr auto as_tuple_impl(concepts\:\:aggregate auto && value) {
+[[nodiscard]] constexpr auto make_to_tuple(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
 \treturn std::type_identity<std::tuple<${identities_decltype}>>{};
 }\n"
@@ -67,20 +67,20 @@ file(APPEND
     "#pragma endregion\n"
 )
 
-## Generates `as_tuple_view_impl` ...
+## Generates `to_tuple_view_impl` ...
 set(identities "v0")
 set(identities_decltype "decltype(v0)")
 set(identities_fwd "csl_fwd(v0)")
 file(APPEND
     ${csl_ag__cmake_generated_code__filepath}
-    "#pragma region as_tuple_view_impl<N,T>\n"
+    "#pragma region to_tuple_view_impl<N,T>\n"
 )
 foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
 
     file(APPEND
         ${csl_ag__cmake_generated_code__filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-[[nodiscard]] constexpr auto as_tuple_view_impl(concepts\:\:aggregate auto && value) {
+[[nodiscard]] constexpr auto to_tuple_view_impl(concepts\:\:aggregate auto && value) {
 \tauto && [ ${identities} ] = value;
 \treturn make_tuple_view<decltype(value)>( ${identities_fwd} );
 }\n"
