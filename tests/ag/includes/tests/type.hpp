@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 namespace test::ag::types {
     template <typename T>
     struct aggregate_all_cvref {
@@ -11,6 +13,7 @@ namespace test::ag::types {
         const T &   v4;
         const T &&  v5;
         // NOLINTEND(*-avoid-const-or-ref-data-members)
+        using expected_to_tuple_t = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
     };
 
     using aggregate_1 = struct { int i; };
