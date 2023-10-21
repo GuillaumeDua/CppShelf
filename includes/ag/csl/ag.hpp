@@ -651,6 +651,17 @@ namespace csl::ag {
         }(std::make_index_sequence<size_v<value_type>>{});
     }
 }
+// DSL
+namespace csl::ag::views::details {
+    struct tuplelike_t{};
+}
+namespace csl::ag::views {
+    constexpr static inline auto tuplelike = details::tuplelike_t{};
+    [[nodiscard]] constexpr static auto operator|(concepts::aggregate auto && value, const details::tuplelike_t &)
+    {
+        return view(csl_fwd(value));
+    }
+}
 
 // -----------------------------------
 
