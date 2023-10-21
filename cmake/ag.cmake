@@ -25,7 +25,7 @@ endif()
 
 # Handle options ...
 ## CSL_AG_MAX_FIELDS_COUNT_OPTION
-set(CSL_AG_MAX_FIELDS_COUNT_OPTION "128" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
+set(CSL_AG_MAX_FIELDS_COUNT_OPTION "32" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION set to [${CSL_AG_MAX_FIELDS_COUNT_OPTION}]")
 if (NOT CSL_AG_MAX_FIELDS_COUNT_OPTION MATCHES "^[0-9]+$")
     message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION is not a valid number")
@@ -41,6 +41,11 @@ file(WRITE
 
 # WIP
 # TODO: one target per generated block
+
+file(APPEND
+    ${csl_ag__cmake_generated_code__filepath}
+    "// Generated code with CSL_AG_MAX_FIELDS_COUNT_OPTION = ${CSL_AG_MAX_FIELDS_COUNT_OPTION}\n"
+)
 
 ## Generates `make_to_tuple` ...
 set(identities "v0")
