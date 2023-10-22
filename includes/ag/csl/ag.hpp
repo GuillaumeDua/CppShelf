@@ -19,7 +19,7 @@
 namespace csl::ag::details {
 
     template <typename T>
-    constexpr auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
+    consteval auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
         // static_assert([](){ return false; }(), "csl::ag::details : declval : for unevaluated context only !");
         if constexpr (std::is_lvalue_reference_v<T>)
             return *((std::remove_reference_t<T>*){ nullptr });
@@ -35,11 +35,11 @@ namespace csl::ag::details {
         // 	not `return std::declval<T>();`, as clang does not like it
         // 	neither `consteval` -> Clang ICE
         template <typename T>
-        [[nodiscard]] constexpr operator T&&() const noexcept { // NOLINT(google-explicit-constructor)
+        [[nodiscard]] consteval operator T&&() const noexcept { // NOLINT(google-explicit-constructor)
             return declval<T&&>();
         }
         template <typename T>
-        [[nodiscard]] constexpr operator T&() const noexcept { // NOLINT(google-explicit-constructor)
+        [[nodiscard]] consteval operator T&() const noexcept { // NOLINT(google-explicit-constructor)
             return declval<T&>();
         }
     };
@@ -168,7 +168,7 @@ namespace csl::ag::details {
     # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
-    [[nodiscard]] consteval auto fields_count_impl() -> std::size_t {
+    [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
     // faster algorithm if T is default_initializable (ref fields can be initialized),
     // and no fields is a bitfield.
         static_assert(not std::is_reference_v<T>, "concepts::aggregate T cannot be cv-ref qualified");
@@ -190,7 +190,7 @@ namespace csl::ag::details {
     #endif
 
     template <concepts::aggregate T, std::size_t indice>
-    [[nodiscard]] consteval auto fields_count_impl() -> std::size_t {
+    [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
     // costly algorithm
         static_assert(not std::is_reference_v<T>);
 
@@ -218,26 +218,26 @@ namespace csl::ag::details {
 	// generated : interface
     namespace generated {
         template <std::size_t N>
-        [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto &&)
+        [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto &&) noexcept
 		// -> std::type_identity<std::tuple<csl::ag::element<I, value_t>...>>
         {
             static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
         }
         template <std::size_t>
-        [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&)
+        [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept
 		// -> std::tuple<decltype(get<I>(value))...>
         {
             static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
         }
     }
 
-    constexpr auto to_tuple(concepts::aggregate auto && value);
+    consteval auto make_to_tuple(concepts::aggregate auto && value) /* -> std::type_identity<std::tuple<field_Ts...>>*/;
     template <typename T>
-    using to_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type;
+    using to_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::make_to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type;
 #pragma endregion
 
     template <typename owner_type>
-    [[nodiscard]] constexpr auto make_tuple_view(auto && ... values){
+    [[nodiscard]] constexpr auto make_tuple_view(auto && ... values) noexcept {
         using tuple_t = to_tuple_t<owner_type>;
         
         constexpr auto size = std::tuple_size_v<tuple_t>;
@@ -255,324 +255,324 @@ namespace csl::ag::details::generated {
 // Generated code with CSL_AG_MAX_FIELDS_COUNT_OPTION = 32
 #pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0 ] = value;
 	return std::type_identity<std::tuple<decltype(v0)>>{};
 }
 template <std::size_t N> requires (N == 2) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1)>>{};
 }
 template <std::size_t N> requires (N == 3) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2)>>{};
 }
 template <std::size_t N> requires (N == 4) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3)>>{};
 }
 template <std::size_t N> requires (N == 5) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>>{};
 }
 template <std::size_t N> requires (N == 6) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>>{};
 }
 template <std::size_t N> requires (N == 7) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6)>>{};
 }
 template <std::size_t N> requires (N == 8) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7)>>{};
 }
 template <std::size_t N> requires (N == 9) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8)>>{};
 }
 template <std::size_t N> requires (N == 10) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9)>>{};
 }
 template <std::size_t N> requires (N == 11) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10)>>{};
 }
 template <std::size_t N> requires (N == 12) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11)>>{};
 }
 template <std::size_t N> requires (N == 13) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12)>>{};
 }
 template <std::size_t N> requires (N == 14) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13)>>{};
 }
 template <std::size_t N> requires (N == 15) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14)>>{};
 }
 template <std::size_t N> requires (N == 16) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15)>>{};
 }
 template <std::size_t N> requires (N == 17) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16)>>{};
 }
 template <std::size_t N> requires (N == 18) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17)>>{};
 }
 template <std::size_t N> requires (N == 19) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18)>>{};
 }
 template <std::size_t N> requires (N == 20) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19)>>{};
 }
 template <std::size_t N> requires (N == 21) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20)>>{};
 }
 template <std::size_t N> requires (N == 22) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21)>>{};
 }
 template <std::size_t N> requires (N == 23) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22)>>{};
 }
 template <std::size_t N> requires (N == 24) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23)>>{};
 }
 template <std::size_t N> requires (N == 25) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24)>>{};
 }
 template <std::size_t N> requires (N == 26) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25)>>{};
 }
 template <std::size_t N> requires (N == 27) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26)>>{};
 }
 template <std::size_t N> requires (N == 28) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27)>>{};
 }
 template <std::size_t N> requires (N == 29) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28)>>{};
 }
 template <std::size_t N> requires (N == 30) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29)>>{};
 }
 template <std::size_t N> requires (N == 31) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30)>>{};
 }
 template <std::size_t N> requires (N == 32) // NOLINT
- [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = value;
 	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31)>>{};
 }
 #pragma endregion
 #pragma region to_tuple_view_impl<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0) );
 }
 template <std::size_t N> requires (N == 2) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1) );
 }
 template <std::size_t N> requires (N == 3) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2) );
 }
 template <std::size_t N> requires (N == 4) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3) );
 }
 template <std::size_t N> requires (N == 5) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4) );
 }
 template <std::size_t N> requires (N == 6) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5) );
 }
 template <std::size_t N> requires (N == 7) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6) );
 }
 template <std::size_t N> requires (N == 8) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7) );
 }
 template <std::size_t N> requires (N == 9) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8) );
 }
 template <std::size_t N> requires (N == 10) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9) );
 }
 template <std::size_t N> requires (N == 11) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10) );
 }
 template <std::size_t N> requires (N == 12) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11) );
 }
 template <std::size_t N> requires (N == 13) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12) );
 }
 template <std::size_t N> requires (N == 14) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13) );
 }
 template <std::size_t N> requires (N == 15) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14) );
 }
 template <std::size_t N> requires (N == 16) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15) );
 }
 template <std::size_t N> requires (N == 17) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16) );
 }
 template <std::size_t N> requires (N == 18) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17) );
 }
 template <std::size_t N> requires (N == 19) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18) );
 }
 template <std::size_t N> requires (N == 20) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19) );
 }
 template <std::size_t N> requires (N == 21) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20) );
 }
 template <std::size_t N> requires (N == 22) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21) );
 }
 template <std::size_t N> requires (N == 23) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22) );
 }
 template <std::size_t N> requires (N == 24) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23) );
 }
 template <std::size_t N> requires (N == 25) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24) );
 }
 template <std::size_t N> requires (N == 26) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25) );
 }
 template <std::size_t N> requires (N == 27) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26) );
 }
 template <std::size_t N> requires (N == 28) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27) );
 }
 template <std::size_t N> requires (N == 29) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28) );
 }
 template <std::size_t N> requires (N == 30) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29) );
 }
 template <std::size_t N> requires (N == 31) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30) );
 }
 template <std::size_t N> requires (N == 32) // NOLINT
- [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = value;
 	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30),csl_fwd(v31) );
 }
@@ -580,7 +580,9 @@ template <std::size_t N> requires (N == 32) // NOLINT
 // END OF GENERATED CONTENT
 }
 namespace csl::ag::details {
-    constexpr auto to_tuple(concepts::aggregate auto && value) {
+    [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
+    // -> std::type_identity<std::tuple<field_Ts...>>
+    {
         constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
         return details::generated::make_to_tuple<size>(csl_fwd(value));
     }
@@ -607,7 +609,7 @@ namespace csl::ag {
     // tuple-view
     //  factory that creates a lightweight accessor to an existing aggregate value,
     //  preserving cvref semantic
-    constexpr auto to_tuple_view(concepts::aggregate auto && value) {
+    [[nodiscard]] constexpr auto to_tuple_view(concepts::aggregate auto && value) noexcept {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::generated::to_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
@@ -625,13 +627,13 @@ namespace csl::ag {
 
     // get<std::size_t>
     template <std::size_t N>
-    constexpr decltype(auto) get(concepts::aggregate auto && value) {
+    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
         static_assert(N < size_v<std::remove_cvref_t<decltype(value)>>, "csl::ag::get<std::size_t>: index >= size_v");
         return ::std::get<N>(to_tuple_view(std::forward<decltype(value)>(value)));
     }
     // get<T>
     template <typename T>
-    constexpr decltype(auto) get(concepts::aggregate auto && value) {
+    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
     // using indexes here rather than type, to avoid collisions of cvref-qualified view elements
         using tuple_t = to_tuple_t<std::remove_cvref_t<decltype(value)>>;
         constexpr auto index = details::mp::first_index_of_v<T, tuple_t>;
@@ -639,7 +641,7 @@ namespace csl::ag {
     }
 
     // tuple conversion (owning, not view !)
-    constexpr auto to_tuple(concepts::aggregate auto && value) {
+    [[nodiscard]] constexpr auto to_tuple(concepts::aggregate auto && value) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             using result_t = std::tuple<
@@ -653,11 +655,13 @@ namespace csl::ag {
 }
 // DSL
 namespace csl::ag::views::details {
-    struct tuplelike_t{};
+    struct all_t{};
 }
 namespace csl::ag::views {
-    constexpr static inline auto tuplelike = details::tuplelike_t{};
-    [[nodiscard]] constexpr static auto operator|(concepts::aggregate auto && value, const details::tuplelike_t &)
+    constexpr static inline auto all = details::all_t{};
+}
+namespace csl::ag {
+    [[nodiscard]] constexpr static auto operator|(concepts::aggregate auto && value, const views::details::all_t &)
     {
         return view(csl_fwd(value));
     }

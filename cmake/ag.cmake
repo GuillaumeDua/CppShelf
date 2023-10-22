@@ -59,7 +59,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     file(APPEND
         ${csl_ag__cmake_generated_code__filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-[[nodiscard]] constexpr auto make_to_tuple(concepts\:\:aggregate auto && value) {
+[[nodiscard]] constexpr auto make_to_tuple(concepts\:\:aggregate auto && value) noexcept {
 \tauto && [ ${identities} ] = value;
 \treturn std::type_identity<std::tuple<${identities_decltype}>>{};
 }\n"
@@ -85,7 +85,7 @@ foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
     file(APPEND
         ${csl_ag__cmake_generated_code__filepath}
         "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-[[nodiscard]] constexpr auto to_tuple_view_impl(concepts\:\:aggregate auto && value) {
+[[nodiscard]] constexpr auto to_tuple_view_impl(concepts\:\:aggregate auto && value) noexcept {
 \tauto && [ ${identities} ] = value;
 \treturn make_tuple_view<decltype(value)>( ${identities_fwd} );
 }\n"
