@@ -654,18 +654,20 @@ namespace csl::ag {
     }
 }
 // DSL
-namespace csl::ag::views::details {
-    struct all_t{};
+namespace csl::ag {
+// ADL-used
+    struct all_view_tag{};
 }
 namespace csl::ag::views {
-    constexpr static inline auto all = details::all_t{};
+    constexpr static inline auto all = all_view_tag{};
+    template <typename T>
+    using all_t = decltype(std::declval<T>());
 }
-namespace csl::ag {
-    [[nodiscard]] constexpr static auto operator|(concepts::aggregate auto && value, const views::details::all_t &)
-    {
-        return view(csl_fwd(value));
-    }
+[[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
+{
+    return view(csl_fwd(value));
 }
+
 
 // -----------------------------------
 
