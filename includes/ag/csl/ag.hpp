@@ -665,7 +665,7 @@ namespace csl::ag::views {
 }
 [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
 {
-    return view(csl_fwd(value));
+    return csl::ag::to_tuple_view(csl_fwd(value));
 }
 
 

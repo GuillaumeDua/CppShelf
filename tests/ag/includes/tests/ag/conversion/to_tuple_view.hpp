@@ -31,4 +31,12 @@ namespace test::ag::conversion::tuple_view_ {
 
     // so csl::ag::view_t same_as decltype(csl::ag::to_tuple_view())
     // (nothing to do)
+
+    // DSL: value | view
+    // type | view
+    static_assert(std::same_as<expected_from_lvalue, std::remove_cvref_t<decltype(std::declval<type&>() | csl::ag::views::all)>>);
+    static_assert(std::same_as<expected_from_rvalue, std::remove_cvref_t<decltype(std::declval<type&&>() | csl::ag::views::all)>>);
+    static_assert(std::same_as<expected_from_const_lvalue, std::remove_cvref_t<decltype(std::declval<const type&>() | csl::ag::views::all)>>);
+    static_assert(std::same_as<expected_from_const_rvalue, std::remove_cvref_t<decltype(std::declval<const type&&>() | csl::ag::views::all)>>);
+
 }
