@@ -58,7 +58,7 @@ namespace csl::ag::details::mp {
     template <typename from, typename to>
     using copy_ref_t = typename copy_ref<from, to>::type;
 
-    // add cv - P1450 impl detail (also for ref-qualified types)
+    // P1450 - add cv - impl detail (also for ref-qualified types)
     template <typename T> struct add_const : std::type_identity<const T>{};
     template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
     template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
@@ -154,12 +154,29 @@ namespace csl::ag::concepts {
         }(std::make_index_sequence<size>{})
     ;
 
-	template <typename T>
-    concept tuplelike =
-        requires { std::tuple_size<std::remove_reference_t<T>>{}; }
+    // P2165 - tuple-like
+    // Note that this is a good-enough implementation of P2165 to only fit this project's needs
+	template <typename T, std::size_t N>
+    concept is_tuple_element = requires(T t) {
+        typename std::tuple_element_t<N, std::remove_const_t<T>>;
+        { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
+    };
+    template <typename T>
+    concept tuple_like =
+        not std::is_reference_v<T>
+        and requires {
+            typename std::tuple_size<T>::type;
+            std::same_as<decltype(std::tuple_size_v<T>), size_t>;
+        }
+        and []<std::size_t... I>(std::index_sequence<I...>) {
+            return (is_tuple_element<T, I> && ...);
+        }(std::make_index_sequence<std::tuple_size_v<T>>{})
     ;
+    template <typename T>
+    concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
+
 	template <typename T>
-	concept structured_bindable = tuplelike<T> or aggregate<T>;
+	concept structured_bindable = tuple_like<T> or aggregate<T>;
 }
 namespace csl::ag::details {
 
@@ -884,7 +901,7 @@ namespace csl::ag::io {
         using value_type = std::remove_cvref_t<decltype(value)>;
 
         constexpr auto size = []() constexpr { // work-around for ADL issue
-            if constexpr (csl::ag::concepts::tuplelike<value_type>)
+            if constexpr (csl::ag::concepts::tuple_like<value_type>)
                 return std::tuple_size_v<value_type>;
             else if constexpr (csl::ag::concepts::aggregate<value_type>)
                 return csl::ag::size_v<value_type>;
