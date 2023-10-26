@@ -44,7 +44,7 @@ namespace test::ag::get_ {
                 std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
             > and ...));
         }(
-            std::type_identity<csl::ag::to_tuple_t<T>>{},
+            std::type_identity<csl::ag::to_tuple_t<std::remove_cvref_t<T>>>{},
             std::make_index_sequence<csl::ag::size_v<T>>{}
         );
     }

@@ -250,13 +250,15 @@ namespace csl::ag::details {
 
     consteval auto make_to_tuple(concepts::aggregate auto && value) /* -> std::type_identity<std::tuple<field_Ts...>>*/;
     template <typename T>
-    // TODO: copy_cvref_t
-    using to_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::make_to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type;
+    using to_tuple_t = mp::copy_cvref_t<
+        T,
+        typename std::remove_cvref_t<decltype(csl::ag::details::make_to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type
+    >;
 #pragma endregion
 
     template <typename owner_type>
     [[nodiscard]] constexpr concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
-        using tuple_t = to_tuple_t<owner_type>;
+        using tuple_t = to_tuple_t<std::remove_cvref_t<owner_type>>;
         
         constexpr auto size = std::tuple_size_v<tuple_t>;
         static_assert(size == sizeof...(values));
@@ -620,7 +622,7 @@ namespace csl::ag {
 
     // element
 	template <std::size_t N, concepts::aggregate T>
-    using element = std::tuple_element<N, details::to_tuple_t<T>>;
+    using element = std::tuple_element<N, details::to_tuple_t<std::remove_cvref_t<T>>>;
 	template <std::size_t N, concepts::aggregate T>
 	using element_t = typename element<N, T>::type;
 
