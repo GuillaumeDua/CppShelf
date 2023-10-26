@@ -250,11 +250,12 @@ namespace csl::ag::details {
 
     consteval auto make_to_tuple(concepts::aggregate auto && value) /* -> std::type_identity<std::tuple<field_Ts...>>*/;
     template <typename T>
+    // TODO: copy_cvref_t
     using to_tuple_t = typename std::remove_cvref_t<decltype(csl::ag::details::make_to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type;
 #pragma endregion
 
     template <typename owner_type>
-    [[nodiscard]] constexpr auto make_tuple_view(auto && ... values) noexcept {
+    [[nodiscard]] constexpr concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
         using tuple_t = to_tuple_t<owner_type>;
         
         constexpr auto size = std::tuple_size_v<tuple_t>;
@@ -685,7 +686,6 @@ namespace csl::ag::views {
     return csl::ag::to_tuple_view(csl_fwd(value));
 }
 
-
 // -----------------------------------
 
 // tuple-like interface
@@ -711,6 +711,7 @@ namespace std {
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
 
     // screw-up the ADL (aggregate structured-binding vs tuplelike)
+    //  demo: https://godbolt.org/z/djMfWrY1T
     // template <::csl::ag::concepts::aggregate T>
     // struct tuple_size<T> : std::integral_constant<std::size_t, ::csl::ag::details::fields_count<T>>{};
 // NOLINTEND(cert-dcl58-cpp)

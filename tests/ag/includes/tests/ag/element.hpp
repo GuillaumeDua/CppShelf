@@ -16,6 +16,10 @@ namespace test::ag::element_ {
             csl::ag::element_t<index, type>,
             std::tuple_element_t<index, as_tuple_t>
         >);
+        static_assert(std::is_same_v<
+            std::tuple_element_t<index, type>,
+            std::tuple_element_t<index, as_tuple_t>
+        >);
     };
     constexpr static auto _ = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
         ((expect_symetric_element_t<indexes>()), ...);

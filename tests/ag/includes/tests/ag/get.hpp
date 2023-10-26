@@ -18,10 +18,10 @@ namespace test::ag::get_ {
             std::index_sequence<indexes...>
         ){
             //if constexpr (not std::is_reference_v<T>)
-                static_assert((std::same_as<
-                    csl::ag::details::mp::field_view_t<T, csl::ag::element_t<indexes, T>>,
-                    decltype(csl::ag::get<indexes>(std::declval<T>()))
-                > and ...));
+            static_assert((std::same_as<
+                csl::ag::details::mp::field_view_t<T, csl::ag::element_t<indexes, T>>,
+                decltype(csl::ag::get<indexes>(std::declval<T>()))
+            > and ...));
 
             // get<T> vs. get<std::size_t>
             static_assert((std::same_as<
@@ -29,7 +29,20 @@ namespace test::ag::get_ {
                 std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
             > and ...));
 
-            // and same as tuple
+            // WIP: copy_cvref_T
+            using tuple_t = 
+                csl::ag::to_tuple_t<std::remove_cvref_t<T>>;
+
+            // csl::get<std::size_t> vs. std::get<std::size_t>
+            static_assert((std::same_as<
+                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
+                std::remove_cvref_t<decltype(csl::ag::get<indexes>(std::declval<T>()))>
+            > and ...));
+            // csl::get<T> vs. std::get<T>
+            static_assert((std::same_as<
+                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
+                std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
+            > and ...));
         }(
             std::type_identity<csl::ag::to_tuple_t<T>>{},
             std::make_index_sequence<csl::ag::size_v<T>>{}
