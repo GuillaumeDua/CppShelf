@@ -9,6 +9,7 @@ namespace test::ag::get_ {
     constexpr void ensure_symetric_get_type(){
 
         static_assert(std::is_reference_v<T>);
+        using tuple_t = csl::ag::to_tuple_t<T>;
 
         [&]<
             typename ... Ts,
@@ -29,10 +30,7 @@ namespace test::ag::get_ {
                 std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
             > and ...));
 
-            // WIP: copy_cvref_T
-            using tuple_t = 
-                csl::ag::to_tuple_t<std::remove_cvref_t<T>>;
-
+            // tuple-like interface
             // csl::get<std::size_t> vs. std::get<std::size_t>
             static_assert((std::same_as<
                 std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
@@ -42,6 +40,16 @@ namespace test::ag::get_ {
             static_assert((std::same_as<
                 std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
                 std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
+            > and ...));
+            // std::get<std::size_t>(ag) vs. std::get<std::size_t>(tuple)
+            static_assert((std::same_as<
+                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
+                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<tuple_t>()))>
+            > and ...));
+            // std::get<T>(ag) vs. std::get<T>(tuple)
+            static_assert((std::same_as<
+                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
+                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<tuple_t>()))>
             > and ...));
         }(
             std::type_identity<csl::ag::to_tuple_t<std::remove_cvref_t<T>>>{},

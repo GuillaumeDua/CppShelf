@@ -633,6 +633,10 @@ namespace csl::ag {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::generated::to_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
     }
+    // TODO(Guss): view -> tuple + is_product;
+    //  - is_view
+    //  - is_owning -> not_ref<Ts> and ...
+    //  - is_non_owning -> ref<Ts> and ...
     template <concepts::aggregate T> requires (std::is_reference_v<T>)
     struct view : std::type_identity<decltype(to_tuple_view(std::declval<T>()))>{}; 
     template <concepts::aggregate T> requires (std::is_reference_v<T>)
@@ -677,6 +681,7 @@ namespace csl::ag {
 namespace csl::ag {
 // ADL-used
     struct all_view_tag{};
+    // WIP: to<T> https://godbolt.org/z/qdYxPsP5z
 }
 namespace csl::ag::views {
     constexpr static inline auto all = all_view_tag{};
