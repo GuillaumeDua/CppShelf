@@ -166,7 +166,7 @@ namespace csl::ag::concepts {
         not std::is_reference_v<T>
         and requires {
             typename std::tuple_size<T>::type;
-            std::same_as<decltype(std::tuple_size_v<T>), size_t>;
+            requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
         }
         and []<std::size_t... I>(std::index_sequence<I...>) {
             return (is_tuple_element<T, I> && ...);
