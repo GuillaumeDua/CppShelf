@@ -678,10 +678,45 @@ namespace csl::ag {
     }
 }
 // --- DSL ---
+namespace csl::ag::details {
+    template <typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ std::get<indexes>(fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+    template <template <typename...> typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ std::get<indexes>(fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+    template <template <typename, auto ...> typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ std::get<indexes>(fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+    template <template <auto, typename ...> typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ std::get<indexes>(fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+}
 namespace csl::ag {
 // ADL-used
     // view
     struct all_view_tag{};
+    [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
+    {
+        return csl::ag::to_tuple_view(csl_fwd(value));
+    }
+
     // conversion
     // REFACTO: REFACTO: P1950 Universal Template Paramters
     template <typename T>
@@ -693,10 +728,14 @@ namespace csl::ag {
     template <template <auto, typename ...> typename>
     struct to_template_type_nttp_ttps_tag{};
 
-    [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
-    {
-        return csl::ag::to_tuple_view(csl_fwd(value));
-    }
+    template <typename T>
+    constexpr auto to(){ return to_complete_type_tag<T>{}; };
+    template <template <typename...> typename T>
+    constexpr auto to(){ return to_template_type_ttps_tag<T>{}; };
+    template <template <typename, auto...> typename T> 
+    constexpr auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
+    template <template <auto, typename ...> typename T>
+    constexpr auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
 }
 namespace csl::ag::views {
     constexpr static inline auto all = all_view_tag{};
