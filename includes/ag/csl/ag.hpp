@@ -269,7 +269,7 @@ namespace csl::ag::details {
         }(std::make_index_sequence<size>{});
     }
 }
-// generated: details
+// --- generated: details ---
 namespace csl::ag::details::generated {
 // GENERATED CONTENT, DO NOT EDIT MANUALLY !
 // Generated code with CSL_AG_MAX_FIELDS_COUNT_OPTION = 32
@@ -607,7 +607,7 @@ namespace csl::ag::details {
         return details::generated::make_to_tuple<size>(csl_fwd(value));
     }
 }
-// API
+// --- API ---
 namespace csl::ag {
 
     // size
@@ -677,25 +677,36 @@ namespace csl::ag {
         }(std::make_index_sequence<size_v<value_type>>{});
     }
 }
-// DSL
+// --- DSL ---
 namespace csl::ag {
 // ADL-used
+    // view
     struct all_view_tag{};
-    // WIP: to<T> https://godbolt.org/z/qdYxPsP5z
+    // conversion
+    // REFACTO: REFACTO: P1950 Universal Template Paramters
+    template <typename T>
+    struct to_complete_type_tag{};
+    template <template <typename...> typename>
+    struct to_template_type_ttps_tag{};
+    template <template <typename, auto ...> typename>
+    struct to_template_type_ttp_nttps_tag{};
+    template <template <auto, typename ...> typename>
+    struct to_template_type_nttp_ttps_tag{};
+
+    [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
+    {
+        return csl::ag::to_tuple_view(csl_fwd(value));
+    }
 }
 namespace csl::ag::views {
     constexpr static inline auto all = all_view_tag{};
     template <typename T>
     using all_t = decltype(std::declval<T>());
 }
-[[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
-{
-    return csl::ag::to_tuple_view(csl_fwd(value));
-}
 
 // -----------------------------------
 
-// tuple-like interface
+// --- tuple-like interface ---
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp)
 //  N4606 [namespace.std]/1 :
