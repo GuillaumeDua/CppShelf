@@ -676,9 +676,8 @@ namespace csl::ag {
             };
         }(std::make_index_sequence<size_v<value_type>>{});
     }
-}
-// --- DSL ---
-namespace csl::ag::details {
+
+    // factory
     template <typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
@@ -708,6 +707,11 @@ namespace csl::ag::details {
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
 }
+namespace csl::ag::concepts {
+    template <typename T, typename U>
+    concept convertible_to = requires{ csl::ag::make<U>(std::declval<T>()); };
+}
+// --- DSL ---
 namespace csl::ag {
 // ADL-used
     // view
@@ -736,6 +740,27 @@ namespace csl::ag {
     constexpr auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
     template <template <auto, typename ...> typename T>
     constexpr auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
+
+    template <typename T>
+    [[nodiscard]] constexpr auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
+    {
+        return csl::ag::make<T>(fwd(value));
+    }
+    template <template <typename...> typename T>
+    [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_ttps_tag<T>)
+    {
+        return csl::ag::make<T>(fwd(value));
+    }
+    template <template <typename, auto ...> typename T>
+    [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_ttp_nttps_tag<T>)
+    {
+        return csl::ag::make<T>(fwd(value));
+    }
+    template <template <auto, typename ...> typename T>
+    [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_nttp_ttps_tag<T>)
+    {
+        return csl::ag::make<T>(fwd(value));
+    }
 }
 namespace csl::ag::views {
     constexpr static inline auto all = all_view_tag{};
