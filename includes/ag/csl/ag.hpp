@@ -682,28 +682,28 @@ namespace csl::ag {
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(fwd(from_value))... };
+            return T{ std::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
     template <template <typename...> typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(fwd(from_value))... };
+            return T{ std::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
     template <template <typename, auto ...> typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(fwd(from_value))... };
+            return T{ std::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
     template <template <auto, typename ...> typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(fwd(from_value))... };
+            return T{ std::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
 }
@@ -744,22 +744,22 @@ namespace csl::ag {
     template <typename T>
     [[nodiscard]] constexpr auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
     {
-        return csl::ag::make<T>(fwd(value));
+        return csl::ag::make<T>(csl_fwd(value));
     }
     template <template <typename...> typename T>
     [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_ttps_tag<T>)
     {
-        return csl::ag::make<T>(fwd(value));
+        return csl::ag::make<T>(csl_fwd(value));
     }
     template <template <typename, auto ...> typename T>
     [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_ttp_nttps_tag<T>)
     {
-        return csl::ag::make<T>(fwd(value));
+        return csl::ag::make<T>(csl_fwd(value));
     }
     template <template <auto, typename ...> typename T>
     [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_nttp_ttps_tag<T>)
     {
-        return csl::ag::make<T>(fwd(value));
+        return csl::ag::make<T>(csl_fwd(value));
     }
 }
 namespace csl::ag::views {
