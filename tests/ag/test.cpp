@@ -10,6 +10,7 @@
 #include "includes/tests/ag/details/mp.hpp"
 #include "includes/tests/ag/conversion/to_tuple.hpp"
 #include "includes/tests/ag/conversion/to_tuple_view.hpp"
+#include "includes/tests/ag/conversion/make.hpp"
 #include "includes/tests/ag/size.hpp"
 #include "includes/tests/ag/element.hpp"
 #include "includes/tests/ag/get.hpp"

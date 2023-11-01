@@ -664,7 +664,8 @@ namespace csl::ag {
         return get<index>(std::forward<decltype(value)>(value));
     }
 
-    // tuple conversion (owning, not view !)
+    // tuple conversion (strict field conversions: same possibly-cvref-qualified types)
+    //  ex: struct type{ A v0; B & v1; const C && v2 } => std::tuple<A, B&, const C&&>;
     [[nodiscard]] constexpr auto to_tuple(concepts::aggregate auto && value) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
@@ -677,33 +678,33 @@ namespace csl::ag {
         }(std::make_index_sequence<size_v<value_type>>{});
     }
 
-    // factory
+    // conversion factory. unfold into an either complete or template type T
     template <typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(csl_fwd(from_value))... };
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
     template <template <typename...> typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(csl_fwd(from_value))... };
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
     template <template <typename, auto ...> typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(csl_fwd(from_value))... };
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
     template <template <auto, typename ...> typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            return T{ std::get<indexes>(csl_fwd(from_value))... };
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
 }
@@ -768,17 +769,16 @@ namespace csl::ag::views {
     using all_t = decltype(std::declval<T>());
 }
 
-// -----------------------------------
-
 // --- tuple-like interface ---
+// NOTE: a better option to outpass limitations would be to provide customization for another tuple implementation,
+//  like `csl::mp::tuple` instead of `std::tuple`
+// TODO(Guss) : as opt-in, so aggregate are not necessarily std-tuplelike (yet can use csl::ag tuplelike-interface)
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp)
 //  N4606 [namespace.std]/1 :
 //  A program may add a template specialization for any standard library template to namespace std
 //  only if the declaration depends on a user-defined type 
 //  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-
-// TODO(Guss) : as opt-in, so aggregate are not necessarily tuplelike
 
     template <std::size_t N>
     constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
@@ -799,6 +799,8 @@ namespace std {
 // NOLINTEND(cert-dcl58-cpp)
 }
 
+// -----------------------------------
+//           WIP: REFACTO
 // -----------------------------------
 
 // csl::ag::io
