@@ -2,6 +2,8 @@
 
 #include <csl/ag.hpp>
 #include <cstdint>
+#include <array>
+#include <vector>
 #include "tests/type.hpp"
 
 namespace test::ag::conversion::make_ {
@@ -30,10 +32,58 @@ namespace test::ag::conversion::make_::complete {
 namespace test::ag::conversion::make_::complete::to_larger {
     struct smaller { int i; };
     struct longer { int i; char c; };
+
     static_assert(csl::ag::concepts::convertible_to<smaller, longer>);
+    static_assert(std::same_as<
+        longer,
+        decltype(csl::ag::make<longer>(std::declval<smaller>()))
+    >);
+    static_assert(std::same_as<
+        longer,
+        decltype(std::declval<smaller>() | csl::ag::to<longer>())
+    >);
 }
 namespace test::ag::conversion::make_::complete::non_narrowing_conversion {
     struct int_aggregate { std::int32_t i; };
     struct long_aggregate { std::int64_t l; };
     static_assert(csl::ag::concepts::convertible_to<int_aggregate, long_aggregate>);
+    static_assert(std::same_as<
+        long_aggregate,
+        decltype(csl::ag::make<long_aggregate>(std::declval<int_aggregate>()))
+    >);
+    static_assert(std::same_as<
+        long_aggregate,
+        decltype(std::declval<int_aggregate>() | csl::ag::to<long_aggregate>())
+    >);
 }
+namespace test::ag::conversion::make::incomplete::ttp {
+    struct type { int v0; int v1; };
+    using expected = std::vector<int>;
+
+    static_assert(csl::ag::concepts::convertible_to<type, expected>);
+    static_assert(std::same_as<
+        expected,
+        decltype(csl::ag::make<std::vector>(std::declval<type>()))
+    >);
+    static_assert(std::same_as<
+        expected,
+        decltype(std::declval<type>() | csl::ag::to<std::vector>())
+    >);
+}
+namespace test::ag::conversion::make::incomplete::ttp_nttp {
+    struct type { int v0; int v1; };
+    using expected = std::array<int, 2>;
+
+    static_assert(csl::ag::concepts::convertible_to<type, expected>);
+    static_assert(std::same_as<
+        expected,
+        decltype(csl::ag::make<std::array>(std::declval<type>()))
+    >);
+    static_assert(std::same_as<
+        expected,
+        decltype(std::declval<type>() | csl::ag::to<std::array>())
+    >);
+}
+
+
+// WIP: | to<>

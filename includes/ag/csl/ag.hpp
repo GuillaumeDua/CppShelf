@@ -628,7 +628,13 @@ namespace csl::ag {
 
     // tuple-view
     //  factory that creates a lightweight accessor to an existing aggregate value,
-    //  preserving cvref semantic
+    //  extending owner's value-semantic to owned values,
+    //  while preserving value-semantic of ref-qualified values
+    //  ex:
+    //  - struct type{ A v0; B & v1; const C && v2 }
+    //  -       type &  => std::tuple<      A&,  B&, const C&&>;
+    //  - const type &  => std::tuple<const A&,  B&, const C&&>;
+    //  -       type && => std::tuple<      A&&, B&, const C&&>;
     [[nodiscard]] constexpr auto to_tuple_view(concepts::aggregate auto && value) noexcept {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::generated::to_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
@@ -679,6 +685,7 @@ namespace csl::ag {
     }
 
     // conversion factory. unfold into an either complete or template type T
+    // interally performs get<indexes>...
     template <typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
@@ -707,6 +714,11 @@ namespace csl::ag {
             return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
         }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
+
+    // TODO(Guss)
+    // conversion factory. unfold into an either complete or template type T
+    // interally performs get<Ts>... (requires unique<Ts...>)
+    // motivation: struct { int; string } => struct { string; int }
 }
 namespace csl::ag::concepts {
     template <typename T, typename U>
@@ -767,6 +779,8 @@ namespace csl::ag::views {
     constexpr static inline auto all = all_view_tag{};
     template <typename T>
     using all_t = decltype(std::declval<T>());
+
+    // TODO(Guss): common_t -> std::tuple<std::common_type<Ts>...>
 }
 
 // --- tuple-like interface ---
