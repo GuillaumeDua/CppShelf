@@ -727,12 +727,17 @@ namespace csl::ag::concepts {
 // --- DSL ---
 namespace csl::ag {
 // ADL-used
-    // view
+    // view: all
     struct all_view_tag{};
     [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
     {
         return csl::ag::to_tuple_view(csl_fwd(value));
     }
+
+    // conversion: common
+    // POC: https://godbolt.org/z/Yc5no5MzP
+
+    // QUESTION: specific tag to allow narrowing-conversions ? (injects static_cast - as a projection ?)
 
     // conversion
     // REFACTO: REFACTO: P1950 Universal Template Paramters
