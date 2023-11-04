@@ -56,7 +56,7 @@ namespace test::ag::conversion::make_::complete::non_narrowing_conversion {
         decltype(std::declval<int_aggregate>() | csl::ag::to<long_aggregate>())
     >);
 }
-namespace test::ag::conversion::make::incomplete::ttp {
+namespace test::ag::conversion::make::template_type::ttp {
     struct type { int v0; int v1; };
     using expected = std::vector<int>;
 
@@ -70,7 +70,21 @@ namespace test::ag::conversion::make::incomplete::ttp {
         decltype(std::declval<type>() | csl::ag::to<std::vector>())
     >);
 }
-namespace test::ag::conversion::make::incomplete::ttp_nttp {
+namespace test::ag::conversion::make::template_type::ttps {
+    struct type { int v0; int v1; };
+    using expected = std::tuple<int, int>;
+
+    static_assert(csl::ag::concepts::convertible_to<type, expected>);
+    static_assert(std::same_as<
+        expected,
+        decltype(csl::ag::make<std::tuple>(std::declval<type>()))
+    >);
+    static_assert(std::same_as<
+        expected,
+        decltype(std::declval<type>() | csl::ag::to<std::tuple>())
+    >);
+}
+namespace test::ag::conversion::make::template_type::ttp_nttp {
     struct type { int v0; int v1; };
     using expected = std::array<int, 2>;
 
@@ -84,6 +98,3 @@ namespace test::ag::conversion::make::incomplete::ttp_nttp {
         decltype(std::declval<type>() | csl::ag::to<std::array>())
     >);
 }
-
-
-// WIP: | to<>
