@@ -719,6 +719,14 @@ namespace csl::ag {
     // conversion factory. unfold into an either complete or template type T
     // interally performs get<Ts>... (requires unique<Ts...>)
     // motivation: struct { int; string } => struct { string; int }
+    //
+    // use type-qualifier/decorator orderer/unordered ?
+    // ex:
+    //  auto other = value | views::move | views::unordered | to<other_type>; // -> get<Ts...>
+    //
+    
+    // TODO(Guss)
+    //  move_view -> or already equivalent to std::move(value) | views::smthg ? (TO TEST)
 }
 namespace csl::ag::concepts {
     template <typename T, typename U>
