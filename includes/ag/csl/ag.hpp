@@ -796,6 +796,7 @@ namespace csl::ag::views {
     // TODO(Guss): common_t -> std::tuple<std::common_type<Ts>...>
 }
 
+// WIP: https://godbolt.org/z/xMEc54sPx
 // --- tuple-like interface ---
 // NOTE: a better option to outpass limitations would be to provide customization for another tuple implementation,
 //  like `csl::mp::tuple` instead of `std::tuple`
