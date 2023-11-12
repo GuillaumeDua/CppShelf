@@ -16,7 +16,8 @@
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
-namespace csl::ag::details {
+namespace csl::ag::details::unevaluated {
+// to use in an unevaluated context only
 
     template <typename T>
     consteval auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
@@ -27,9 +28,13 @@ namespace csl::ag::details {
             return std::move(*((std::remove_reference_t<T>*){ nullptr }));
     }
 
-    template <std::size_t>
-    struct field_evaluator {
-        explicit constexpr field_evaluator() = delete;
+    struct ref_evaluator {
+        explicit constexpr ref_evaluator() = delete;
+        constexpr ~ref_evaluator() = delete;
+        constexpr ref_evaluator(const ref_evaluator&) = delete;
+        constexpr ref_evaluator(ref_evaluator&&) = delete;
+        constexpr ref_evaluator & operator=(const ref_evaluator&) = delete;
+        constexpr ref_evaluator & operator=(ref_evaluator&&) = delete;
 
 		// Implicit conversion
         // 	not `return std::declval<T>();`, as clang does not like it
@@ -45,6 +50,13 @@ namespace csl::ag::details {
     };
 }
 namespace csl::ag::details::mp {
+
+    // NTTP-dependent type
+    template <typename T, auto index>
+    struct unfolder : std::type_identity<T>{};
+    template <typename T, auto index>
+    using unfolder_t = typename unfolder<T, index>::type;
+
 // P1450 Enriching type modification traits : https://github.com/cplusplus/papers/issues/216
 // Note that this is a good-enough implementation of P1450 to only fit this project's needs
 
@@ -150,7 +162,10 @@ namespace csl::ag::concepts {
     concept aggregate_constructible_from_n_values =
         concepts::aggregate<T> and
         []<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            return concepts::aggregate_constructible_from<T, details::field_evaluator<indexes>...>;
+            return concepts::aggregate_constructible_from<
+                T,
+                details::mp::unfolder_t<details::unevaluated::ref_evaluator, indexes>...
+            >;
         }(std::make_index_sequence<size>{})
     ;
 
@@ -797,6 +812,8 @@ namespace csl::ag::views {
 }
 
 // WIP: https://godbolt.org/z/xMEc54sPx
+// NOTE: requires many changes in tests types
+
 // --- tuple-like interface ---
 // NOTE: a better option to outpass limitations would be to provide customization for another tuple implementation,
 //  like `csl::mp::tuple` instead of `std::tuple`
