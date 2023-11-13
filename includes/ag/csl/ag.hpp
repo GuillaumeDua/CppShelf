@@ -1031,6 +1031,7 @@ namespace csl::ag::io {
         using value_type = std::remove_cvref_t<decltype(value)>;
 
         constexpr auto size = []() constexpr { // work-around for ADL issue
+            // TODO(Guss): unqualified tuple_size_v instead here
             if constexpr (csl::ag::concepts::tuple_like<value_type>)
                 return std::tuple_size_v<value_type>;
             else if constexpr (csl::ag::concepts::aggregate<value_type>)
