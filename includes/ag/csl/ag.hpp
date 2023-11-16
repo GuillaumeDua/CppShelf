@@ -810,6 +810,19 @@ namespace csl::ag::views {
 
     // TODO(Guss): common_t -> std::tuple<std::common_type<Ts>...>
 }
+// --- opt-ins ---
+namespace csl::ag::details::options::detection {
+    template <typename T, typename = void> struct tuple_interface : std::false_type {};
+    template <typename T> struct tuple_interface<T, typename T::csl_ag_optins::tuple_interface> : std::true_type {};
+    template <typename T> constexpr auto tuple_interface_v = tuple_interface<T>::value;
+}
+namespace csl::ag::concepts {
+    template <typename T>
+    concept opt_in_tuplelike_interface =
+        concepts::aggregate<T>
+    and csl::ag::details::options::detection::tuple_interface_v<T>
+    ;
+}
 
 // WIP: https://godbolt.org/z/xMEc54sPx
 // NOTE: requires many changes in tests types
@@ -826,7 +839,8 @@ namespace std {
 //  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 
     template <std::size_t N>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept
+    {
         return csl::ag::get<N>(std::forward<decltype(value)>(value));
     }
     template <typename T>
@@ -1031,7 +1045,7 @@ namespace csl::ag::io {
         using value_type = std::remove_cvref_t<decltype(value)>;
 
         constexpr auto size = []() constexpr { // work-around for ADL issue
-            // TODO(Guss): unqualified tuple_size_v instead here
+            // TODO(Guss): unqualified tuple_size_v lookup instead here
             if constexpr (csl::ag::concepts::tuple_like<value_type>)
                 return std::tuple_size_v<value_type>;
             else if constexpr (csl::ag::concepts::aggregate<value_type>)

@@ -14,5 +14,6 @@
 #include "tests/ag/size.hpp"
 #include "tests/ag/element.hpp"
 #include "tests/ag/get.hpp"
+#include "tests/ag/custom_tuple_like_interface.hpp"
 
 auto main() -> int {}
