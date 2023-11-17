@@ -38,3 +38,5 @@ namespace test::ag::custom_tuple_like_interface {
         [[maybe_unused]] const auto _ = std::get<0>(value) + std::get<int>(value);
     }
 }
+
+// WIP/MVE: https://godbolt.org/z/aorEYfrbG
