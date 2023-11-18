@@ -1,6 +1,7 @@
 #pragma once
 
 #include <csl/ag.hpp>
+#include <memory>
 #include <type_traits>
 
 namespace test::ag::custom_tuple_like_interface {
@@ -9,6 +10,9 @@ namespace test::ag::custom_tuple_like_interface {
     };
     static_assert(csl::ag::concepts::aggregate<type>);
 }
+
+#include <memory>
+using qwe = std::allocator_traits<char>;
 
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp)
@@ -39,4 +43,4 @@ namespace test::ag::custom_tuple_like_interface {
     }
 }
 
-// WIP/MVE: https://godbolt.org/z/aorEYfrbG
+// WIP/MVE: https://godbolt.org/z/Tfdhj5vjc
