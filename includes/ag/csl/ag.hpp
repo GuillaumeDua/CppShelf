@@ -37,8 +37,8 @@ namespace csl::ag::details::unevaluated {
         constexpr ref_evaluator & operator=(ref_evaluator&&) = delete;
 
 		// Implicit conversion
-        // 	not `return std::declval<T>();`, as clang does not like it
-        // 	neither `consteval` -> Clang ICE
+        // 	not `return std::declval<T>();`, as clang does not like it even in a non-evaluated context
+        // 	neither `consteval` -> Clang-16.0.? ICE
         template <typename T>
         [[nodiscard]] consteval operator T&&() const noexcept { // NOLINT(google-explicit-constructor)
             return declval<T&&>();
@@ -866,7 +866,7 @@ namespace std {
 // REFACTO: #134
 #include <string_view>
 
-// TODO: remove this coupling with gcl
+// TODO(Guss): remove this coupling with gcl
 namespace gcl::cx::details {
     struct type_prefix_tag { constexpr static std::string_view value = "T = "; };
     struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
@@ -926,7 +926,7 @@ namespace gcl::cx {
     template <auto value>
     constexpr inline auto value_name_v = value_name<value>();
 }
-// TODO: remove this coupling with gcl
+// TODO(Guss): remove this coupling with gcl
 namespace gcl::pattern
 {
 	template <typename T, typename>
