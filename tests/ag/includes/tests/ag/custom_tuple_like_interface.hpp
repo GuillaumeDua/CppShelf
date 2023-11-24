@@ -61,5 +61,5 @@ namespace test::ag::custom_tuple_like_interface {
     }
 }
 
-// TODO(Guss): to integrate: https://godbolt.org/z/7eh3hr3Yn
+// TODO(Guss): to integrate: https://godbolt.org/z/nc9ErnvxY
 // TODO(Guss): opt-in tuple-like interface
