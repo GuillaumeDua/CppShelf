@@ -826,6 +826,7 @@ namespace csl::ag::views {
     // TODO(Guss): common_t -> std::tuple<std::common_type<Ts>...>
 }
 // --- opt-ins ---
+// TODO(Guss): hash, compare, assign?, etc.
 namespace csl::ag::details::options::detection {
     template <typename T, typename = void> struct std_tuple_interface : std::false_type {};
     template <typename T> struct std_tuple_interface<T, typename T::csl_optins::ag::std_tuple_interface> : std::true_type {};
@@ -839,40 +840,14 @@ namespace csl::ag::concepts {
     ;
 }
 
-// --- tuple-like interface ---
-// WIP: https://godbolt.org/z/xMEc54sPx
-// NOTE: requires many changes in tests types
-
-// WIP: remove: replace with unqualified lookup
-// NOTE: a better option to outpass limitations would be to provide customization for another tuple implementation,
-//  like `csl::mp::tuple` instead of `std::tuple`
-// TODO(Guss) : as opt-in, so aggregate are not necessarily std-tuplelike (yet can use csl::ag tuplelike-interface)
-
-namespace std {
-// NOLINTBEGIN(cert-dcl58-cpp)
-//  N4606 [namespace.std]/1 :
-//  A program may add a template specialization for any standard library template to namespace std
-//  only if the declaration depends on a user-defined type 
-//  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-
+// ???
+namespace csl::universal {
     template <std::size_t N>
-    constexpr decltype(auto) get(::csl::ag::concepts::opt_in_std_tuple_interface auto && value) noexcept
-    {
-        return csl::ag::get<N>(std::forward<decltype(value)>(value));
+    constexpr decltype(auto) get(auto && value) noexcept {
+        using std::get;
+        using csl::ag::get;
+        return get<N>(fwd(value));
     }
-    template <typename T>
-    constexpr decltype(auto) get(::csl::ag::concepts::opt_in_std_tuple_interface auto && value) noexcept {
-        return csl::ag::get<T>(std::forward<decltype(value)>(value));
-    }
-
-    template <std::size_t N, ::csl::ag::concepts::opt_in_std_tuple_interface T>
-    struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
-
-    // screw-up the ADL (aggregate structured-binding vs tuplelike)
-    //  demo: https://godbolt.org/z/djMfWrY1T
-    // template <::csl::ag::concepts::opt_in_std_tuple_interface T>
-    // struct tuple_size<T> : std::integral_constant<std::size_t, ::csl::ag::details::fields_count<T>>{};
-// NOLINTEND(cert-dcl58-cpp)
 }
 
 // -----------------------------------
