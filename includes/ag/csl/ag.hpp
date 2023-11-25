@@ -625,15 +625,16 @@ namespace csl::ag::details {
 // --- API ---
 namespace csl::ag {
 
+    // to_tuple
+    template <concepts::aggregate T>
+    using to_tuple_t = details::to_tuple_t<T>;
+
+    // --- inner API ---
     // size
     template <csl::ag::concepts::aggregate T>
     struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
 	constexpr auto size_v = size<T>::value;
-
-    // to_tuple
-    template <concepts::aggregate T>
-    using to_tuple_t = details::to_tuple_t<T>;
 
     // element
 	template <std::size_t N, concepts::aggregate T>
@@ -670,6 +671,19 @@ namespace csl::ag {
 	template <std::size_t N, concepts::aggregate T>
 	using view_element_t = typename view_element<N, T>::type;
 
+    // --- tuple-like ---
+    // tuple_size
+    template <csl::ag::concepts::aggregate T>
+    struct tuple_size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
+	template <csl::ag::concepts::aggregate T>
+	constexpr auto tuple_size_v = tuple_size<T>::value;
+
+    // tuple_element
+    template <std::size_t N, concepts::aggregate T>
+    using tuple_element = std::tuple_element<N, details::to_tuple_t<std::remove_cvref_t<T>>>;
+	template <std::size_t N, concepts::aggregate T>
+	using tuple_element_t = typename tuple_element<N, T>::type;
+
     // get<std::size_t>
     template <std::size_t N>
     [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
@@ -685,6 +699,7 @@ namespace csl::ag {
         return get<index>(std::forward<decltype(value)>(value));
     }
 
+    // --- conversions ---
     // tuple conversion / tie (strict field conversions: same possibly-cvref-qualified types)
     //  ex: struct type{ A v0; B & v1; const C && v2 } => std::tuple<A, B&, const C&&>;
     [[nodiscard]] constexpr auto to_tuple(concepts::aggregate auto && value) {
@@ -812,26 +827,27 @@ namespace csl::ag::views {
 }
 // --- opt-ins ---
 namespace csl::ag::details::options::detection {
-    template <typename T, typename = void> struct tuple_interface : std::false_type {};
-    template <typename T> struct tuple_interface<T, typename T::csl_ag_optins::tuple_interface> : std::true_type {};
-    template <typename T> constexpr auto tuple_interface_v = tuple_interface<T>::value;
+    template <typename T, typename = void> struct std_tuple_interface : std::false_type {};
+    template <typename T> struct std_tuple_interface<T, typename T::csl_optins::ag::std_tuple_interface> : std::true_type {};
+    template <typename T> constexpr auto std_tuple_interface_v = std_tuple_interface<T>::value;
 }
 namespace csl::ag::concepts {
     template <typename T>
-    concept opt_in_tuplelike_interface =
-        concepts::aggregate<T>
-    and csl::ag::details::options::detection::tuple_interface_v<T>
+    concept opt_in_std_tuple_interface =
+        concepts::aggregate<std::remove_cvref_t<T>>
+    and csl::ag::details::options::detection::std_tuple_interface_v<std::remove_cvref_t<T>>
     ;
 }
 
+// --- tuple-like interface ---
 // WIP: https://godbolt.org/z/xMEc54sPx
 // NOTE: requires many changes in tests types
 
-// TODO(Guss): remove: replace with unqualified lookup
-// --- tuple-like interface ---
+// WIP: remove: replace with unqualified lookup
 // NOTE: a better option to outpass limitations would be to provide customization for another tuple implementation,
 //  like `csl::mp::tuple` instead of `std::tuple`
 // TODO(Guss) : as opt-in, so aggregate are not necessarily std-tuplelike (yet can use csl::ag tuplelike-interface)
+
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp)
 //  N4606 [namespace.std]/1 :
@@ -840,21 +856,21 @@ namespace std {
 //  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 
     template <std::size_t N>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept
+    constexpr decltype(auto) get(::csl::ag::concepts::opt_in_std_tuple_interface auto && value) noexcept
     {
         return csl::ag::get<N>(std::forward<decltype(value)>(value));
     }
     template <typename T>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) noexcept {
+    constexpr decltype(auto) get(::csl::ag::concepts::opt_in_std_tuple_interface auto && value) noexcept {
         return csl::ag::get<T>(std::forward<decltype(value)>(value));
     }
 
-    template <std::size_t N, ::csl::ag::concepts::aggregate T>
+    template <std::size_t N, ::csl::ag::concepts::opt_in_std_tuple_interface T>
     struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
 
     // screw-up the ADL (aggregate structured-binding vs tuplelike)
     //  demo: https://godbolt.org/z/djMfWrY1T
-    // template <::csl::ag::concepts::aggregate T>
+    // template <::csl::ag::concepts::opt_in_std_tuple_interface T>
     // struct tuple_size<T> : std::integral_constant<std::size_t, ::csl::ag::details::fields_count<T>>{};
 // NOLINTEND(cert-dcl58-cpp)
 }

@@ -31,26 +31,28 @@ namespace test::ag::get_ {
             > and ...));
 
             // tuple-like interface
-            // csl::get<std::size_t> vs. std::get<std::size_t>
-            static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
-                std::remove_cvref_t<decltype(csl::ag::get<indexes>(std::declval<T>()))>
-            > and ...));
-            // csl::get<T> vs. std::get<T>
-            static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
-                std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
-            > and ...));
-            // std::get<std::size_t>(ag) vs. std::get<std::size_t>(tuple)
-            static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
-                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<tuple_t>()))>
-            > and ...));
-            // std::get<T>(ag) vs. std::get<T>(tuple)
-            static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
-                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<tuple_t>()))>
-            > and ...));
+            if constexpr (csl::ag::concepts::opt_in_std_tuple_interface<std::remove_cvref_t<T>>){
+                // csl::get<std::size_t> vs. std::get<std::size_t>
+                static_assert((std::same_as<
+                    std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
+                    std::remove_cvref_t<decltype(csl::ag::get<indexes>(std::declval<T>()))>
+                > and ...));
+                // csl::get<T> vs. std::get<T>
+                static_assert((std::same_as<
+                    std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
+                    std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
+                > and ...));
+                // std::get<std::size_t>(ag) vs. std::get<std::size_t>(tuple)
+                static_assert((std::same_as<
+                    std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
+                    std::remove_cvref_t<decltype(std::get<indexes>(std::declval<tuple_t>()))>
+                > and ...));
+                // std::get<T>(ag) vs. std::get<T>(tuple)
+                static_assert((std::same_as<
+                    std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
+                    std::remove_cvref_t<decltype(std::get<Ts>(std::declval<tuple_t>()))>
+                > and ...));
+            }
         }(
             std::type_identity<csl::ag::to_tuple_t<std::remove_cvref_t<T>>>{},
             std::make_index_sequence<csl::ag::size_v<T>>{}
@@ -76,7 +78,8 @@ namespace test::ag::get_ {
         test::ag::types::aggregate_ref_1,
         test::ag::types::aggregate_ref_2,
         test::ag::types::aggregate_ref_3,
-        test::ag::types::aggregate_all_cvref<int>
+        test::ag::types::aggregate_all_cvref<int>,
+        test::ag::types::aggregate_all_cvref_with_std_tuple_interface<int>
     >();
 
 }

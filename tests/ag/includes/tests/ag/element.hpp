@@ -12,17 +12,22 @@ namespace test::ag::element_ {
 
     template <std::size_t index>
     constexpr void expect_symetric_element_t(){
+
         static_assert(std::is_same_v<
             csl::ag::element_t<index, type>,
             std::tuple_element_t<index, as_tuple_t>
         >);
         static_assert(std::is_same_v<
-            std::tuple_element_t<index, type>,
+            csl::ag::tuple_element_t<index, type>,
             std::tuple_element_t<index, as_tuple_t>
         >);
     };
-    constexpr static auto _ = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
+    constexpr static auto expand_size_v = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
         ((expect_symetric_element_t<indexes>()), ...);
         return {};
     }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    constexpr static auto expand_tuple_size_v = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
+        ((expect_symetric_element_t<indexes>()), ...);
+        return {};
+    }(std::make_index_sequence<csl::ag::tuple_size_v<type>>{});
 }
