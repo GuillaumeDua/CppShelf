@@ -685,7 +685,7 @@ namespace csl::ag {
         return get<index>(std::forward<decltype(value)>(value));
     }
 
-    // tuple conversion (strict field conversions: same possibly-cvref-qualified types)
+    // tuple conversion / tie (strict field conversions: same possibly-cvref-qualified types)
     //  ex: struct type{ A v0; B & v1; const C && v2 } => std::tuple<A, B&, const C&&>;
     [[nodiscard]] constexpr auto to_tuple(concepts::aggregate auto && value) {
         using value_type = std::remove_cvref_t<decltype(value)>;
@@ -827,6 +827,7 @@ namespace csl::ag::concepts {
 // WIP: https://godbolt.org/z/xMEc54sPx
 // NOTE: requires many changes in tests types
 
+// TODO(Guss): remove: replace with unqualified lookup
 // --- tuple-like interface ---
 // NOTE: a better option to outpass limitations would be to provide customization for another tuple implementation,
 //  like `csl::mp::tuple` instead of `std::tuple`
@@ -1141,3 +1142,11 @@ struct fmt::formatter<T, CharT>
 #undef csl_fwd
 
 #endif
+
+// TODO(Guss): for_each(_fields)(aggregate auto &&, visitor F&&)
+//  [ ] std::hash
+//  [ ] comparator
+//  [ ] projections
+// TODO(Guss): opt-in(s) ?
+//  [ ] operator==
+//  [ ] operator= / assign
