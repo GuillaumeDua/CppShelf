@@ -842,12 +842,19 @@ namespace csl::ag::concepts {
 
 // ???
 // TODO(Guss): get<T>, tuple_size, tuple_element, tests
+//  - conditionally noexcept ?
 namespace csl::universal {
     template <std::size_t N>
     constexpr decltype(auto) get(auto && value) noexcept {
         using std::get;
         using csl::ag::get;
         return get<N>(fwd(value));
+    }
+    template <typename T>
+    constexpr decltype(auto) get(auto && value) noexcept {
+        using std::get;
+        using csl::ag::get;
+        return get<T>(fwd(value));
     }
 }
 
