@@ -18,7 +18,6 @@ namespace test::ag::get_ {
             std::type_identity<std::tuple<Ts...>>,
             std::index_sequence<indexes...>
         ){
-            //if constexpr (not std::is_reference_v<T>)
             static_assert((std::same_as<
                 csl::ag::details::mp::field_view_t<T, csl::ag::element_t<indexes, T>>,
                 decltype(csl::ag::get<indexes>(std::declval<T>()))
@@ -68,5 +67,4 @@ namespace test::ag::get_ {
         test::ag::types::aggregate_ref_3,
         test::ag::types::aggregate_all_cvref<int>
     >();
-
 }

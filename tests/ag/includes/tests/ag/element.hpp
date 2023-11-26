@@ -11,8 +11,19 @@ namespace test::ag::element_ {
     static_assert(csl::ag::size_v<type> == std::tuple_size_v<as_tuple_t>); // see tests/size.hpp
 
     template <std::size_t index>
-    constexpr void expect_symetric_element_t(){
+    constexpr void expect_symetric_element(){
 
+        // tuple_element
+        static_assert(std::is_same_v<
+            csl::ag::element<index, type>,
+            std::tuple_element<index, as_tuple_t>
+        >);
+        static_assert(std::is_same_v<
+            csl::ag::tuple_element<index, type>,
+            std::tuple_element<index, as_tuple_t>
+        >);
+
+        // tuple_element_t
         static_assert(std::is_same_v<
             csl::ag::element_t<index, type>,
             std::tuple_element_t<index, as_tuple_t>
@@ -22,12 +33,10 @@ namespace test::ag::element_ {
             std::tuple_element_t<index, as_tuple_t>
         >);
     };
-    constexpr static auto expand_size_v = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
-        ((expect_symetric_element_t<indexes>()), ...);
+
+    static_assert(csl::ag::size_v<type> == csl::ag::tuple_size_v<type>);
+    constexpr static auto _ = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
+        ((expect_symetric_element<indexes>()), ...);
         return {};
     }(std::make_index_sequence<csl::ag::size_v<type>>{});
-    constexpr static auto expand_tuple_size_v = []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> bool {
-        ((expect_symetric_element_t<indexes>()), ...);
-        return {};
-    }(std::make_index_sequence<csl::ag::tuple_size_v<type>>{});
 }
