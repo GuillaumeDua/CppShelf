@@ -80,22 +80,20 @@ struct std::tuple_element<0, test::ag::custom_tuple_like_interface::userland::F>
 
 namespace test::ag::custom_tuple_like_interface::details {
 
-    constexpr decltype(auto) invoke_get(auto && value) noexcept {
+    template <typename T>
+    constexpr decltype(auto) ensure_unqualified_get() noexcept {
         using csl::ag::get;
         using std::get;
-        [[maybe_unused]] auto index_get_result = get<0>(std::forward<decltype(value)>(value));
-        [[maybe_unused]] auto type_get_result = get<char>(std::forward<decltype(value)>(value));
+        static_assert(requires{ get<0>(std::declval<T>()); });
+        static_assert(requires{ get<char>(std::declval<T>()); });
     }
-
-    template <typename T>
-    concept valid_get = requires { invoke_get(std::declval<T>()); };
 }
 namespace test::ag::custom_tuple_like_interface {
 
-    template <details::valid_get ... Ts>
-    constexpr static void valid_get(){}
-
-    struct caca{};
+    template <typename ... Ts>
+    constexpr static void valid_get(){
+        ((details::ensure_unqualified_get<Ts>()), ...);
+    }
 
     constexpr static void test(){
         using namespace userland;
