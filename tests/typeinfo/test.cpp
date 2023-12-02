@@ -1,3 +1,5 @@
+#include <test/typeinfo/demangling_parsers.hpp>
+
 #include <csl/typeinfo.hpp>
 
 namespace test::type_name {
