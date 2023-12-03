@@ -43,19 +43,25 @@ namespace csl::typeinfo::details
 
 namespace csl::typeinfo
 {   // constexpr typeinfo that does not relies on __cpp_rtti
-    // 
-    // Warning: Produced outputs ARE NOT portable: inconsistencies exist across compilers (GCC, Clang, msvc-cl)
+    // [Warning]: Produced outputs ARE NOT portable: inconsistencies exist across compilers (GCC, Clang, msvc-cl)
     //
     // Known limitations :
-    //  type_name : type aliases
-    //      ex : std::string
-    //          std::basic_string<char>
-    //          std::__cxx11::basic_string<char>
-    //          std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>
+    // 
+    //  [type_name]
+    //     decl namespace (demo: https://godbolt.org/z/vhr4h4j9Y)
+    //            GCC:    namespace is part of the type (ex: A::B::C::type_as_ns<>::func<>(int)::my_type)
+    //            clang:  missing (ex: my_type)
+    //     type aliases (demo: https://godbolt.org/z/9PEq9zWTn)
+    //        ex : std::string
+    //            std::basic_string<char>
+    //            std::__cxx11::basic_string<char>
+    //            std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>
     //
-    //  value_name : values representation
-    //      ex : int(42)
-    //          0x2a ont MsVC/CL
+    //  [value_name]
+    //     values representation (demo: https://godbolt.org/z/bn9ofo3Pz)
+    //      ex : int{42}
+    //          GCC, Clang: "42"sv
+    //          MSVC:       "0x2a"sv
     //      use <charconv> std::to_chars into std::string_view for reliable basic numerical values
 
     template <typename T>

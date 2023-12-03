@@ -43,6 +43,7 @@ requires (std::constructible_from<T, decltype(args)> and ...)
 }
 namespace portability::ranges::views {
     // naive/poor/bad implementation of std::ranges::views::zip to enhance support/portability
+    // NOT WORKING
     template <std::ranges::range T, std::ranges::random_access_range ... Us>
     constexpr auto zip(const T & lhs, const Us & ... rhs)
     {
@@ -127,4 +128,5 @@ namespace test::typeinfo {
     }
 }
 
-// WIP: https://godbolt.org/z/Wb36Md8Yx
+// base: https://godbolt.org/z/PEfP76o1c
+// WIP: https://godbolt.org/z/v5aYfs537
