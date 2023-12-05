@@ -100,3 +100,5 @@ namespace test::ag::custom_tuple_like_interface {
         valid_get<A, B, C, D, E, F>();
     }
 }
+
+// WIP: user-defined types/functions as customization points
