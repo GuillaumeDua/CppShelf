@@ -844,6 +844,22 @@ namespace csl::ag::concepts {
 // TODO(Guss): get<T>, tuple_size, tuple_element, tests
 //  - conditionally noexcept ?
 namespace csl::universal {
+
+    // tuple_size
+    template <typename T>
+    struct tuple_size;
+
+    template <typename T>
+    requires requires { std::tuple_size<T>{}; }
+    struct tuple_size<T> : std::tuple_size<T>{};
+
+    template <typename T>
+    requires
+        csl::ag::concepts::aggregate<T>
+        and (not requires { std::tuple_size<T>{}; })
+    struct tuple_size<T> : csl::ag::size<T>{};
+
+    // get
     template <std::size_t N>
     constexpr decltype(auto) get(auto && value) noexcept {
         using std::get;
