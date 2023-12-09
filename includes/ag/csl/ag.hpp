@@ -840,10 +840,28 @@ namespace csl::ag::concepts {
     ;
 }
 
-// ???
-// TODO(Guss): get<T>, tuple_size, tuple_element, tests
-//  - conditionally noexcept ?
+// homogeneous interface for
+// - csl::ag::concepts::aggregate
+// - std::tuple, std::array, std::pair
+// - std::ranges::subrange
+// NOTE: not std::variant (variant_size, variant_alternative)
+// TODO(Guss): tests
 namespace csl::universal {
+
+    // get
+    //  TODO(Guss) conditionally noexcept ?
+    template <std::size_t N>
+    constexpr decltype(auto) get(auto && value) noexcept {
+        using std::get;
+        using csl::ag::get;
+        return get<N>(fwd(value));
+    }
+    template <typename T>
+    constexpr decltype(auto) get(auto && value) noexcept {
+        using std::get;
+        using csl::ag::get;
+        return get<T>(fwd(value));
+    }
 
     // tuple_size
     template <typename T>
@@ -859,19 +877,7 @@ namespace csl::universal {
         and (not requires { std::tuple_size<T>{}; })
     struct tuple_size<T> : csl::ag::size<T>{};
 
-    // get
-    template <std::size_t N>
-    constexpr decltype(auto) get(auto && value) noexcept {
-        using std::get;
-        using csl::ag::get;
-        return get<N>(fwd(value));
-    }
-    template <typename T>
-    constexpr decltype(auto) get(auto && value) noexcept {
-        using std::get;
-        using csl::ag::get;
-        return get<T>(fwd(value));
-    }
+    // TODO: concept: tuplelike ?
 }
 
 // -----------------------------------
