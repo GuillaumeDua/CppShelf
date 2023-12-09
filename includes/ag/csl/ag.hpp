@@ -840,12 +840,14 @@ namespace csl::ag::concepts {
     ;
 }
 
-// homogeneous interface for
+// Homogeneous interface for tuple-likes
 // - csl::ag::concepts::aggregate
 // - std::tuple, std::array, std::pair
 // - std::ranges::subrange
 // NOTE: not std::variant (variant_size, variant_alternative)
+//
 // TODO(Guss): tests
+//
 namespace csl::universal {
 
     // get
@@ -874,8 +876,28 @@ namespace csl::universal {
     template <typename T>
     requires
         csl::ag::concepts::aggregate<T>
-        and (not requires { std::tuple_size<T>{}; })
+    and (not requires { std::tuple_size<T>{}; })
     struct tuple_size<T> : csl::ag::size<T>{};
+
+    template <typename T>
+    constexpr auto tuple_size_v = tuple_size<T>::value;
+
+    // tuple_element
+    template <std::size_t, typename>
+    struct tuple_element;
+
+    template <std::size_t index, typename T>
+    requires requires { std::tuple_element<index, T>{}; }
+    struct tuple_element<index, T> : std::tuple_element<index, T>{};
+
+    template <std::size_t index, typename T>
+    requires
+        csl::ag::concepts::aggregate<T>
+    and (not requires { std::tuple_element<index, T>{}; })
+    struct tuple_element<index, T> : csl::ag::tuple_element<index, T>{};
+
+    template <std::size_t index, typename T>
+    using tuple_element_t = tuple_element<index, T>::type;
 
     // TODO: concept: tuplelike ?
 }
