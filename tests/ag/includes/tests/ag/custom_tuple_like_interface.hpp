@@ -92,7 +92,7 @@ namespace test::ag::custom_tuple_like_interface::details {
 namespace test::ag::custom_tuple_like_interface {
 
     template <typename ... Ts>
-    constexpr static void valid_get(){
+    constexpr static void ensure_unqualified_get(){
         ((details::ensure_unqualified_get<typename Ts::input, Ts::expected>()), ...);
     }
 
@@ -104,7 +104,7 @@ namespace test::ag::custom_tuple_like_interface {
 
     constexpr static void test(){
         using namespace userland;
-        valid_get<
+        ensure_unqualified_get<
             test_case<A, 'A'>,
             test_case<B, 'B'>,
             test_case<C, 'C'>,

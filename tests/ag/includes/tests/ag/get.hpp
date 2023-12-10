@@ -68,3 +68,5 @@ namespace test::ag::get_ {
         test::ag::types::aggregate_all_cvref<int>
     >();
 }
+
+// NOTE: no unqualified get based on concepts, demo: https://godbolt.org/z/1afvd5h5j
