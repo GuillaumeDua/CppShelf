@@ -2,8 +2,18 @@
 
 #include <csl/ag.hpp>
 
+namespace test::universal_::types {
+    struct aggregate { int i; char c; };
+
+    using all_t = std::tuple<
+        aggregate
+    >;
+}
 namespace test::universal_ {
-    // get
+
+    void get(){
+        
+    }
 
     // tuple_size, _v
 

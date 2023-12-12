@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <array>
 #include <vector>
-#include "tests/type.hpp"
+#include "tests/types.hpp"
 
 namespace test::ag::conversion::make_ {
     using type = test::ag::types::aggregate_all_cvref<int>;

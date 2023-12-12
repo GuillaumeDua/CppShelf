@@ -1,7 +1,7 @@
 #pragma once
 
 #include <csl/ag.hpp>
-#include "tests/type.hpp"
+#include "tests/types.hpp"
 
 namespace test::ag::conversion::tuple_ {
 
