@@ -60,6 +60,8 @@ namespace test::ag::types::custom_get {
         static_assert(std::same_as<T, char>);
         return 'E';
     }
+
+    using all_t = std::tuple<A, B, C, D, E, F>;
 }
 
 namespace std {

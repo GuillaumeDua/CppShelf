@@ -20,12 +20,23 @@ namespace test::ag::custom_tuple_like_interface::details {
         static_assert(get<0>(T{}) == expected);
         static_assert(get<char>(T{}) == expected);
     }
+    template <typename T, char expected>
+    constexpr decltype(auto) ensure_universal_get() noexcept {
+        static_assert(requires{ csl::universal::get<0>(std::declval<T>()); });
+        static_assert(requires{ csl::universal::get<char>(std::declval<T>()); });
+        static_assert(csl::universal::get<0>(T{}) == expected);
+        static_assert(csl::universal::get<char>(T{}) == expected);
+    }
+    // universal:
+    // - tuple_size, _v
+    // - tuple_element, _t
 }
 namespace test::ag::custom_tuple_like_interface {
 
     template <typename ... Ts>
     constexpr static void ensure_unqualified_get(){
         ((details::ensure_unqualified_get<typename Ts::input, Ts::expected>()), ...);
+        ((details::ensure_universal_get<typename Ts::input, Ts::expected>()), ...);
     }
 
     template <typename T, char value>
