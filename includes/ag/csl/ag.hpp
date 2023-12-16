@@ -840,6 +840,8 @@ namespace csl::ag::concepts {
     ;
 }
 
+// --- experimentale ---
+
 // Homogeneous interface for tuple-likes
 // - csl::ag::concepts::aggregate
 // - std::tuple, std::array, std::pair
@@ -852,14 +854,15 @@ namespace csl::universal {
 
     // get
     //  TODO(Guss) conditionally noexcept ?
+    // WIP: requires ? Two-phase named lookup failing ? :shrug:
     template <std::size_t N>
-    constexpr decltype(auto) get(auto && value) noexcept {
+    constexpr auto get(auto && value) noexcept -> decltype(auto) {
         using csl::ag::get;
         using std::get;
         return get<N>(csl_fwd(value));
     }
     template <typename T>
-    constexpr decltype(auto) get(auto && value) noexcept {
+    constexpr auto get(auto && value) noexcept -> decltype(auto) {
         using csl::ag::get;
         using std::get;
         return get<T>(csl_fwd(value));
