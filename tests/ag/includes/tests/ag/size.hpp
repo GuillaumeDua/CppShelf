@@ -4,13 +4,13 @@
 
 namespace test::ag::size_ {
     template <typename T>
-    concept has_consistent_size = 
-        csl::ag::concepts::aggregate<T>
-    and (csl::ag::size_v<T> == std::tuple_size_v<csl::ag::to_tuple_t<T>>)
-    and (csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<T&>>)
-    and (csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<T&&>>)
-    and (csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<const T&>>)
-    and (csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<const T&&>>)
+    concept has_consistent_size = csl::ag::concepts::aggregate<T>
+    and csl::ag::size_v<T> == csl::ag::tuple_size_v<T>
+    and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::to_tuple_t<T>>
+    and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<T&>>
+    and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<T&&>>
+    and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<const T&>>
+    and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<const T&&>>
     ;
 }
 

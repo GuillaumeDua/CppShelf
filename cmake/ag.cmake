@@ -141,7 +141,7 @@ string(REGEX REPLACE
 )
 
 if ("${csl_ag_hpp_file_content_with_injection}" STREQUAL "${csl_ag_hpp_file_content}")
-    message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : sources was already up-to-date (no new content was injected)")
+    message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : sources already up-to-date (no new content was injected)")
 endif()
 
 FILE(WRITE ${csl_ag_hpp_path} "${csl_ag_hpp_file_content_with_injection}")

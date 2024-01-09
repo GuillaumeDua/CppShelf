@@ -1,46 +1,59 @@
 #pragma once
 
+#include "tests/types.hpp"
 #include <csl/ag.hpp>
 #include <memory>
 #include <type_traits>
 
 namespace test::ag::custom_tuple_like_interface {
-    struct type{
-        int i = 0;
-    };
-    static_assert(csl::ag::concepts::aggregate<type>);
+    namespace userland = test::ag::types::custom_get;
 }
 
-#include <memory>
-using qwe = std::allocator_traits<char>;
+namespace test::ag::custom_tuple_like_interface::details {
 
-namespace std {
-// NOLINTBEGIN(cert-dcl58-cpp)
-    template <std::size_t N>
-    constexpr decltype(auto) get(auto && value) noexcept
-    requires std::same_as<std::remove_cvref_t<decltype(value)>, test::ag::custom_tuple_like_interface::type>
-    {
-        return value.i;
+    template <typename T, char expected>
+    constexpr decltype(auto) ensure_unqualified_get() noexcept {
+        using csl::ag::get;
+        using std::get;
+        static_assert(requires{ get<0>(std::declval<T>()); });
+        static_assert(requires{ get<char>(std::declval<T>()); });
+        static_assert(get<0>(T{}) == expected);
+        static_assert(get<char>(T{}) == expected);
     }
-    template <typename T>
-    constexpr decltype(auto) get(auto && value) noexcept
-    requires std::same_as<std::remove_cvref_t<decltype(value)>, test::ag::custom_tuple_like_interface::type>
-    {
-        return value.i;
+    template <typename T, char expected>
+    constexpr decltype(auto) ensure_universal_get() noexcept {
+        // static_assert(requires{ csl::universal::get<0>(std::declval<T>()); });
+        // static_assert(requires{ csl::universal::get<char>(std::declval<T>()); });
+        // static_assert(csl::universal::get<0>(T{}) == expected);
+        // static_assert(csl::universal::get<char>(T{}) == expected);
     }
-
-    template <std::size_t N>
-    struct tuple_element<N, test::ag::custom_tuple_like_interface::type> : std::type_identity<int>{};
-// NOLINTEND(cert-dcl58-cpp)
+    // universal:
+    // - tuple_size, _v
+    // - tuple_element, _t
 }
-
 namespace test::ag::custom_tuple_like_interface {
-    static constexpr void test(){
-        
-        static_assert(std::same_as<int, std::tuple_element_t<0, type>>);
-        auto value = type{};
-        [[maybe_unused]] const auto _ = std::get<0>(value) + std::get<int>(value);
+
+    template <typename ... Ts>
+    constexpr static void ensure_unqualified_get(){
+        ((details::ensure_unqualified_get<typename Ts::input, Ts::expected>()), ...);
+        ((details::ensure_universal_get<typename Ts::input, Ts::expected>()), ...);
+    }
+
+    template <typename T, char value>
+    struct test_case {
+        using input = T;
+        constexpr static inline auto expected = value;
+    };
+
+    constexpr static void test(){
+        using namespace userland;
+        ensure_unqualified_get<
+            test_case<A, 'A'>,
+            test_case<B, 'B'>,
+            test_case<C, 'C'>,
+            test_case<D, 'D'>,
+            test_case<E, 'E'>,
+            test_case<F, 'F'>
+        >();
     }
 }
-
-// to integrate: https://godbolt.org/z/affaqxnE1

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <csl/ag.hpp>
-#include "tests/type.hpp"
+#include "tests/types.hpp"
 
 namespace test::ag::get_ {
 
@@ -18,7 +18,6 @@ namespace test::ag::get_ {
             std::type_identity<std::tuple<Ts...>>,
             std::index_sequence<indexes...>
         ){
-            //if constexpr (not std::is_reference_v<T>)
             static_assert((std::same_as<
                 csl::ag::details::mp::field_view_t<T, csl::ag::element_t<indexes, T>>,
                 decltype(csl::ag::get<indexes>(std::declval<T>()))
@@ -31,24 +30,14 @@ namespace test::ag::get_ {
             > and ...));
 
             // tuple-like interface
-            // csl::get<std::size_t> vs. std::get<std::size_t>
-            static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
-                std::remove_cvref_t<decltype(csl::ag::get<indexes>(std::declval<T>()))>
-            > and ...));
-            // csl::get<T> vs. std::get<T>
-            static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
-                std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>
-            > and ...));
             // std::get<std::size_t>(ag) vs. std::get<std::size_t>(tuple)
             static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<indexes>(std::declval<T>()))>,
+                std::remove_cvref_t<decltype(csl::ag::get<indexes>(std::declval<T>()))>,
                 std::remove_cvref_t<decltype(std::get<indexes>(std::declval<tuple_t>()))>
             > and ...));
             // std::get<T>(ag) vs. std::get<T>(tuple)
             static_assert((std::same_as<
-                std::remove_cvref_t<decltype(std::get<Ts>(std::declval<T>()))>,
+                std::remove_cvref_t<decltype(csl::ag::get<Ts>(std::declval<T>()))>,
                 std::remove_cvref_t<decltype(std::get<Ts>(std::declval<tuple_t>()))>
             > and ...));
         }(
@@ -78,5 +67,6 @@ namespace test::ag::get_ {
         test::ag::types::aggregate_ref_3,
         test::ag::types::aggregate_all_cvref<int>
     >();
-
 }
+
+// NOTE: no unqualified get based on concepts, demo: https://godbolt.org/z/1afvd5h5j
