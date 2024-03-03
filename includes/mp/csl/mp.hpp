@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <concepts>
 #include <utility>
-#include <tuple>
+#include <tuple> // WIP: goal -> remove this directive
 // todo : remove dependency on std::tuple and std::integer_sequence
 //  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
@@ -24,7 +24,7 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
-// [WIP] organisation refactoring
+// [WIP] refactoring => reorder/sort
 //  sequences::* : op on sequences
 //  seq types    : sequences definitions
 //  tuple
@@ -617,7 +617,7 @@ namespace csl::mp {
     //     [&](){}();
     // }
 
-    // // for_each_with_index
+    // for_each_with_index
     // template <concepts::ValidTuple tuple_type>
     // void for_each_with_index(tuple_type && value, auto && visitor){
     //     [&](){}();
@@ -625,24 +625,39 @@ namespace csl::mp {
 
     // apply
 
-    // projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
+    // projection: column vs. row
+    // column: projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
     //  project_by_index<0>(tuple_of_tuplelike) -> tuple{ int, int }
     //  project_by_index<1>(tuple_of_tuplelike) -> tuple{ char, char }
+
+    // tuple_storage: if are_same<Ts...> -> use std::array instead
 
     // print:
     //  fmt (opt-in or detected dependencies)
     //      -> csl::ag-like compact vs. pretty printing
     //  std::ostream printing
+}
+
+// tuple: API
+namespace csl::mp {
+
+    // template <std::size_t index>
+    // [[nodiscard]] constexpr auto & get() & noexcept {
+    //     static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+    //     using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+    //     return static_cast<accessor&>(storage).value;
+    // }
+
 
     // concept: tuple-like interface
     //  std::tuple_size, std::tuple_element
     // concepts value tuple-like interface
     //  std::get
 
-    // tuple_storage: if are_same<Ts...> -> use std::array instead
-
     // make_tuple
     // to_tuple(csl::ag::concept::aggregate auto && value)
+
+    // forward_as_tuple
 }
 
 // compatibility with std::tuple_element for structured binding
@@ -652,7 +667,6 @@ struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
 
 template <std::size_t index, csl::mp::concepts::Tuple tuple_type>
 struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
-
 // NOLINTEND(cert-dcl58-cpp)
 
 
