@@ -221,6 +221,7 @@ namespace test::tuples::get::ADL {
     using std::get;
     // using csl::mp::get;
 
+    using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
     // static_assert(42 == get<0>(value));
@@ -229,6 +230,23 @@ namespace test::tuples::get::ADL {
 
 // structured binding
 namespace test::tuples::structed_binding {
+
+    using type = csl::mp::tuple<int, char>;
+
+    constexpr void lvalue(){
+        constexpr auto value = type{};
+        [[maybe_unused]] auto & [i, c] = value; // NOLINT(*-qualified-auto)
+    }
+    constexpr void const_lvalue(){
+        constexpr auto value = type{};
+        [[maybe_unused]] const auto & [i, c] = value;
+    }
+    constexpr void rvalue(){
+        [[maybe_unused]] auto && [i, c] = type{};
+    }
+    constexpr void const_rvalue(){
+        [[maybe_unused]] const auto && [i, c] = type{};
+    }
 }
 
 // sequences
