@@ -14,8 +14,6 @@
 #include <bits/utility.h>
 #include <type_traits>
 #include <concepts>
-#include <utility>
-#include <tuple> // WIP: goal -> remove this directive
 // todo : remove dependency on std::tuple and std::integer_sequence
 //  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
@@ -641,6 +639,10 @@ namespace csl::mp {
 // tuple: API
 namespace csl::mp {
 
+    // tuple-size
+    // tuple-element
+    // get
+
     // template <std::size_t index>
     // [[nodiscard]] constexpr auto & get() & noexcept {
     //     static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
@@ -648,19 +650,19 @@ namespace csl::mp {
     //     return static_cast<accessor&>(storage).value;
     // }
 
-
-    // concept: tuple-like interface
-    //  std::tuple_size, std::tuple_element
-    // concepts value tuple-like interface
-    //  std::get
-
     // make_tuple
-    // to_tuple(csl::ag::concept::aggregate auto && value)
-
     // forward_as_tuple
 }
 
-// compatibility with std::tuple_element for structured binding
+#pragma region std utility inter-operatiblity (structured binding)
+
+//  N4606 [namespace.std]/1 :
+//  A program may add a template specialization for any standard library template to namespace std
+//  only if the declaration depends on a user-defined type 
+//  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
+
+#include <utility> // std::tuple_size, std::tuple_element
+
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
 template <csl::mp::concepts::Tuple tuple_type>
 struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
@@ -668,6 +670,7 @@ struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
 template <std::size_t index, csl::mp::concepts::Tuple tuple_type>
 struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
 // NOLINTEND(cert-dcl58-cpp)
+#pragma endregion
 
 
 // TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
