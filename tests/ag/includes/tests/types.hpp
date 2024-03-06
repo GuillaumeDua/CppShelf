@@ -18,10 +18,11 @@ namespace test::ag::types {
 
     using aggregate_1 = struct { int i; };
     using aggregate_2 = struct { int i; char c; };
-
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
     using aggregate_ref_1 = struct { int & i; };
     using aggregate_ref_2 = struct { int & i; char && c; };
     using aggregate_ref_3 = struct { int & i; char && c; char & cc; };
+    // NOLINTEND(*-avoid-const-or-ref-data-members)
 }
 
 namespace test::ag::types::custom_get {
