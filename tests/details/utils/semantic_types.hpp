@@ -43,7 +43,7 @@ namespace tests::details::utils {
     template <typename T>
     struct strong_of {
         explicit constexpr strong_of(T arg) noexcept : value{arg} {};
-        constexpr /* not explicit on purpose*/ operator T() const noexcept { return value; };
+        constexpr /* not explicit on purpose*/ operator T() const noexcept { return value; }; // NOLINT(*-explicit-*)
     private:
         T value;
     };

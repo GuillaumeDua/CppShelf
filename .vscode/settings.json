@@ -1,4 +1,19 @@
 {
+    "C_Cpp.errorSquiggles": "disabled",
+    "debug.terminal.clearBeforeReusing": true,
+    "clang-tidy.buildPath": "./build/",
+    // "clang-tidy.buildPath": "${workspaceFolder}/build"
+    "cmake.generator": "Ninja",
+    "cmake.configureSettings": {
+        "CSL_BUILD_ALL": true,
+        "CSL_ENABLE_ALL_TESTS": true,
+        "CSL_ENABLE_ALL_EXAMPLES": true,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        // CSL OPT-INS
+        // TODO(Guss): test matrix
+        "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT": true,
+        "CSL_ENSURE__OPT_IN__FMT_SUPPORT": true
+    },
     "files.associations": {
         "array": "cpp",
         "atomic": "cpp",
@@ -51,20 +66,5 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bitset": "cpp"
-    },
-    "C_Cpp.errorSquiggles": "disabled",
-    "debug.terminal.clearBeforeReusing": true,
-    "clang-tidy.buildPath": "./build/",
-    // "clang-tidy.buildPath": "${workspaceFolder}/build"
-    "cmake.generator": "Ninja",
-    "cmake.configureSettings": {
-        "CSL_BUILD_ALL": true,
-        "CSL_ENABLE_ALL_TESTS" : true,
-        "CSL_ENABLE_ALL_EXAMPLES": true,
-        "CMAKE_EXPORT_COMPILE_COMMANDS" : true,
-        // CSL OPT-INS
-        // TODO(Guss): test matrix
-        "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT": true,
-        "CSL_ENSURE__OPT_IN__FMT_SUPPORT": true
     }
 }
