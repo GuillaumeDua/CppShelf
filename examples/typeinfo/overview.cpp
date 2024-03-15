@@ -27,6 +27,6 @@ static_assert(csl::typeinfo::value_name_v<demo::my_enum::a> == "demo::a");
 
 #include <iostream>
 #include <string>
-auto main(int, char*argv[]) -> int {
+auto main(int, char*[]) -> int {
     std::cout << csl::typeinfo::type_name_v<std::string> << '\n';
 }

@@ -257,7 +257,7 @@ Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed u
 
 ```cpp
 template <csl::ag::concepts::aggregate T>
-constexpr auto size_v = size<T>::value;
+constexpr inline auto size_v = size<T>::value;
 ```
 
 #### csl::ag::element<std::size_t, concepts::aggregate>
