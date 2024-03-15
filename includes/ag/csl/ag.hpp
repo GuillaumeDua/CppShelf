@@ -1918,7 +1918,7 @@ namespace csl::ag {
     template <csl::ag::concepts::aggregate T>
     struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
-	constexpr auto size_v = size<T>::value;
+	constexpr inline auto size_v = size<T>::value;
 
     // tuple conversion (not view !)
     constexpr auto as_tuple(concepts::aggregate auto && value) {
@@ -2076,7 +2076,7 @@ namespace gcl::io::details {
 #include <limits>
 
 namespace gcl::io {
-    static constexpr auto indent = details::line{};
+    constexpr inline auto indent = details::line{};
 
     class indented_ostream {
 

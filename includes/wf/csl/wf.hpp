@@ -57,6 +57,7 @@ namespace gcl::cx {
     }
     template <typename T>
     constexpr inline auto type_name_v = type_name<T>();
+
     template <auto value>
     static constexpr auto type_name(/*no parameters allowed*/)
     -> std::string_view
@@ -1171,9 +1172,9 @@ namespace csl::wf {
 namespace csl::wf::details::mp {
 
     template <typename T, typename ... Ts>
-    constexpr bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
+    constexpr inline bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
     template <typename T>
-    constexpr bool are_unique_v<T> = true;
+    constexpr inline bool are_unique_v<T> = true;
 
     // is_instance_of
     template <template <typename...> typename type, typename T>

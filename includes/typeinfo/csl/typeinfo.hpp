@@ -65,7 +65,7 @@ namespace csl::typeinfo
     //      use <charconv> std::to_chars into std::string_view for reliable basic numerical values
 
     template <typename T>
-    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/) -> std::string_view
+    [[nodiscard]] static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/) -> std::string_view
     {
 #if defined(__GNUC__) or defined(__clang__)
         return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -76,15 +76,15 @@ namespace csl::typeinfo
 #endif
     }
     template <typename T>
-    constexpr static auto type_name_v = type_name<T>();
+    constexpr inline auto type_name_v = type_name<T>();
     template <auto value>
-    static constexpr auto type_name(/*no parameters allowed*/) -> std::string_view
+    [[nodiscard]] static constexpr auto type_name(/*no parameters allowed*/) -> std::string_view
     {
         return type_name<decltype(value)>();
     }
 
     template <auto value>
-    static constexpr auto value_name(/*no parameters allowed*/) -> std::string_view
+    [[nodiscard]] static constexpr auto value_name(/*no parameters allowed*/) -> std::string_view
     {
 #if defined(__GNUC__) or defined(__clang__)
         return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
