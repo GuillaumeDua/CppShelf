@@ -77,6 +77,7 @@ namespace csl::typeinfo
     }
     template <typename T>
     constexpr inline auto type_name_v = type_name<T>();
+    
     template <auto value>
     [[nodiscard]] static constexpr auto type_name(/*no parameters allowed*/) -> std::string_view
     {

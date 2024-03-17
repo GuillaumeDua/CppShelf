@@ -19,7 +19,7 @@ namespace test::utils::type_traits {
     template <class T>
     struct has_type<T, std::void_t<typename T::type>> : std::true_type {};
     template <typename T>
-    constexpr bool has_type_v = has_type<T>::value;
+    constexpr inline bool has_type_v = has_type<T>::value;
 #endif
 
 // supports_op_plus_with
@@ -28,7 +28,7 @@ namespace test::utils::type_traits {
     concept supports_op_plus_with_v = requires { std::declval<T &>() + std::declval<const U &>(); };
 #else
     template <class T, class U>
-    constexpr bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::arythmetic::supports_op_plus_with<T,U>::value;
+    constexpr inline bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::arythmetic::supports_op_plus_with<T,U>::value;
 #endif
 }
 
@@ -267,7 +267,7 @@ namespace test::overload_resolution::match_or_implicit_conversion {
 
 namespace test::invocation {
     using String = csl::ensure::strong_type<std::string, struct string_tag>;
-    constexpr static auto func = [](const String &){};
+    constexpr inline auto func = [](const String &){};
     using func_t = decltype(func);
 
     static_assert(std::is_invocable_v<func_t, const String &>);

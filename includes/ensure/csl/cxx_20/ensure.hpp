@@ -333,7 +333,7 @@ namespace csl::ensure::type_traits {
     template <typename T, typename tag>
     struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
     template <typename T>
-    constexpr bool is_strong_type_v = is_strong_type<T>::value;
+    constexpr inline bool is_strong_type_v = is_strong_type<T>::value;
 
 // is_strong_type_of
     template <typename, typename>
@@ -344,7 +344,7 @@ namespace csl::ensure::type_traits {
         strong_underlying_t
     > : std::true_type{};
     template <typename strong_type, typename T>
-    constexpr bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
+    constexpr inline bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
 
 // is_tagged_by
     template <typename, typename>
@@ -355,7 +355,7 @@ namespace csl::ensure::type_traits {
         strong_tag_t
     > : std::true_type{};
     template <typename T, typename U>
-    constexpr bool is_tagged_by_v = is_tagged_by<T, U>::value;
+    constexpr inline bool is_tagged_by_v = is_tagged_by<T, U>::value;
 
 // underlying_type
     template <typename>
