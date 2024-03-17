@@ -25,7 +25,7 @@ namespace gcl::cx::details {
     struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
 
     template <typename prefix_tag_t>
-    static constexpr auto parse_mangling(std::string_view value, std::string_view function) {
+    constexpr static auto parse_mangling(std::string_view value, std::string_view function) {
         value.remove_prefix(value.find(function) + function.size());
     #if defined(__GNUC__) or defined(__clang__)
             value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
@@ -44,7 +44,7 @@ namespace gcl::cx::details {
 }
 namespace gcl::cx {
     template <typename T>
-    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/)
+    /*consteval*/ constexpr static auto type_name(/*no parameters allowed*/)
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
@@ -56,17 +56,17 @@ namespace gcl::cx {
     #endif
     }
     template <typename T>
-    constexpr inline auto type_name_v = type_name<T>();
+    constexpr inline static auto type_name_v = type_name<T>();
 
     template <auto value>
-    static constexpr auto type_name(/*no parameters allowed*/)
+    constexpr static auto type_name(/*no parameters allowed*/)
     -> std::string_view
     {
         return type_name<decltype(value)>();
     }
 
     template <auto value>
-    static constexpr auto value_name(/*no parameters allowed*/)
+    constexpr static auto value_name(/*no parameters allowed*/)
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
@@ -78,7 +78,7 @@ namespace gcl::cx {
     #endif
     }
     template <auto value>
-    constexpr inline auto value_name_v = value_name<value>();
+    constexpr inline static auto value_name_v = value_name<value>();
 }
 
 // --
@@ -184,7 +184,7 @@ namespace csl::wf::details::mp {
     >
     struct is_same_ttp<pack<Ts...>, pack<Us...>> : std::true_type{};
     template <typename T, typename U>
-    constexpr inline bool is_same_ttp_v = is_same_ttp<T, U>::value;
+    constexpr inline static bool is_same_ttp_v = is_same_ttp<T, U>::value;
 }
 // ttps, is_ttps
 // args, is_args
@@ -198,7 +198,7 @@ namespace csl::wf::mp {
     template <typename ... Ts>
     struct is_ttps<ttps<Ts...>> : std::true_type{};
     template <typename T>
-    constexpr inline bool is_ttps_v = is_ttps<T>::value;
+    constexpr inline static bool is_ttps_v = is_ttps<T>::value;
 
     // args -> pack of args
     template <typename ...>
@@ -209,7 +209,7 @@ namespace csl::wf::mp {
     template <typename ... Ts>
     struct is_args<args<Ts...>> : std::true_type{};
     template <typename T>
-    constexpr inline bool is_args_v = is_args<T>::value;
+    constexpr inline static bool is_args_v = is_args<T>::value;
 }
 // ttps
 // tupleinterface_(not_)starting_with_ttps
@@ -248,7 +248,7 @@ namespace csl::wf::mp {
     template <typename F, concepts::ttps ttps_type, typename... args_types>
     struct is_invocable<F, ttps_type, args_types...> : is_invocable<F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename F, typename... Ts>
-    constexpr inline bool is_invocable_v = is_invocable<F, Ts...>::value;
+    constexpr inline static bool is_invocable_v = is_invocable<F, Ts...>::value;
 
     // is_nothrow_invocable<F, [ttps<...>,] args_types...>
     template <typename F, typename... args_types>
@@ -270,7 +270,7 @@ namespace csl::wf::mp {
     template <typename F, concepts::ttps ttps_type, typename... args_types>
     struct is_nothrow_invocable<F, ttps_type, args_types...> : is_nothrow_invocable<F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename F, typename... Ts>
-    constexpr inline bool is_nothrow_invocable_v = is_nothrow_invocable<F, Ts...>::value;
+    constexpr inline static bool is_nothrow_invocable_v = is_nothrow_invocable<F, Ts...>::value;
 
     // is_invocable_r<R, F, [ttps<...>,] args_types...>
     template <typename R, typename F, typename... args_types>
@@ -286,7 +286,7 @@ namespace csl::wf::mp {
     template <typename R, typename F, concepts::ttps ttps_type, typename... args_types>
     struct is_invocable_r<R, F, ttps_type, args_types...> : is_invocable_r<R, F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename R, typename F, typename... Ts>
-    constexpr inline bool is_invocable_r_v = is_invocable_r<R, F, Ts...>::value;
+    constexpr inline static bool is_invocable_r_v = is_invocable_r<R, F, Ts...>::value;
 
     // is_nothrow_invocable_r<R, F, [ttps<...>,] args_types...>
     template <typename R, typename F, typename... args_types>
@@ -319,7 +319,7 @@ namespace csl::wf::mp {
     template <typename R, typename F, concepts::ttps ttps_type, typename... args_types>
     struct is_nothrow_invocable_r<R, F, ttps_type, args_types...> : is_nothrow_invocable_r<R, F, std::remove_cvref_t<ttps_type>, args_types...>{};
     template <typename R, typename F, typename... Ts>
-    constexpr inline bool is_nothrow_invocable_r_v = is_nothrow_invocable_r<R, F, Ts...>::value;
+    constexpr inline static bool is_nothrow_invocable_r_v = is_nothrow_invocable_r<R, F, Ts...>::value;
 
     // invoke_result
     template <typename F, typename... args_types>
@@ -365,7 +365,7 @@ namespace csl::wf::mp {
     template <typename F, concepts::ttps ttps_type, concepts::tupleinterface_not_starting_with_ttps tuple_type>
     struct is_applyable<F, ttps_type, tuple_type> : is_applyable<F, std::remove_cvref_t<ttps_type>, tuple_type>{};
     template <typename F, typename... Ts>
-    constexpr inline bool is_applyable_v = is_applyable<F, Ts...>::value;
+    constexpr inline static bool is_applyable_v = is_applyable<F, Ts...>::value;
 
     // is_nothrow_applyable
     template <typename F, typename...>
@@ -388,7 +388,7 @@ namespace csl::wf::mp {
     template <typename F, concepts::ttps ttps_type, concepts::tupleinterface_not_starting_with_ttps tuple_type>
     struct is_nothrow_applyable<F, ttps_type, tuple_type> : is_nothrow_applyable<F, std::remove_cvref_t<ttps_type>, tuple_type>{};
     template <typename F, typename... Ts>
-    constexpr inline bool is_nothrow_applyable_v = is_nothrow_applyable<F, Ts...>::value;
+    constexpr inline static bool is_nothrow_applyable_v = is_nothrow_applyable<F, Ts...>::value;
 
     // is_applyable_before (ttps cannot be part of tuple)
     template <typename F, typename...>
@@ -417,7 +417,7 @@ namespace csl::wf::mp {
     : is_applyable_before<F, ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
-    constexpr inline bool is_applyable_before_v = is_applyable_before<F, Ts...>::value;
+    constexpr inline static bool is_applyable_before_v = is_applyable_before<F, Ts...>::value;
 
     // is_nothrow_applyable_before (ttps cannot be part of tuple)
     template <typename F, typename...>
@@ -435,7 +435,7 @@ namespace csl::wf::mp {
     : is_nothrow_applyable_before<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
-    constexpr inline bool is_nothrow_applyable_before_v = is_nothrow_applyable_before<F, Ts...>::value;
+    constexpr inline static bool is_nothrow_applyable_before_v = is_nothrow_applyable_before<F, Ts...>::value;
 
     // is_applyable_after (ttps cannot be part of tuple)
     template <typename F, typename...>
@@ -453,7 +453,7 @@ namespace csl::wf::mp {
     : is_applyable_after<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
-    constexpr inline bool is_applyable_after_v = is_applyable_after<F, Ts...>::value;
+    constexpr inline static bool is_applyable_after_v = is_applyable_after<F, Ts...>::value;
 
     // is_nothrow_applyable_after (ttps cannot be part of tuple)
     template <typename F, typename...>
@@ -471,7 +471,7 @@ namespace csl::wf::mp {
     : is_nothrow_applyable_after<F, mp::ttps<>, tuple_type, func_args_t...>
     {};
     template <typename F, typename... Ts>
-    constexpr inline bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
+    constexpr inline static bool is_nothrow_applyable_after_v = is_nothrow_applyable_after<F, Ts...>::value;
 
     // apply_result
     template <typename F, typename...>
@@ -515,7 +515,7 @@ namespace csl::wf::mp {
     struct is_invocable_with<F, ttps<ttps_args...>, args<args_types...>>
     : is_invocable<F, ttps<ttps_args...>, args_types...>{};
     template <typename F, typename ttps, typename args>
-    constexpr inline bool is_invocable_with_v = is_invocable_with<F, ttps, args>::value;
+    constexpr inline static bool is_invocable_with_v = is_invocable_with<F, ttps, args>::value;
     template <typename F, typename ttps, typename args>
     concept invocable_with = is_invocable_with_v<F, ttps, args>;
 
@@ -528,7 +528,7 @@ namespace csl::wf::mp {
     struct is_nothrow_invocable_with<F, ttps<ttps_args...>, args<args_types...>>
     : is_nothrow_invocable<F, ttps<ttps_args...>, args_types...>{};
     template <typename F, typename ttps, typename args>
-    constexpr inline bool is_nothrow_invocable_with_v = is_nothrow_invocable_with<F, ttps, args>::value;
+    constexpr inline static bool is_nothrow_invocable_with_v = is_nothrow_invocable_with<F, ttps, args>::value;
     template <typename F, typename ttps, typename args>
     concept nothrow_invocable_with = is_nothrow_invocable_with_v<F, ttps, args>;
 }
@@ -1172,9 +1172,9 @@ namespace csl::wf {
 namespace csl::wf::details::mp {
 
     template <typename T, typename ... Ts>
-    constexpr inline bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
+    constexpr inline static bool are_unique_v = (not (std::is_same_v<T, Ts> or ...)) and are_unique_v<Ts...>;
     template <typename T>
-    constexpr inline bool are_unique_v<T> = true;
+    constexpr inline static bool are_unique_v<T> = true;
 
     // is_instance_of
     template <template <typename...> typename type, typename T>
@@ -1182,7 +1182,7 @@ namespace csl::wf::details::mp {
     template <template <typename...> typename type, typename ... Ts>
     struct is_instance_of<type, type<Ts...>>  : std::true_type{};
     template <template <typename...> typename type, typename T>
-    constexpr inline bool is_instance_of_v = is_instance_of<type, T>::value;
+    constexpr inline static bool is_instance_of_v = is_instance_of<type, T>::value;
 
     template <typename T, template <typename...> typename type>
     concept InstanceOf = is_instance_of_v<type, std::remove_cvref_t<T>>;
@@ -1402,7 +1402,7 @@ namespace csl::wf::details::mp {
         csl::wf::concepts::tuple_interface Fs,
         csl::wf::concepts::tuple_interface Args
     >
-    constexpr inline bool is_chain_invocable_v = is_chain_invocable<Fs, Args>::value;
+    constexpr inline static bool is_chain_invocable_v = is_chain_invocable<Fs, Args>::value;
 
     // is_chain_nodiscard_invocable
     template <
@@ -1420,7 +1420,7 @@ namespace csl::wf::details::mp {
         csl::wf::concepts::tuple_interface Fs,
         csl::wf::concepts::tuple_interface Args
     >
-    constexpr inline bool is_chain_nodiscard_invocable_v = is_chain_nodiscard_invocable<Fs, Args>::value;
+    constexpr inline static bool is_chain_nodiscard_invocable_v = is_chain_nodiscard_invocable<Fs, Args>::value;
 
     // is_chain_nothrow_invocable
     template <
@@ -1442,7 +1442,7 @@ namespace csl::wf::details::mp {
         csl::wf::concepts::tuple_interface Fs,
         csl::wf::concepts::tuple_interface Args
     >
-    constexpr inline bool is_chain_nothrow_invocable_v = is_chain_nothrow_invocable<Fs, Args>::value;
+    constexpr inline static bool is_chain_nothrow_invocable_v = is_chain_nothrow_invocable<Fs, Args>::value;
 
     // is_chain_nothrow_nodiscard_invocable
     template <
@@ -1464,7 +1464,7 @@ namespace csl::wf::details::mp {
         csl::wf::concepts::tuple_interface Fs,
         csl::wf::concepts::tuple_interface Args
     >
-    constexpr inline bool is_chain_nothrow_nodiscard_invocable_v = is_chain_nothrow_nodiscard_invocable<Fs, Args>::value;
+    constexpr inline static bool is_chain_nothrow_nodiscard_invocable_v = is_chain_nothrow_nodiscard_invocable<Fs, Args>::value;
 
     // chain_invoke_result
     template <
@@ -1864,7 +1864,7 @@ namespace csl::wf {
     template <auto times, typename T>
     struct is_repeater<repeater<times, T>> : std::true_type{};
     template <typename T>
-    constexpr inline bool is_repeater_v = is_repeater<T>::value;
+    constexpr inline static bool is_repeater_v = is_repeater<T>::value;
 
     template <auto times_, typename F>
     struct repeater {
@@ -1939,7 +1939,7 @@ namespace csl::wf {
     struct repeater_factory {
 
         template <typename F>
-        static constexpr auto make(F && arg)
+        constexpr static auto make(F && arg)
         {
             return repeater<times, std::remove_cvref_t<F>>{ fwd(arg) };
         }
@@ -1947,7 +1947,7 @@ namespace csl::wf {
         // flattening
         template <typename F>
         requires (is_repeater_v<std::remove_cvref_t<F>>)
-        static constexpr auto make(F && arg) {
+        constexpr static auto make(F && arg) {
             using f_type = std::remove_cvref_t<F>;
             constexpr auto repetition_times = times * f_type::times;
             using underlying_underlying_type  = typename f_type::underlying_type;
@@ -1971,7 +1971,7 @@ namespace csl::wf::details::mp::detect {
     struct have_pipe_operator<T, U, std::void_t<decltype(std::declval<T>() | std::declval<U>())>>
     : std::true_type{};
     template <typename T, typename U>
-    constexpr inline bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
+    constexpr inline static bool have_pipe_operator_v = have_pipe_operator<T, U>::value;
 
     // have_shift_equal_operator
     template <typename T, typename U, typename = void>
@@ -1980,7 +1980,7 @@ namespace csl::wf::details::mp::detect {
     struct have_shift_equal_operator<T, U, std::void_t<decltype(std::declval<T>() >>= std::declval<U>())>>
     : std::true_type{};
     template <typename T, typename U>
-    constexpr inline bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
+    constexpr inline static bool have_shift_equal_operator_v = have_shift_equal_operator<T, U>::value;
 
     // have_plus_operator
     template <typename T, typename U, typename = void>
@@ -1989,7 +1989,7 @@ namespace csl::wf::details::mp::detect {
     struct have_plus_operator<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
     : std::true_type{};
     template <typename T, typename U>
-    constexpr inline bool have_plus_operator_v = have_plus_operator<T, U>::value;
+    constexpr inline static bool have_plus_operator_v = have_plus_operator<T, U>::value;
 
     // have_multiply_operator
     template <typename T, typename U, typename = void>
@@ -1998,7 +1998,7 @@ namespace csl::wf::details::mp::detect {
     struct have_multiply_operator<T, U, std::void_t<decltype(std::declval<T>() * std::declval<U>())>>
     : std::true_type{};
     template <typename T, typename U>
-    constexpr inline bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
+    constexpr inline static bool have_multiply_operator_v = have_multiply_operator<T, U>::value;
 }
 // eDSL utility
 namespace csl::wf {

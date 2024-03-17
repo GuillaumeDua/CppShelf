@@ -37,14 +37,14 @@ namespace csl::ensure::details::mp::type_traits {
     template <class T, typename ... args_ts>
     struct is_aggregate_constructible : impl::is_aggregate_constructible_impl<T, void, args_ts...>{};
     template <class T, typename ... args_ts>
-    constexpr inline bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
+    constexpr inline static bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
 
     template <typename T, typename = void>
     struct is_hashable : std::false_type {};
     template <typename T>
     struct is_hashable<T, std::void_t<decltype(std::hash<T>{})>> : std::true_type{};
     template <typename T>
-    constexpr inline bool is_hashable_v = is_hashable<T>::value;
+    constexpr inline static bool is_hashable_v = is_hashable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::comparison {
     // is_equality_comparable_with
@@ -55,13 +55,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() == std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() == std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
+    constexpr inline static bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
 
     // operator==
     template <class T>
     struct is_equality_comparable : is_equality_comparable_with<T, T> {};
     template <typename T>
-    constexpr inline bool is_equality_comparable_v = is_equality_comparable<T>::value;
+    constexpr inline static bool is_equality_comparable_v = is_equality_comparable<T>::value;
 
     // is_not_equality_comparable_with
     template <class, class, class = void>
@@ -71,13 +71,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() not_eq std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() not_eq std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
+    constexpr inline static bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
 
     // operator not_eq
     template <class T>
     struct is_not_equality_comparable : is_not_equality_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline bool is_not_equality_comparable_v = is_not_equality_comparable<T>::value;
+    constexpr inline static bool is_not_equality_comparable_v = is_not_equality_comparable<T>::value;
 
     // is_less_than_comparable_with
     template <class, class, class = void>
@@ -87,13 +87,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() < std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() < std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline bool is_less_than_comparable_with_v = is_less_than_comparable_with<T, U>::value;
+    constexpr inline static bool is_less_than_comparable_with_v = is_less_than_comparable_with<T, U>::value;
 
     // operator <
     template <class T>
     struct is_less_than_comparable : is_less_than_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
+    constexpr inline static bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
 
     // is_greater_than_comparable_with
     template <class, class, class = void>
@@ -103,13 +103,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() > std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() > std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline bool is_greater_than_comparable_with_v = is_greater_than_comparable_with<T, U>::value;
+    constexpr inline static bool is_greater_than_comparable_with_v = is_greater_than_comparable_with<T, U>::value;
 
     // operator >
     template <class T>
     struct is_greater_than_comparable : is_greater_than_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline bool is_greater_than_comparable_v = is_greater_than_comparable<T>::value;
+    constexpr inline static bool is_greater_than_comparable_v = is_greater_than_comparable<T>::value;
 
     // is_less_equal_comparable
     template <class, class, class = void>
@@ -119,13 +119,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() <= std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() <= std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline bool is_less_equal_comparable_with_v = is_less_equal_comparable_with<T, U>::value;
+    constexpr inline static bool is_less_equal_comparable_with_v = is_less_equal_comparable_with<T, U>::value;
 
     // operator <=
     template <class T>
     struct is_less_equal_comparable : is_less_equal_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
+    constexpr inline static bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
 
     // is_greater_equal_comparable
     template <class, class, class = void>
@@ -135,13 +135,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() >= std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() >= std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline bool is_greater_equal_comparable_with_v = is_greater_equal_comparable_with<T, U>::value;
+    constexpr inline static bool is_greater_equal_comparable_with_v = is_greater_equal_comparable_with<T, U>::value;
 
     // operator <=
     template <class T>
     struct is_greater_equal_comparable : is_greater_equal_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline bool is_greater_equal_comparable_v = is_greater_equal_comparable<T>::value;
+    constexpr inline static bool is_greater_equal_comparable_v = is_greater_equal_comparable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::arythmetic {
     // operator+(T,U)
@@ -152,12 +152,12 @@ namespace csl::ensure::details::mp::type_traits::arythmetic {
         decltype(std::declval<const T&>() + std::declval<U &&>())>
     > : std::true_type {};
     template <class T, class U>
-    constexpr inline bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
+    constexpr inline static bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
     // operator+(T, T)
     template <class T>
     struct supports_op_plus : supports_op_plus_with<T, T> {};
     template <typename T>
-    constexpr inline bool supports_op_plus_v = supports_op_plus<T>::value;
+    constexpr inline static bool supports_op_plus_v = supports_op_plus<T>::value;
 }
 
 namespace csl::ensure
@@ -507,7 +507,7 @@ namespace csl::ensure::type_traits {
     template <typename T, typename tag>
     struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
     template <typename T>
-    constexpr inline bool is_strong_type_v = is_strong_type<T>::value;
+    constexpr inline static bool is_strong_type_v = is_strong_type<T>::value;
 
 // is_strong_type_of
     template <typename, typename>
@@ -518,7 +518,7 @@ namespace csl::ensure::type_traits {
         strong_underlying_t
     > : std::true_type{};
     template <typename strong_type, typename T>
-    constexpr inline bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
+    constexpr inline static bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
 
 // is_tagged_by
     template <typename, typename>
@@ -529,7 +529,7 @@ namespace csl::ensure::type_traits {
         strong_tag_t
     > : std::true_type{};
     template <typename T, typename U>
-    constexpr inline bool is_tagged_by_v = is_tagged_by<T, U>::value;
+    constexpr inline static bool is_tagged_by_v = is_tagged_by<T, U>::value;
 
 // underlying_type
     template <typename>
@@ -606,7 +606,7 @@ namespace csl::ensure::details::mp::type_traits {
         decltype(std::declval<std::ostream&>() << std::declval<const T&>())
     >> : std::true_type{};
     template <typename T>
-    constexpr inline bool is_ostream_shiftable_v = is_ostream_shiftable<T>::value;
+    constexpr inline static bool is_ostream_shiftable_v = is_ostream_shiftable<T>::value;
 }
 namespace csl::io {
     template <
@@ -642,7 +642,7 @@ namespace csl::ensure::details::mp::type_traits {
         std::declval<fmt::formatter<T>>().format(std::declval<const T &>(), std::declval<fmt::format_context&>())
     )>> : std::true_type{};
     template <typename T>
-    constexpr inline bool has_fmt_formatter_v = has_fmt_formatter<T>::value;
+    constexpr inline static bool has_fmt_formatter_v = has_fmt_formatter<T>::value;
 }
 
 template <typename T, typename tag>

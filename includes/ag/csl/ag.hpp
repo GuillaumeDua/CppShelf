@@ -670,7 +670,7 @@ namespace csl::ag {
     template <csl::ag::concepts::aggregate T>
     struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
-	constexpr inline auto size_v = size<T>::value;
+	constexpr inline static auto size_v = size<T>::value;
 
     // tuple conversion (not view !)
     constexpr auto as_tuple(concepts::aggregate auto && value) {
@@ -715,11 +715,11 @@ namespace std { // NOLINT(cert-dcl58-cpp)
 
 // TODO: remove this coupling with gcl
 namespace gcl::cx::details {
-    struct type_prefix_tag { constexpr static std::string_view value = "T = "; };
-    struct value_prefix_tag { constexpr static std::string_view value = "value = "; };
+    struct type_prefix_tag { constexpr inline static std::string_view value = "T = "; };
+    struct value_prefix_tag { constexpr inline static std::string_view value = "value = "; };
 
     template <typename prefix_tag_t>
-    static constexpr auto parse_mangling(std::string_view value, std::string_view function) {
+    constexpr static auto parse_mangling(std::string_view value, std::string_view function) {
         value.remove_prefix(value.find(function) + function.size());
     #if defined(__GNUC__) or defined(__clang__)
             value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
@@ -738,7 +738,7 @@ namespace gcl::cx::details {
 }
 namespace gcl::cx {
     template <typename T>
-    static consteval auto type_name()
+    consteval static auto type_name()
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
@@ -750,16 +750,16 @@ namespace gcl::cx {
     #endif
     }
     template <typename T>
-    constexpr inline auto type_name_v = type_name<T>();
+    constexpr inline static auto type_name_v = type_name<T>();
     template <auto value>
-    static constexpr auto type_name()
+    constexpr static auto type_name()
     -> std::string_view
     {
         return type_name<decltype(value)>();
     }
 
     template <auto value>
-    static constexpr auto value_name()
+    constexpr static auto value_name()
     -> std::string_view
     {
     #if defined(__GNUC__) or defined(__clang__)
@@ -771,7 +771,7 @@ namespace gcl::cx {
     #endif
     }
     template <auto value>
-    constexpr inline auto value_name_v = value_name<value>();
+    constexpr inline static auto value_name_v = value_name<value>();
 }
 // TODO: remove this coupling with gcl
 namespace gcl::pattern

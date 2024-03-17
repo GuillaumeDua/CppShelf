@@ -19,7 +19,7 @@ namespace test::utils::type_traits {
     template <class T>
     struct has_type<T, std::void_t<typename T::type>> : std::true_type {};
     template <typename T>
-    constexpr inline bool has_type_v = has_type<T>::value;
+    constexpr inline static bool has_type_v = has_type<T>::value;
 #endif
 
 // supports_op_plus_with
@@ -28,7 +28,7 @@ namespace test::utils::type_traits {
     concept supports_op_plus_with_v = requires { std::declval<T &>() + std::declval<const U &>(); };
 #else
     template <class T, class U>
-    constexpr inline bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::arythmetic::supports_op_plus_with<T,U>::value;
+    constexpr inline static bool supports_op_plus_with_v = csl::ensure::details::mp::type_traits::arythmetic::supports_op_plus_with<T,U>::value;
 #endif
 }
 
