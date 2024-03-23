@@ -1,4 +1,5 @@
 # TODO: move to dedicated repo
+# TODO: build image on weekly basis
 
 FROM ubuntu:latest
 
@@ -24,11 +25,13 @@ ENV CLANG_VERSION=16
 ENV GCC_VERSION=13
 
 # GCC
+#   sudo apt install '^gcc\-[[:digit:]]{1,}$'
 
     apt install -y  build-essential \
                     libc6  libc6-dev libstdc++6 \
                     gcc-${GCC_VERSION} g++-${GCC_VERSION} \
                     gdb
+# for each version, use {version} as priority ?
 RUN update-alternatives --install /usr/bin/gcc  gcc  /usr/bin/gcc-${GCC_VERSION} 100    \
                         --slave   /usr/bin/g++  g++  /usr/bin/g++-${GCC_VERSION}        \
                         --slave   /usr/bin/gcov gcov /usr/bin/gcov-${GCC_VERSION}
@@ -44,6 +47,7 @@ RUN apt install -y wget bash && \
     --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-$CLANG_VERSION      \
     --slave /usr/bin/clangd          clangd          /usr/bin/clangd-$CLANG_VERSION          \
     --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-$CLANG_VERSION
+# lld
 
 # Tooling
 RUN apt upgrade -y && \
@@ -51,17 +55,24 @@ RUN apt upgrade -y && \
                     make cmake ninja-build    \
                     libboost-all-dev    \ 
                     # TODO: external
-                    git                 \ 
+                    git subversion                 \ 
                     graphviz        
 
+# Tooling: editors (emacs, nano, vim)
+# Tooling: package managers (vcpkg, conan, build2, etc.)
 # Tooling: Doxygen
+# Tooling: static analysis
+# Tooling: runtime analysis
 
+# Tooling: shells (bash, zsh, )
 # Tooling: zsh
 RUN apt update && apt upgrade -y && \
     apt install -y zsh && \
     yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+# see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
 # CMD ["zsh"]
 
 # Cleanup
 
+# QUESTION: ENV for CI -> gcc latest, clang latest ? or rely on alternative-updates ?
