@@ -14,7 +14,30 @@ RUN apt update && apt install -y --no-install-recommends \
     apt-get update -y && \
     apt install -y \
         sudo tzdata openssh-server curl wget libssl-dev ca-certificates \
-        less tar zip unzip gzip
+        less tar zip unzip gzip \
+        build-essential
+
+# Tooling
+RUN apt upgrade -y && \
+    apt install -y  wget                \
+                    make cmake ninja-build    \
+                    libboost-all-dev    \ 
+                    # TODO: external
+                    git subversion                 \ 
+                    graphviz        
+
+# Tooling: editors (emacs, nano, vim)
+# Tooling: package managers (vcpkg, conan, build2, etc.)
+# Tooling: Doxygen
+# Tooling: static analysis
+# Tooling: runtime analysis
+
+# Tooling: shells (bash, zsh, )
+# Tooling: zsh
+RUN apt update && apt upgrade -y && \
+    apt install -y zsh && \
+    yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+# see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
 # Remote
 RUN apt install -y --no-install-recommends \
@@ -27,19 +50,36 @@ ENV CLANG_VERSION=16
 ENV GCC_VERSION=13
 
 # GCC
+
+# simpler alternative: apt install with wildcard
+
 #   apt install '^gcc\-[[:digit:]]{1,}$'
 #   apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' | grep -oP 'gcc\-\K([[:digit:]]{1,})' | sort -n
 #   apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' | grep -oP 'gcc\-\K([[:digit:]]{1,})' | sort -n | xargs -I {} echo "- {} ..."
 
-apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' | grep -oP 'gcc\-\K([[:digit:]]{1,})' | sort -n | xargs -I {} \
-    apt install -y gcc-{}
+# apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' \
+#     | grep -oP 'gcc\-\K([[:digit:]]{1,})' \
+#     | sort -n \
+#     | xargs -I {} \
+#     apt install -y gcc-{}
 
 
-# GCC
-ARG gcc_available_versions="apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' | grep -oP 'gcc\-\K([[:digit:]]{1,})' | sort -n"
-RUN for gcc_version in `$gcc_available_versions`; do \
-        echo $gcc_version \
-    done
+# GCC - version are either externaly provided, or all available are selected by default
+ARG gcc_versions
+RUN : {gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
+    echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '\
+        apt install -y --no-install-recommends  \
+            g++-{} gcc-{}-multilib g++-{}-multilib                                                                \
+            g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf                                                   \
+            g++-{}-powerpc64-linux-gnu                                                                            \
+            g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu                                                \
+            binutils-aarch64-linux-gnu                                                                            \
+            binutils-powerpc64-linux-gnu                                                                          \
+        ;   \
+        update-alternatives --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {} \
+                            --slave   /usr/bin/g++  g++  /usr/bin/g++-{}    \
+                            --slave   /usr/bin/gcov gcov /usr/bin/gcov-{};  \
+    '
 
 
     apt install -y  build-essential \
@@ -68,27 +108,7 @@ RUN apt install -y wget bash && \
 # large/compiled libraries
 # - https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
 
-# Tooling
-RUN apt upgrade -y && \
-    apt install -y  wget                \
-                    make cmake ninja-build    \
-                    libboost-all-dev    \ 
-                    # TODO: external
-                    git subversion                 \ 
-                    graphviz        
 
-# Tooling: editors (emacs, nano, vim)
-# Tooling: package managers (vcpkg, conan, build2, etc.)
-# Tooling: Doxygen
-# Tooling: static analysis
-# Tooling: runtime analysis
-
-# Tooling: shells (bash, zsh, )
-# Tooling: zsh
-RUN apt update && apt upgrade -y && \
-    apt install -y zsh && \
-    yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
-# see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
 # CMD ["zsh"]
 
