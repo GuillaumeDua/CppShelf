@@ -13,22 +13,29 @@ RUN apt update && apt install -y --no-install-recommends \
     add-apt-repository ppa:ubuntu-toolchain-r/test && \
     apt-get update -y && \
     apt install -y \
-        sudo tzdata openssh-server curl wget libssl-dev ca-certificates \
+        # remote
+        openssh-server wget rsync ssh \
+        sudo tzdata openssh-server curl libssl-dev ca-certificates \
         less tar zip unzip gzip \
-        build-essential
+        build-essential pkg-config \
+        # build
+        make cmake ninja-build \
+        # versioning
+        git subversion \
+        # libraries
+        libboost-all-dev \
+        # tools
+        doxygen graphviz \
+        emacs nano vim
 
-# Tooling
-RUN apt upgrade -y && \
-    apt install -y  wget                \
-                    make cmake ninja-build    \
-                    libboost-all-dev    \ 
-                    # TODO: external
-                    git subversion                 \ 
-                    graphviz        
+# vcpkg
+RUN wget -qO vcpkg.tar.gz https://github.com/microsoft/vcpkg/archive/master.tar.gz && \
+    mkdir /opt/vcpkg && \
+    tar xf vcpkg.tar.gz --strip-components=1 -C /opt/vcpkg && \
+    /opt/vcpkg/bootstrap-vcpkg.sh && \
+    ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
 
-# Tooling: editors (emacs, nano, vim)
 # Tooling: package managers (vcpkg, conan, build2, etc.)
-# Tooling: Doxygen
 # Tooling: static analysis
 # Tooling: runtime analysis
 
@@ -39,17 +46,10 @@ RUN apt update && apt upgrade -y && \
     yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 # see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
-# Remote
-RUN apt install -y --no-install-recommends \
-        openssh-server wget rsync ssh
-
 # TODO: gdb, lldb
 
 # C++ toolchain
-ENV CLANG_VERSION=16
-ENV GCC_VERSION=13
-
-# GCC
+# C++ toolchain: GCC
 
 # simpler alternative: apt install with wildcard
 
