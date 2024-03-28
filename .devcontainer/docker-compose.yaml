@@ -1,0 +1,5 @@
+services:
+  cpp_dev:
+    image: cppshelf:latest
+    ports:
+      - "2222:22"
