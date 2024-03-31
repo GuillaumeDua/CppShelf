@@ -17,7 +17,7 @@ namespace csl::functional::details::mp {
     struct type_identity{ using type = T; };
 #endif
     template <typename ...>
-    constexpr auto dependent_false_v = false;
+    constexpr inline static auto dependent_false_v = false;
 }
 
 namespace csl::functional::details::type_traits {
@@ -181,7 +181,7 @@ namespace csl::functional::type_traits {
     template <typename F, typename ... Ts>
     struct is_invocable<F, arguments<Ts...>> : std::is_invocable<F, Ts...>{};
     template <typename T, typename arguments_type>
-    constexpr bool is_invocable_v = is_invocable<T, arguments_type>::value;
+    constexpr inline static bool is_invocable_v = is_invocable<T, arguments_type>::value;
 
     // is_nothrow_invocable
     template <typename F, typename arguments_type>
@@ -191,7 +191,7 @@ namespace csl::functional::type_traits {
     template <typename F, typename ... Ts>
     struct is_nothrow_invocable<F, arguments<Ts...>> : std::is_nothrow_invocable<F, Ts...>{};
     template <typename T, typename arguments_type>
-    constexpr bool is_nothrow_invocable_v = is_nothrow_invocable<T, arguments_type>::value;
+    constexpr inline static bool is_nothrow_invocable_v = is_nothrow_invocable<T, arguments_type>::value;
 
     // is_invocable_r
     template <typename R, typename F, typename arguments_type>
@@ -201,7 +201,7 @@ namespace csl::functional::type_traits {
     template <typename R, typename F, typename ... Ts>
     struct is_invocable_r<R, F, arguments<Ts...>> : std::is_invocable_r<R, F, Ts...>{};
     template <typename R, typename F, typename arguments_type>
-    constexpr bool is_invocable_r_v = is_invocable_r<R, F, arguments_type>::value;
+    constexpr inline static bool is_invocable_r_v = is_invocable_r<R, F, arguments_type>::value;
 
     // is_nothrow_invocable_r
     template <typename R, typename F, typename arguments_type>
@@ -211,7 +211,7 @@ namespace csl::functional::type_traits {
     template <typename R, typename F, typename ... Ts>
     struct is_nothrow_invocable_r<R, F, arguments<Ts...>> : std::is_nothrow_invocable_r<R, F, Ts...>{};
     template <typename R, typename F, typename arguments_type>
-    constexpr bool is_nothrow_invocable_r_v = is_nothrow_invocable_r<R, F, arguments_type>::value;
+    constexpr inline static bool is_nothrow_invocable_r_v = is_nothrow_invocable_r<R, F, arguments_type>::value;
 
     // is_simple_callable: one invocation candidate
     template <typename F, class = void>
@@ -222,7 +222,7 @@ namespace csl::functional::type_traits {
         std::void_t<typename csl::functional::function_trait<F>::arguments_type>
     > : std::true_type{};
     template <typename F>
-    constexpr bool is_simple_callable_v = is_simple_callable<F>::value;
+    constexpr inline static bool is_simple_callable_v = is_simple_callable<F>::value;
 }
 namespace csl::functional::concepts {
 #if __cplusplus >= 202002L

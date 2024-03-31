@@ -14,14 +14,14 @@
 namespace csl::typeinfo::details
 {
     struct type_prefix_tag {
-        constexpr static std::string_view value = "T = ";
+        constexpr inline static std::string_view value = "T = ";
     };
     struct value_prefix_tag {
-        constexpr static std::string_view value = "value = ";
+        constexpr inline static std::string_view value = "value = ";
     };
 
     template <typename prefix_tag_t>
-    static constexpr auto parse_mangling(std::string_view value, std::string_view function)
+    constexpr static auto parse_mangling(std::string_view value, std::string_view function)
     {
         value.remove_prefix(value.find(function) + std::size(function));
 #if defined(__GNUC__) or defined(__clang__)
@@ -43,23 +43,29 @@ namespace csl::typeinfo::details
 
 namespace csl::typeinfo
 {   // constexpr typeinfo that does not relies on __cpp_rtti
-    // 
-    // Warning: Produced outputs ARE NOT portable: inconsistencies exist across compilers (GCC, Clang, msvc-cl)
+    // [Warning]: Produced outputs ARE NOT portable: inconsistencies exist across compilers (GCC, Clang, msvc-cl)
     //
     // Known limitations :
-    //  type_name : type aliases
-    //      ex : std::string
-    //          std::basic_string<char>
-    //          std::__cxx11::basic_string<char>
-    //          std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>
+    // 
+    //  [type_name]
+    //     decl namespace (demo: https://godbolt.org/z/vhr4h4j9Y)
+    //            GCC:    namespace is part of the type (ex: A::B::C::type_as_ns<>::func<>(int)::my_type)
+    //            clang:  missing (ex: my_type)
+    //     type aliases (demo: https://godbolt.org/z/9PEq9zWTn)
+    //        ex : std::string
+    //            std::basic_string<char>
+    //            std::__cxx11::basic_string<char>
+    //            std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>
     //
-    //  value_name : values representation
-    //      ex : int(42)
-    //          0x2a ont MsVC/CL
+    //  [value_name]
+    //     values representation (demo: https://godbolt.org/z/bn9ofo3Pz)
+    //      ex : int{42}
+    //          GCC, Clang: "42"sv
+    //          MSVC:       "0x2a"sv
     //      use <charconv> std::to_chars into std::string_view for reliable basic numerical values
 
     template <typename T>
-    static constexpr /*consteval*/ auto type_name(/*no parameters allowed*/) -> std::string_view
+    [[nodiscard]] constexpr /*consteval*/ static auto type_name(/*no parameters allowed*/) -> std::string_view
     {
 #if defined(__GNUC__) or defined(__clang__)
         return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -70,15 +76,16 @@ namespace csl::typeinfo
 #endif
     }
     template <typename T>
-    constexpr static auto type_name_v = type_name<T>();
+    constexpr inline static auto type_name_v = type_name<T>();
+    
     template <auto value>
-    static constexpr auto type_name(/*no parameters allowed*/) -> std::string_view
+    [[nodiscard]] constexpr static auto type_name(/*no parameters allowed*/) -> std::string_view
     {
         return type_name<decltype(value)>();
     }
 
     template <auto value>
-    static constexpr auto value_name(/*no parameters allowed*/) -> std::string_view
+    [[nodiscard]] constexpr static auto value_name(/*no parameters allowed*/) -> std::string_view
     {
 #if defined(__GNUC__) or defined(__clang__)
         return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -89,7 +96,7 @@ namespace csl::typeinfo
 #endif
     }
     template <auto value>
-    constexpr inline auto value_name_v = value_name<value>();
+    constexpr inline static auto value_name_v = value_name<value>();
 
     // TODO(Guss): hash_code, see #93 https://github.com/GuillaumeDua/CppShelf/issues/93
     //  - update example accordingly
