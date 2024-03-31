@@ -11,13 +11,16 @@
 #include <utility>
 #include <climits>
 #include <string_view>
+#include <algorithm>
+#include <stdexcept>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
-namespace csl::ag::details {
+namespace csl::ag::details::unevaluated {
+// to use in an unevaluated context only
 
     template <typename T>
-    constexpr auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
+    consteval auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
         // static_assert([](){ return false; }(), "csl::ag::details : declval : for unevaluated context only !");
         if constexpr (std::is_lvalue_reference_v<T>)
             return *((std::remove_reference_t<T>*){ nullptr });
@@ -25,24 +28,35 @@ namespace csl::ag::details {
             return std::move(*((std::remove_reference_t<T>*){ nullptr }));
     }
 
-    template <std::size_t>
-    struct field_evaluator {
-        explicit constexpr field_evaluator() = delete;
+    struct ref_evaluator {
+        explicit constexpr ref_evaluator() = delete;
+        constexpr ~ref_evaluator() = delete;
+        constexpr ref_evaluator(const ref_evaluator&) = delete;
+        constexpr ref_evaluator(ref_evaluator&&) = delete;
+        constexpr ref_evaluator & operator=(const ref_evaluator&) = delete;
+        constexpr ref_evaluator & operator=(ref_evaluator&&) = delete;
 
 		// Implicit conversion
-        // 	not `return std::declval<T>();`, as clang does not like it
-        // 	neither `consteval` -> Clang ICE
+        // 	not `return std::declval<T>();`, as clang does not like it even in a non-evaluated context
+        // 	neither `consteval` -> Clang-16.0.? ICE
         template <typename T>
-        [[nodiscard]] constexpr operator T&&() const noexcept { // NOLINT(google-explicit-constructor)
+        [[nodiscard]] consteval operator T&&() const noexcept { // NOLINT(google-explicit-constructor)
             return declval<T&&>();
         }
         template <typename T>
-        [[nodiscard]] constexpr operator T&() const noexcept { // NOLINT(google-explicit-constructor)
+        [[nodiscard]] consteval operator T&() const noexcept { // NOLINT(google-explicit-constructor)
             return declval<T&>();
         }
     };
 }
 namespace csl::ag::details::mp {
+
+    // NTTP-dependent type
+    template <typename T, auto index>
+    struct unfolder : std::type_identity<T>{};
+    template <typename T, auto index>
+    using unfolder_t = typename unfolder<T, index>::type;
+
 // P1450 Enriching type modification traits : https://github.com/cplusplus/papers/issues/216
 // Note that this is a good-enough implementation of P1450 to only fit this project's needs
 
@@ -56,7 +70,7 @@ namespace csl::ag::details::mp {
     template <typename from, typename to>
     using copy_ref_t = typename copy_ref<from, to>::type;
 
-    // add cv - P1450 impl detail (also for ref-qualified types)
+    // P1450 - add cv - impl detail (also for ref-qualified types)
     template <typename T> struct add_const : std::type_identity<const T>{};
     template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
     template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
@@ -98,21 +112,32 @@ namespace csl::ag::details::mp {
     struct field_view<owner, T> : std::type_identity<T>{};
     template <typename owner, typename T>
     using field_view_t = typename field_view<owner, T>::type;
-}
-namespace csl::ag::details {
-    template <typename owner, typename T>
-    // T should be explicit
-    constexpr auto make_field_view(T && value) -> mp::field_view_t<owner, T> {
-        static_assert(std::is_reference_v<mp::field_view_t<owner, T>>);
-        if constexpr (std::is_lvalue_reference_v<mp::field_view_t<owner, T>>)
-            return *(&value);
-        else return csl_fwd(value);
-    }
-    template <typename owner, typename ... Ts>
-    constexpr auto make_tuple_view(Ts&& ... values) {
-        using view_type = std::tuple<mp::field_view_t<owner, Ts>...>;
-        return view_type{ make_field_view<owner, Ts>(csl_fwd(values))... };
-    }
+
+    // bind_front
+    // TODO: remove ?
+    template <template <typename ...> typename trait, typename ... bound_Ts>
+    struct bind_front {
+        template <typename ... Ts>
+        using type = typename trait<bound_Ts..., Ts...>::type;
+        template <typename ... Ts>
+        constexpr static auto value = trait<bound_Ts..., Ts...>::value;
+    };
+
+    template <class, class>
+    struct first_index_of;
+    template <class T, typename... Ts>
+    struct first_index_of<T, std::tuple<Ts...>> : std::integral_constant<std::size_t, 
+        [](){
+            static_assert(sizeof...(Ts));
+            constexpr auto results = std::array{ std::is_same_v<T, Ts>... };
+            const auto it = std::find(std::cbegin(results), std::cend(results), true);
+            if (it == std::cend(results))
+                throw std::runtime_error{"csl::ag::details::mp:first_index_of<T, tuple_type>: no match"};
+            return std::distance(std::cbegin(results), it);
+        }()
+    >{};
+    template <class T, class tuple_type>
+    constexpr auto first_index_of_v = first_index_of<T, tuple_type>::value;
 }
 namespace csl::ag::concepts {
 
@@ -137,27 +162,48 @@ namespace csl::ag::concepts {
     concept aggregate_constructible_from_n_values =
         concepts::aggregate<T> and
         []<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            return concepts::aggregate_constructible_from<T, details::field_evaluator<indexes>...>;
+            return concepts::aggregate_constructible_from<
+                T,
+                details::mp::unfolder_t<details::unevaluated::ref_evaluator, indexes>...
+            >;
         }(std::make_index_sequence<size>{})
     ;
 
-	template <typename T>
-    concept tuplelike =
-        requires { std::tuple_size<std::remove_reference_t<T>>{}; }
+    // P2165 - tuple-like
+    // Note that this is a good-enough implementation of P2165 to only fit this project's needs
+	template <typename T, std::size_t N>
+    concept is_tuple_element = requires(T t) {
+        typename std::tuple_element_t<N, std::remove_const_t<T>>;
+        { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
+    };
+    template <typename T>
+    concept tuple_like =
+        not std::is_reference_v<T>
+        and requires {
+            typename std::tuple_size<T>::type;
+            requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
+        }
+        and []<std::size_t... I>(std::index_sequence<I...>) {
+            return (is_tuple_element<T, I> && ...);
+        }(std::make_index_sequence<std::tuple_size_v<T>>{})
     ;
+    template <typename T>
+    concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
+
 	template <typename T>
-	concept structured_bindable = tuplelike<T> or aggregate<T>;
+	concept structured_bindable = tuple_like<T> or aggregate<T>;
 }
 namespace csl::ag::details {
 
+#pragma region fields_count
     #if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
     # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
-    consteval auto fields_count_impl() -> std::size_t {
+    [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
     // faster algorithm if T is default_initializable (ref fields can be initialized),
     // and no fields is a bitfield.
-        static_assert(not std::is_reference_v<T>);
+        static_assert(not std::is_reference_v<T>, "concepts::aggregate T cannot be cv-ref qualified");
 
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
@@ -176,7 +222,7 @@ namespace csl::ag::details {
     #endif
 
     template <concepts::aggregate T, std::size_t indice>
-    consteval auto fields_count_impl() -> std::size_t {
+    [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
     // costly algorithm
         static_assert(not std::is_reference_v<T>);
 
@@ -199,481 +245,464 @@ namespace csl::ag::details {
         * sizeof(std::byte) * CHAR_BIT
         #endif
     >();
+#pragma endregion
+#pragma region to_tuple
+	// generated : interface
+    namespace generated {
+        template <std::size_t N>
+        [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto &&) noexcept
+		// -> std::type_identity<std::tuple<csl::ag::element<I, value_t>...>>
+        {
+            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        }
+        template <std::size_t>
+        [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept
+		// -> std::tuple<decltype(get<I>(value))...>
+        {
+            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        }
+    }
 
-	template <std::size_t N, concepts::aggregate T>
-	struct element;
+    consteval auto make_to_tuple(concepts::aggregate auto && value) /* -> std::type_identity<std::tuple<field_Ts...>>*/;
+    template <typename T>
+    using to_tuple_t = mp::copy_cvref_t<
+        T,
+        typename std::remove_cvref_t<decltype(csl::ag::details::make_to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type
+    >;
+#pragma endregion
 
+    template <typename owner_type>
+    [[nodiscard]] constexpr concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
+        using tuple_t = to_tuple_t<std::remove_cvref_t<owner_type>>;
+        
+        constexpr auto size = std::tuple_size_v<tuple_t>;
+        static_assert(size == sizeof...(values));
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::forward_as_tuple(
+                static_cast<mp::field_view_t<owner_type, std::tuple_element_t<indexes, tuple_t>>>(values)...
+            );
+        }(std::make_index_sequence<size>{});
+    }
+}
+// --- generated: details ---
+namespace csl::ag::details::generated {
 // GENERATED CONTENT, DO NOT EDIT MANUALLY !
-#pragma region as_tuple_view_impl<N,T>
+// Generated code with CSL_AG_MAX_FIELDS_COUNT_OPTION = 32
+#pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0)>( csl_fwd(v0) );
+	return std::type_identity<std::tuple<decltype(v0)>>{};
 }
 template <std::size_t N> requires (N == 2) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1)>( csl_fwd(v0),csl_fwd(v1) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1)>>{};
 }
 template <std::size_t N> requires (N == 3) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2)>>{};
 }
 template <std::size_t N> requires (N == 4) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3)>>{};
 }
 template <std::size_t N> requires (N == 5) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>>{};
 }
 template <std::size_t N> requires (N == 6) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>>{};
 }
 template <std::size_t N> requires (N == 7) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6)>>{};
 }
 template <std::size_t N> requires (N == 8) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7)>>{};
 }
 template <std::size_t N> requires (N == 9) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8)>>{};
 }
 template <std::size_t N> requires (N == 10) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9)>>{};
 }
 template <std::size_t N> requires (N == 11) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10)>>{};
 }
 template <std::size_t N> requires (N == 12) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11)>>{};
 }
 template <std::size_t N> requires (N == 13) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12)>>{};
 }
 template <std::size_t N> requires (N == 14) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13)>>{};
 }
 template <std::size_t N> requires (N == 15) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14)>>{};
 }
 template <std::size_t N> requires (N == 16) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15)>>{};
 }
 template <std::size_t N> requires (N == 17) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16)>>{};
 }
 template <std::size_t N> requires (N == 18) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17)>>{};
 }
 template <std::size_t N> requires (N == 19) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18)>>{};
 }
 template <std::size_t N> requires (N == 20) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19)>>{};
 }
 template <std::size_t N> requires (N == 21) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20)>>{};
 }
 template <std::size_t N> requires (N == 22) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21)>>{};
 }
 template <std::size_t N> requires (N == 23) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22)>>{};
 }
 template <std::size_t N> requires (N == 24) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23)>>{};
 }
 template <std::size_t N> requires (N == 25) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24)>>{};
 }
 template <std::size_t N> requires (N == 26) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25)>>{};
 }
 template <std::size_t N> requires (N == 27) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26)>>{};
 }
 template <std::size_t N> requires (N == 28) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27)>>{};
 }
 template <std::size_t N> requires (N == 29) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28)>>{};
 }
 template <std::size_t N> requires (N == 30) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29)>>{};
 }
 template <std::size_t N> requires (N == 31) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30)>>{};
 }
 template <std::size_t N> requires (N == 32) // NOLINT
- [[nodiscard]] constexpr auto as_tuple_view_impl(concepts::aggregate auto && value) {
+ [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
 	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = value;
-	return make_tuple_view<decltype(value), decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30),csl_fwd(v31) );
+	return std::type_identity<std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31)>>{};
 }
 #pragma endregion
-#pragma region element<N, T>
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 1) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0 ] = declval<T>();
-            return std::tuple<decltype(v0)>{ csl_fwd(v0) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 2) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1)>{ csl_fwd(v0),csl_fwd(v1) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 3) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 4) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 5) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 6) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 7) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 8) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 9) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 10) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 11) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 12) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 13) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 14) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 15) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 16) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 17) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 18) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 19) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 20) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 21) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 22) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 23) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 24) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 25) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 26) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 27) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 28) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 29) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 30) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 31) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30) };
-        }())>>
-    {};
-	template <std::size_t N, concepts::aggregate T> requires (fields_count<T> == 32) // NOLINT
-    struct element<N, T> : std::tuple_element<
-        N,
-        std::remove_cvref_t<decltype([]() constexpr {
-            auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = declval<T>();
-            return std::tuple<decltype(v0),decltype(v1),decltype(v2),decltype(v3),decltype(v4),decltype(v5),decltype(v6),decltype(v7),decltype(v8),decltype(v9),decltype(v10),decltype(v11),decltype(v12),decltype(v13),decltype(v14),decltype(v15),decltype(v16),decltype(v17),decltype(v18),decltype(v19),decltype(v20),decltype(v21),decltype(v22),decltype(v23),decltype(v24),decltype(v25),decltype(v26),decltype(v27),decltype(v28),decltype(v29),decltype(v30),decltype(v31)>{ csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30),csl_fwd(v31) };
-        }())>>
-    {};
+#pragma region to_tuple_view_impl<N,T>
+template <std::size_t N> requires (N == 1) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0) );
+}
+template <std::size_t N> requires (N == 2) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1) );
+}
+template <std::size_t N> requires (N == 3) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2) );
+}
+template <std::size_t N> requires (N == 4) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3) );
+}
+template <std::size_t N> requires (N == 5) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4) );
+}
+template <std::size_t N> requires (N == 6) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5) );
+}
+template <std::size_t N> requires (N == 7) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6) );
+}
+template <std::size_t N> requires (N == 8) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7) );
+}
+template <std::size_t N> requires (N == 9) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8) );
+}
+template <std::size_t N> requires (N == 10) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9) );
+}
+template <std::size_t N> requires (N == 11) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10) );
+}
+template <std::size_t N> requires (N == 12) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11) );
+}
+template <std::size_t N> requires (N == 13) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12) );
+}
+template <std::size_t N> requires (N == 14) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13) );
+}
+template <std::size_t N> requires (N == 15) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14) );
+}
+template <std::size_t N> requires (N == 16) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15) );
+}
+template <std::size_t N> requires (N == 17) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16) );
+}
+template <std::size_t N> requires (N == 18) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17) );
+}
+template <std::size_t N> requires (N == 19) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18) );
+}
+template <std::size_t N> requires (N == 20) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19) );
+}
+template <std::size_t N> requires (N == 21) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20) );
+}
+template <std::size_t N> requires (N == 22) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21) );
+}
+template <std::size_t N> requires (N == 23) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22) );
+}
+template <std::size_t N> requires (N == 24) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23) );
+}
+template <std::size_t N> requires (N == 25) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24) );
+}
+template <std::size_t N> requires (N == 26) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25) );
+}
+template <std::size_t N> requires (N == 27) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26) );
+}
+template <std::size_t N> requires (N == 28) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27) );
+}
+template <std::size_t N> requires (N == 29) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28) );
+}
+template <std::size_t N> requires (N == 30) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29) );
+}
+template <std::size_t N> requires (N == 31) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30) );
+}
+template <std::size_t N> requires (N == 32) // NOLINT
+ [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto && value) noexcept {
+	auto && [ v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22,v23,v24,v25,v26,v27,v28,v29,v30,v31 ] = value;
+	return make_tuple_view<decltype(value)>( csl_fwd(v0),csl_fwd(v1),csl_fwd(v2),csl_fwd(v3),csl_fwd(v4),csl_fwd(v5),csl_fwd(v6),csl_fwd(v7),csl_fwd(v8),csl_fwd(v9),csl_fwd(v10),csl_fwd(v11),csl_fwd(v12),csl_fwd(v13),csl_fwd(v14),csl_fwd(v15),csl_fwd(v16),csl_fwd(v17),csl_fwd(v18),csl_fwd(v19),csl_fwd(v20),csl_fwd(v21),csl_fwd(v22),csl_fwd(v23),csl_fwd(v24),csl_fwd(v25),csl_fwd(v26),csl_fwd(v27),csl_fwd(v28),csl_fwd(v29),csl_fwd(v30),csl_fwd(v31) );
+}
 #pragma endregion
 // END OF GENERATED CONTENT
-
-    template <std::size_t>
-    constexpr auto as_tuple_view_impl(concepts::aggregate auto &&) {
-        static_assert([](){ return false; }(), "[srl] exceed maxmimum members count");
+}
+namespace csl::ag::details {
+    [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
+    // -> std::type_identity<std::tuple<field_Ts...>>
+    {
+        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
+        return details::generated::make_to_tuple<size>(csl_fwd(value));
     }
 }
-
+// --- API ---
 namespace csl::ag {
 
-    // tuple-view
-    // factory that creates a lightweight accessor to an existing aggregate value,
-    // preserving cvref semantic
-    constexpr auto as_tuple_view(concepts::aggregate auto && value) {
-        using type = std::remove_cvref_t<decltype(value)>;
-        return details::as_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
-    }
-    template <concepts::aggregate T> requires (std::is_reference_v<T>)
-    struct tuple_view : std::type_identity<decltype(as_tuple_view(std::declval<T>()))>{}; 
-    template <concepts::aggregate T> requires (std::is_reference_v<T>)
-    using tuple_view_t = typename tuple_view<T>::type;
+    // to_tuple
+    template <concepts::aggregate T>
+    using to_tuple_t = details::to_tuple_t<T>;
 
-    // view_element
-	template <std::size_t N, concepts::aggregate T>
-    requires (std::is_reference_v<T>)
-    struct view_element : std::tuple_element<N, tuple_view_t<T>>{};
-    // struct view_element : std::tuple_element<N, decltype(as_tuple_view(std::declval<T>()))>{};
-	template <std::size_t N, concepts::aggregate T>
-	using view_element_t = typename view_element<N, T>::type;
-
-	// get
-    template <std::size_t N>
-    constexpr decltype(auto) get(concepts::aggregate auto && value) {
-        return ::std::get<N>(as_tuple_view(std::forward<decltype(value)>(value)));
-    }
-
-	// element
-	template <std::size_t N, concepts::aggregate T>
-    using element = details::element<N, T>;
-	template <std::size_t N, concepts::aggregate T>
-	using element_t = typename element<N, T>::type;
-
+    // --- inner API ---
     // size
     template <csl::ag::concepts::aggregate T>
     struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
-	constexpr inline static auto size_v = size<T>::value;
+	constexpr auto size_v = size<T>::value;
 
-    // tuple conversion (not view !)
-    constexpr auto as_tuple(concepts::aggregate auto && value) {
+    // element
+	template <std::size_t N, concepts::aggregate T>
+    using element = std::tuple_element<N, details::to_tuple_t<std::remove_cvref_t<T>>>;
+	template <std::size_t N, concepts::aggregate T>
+	using element_t = typename element<N, T>::type;
+
+    // tuple-view
+    //  factory that creates a lightweight accessor to an existing aggregate value,
+    //  extending owner's value-semantic to owned values,
+    //  while preserving value-semantic of ref-qualified values
+    //  ex:
+    //  - struct type{ A v0; B & v1; const C && v2 }
+    //  -       type &  => std::tuple<      A&,  B&, const C&&>;
+    //  - const type &  => std::tuple<const A&,  B&, const C&&>;
+    //  -       type && => std::tuple<      A&&, B&, const C&&>;
+    [[nodiscard]] constexpr auto to_tuple_view(concepts::aggregate auto && value) noexcept {
+        using type = std::remove_cvref_t<decltype(value)>;
+        return details::generated::to_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
+    }
+    // TODO(Guss): view -> tuple + is_product;
+    //  - is_view
+    //  - is_owning -> not_ref<Ts> and ...
+    //  - is_non_owning -> ref<Ts> and ...
+    template <concepts::aggregate T> requires (std::is_reference_v<T>)
+    struct view : std::type_identity<decltype(to_tuple_view(std::declval<T>()))>{}; 
+    template <concepts::aggregate T> requires (std::is_reference_v<T>)
+    using view_t = typename view<T>::type;
+
+    // view_element
+	template <std::size_t N, concepts::aggregate T>
+    requires (std::is_reference_v<T>)
+    struct view_element : std::tuple_element<N, view_t<T>>{};
+	template <std::size_t N, concepts::aggregate T>
+	using view_element_t = typename view_element<N, T>::type;
+
+    // --- tuple-like ---
+    // tuple_size
+    template <csl::ag::concepts::aggregate T>
+    struct tuple_size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
+	template <csl::ag::concepts::aggregate T>
+	constexpr auto tuple_size_v = tuple_size<T>::value;
+
+    // tuple_element
+    template <std::size_t N, concepts::aggregate T>
+    using tuple_element = std::tuple_element<N, details::to_tuple_t<std::remove_cvref_t<T>>>;
+	template <std::size_t N, concepts::aggregate T>
+	using tuple_element_t = typename tuple_element<N, T>::type;
+
+    // get<std::size_t>
+    template <std::size_t N>
+    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
+        static_assert(N < size_v<std::remove_cvref_t<decltype(value)>>, "csl::ag::get<std::size_t>: index >= size_v");
+        return ::std::get<N>(to_tuple_view(std::forward<decltype(value)>(value)));
+    }
+    // get<T>
+    template <typename T>
+    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
+    // using indexes here rather than type, to avoid collisions of cvref-qualified view elements
+        using tuple_t = to_tuple_t<std::remove_cvref_t<decltype(value)>>;
+        constexpr auto index = details::mp::first_index_of_v<T, tuple_t>;
+        return get<index>(std::forward<decltype(value)>(value));
+    }
+
+    // --- conversions ---
+    // tuple conversion / tie (strict field conversions: same possibly-cvref-qualified types)
+    //  ex: struct type{ A v0; B & v1; const C && v2 } => std::tuple<A, B&, const C&&>;
+    [[nodiscard]] constexpr auto to_tuple(concepts::aggregate auto && value) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             using result_t = std::tuple<
@@ -684,36 +713,142 @@ namespace csl::ag {
             };
         }(std::make_index_sequence<size_v<value_type>>{});
     }
-    template <concepts::aggregate T> requires (not std::is_reference_v<T>)
-    using to_tuple = std::type_identity<decltype(as_tuple(std::declval<T>()))>;
-    template <concepts::aggregate T> requires (not std::is_reference_v<T>)
-    using to_tuple_t = typename to_tuple<T>::type;
-}
-// tuple-like interface
-//  N4606 [namespace.std]/1 :
-//  A program may add a template specialization for any standard library template to namespace std
-//  only if the declaration depends on a user-defined type 
-//  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-namespace std { // NOLINT(cert-dcl58-cpp)
-// TODO(Guss) : as opt-in, so aggregate are not necessarily tuplelike
 
-    template <std::size_t N>
-    constexpr decltype(auto) get(::csl::ag::concepts::aggregate auto && value) {
-        return std::get<N>(csl::ag::as_tuple_view(std::forward<decltype(value)>(value)));
+    // conversion factory. unfold into an either complete or template type T
+    // interally performs get<indexes>...
+    template <typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+    template <template <typename...> typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+    template <template <typename, auto ...> typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
+    template <template <auto, typename ...> typename T>
+    [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return T{ csl::ag::get<indexes>(csl_fwd(from_value))... };
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
     }
 
-    template <std::size_t N, ::csl::ag::concepts::aggregate T>
-    struct tuple_element<N, T> : ::csl::ag::element<N, T>{};
+    // TODO(Guss)
+    // conversion factory. unfold into an either complete or template type T
+    // interally performs get<Ts>... (requires unique<Ts...>)
+    // motivation: struct { int; string } => struct { string; int }
+    //
+    // use type-qualifier/decorator orderer/unordered ?
+    // ex:
+    //  auto other = value | views::move | views::unordered | to<other_type>; // -> get<Ts...>
+    //
+    
+    // TODO(Guss)
+    //  move_view -> or already equivalent to std::move(value) | views::smthg ? (TO TEST)
+}
+namespace csl::ag::concepts {
+    template <typename T, typename U>
+    concept convertible_to = requires{ csl::ag::make<U>(std::declval<T>()); };
+}
+// --- DSL ---
+namespace csl::ag {
+// ADL-used
+    // view: all
+    struct all_view_tag{};
+    [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
+    {
+        return csl::ag::to_tuple_view(csl_fwd(value));
+    }
 
-    // // screw-up the ADL (aggregate structured-binding vs tuplelike)
-    // template <csl::ag::concepts::aggregate T>
-    // struct tuple_size<T> : std::integral_constant<std::size_t, csl::ag::details::fields_count<T>>{};
+    // conversion: common
+    // POC: https://godbolt.org/z/Yc5no5MzP
+
+    // QUESTION: specific tag to allow narrowing-conversions ? (injects static_cast - as a projection ?)
+
+    // conversion
+    // REFACTO: REFACTO: P1950 Universal Template Paramters
+    template <typename T>
+    struct to_complete_type_tag{};
+    template <template <typename...> typename>
+    struct to_template_type_ttps_tag{};
+    template <template <typename, auto ...> typename>
+    struct to_template_type_ttp_nttps_tag{};
+    template <template <auto, typename ...> typename>
+    struct to_template_type_nttp_ttps_tag{};
+
+    template <typename T>
+    constexpr auto to(){ return to_complete_type_tag<T>{}; };
+    template <template <typename...> typename T>
+    constexpr auto to(){ return to_template_type_ttps_tag<T>{}; };
+    template <template <typename, auto...> typename T> 
+    constexpr auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
+    template <template <auto, typename ...> typename T>
+    constexpr auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
+
+    template <typename T>
+    [[nodiscard]] constexpr auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
+    {
+        return csl::ag::make<T>(csl_fwd(value));
+    }
+    template <template <typename...> typename T>
+    [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_ttps_tag<T>)
+    {
+        return csl::ag::make<T>(csl_fwd(value));
+    }
+    template <template <typename, auto ...> typename T>
+    [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_ttp_nttps_tag<T>)
+    {
+        return csl::ag::make<T>(csl_fwd(value));
+    }
+    template <template <auto, typename ...> typename T>
+    [[nodiscard]] auto operator|(csl::ag::concepts::aggregate auto && value, to_template_type_nttp_ttps_tag<T>)
+    {
+        return csl::ag::make<T>(csl_fwd(value));
+    }
+}
+namespace csl::ag::views {
+    constexpr static inline auto all = all_view_tag{};
+    template <typename T>
+    using all_t = decltype(std::declval<T>());
+
+    // TODO(Guss): common_t -> std::tuple<std::common_type<Ts>...>
+}
+// --- opt-ins ---
+// TODO(Guss): hash, compare, assign?, etc.
+namespace csl::ag::details::options::detection {
+    template <typename T, typename = void> struct std_tuple_interface : std::false_type {};
+    template <typename T> struct std_tuple_interface<T, typename T::csl_optins::ag::std_tuple_interface> : std::true_type {};
+    template <typename T> constexpr auto std_tuple_interface_v = std_tuple_interface<T>::value;
+}
+namespace csl::ag::concepts {
+    template <typename T>
+    concept opt_in_std_tuple_interface =
+        concepts::aggregate<std::remove_cvref_t<T>>
+    and csl::ag::details::options::detection::std_tuple_interface_v<std::remove_cvref_t<T>>
+    ;
 }
 
+// -----------------------------------
+//           WIP: REFACTO
+// -----------------------------------
+
 // csl::ag::io
+// REFACTO: #134
 #include <string_view>
 
-// TODO: remove this coupling with gcl
+// TODO(Guss): remove this coupling with gcl
 namespace gcl::cx::details {
     struct type_prefix_tag { constexpr inline static std::string_view value = "T = "; };
     struct value_prefix_tag { constexpr inline static std::string_view value = "value = "; };
@@ -773,7 +908,7 @@ namespace gcl::cx {
     template <auto value>
     constexpr inline static auto value_name_v = value_name<value>();
 }
-// TODO: remove this coupling with gcl
+// TODO(Guss): remove this coupling with gcl
 namespace gcl::pattern
 {
 	template <typename T, typename>
@@ -892,7 +1027,8 @@ namespace csl::ag::io {
         using value_type = std::remove_cvref_t<decltype(value)>;
 
         constexpr auto size = []() constexpr { // work-around for ADL issue
-            if constexpr (csl::ag::concepts::tuplelike<value_type>)
+            // TODO(Guss): unqualified tuple_size_v lookup instead here
+            if constexpr (csl::ag::concepts::tuple_like<value_type>)
                 return std::tuple_size_v<value_type>;
             else if constexpr (csl::ag::concepts::aggregate<value_type>)
                 return csl::ag::size_v<value_type>;
@@ -961,7 +1097,7 @@ struct fmt::formatter<T, CharT>
         return it;
     }
 
-    // or : return format_to(out, "{}", csl::ag::as_tuple_view(value));
+    // or : return format_to(out, "{}", csl::ag::to_tuple_view(value));
     template <typename FormatContext>
     constexpr auto format(const T & value, FormatContext& ctx)
     {
@@ -987,3 +1123,11 @@ struct fmt::formatter<T, CharT>
 #undef csl_fwd
 
 #endif
+
+// TODO(Guss): for_each(_fields)(aggregate auto &&, visitor F&&)
+//  [ ] std::hash
+//  [ ] comparator
+//  [ ] projections
+// TODO(Guss): opt-in(s) ?
+//  [ ] operator==
+//  [ ] operator= / assign
