@@ -176,7 +176,7 @@ Philosophy &amp; design choices</h2>
  which is especially convenient when dealing with <b>reflection</b> and <b>serialization</b>.</p>
 <ul>
 <li><code><a class="el" href="structcsl_1_1ag_1_1size.html">csl::ag::size</a>&lt;T&gt;</code> gives the fields count in a given aggregate type type <br  />
- (or <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size">std::tuple_size_v</a> after a <code>as_tuple</code> or <code>as_tuple_view</code> conversion)</li>
+ (or <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size">std::tuple_size_v</a> after a <code>to_tuple</code> or <code>to_tuple_view</code> conversion)</li>
 <li><code>csl::ag::get&lt;size_t N&gt;(aggregate auto value)</code> allows per-field access, in a similar way to <a href="https://en.cppreference.com/w/cpp/utility/tuple/get">std::get&lt;N&gt;</a> for <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple&lt;Ts...&gt;</a></li>
 </ul>
 <hr  />
@@ -294,7 +294,7 @@ csl::ag::size&lt;T&gt;</h4>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(<a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a> == 2);</div>
 <div class="line">static_assert(csl::ag::size_v&lt;A&gt;      == 2);</div>
-<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:671</div></div>
+<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:635</div></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/5cr1x7K3T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Just like <code>std::tuple_size</code>/<code>std::tuple_size_v</code>, the <b>value</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;csl::ag::concepts::aggregate T&gt;</div>
@@ -358,7 +358,7 @@ Owning conversion</h4>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"> </div>
 <div class="line">constexpr <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
-<div class="line">constexpr <span class="keyword">auto</span> value_as_tuple = csl::ag::as_tuple(std::move(value));</div>
+<div class="line">constexpr <span class="keyword">auto</span> value_as_tuple = csl::ag::to_tuple(std::move(value));</div>
 <div class="line"> </div>
 <div class="line">[&amp;]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
 <div class="line">    static_assert((std::same_as&lt;</div>
@@ -384,10 +384,10 @@ Owning conversion</h4>
 <div class="line"> </div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, csl::ag::element_t&lt;0, A&gt;&gt;);</div>
 <div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, std::tuple_element_t&lt;0, csl::ag::to_tuple_t&lt;A&gt;&gt;&gt;);</div>
-<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, std::tuple_element_t&lt;0,decltype(csl::ag::as_tuple(A{}))&gt;&gt;);</div>
+<div class="line">static_assert(std::same_as&lt;<span class="keywordtype">int</span>, std::tuple_element_t&lt;0,decltype(csl::ag::to_tuple(A{}))&gt;&gt;);</div>
 <div class="line"> </div>
 <div class="line">constexpr <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
-<div class="line">constexpr <span class="keyword">auto</span> value_as_tuple = csl::ag::as_tuple(std::move(value));</div>
+<div class="line">constexpr <span class="keyword">auto</span> value_as_tuple = csl::ag::to_tuple(std::move(value));</div>
 <div class="line"> </div>
 <div class="line">static_assert(42    == std::get&lt;0&gt;(value_as_tuple));</div>
 <div class="line">static_assert(0.13f == std::get&lt;1&gt;(value_as_tuple));</div>
@@ -401,7 +401,7 @@ Owning conversion</h4>
 <tr>
 <td><p class="starttd"></p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line">constexpr <span class="keyword">auto</span> value = csl::ag::as_tuple(A{ .i = 42, .f = 0.13f });</div>
+<div class="line">constexpr <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });</div>
 <div class="line"> </div>
 <div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
 <div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
@@ -430,7 +430,7 @@ Owning conversion</h4>
 <td><p class="starttd"></p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> &amp; i; <span class="keywordtype">float</span> &amp;&amp; f; };</div>
 <div class="line"><span class="keywordtype">int</span> i = 42; <span class="keywordtype">float</span> f = .13f;</div>
-<div class="line"><span class="comment">/* not constexpr */</span> <span class="keyword">auto</span> value = csl::ag::as_tuple(A{ .i = i, .f = std::move(f) });</div>
+<div class="line"><span class="comment">/* not constexpr */</span> <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });</div>
 <div class="line"> </div>
 <div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
 <div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
@@ -463,7 +463,7 @@ Non-owning conversion (view, lightweight accessor)</h4>
 <div class="line"><span class="keywordtype">int</span> i = 42;</div>
 <div class="line"> </div>
 <div class="line">{ <span class="comment">// using a rvalue</span></div>
-<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) });</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });</div>
 <div class="line"> </div>
 <div class="line">    static_assert(std::same_as&lt;</div>
 <div class="line">        decltype(view),</div>
@@ -478,7 +478,7 @@ Non-owning conversion (view, lightweight accessor)</h4>
 <div class="line"> </div>
 <div class="line">{ <span class="comment">// using a const-lvalue</span></div>
 <div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> &amp; value = type{ i, i, i, std::move(i) };</div>
-<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::as_tuple_view(value);</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(value);</div>
 <div class="line"> </div>
 <div class="line">    static_assert(std::same_as&lt;</div>
 <div class="line">        decltype(view),</div>
