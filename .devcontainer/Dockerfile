@@ -84,19 +84,24 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
 
 # GCC - version are either externaly provided, or all available are selected by default
 ARG gcc_versions
-RUN : {gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
+# RUN : {gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
+RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
+    echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
+    echo gcc_versions="${gcc_versions}" >> /etc/bash.bashrc;        \
+    echo gcc_versions="${gcc_versions}" >> /etc/zsh/zshrc;          \
     echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '\
-        apt install -y --no-install-recommends  \
-            g++-{} gcc-{}-multilib g++-{}-multilib                                                                \
-            g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf                                                   \
-            g++-{}-powerpc64-linux-gnu                                                                            \
-            g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu                                                \
-            binutils-aarch64-linux-gnu                                                                            \
-            binutils-powerpc64-linux-gnu                                                                          \
-        ;   \
-        update-alternatives --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {} \
-                            --slave   /usr/bin/g++  g++  /usr/bin/g++-{}    \
-                            --slave   /usr/bin/gcov gcov /usr/bin/gcov-{};  \
+        apt install -y --no-install-recommends                          \
+            gcc-{} g++-{}                                               \
+            gcc-{}-multilib g++-{}-multilib                             \
+            g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
+            g++-{}-powerpc64-linux-gnu                                  \
+            g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
+            binutils-aarch64-linux-gnu                                  \
+            binutils-powerpc64-linux-gnu                                \
+        && update-alternatives                                          \
+            --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {}             \
+            --slave   /usr/bin/g++  g++  /usr/bin/g++-{}                \
+            --slave   /usr/bin/gcov gcov /usr/bin/gcov-{};              \
     '
 
 # LLVM
@@ -125,7 +130,9 @@ RUN apt-get update -y \
     && echo 'vscodeuser:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
     && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
-    && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config
+    && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config \
+    && mkdir -p mkdir /var/run/sshd \
+    && service ssh stop
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
 
