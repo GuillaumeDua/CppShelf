@@ -1,7 +1,7 @@
 # TODO: move to dedicated repo
 # TODO: build image on weekly basis
 
-FROM ubuntu:latest as build-toolchain
+FROM ubuntu:latest as cpp-build-toolchain
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -66,7 +66,8 @@ RUN apt update -y && apt upgrade -y \
 # C++ toolchain
 
 RUN apt update -y && apt-get install -y --no-install-recommends \
-    libc6 libc6-dev libstdc++6 libc6-arm64-cross
+    libc6 libc6-dev libstdc++6 libc6-arm64-cross \
+    binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
 
 # C++ toolchain: GCC
 
@@ -86,23 +87,25 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
 ARG gcc_versions
 # RUN : {gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
 RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
+    \
     echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
-    echo gcc_versions="${gcc_versions}" >> /etc/bash.bashrc;        \
-    echo gcc_versions="${gcc_versions}" >> /etc/zsh/zshrc;          \
-    echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '\
-        apt install -y --no-install-recommends                          \
-            gcc-{} g++-{}                                               \
-            gcc-{}-multilib g++-{}-multilib                             \
-            g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
-            g++-{}-powerpc64-linux-gnu                                  \
-            g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
-            binutils-aarch64-linux-gnu                                  \
-            binutils-powerpc64-linux-gnu                                \
-        && update-alternatives                                          \
-            --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {}             \
-            --slave   /usr/bin/g++  g++  /usr/bin/g++-{}                \
-            --slave   /usr/bin/gcov gcov /usr/bin/gcov-{};              \
+    echo gcc_versions=\'${gcc_versions}\\' >> /etc/bash.bashrc;     \
+    echo gcc_versions=\'${gcc_versions}\\' >> /etc/zsh/zshrc;       \
+    \
+    echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '          \
+        apt install -y --no-install-recommends                      \
+            gcc-{} g++-{}                                           \
+            gcc-{}-multilib g++-{}-multilib                         \
+        && update-alternatives                                      \
+            --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {}         \
+            --slave   /usr/bin/g++  g++  /usr/bin/g++-{}            \
+            --slave   /usr/bin/gcov gcov /usr/bin/gcov-{}           \
     '
+
+# Not available for g++-13
+# g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
+# g++-{}-powerpc64-linux-gnu                                  \
+# g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
 
 # LLVM
 # RUN apt install -y wget bash \
