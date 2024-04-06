@@ -71,26 +71,14 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
 
 # C++ toolchain: GCC
 
-# simpler alternative: apt install with wildcard
-
-#   apt install '^gcc\-[[:digit:]]{1,}$'
-#   apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' | grep -oP 'gcc\-\K([[:digit:]]{1,})' | sort -n
-#   apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' | grep -oP 'gcc\-\K([[:digit:]]{1,})' | sort -n | xargs -I {} echo "- {} ..."
-
-# apt-cache search --quiet --names-only '^gcc\-[[:digit:]]{1,}$' \
-#     | grep -oP 'gcc\-\K([[:digit:]]{1,})' \
-#     | sort -n \
-#     | xargs -I {} \
-#     apt install -y gcc-{}
-
 # GCC - version are either externaly provided, or all available are selected by default
+# - simpler alternative: apt install with wildcard ¯\_(ツ)_/¯
 ARG gcc_versions
-# RUN : {gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
 RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
     \
     echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
-    echo gcc_versions=\'${gcc_versions}\\' >> /etc/bash.bashrc;     \
-    echo gcc_versions=\'${gcc_versions}\\' >> /etc/zsh/zshrc;       \
+    echo gcc_versions=\'${gcc_versions}\' >> /etc/bash.bashrc;      \
+    echo gcc_versions=\'${gcc_versions}\' >> /etc/zsh/zshrc;        \
     \
     echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '          \
         apt install -y --no-install-recommends                      \
@@ -104,8 +92,7 @@ RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+
 
 # Not available for g++-13
 # g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
-# g++-{}-powerpc64-linux-gnu                                  \
-# g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
+# g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
 
 # LLVM
 # RUN apt install -y wget bash \
