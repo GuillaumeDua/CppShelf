@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Basics / installation prerequisites
 RUN apt update && apt install -y --no-install-recommends \
-        gpg-agent debian-keyring \
+        ca-certificates gpg gpg-agent debian-keyring \
         software-properties-common lsb-release apt-utils \
         python3 pip \
     && add-apt-repository ppa:ubuntu-toolchain-r/test \
@@ -15,7 +15,7 @@ RUN apt update && apt install -y --no-install-recommends \
     && apt install -y \
         # remote
         wget ssh \
-        sudo tzdata curl libssl-dev ca-certificates \
+        sudo tzdata curl libssl-dev \
         less tar zip unzip gzip \
         build-essential pkg-config \
         # build
@@ -29,13 +29,16 @@ RUN apt update && apt install -y --no-install-recommends \
         emacs nano vim \
     && rm -rf /var/lib/apt/lists/*
 
-# CMake
-# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-#     && apt install kitware-archive-keyring \
-#     && rm /etc/apt/trusted.gpg.d/kitware.gpg \
-#     && apt-get update -y \
-#     && apt install -y cmake
+# CMake (https://apt.kitware.com/)
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+    && apt-get update -y                        \
+    && apt install kitware-archive-keyring      \
+    && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
+#   && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
+    && apt-get update -y                        \
+    && apt install -y cmake                     \
+    && rm -rf /var/lib/apt/lists/*
 
 # package managers
 RUN \
@@ -64,13 +67,11 @@ RUN apt update -y && apt upgrade -y \
 # TODO: gdb, lldb
 
 # C++ toolchain
-
 RUN apt update -y && apt-get install -y --no-install-recommends \
     libc6 libc6-dev libstdc++6 libc6-arm64-cross \
     binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
 
 # C++ toolchain: GCC
-
 # GCC - version are either externaly provided, or all available are selected by default
 # - simpler alternative: apt install with wildcard ¯\_(ツ)_/¯
 ARG gcc_versions
@@ -94,7 +95,8 @@ RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+
 # g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
 # g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
 
-# LLVM
+# # C++ toolchain: LLVM
+# ARG llvm_versions
 # RUN apt install -y wget bash \
 #     && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
 #     && wget https://apt.llvm.org/llvm.sh \  
