@@ -6,41 +6,64 @@ FROM ubuntu:latest as cpp-build-toolchain
 ENV DEBIAN_FRONTEND noninteractive
 
 # Basics / installation prerequisites
-RUN apt update && apt install -y --no-install-recommends \
-        ca-certificates gpg gpg-agent debian-keyring \
-        software-properties-common lsb-release apt-utils \
-        python3 pip \
-    && add-apt-repository ppa:ubuntu-toolchain-r/test \
-    && apt-get update -y \
-    && apt install -y \
+RUN apt update && apt install -y --no-install-recommends    \
+        ca-certificates gpg gpg-agent debian-keyring        \
+        software-properties-common lsb-release apt-utils    \
+        python3 pip                                         \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test       \
+    && apt-get update -y                                    \
+    && apt install -y                                       \
         # remote
-        wget ssh \
-        sudo tzdata curl libssl-dev \
-        less tar zip unzip gzip \
-        build-essential pkg-config \
-        # build
-        make ninja-build \
+        wget ssh                                            \
+        sudo tzdata curl libssl-dev                         \
+        less tar zip unzip gzip                             \
+        build-essential pkg-config                          \
+        # build: CMake generators
+        make ninja-build                                    \
         # versioning
-        git subversion \
-        # libraries
-        libboost-all-dev \
+        git subversion                                      \
+        # dev: heavy libraries
+        # https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
+        libboost-all-dev                                    \
         # tools
-        doxygen graphviz \
-        emacs nano vim \
+        doxygen graphviz                                    \
+        # tools: editors
+        emacs nano vim                                      \
     && rm -rf /var/lib/apt/lists/*
 
-# CMake (https://apt.kitware.com/)
+# -------------
+# Build systems
+# -------------
+
+# Build: CMake (https://apt.kitware.com/)
+# RUN apt-get update -y  \
+#     && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+#     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+#     && apt-get update -y  \
+#     && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
+#     && apt-get install -y kitware-archive-keyring \
+#     && apt install -y cmake
+
+# Build: CMake (https://apt.kitware.com/)
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
     && apt-get update -y                        \
     && apt install kitware-archive-keyring      \
     && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
-#   && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
+    # quick-fix ¯\_(ツ)_/¯
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
     && apt-get update -y                        \
     && apt install -y cmake                     \
     && rm -rf /var/lib/apt/lists/*
 
-# package managers
+# Build: Bazel (https://bazel.build/install/ubuntu)
+RUN apt install apt-transport-https curl gnupg -y           \
+    && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
+    && mv bazel-archive-keyring.gpg /usr/share/keyrings     \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list \
+    && apt update -y && apt install -y bazel
+
+# Dependency managers
 RUN \
     # vcpkg
     wget -qO vcpkg.tar.gz https://github.com/microsoft/vcpkg/archive/master.tar.gz \
@@ -51,7 +74,6 @@ RUN \
     && ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg \
     && pip install conan
 
-# Tooling: package managers (vcpkg, conan, build2, etc.)
 # Tooling: static analysis
 # Tooling: runtime analysis
 
@@ -110,9 +132,6 @@ RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+
 #         --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-$CLANG_VERSION
 
 # lld, lldb
-
-# large/compiled libraries
-# - https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
 
 # Remote
 RUN apt-get update -y \
