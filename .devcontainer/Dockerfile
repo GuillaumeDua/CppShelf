@@ -36,6 +36,8 @@ RUN apt update && apt install -y --no-install-recommends    \
 # -------------
 
 # Build: CMake (https://apt.kitware.com/)
+# if GPG error:
+#   RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
 # RUN apt-get update -y  \
 #     && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
 #     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null \
@@ -57,11 +59,15 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
     && rm -rf /var/lib/apt/lists/*
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
-RUN apt install apt-transport-https curl gnupg -y           \
-    && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
-    && mv bazel-archive-keyring.gpg /usr/share/keyrings     \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list \
-    && apt update -y && apt install -y bazel
+ARG integrate_Bazel=
+RUN if [[ ${integrate_Bazel} = "y" ]]; then                     \
+        apt install apt-transport-https curl gnupg -y           \
+        && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
+        && mv bazel-archive-keyring.gpg /usr/share/keyrings     \
+        && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list \
+        && apt update -y && apt install -y bazel                \
+        ;                                                       \
+    fi
 
 # Dependency managers
 RUN \
@@ -117,8 +123,8 @@ RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+
 # g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
 # g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
 
-# # C++ toolchain: LLVM
-# ARG llvm_versions
+# C++ toolchain: LLVM
+ARG llvm_versions
 # RUN apt install -y wget bash \
 #     && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
 #     && wget https://apt.llvm.org/llvm.sh \  
@@ -132,6 +138,17 @@ RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+
 #         --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-$CLANG_VERSION
 
 # lld, lldb
+
+# Build: Build2-0.16.0 (depends on a compiler)
+# WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
+ARG integrate_Build2
+RUN if [[ ${integrate_Build2} = "y" ]]; then                                        \
+        mkdir -p /tmp/build2-build && cd /tmp/build2-build                          \
+        && curl -sSfO https://download.build2.org/0.16.0/build2-install-0.16.0.sh   \
+        && echo '4d2babfaff6d0412e0ab61a3d3c68a87de54c0779254d62f4569b44a56c6ea08 *build2-install-0.16.0.sh' | shasum -a 256 -c \
+        && yes '' | sh build2-install-0.16.0.sh --yes                               \
+        ;                                                                           \
+    fi
 
 # Remote
 RUN apt-get update -y \
