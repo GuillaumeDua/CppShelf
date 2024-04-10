@@ -5,6 +5,8 @@ FROM ubuntu:latest as cpp-build-toolchain
 
 ENV DEBIAN_FRONTEND noninteractive
 
+SHELL ["/bin/bash", "-c"] 
+
 # Basics / installation prerequisites
 RUN apt update && apt install -y --no-install-recommends    \
         ca-certificates gpg gpg-agent debian-keyring        \
@@ -119,24 +121,33 @@ RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+
             --slave   /usr/bin/gcov gcov /usr/bin/gcov-{}           \
     '
 
-# Not available for g++-13
+# ISSUE: inconsistency: Not available for g++-13
 # g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
 # g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
 
-# C++ toolchain: LLVM
-ARG llvm_versions
-# RUN apt install -y wget bash \
-#     && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
-#     && wget https://apt.llvm.org/llvm.sh \  
-#     && chmod +x llvm.sh \
-#     && (yes '' | ./llvm.sh $CLANG_VERSION all) \
-#     && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-$CLANG_VERSION 100      \
-#         --slave /usr/bin/clang++         clang++         /usr/bin/clang++-$CLANG_VERSION         \
-#         --slave /usr/bin/clang-format    clang-format    /usr/bin/clang-format-$CLANG_VERSION    \
-#         --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-$CLANG_VERSION      \
-#         --slave /usr/bin/clangd          clangd          /usr/bin/clangd-$CLANG_VERSION          \
-#         --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-$CLANG_VERSION
-
+# C++ toolchain: LLVM (https://apt.llvm.org/)
+# WIP: acquire list -> foreach using xargs -> update-alternatives
+ARG llvm_versions=all
+RUN apt install -y wget bash \
+    && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
+    && wget https://apt.llvm.org/llvm.sh \  
+    && chmod +x llvm.sh \
+    && llvm_versions=${llvm_versions:=$(cat llvm.sh | grep -oP 'LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)')} \
+    \
+    echo "[toolchain] Embedding llvm versions = [${llvm_versions}]";    \
+    echo llvm_versions=\'${llvm_versions}\' >> /etc/bash.bashrc;        \
+    echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;          \
+    \
+    && (yes '' | ./llvm.sh $llvm_versions) \
+    && echo $llvm_versions | tr " " "\n" | xargs -I {} sh -c '          \
+        update-alternatives                                                             \
+            --install /usr/bin/clang clang /usr/bin/clang-{} {}                         \
+            --slave /usr/bin/clang++         clang++         /usr/bin/clang++-{}        \
+            --slave /usr/bin/clang-format    clang-format    /usr/bin/clang-format-{}   \
+            --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-{}     \
+            --slave /usr/bin/clangd          clangd          /usr/bin/clangd-{}         \
+            --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-{}
+    '
 # lld, lldb
 
 # Build: Build2-0.16.0 (depends on a compiler)
