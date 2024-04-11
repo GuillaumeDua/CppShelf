@@ -27,7 +27,9 @@ RUN apt update && apt install -y --no-install-recommends    \
         # dev: heavy libraries
         # https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
         # libboost-all-dev                                    \
-        # tools: dev (TODO: sonarlint)
+        # tools: dev
+        gdb                                                 \
+        # tools: analysis (TODO: sonarlint)
         valgrind cppcheck iwyu                              \
         # tools: documentation
         doxygen graphviz                                    \
@@ -53,22 +55,22 @@ RUN apt update && apt install -y --no-install-recommends    \
 #     && apt install -y cmake
 
 # Build: CMake (https://apt.kitware.com/)
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-    && apt-get update -y                        \
-    && apt install kitware-archive-keyring      \
-    && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
-    # quick-fix ¯\_(ツ)_/¯
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
-    && apt-get update -y                        \
-    && apt install -y cmake                     \
-    && rm -rf /var/lib/apt/lists/*
+# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+#     && apt-get update -y                        \
+#     && apt install kitware-archive-keyring      \
+#     && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
+#     # quick-fix ¯\_(ツ)_/¯
+#     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
+#     && apt-get update -y                        \
+#     && apt install -y cmake                     \
+#     && rm -rf /var/lib/apt/lists/*
 
-# WIP: try
-# wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
-# && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-# && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-# && apt install -y cmake
+# Build: CMake (https://apt.kitware.com/)
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
+    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
+    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
+    && apt install -y cmake
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG integrate_Bazel=
@@ -104,8 +106,6 @@ RUN apt update -y && apt upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 # see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
-# TODO: gdb, lldb
-
 # C++ toolchain
 RUN apt update -y && apt-get install -y --no-install-recommends \
     libc6 libc6-dev libstdc++6 libc6-arm64-cross \
@@ -114,12 +114,15 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
 # C++ toolchain: GCC
 # GCC - version are either externaly provided, or all available are selected by default
 # - simpler alternative: apt install with wildcard ¯\_(ツ)_/¯
+#   TODO: in a separe script + wget ?
 ARG gcc_versions
-RUN gcc_versions=${gcc_versions:=$(apt-cache search --quiet --names-only '^g\+\+\-[[:digit:]]{1,}$' | tr " " "\n" | grep -oP 'g\+\+\-\K([[:digit:]]{1,})' | sort -nu)}; \
+RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
     \
     echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
     echo gcc_versions=\'${gcc_versions}\' >> /etc/bash.bashrc;      \
+    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
     echo gcc_versions=\'${gcc_versions}\' >> /etc/zsh/zshrc;        \
+    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
     \
     echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '          \
         apt install -y --no-install-recommends                      \
@@ -142,11 +145,13 @@ RUN apt install -y wget bash \
     && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
     && wget https://apt.llvm.org/llvm.sh \  
     && chmod +x llvm.sh \
-    && llvm_versions=${llvm_versions:=$(cat llvm.sh | grep -oP 'LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)')} \
+    && llvm_versions=${llvm_versions:=$(cat llvm.sh | grep -oP 'LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)' | sort -n)} \
     \
     echo "[toolchain] Embedding llvm versions = [${llvm_versions}]";    \
     echo llvm_versions=\'${llvm_versions}\' >> /etc/bash.bashrc;        \
+    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
     echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;          \
+    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
     \
     && (yes '' | ./llvm.sh $llvm_versions) \
     && echo $llvm_versions | tr " " "\n" | xargs -I {} sh -c '          \
@@ -157,8 +162,8 @@ RUN apt install -y wget bash \
             --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-{}         \
             --slave /usr/bin/clangd          clangd          /usr/bin/clangd-{}             \
             --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-{}    \
+            --slave /usr/bin/lldb            lldb            /usr/bin/lldb-{}               \
     '
-# lld, lldb
 
 # Build: Build2-0.16.0 (depends on a compiler)
 # WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
