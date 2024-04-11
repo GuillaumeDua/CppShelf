@@ -26,11 +26,15 @@ RUN apt update && apt install -y --no-install-recommends    \
         git subversion                                      \
         # dev: heavy libraries
         # https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
-        libboost-all-dev                                    \
-        # tools
+        # libboost-all-dev                                    \
+        # tools: dev (TODO: sonarlint)
+        valgrind cppcheck iwyu                              \
+        # tools: documentation
         doxygen graphviz                                    \
         # tools: editors
         emacs nano vim                                      \
+        # tools: others
+        docker-compose jq                                   \
     && rm -rf /var/lib/apt/lists/*
 
 # -------------
@@ -59,6 +63,12 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
     && apt-get update -y                        \
     && apt install -y cmake                     \
     && rm -rf /var/lib/apt/lists/*
+
+# WIP: try
+# wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+# && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+# && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+# && apt install -y cmake
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG integrate_Bazel=
@@ -140,13 +150,13 @@ RUN apt install -y wget bash \
     \
     && (yes '' | ./llvm.sh $llvm_versions) \
     && echo $llvm_versions | tr " " "\n" | xargs -I {} sh -c '          \
-        update-alternatives                                                             \
-            --install /usr/bin/clang clang /usr/bin/clang-{} {}                         \
-            --slave /usr/bin/clang++         clang++         /usr/bin/clang++-{}        \
-            --slave /usr/bin/clang-format    clang-format    /usr/bin/clang-format-{}   \
-            --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-{}     \
-            --slave /usr/bin/clangd          clangd          /usr/bin/clangd-{}         \
-            --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-{}
+        update-alternatives                                                                 \
+            --install /usr/bin/clang clang /usr/bin/clang-{} {}                             \
+            --slave /usr/bin/clang++         clang++         /usr/bin/clang++-{}            \
+            --slave /usr/bin/clang-format    clang-format    /usr/bin/clang-format-{}       \
+            --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-{}         \
+            --slave /usr/bin/clangd          clangd          /usr/bin/clangd-{}             \
+            --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-{}    \
     '
 # lld, lldb
 
