@@ -67,6 +67,7 @@ RUN apt update && apt install -y --no-install-recommends    \
 #     && rm -rf /var/lib/apt/lists/*
 
 # Build: CMake (https://apt.kitware.com/)
+# TODO: make sure the appropriate version is installed
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
     && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
@@ -90,8 +91,8 @@ RUN \
     && mkdir /opt/vcpkg \
     && tar xf vcpkg.tar.gz --strip-components=1 -C /opt/vcpkg \
     && /opt/vcpkg/bootstrap-vcpkg.sh \
-    # conan
     && ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg \
+    # conan
     && pip install conan
 
 # Tooling: static analysis

@@ -1,0 +1,77 @@
+ *  Executing task: docker build --pull --rm -f ".devcontainer/Dockerfile" -t cppshelf:latest ".devcontainer" 
+
+[+] Building 307.7s (6/15)                                                                                                                                                                                                           docker:default
+ => [internal] load build definition from Dockerfile                                                                                                                                                                                           0.0s
+ => => transferring dockerfile: 10.33kB                                                                                                                                                                                                        0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:latest                                                                                                                                                                               0.8s
+ => [internal] load .dockerignore                                                                                                                                                                                                              0.0s
+ => => transferring context: 2B                                                                                                                                                                                                                0.0s
+ => CACHED [ 1/12] FROM docker.io/library/ubuntu:latest@sha256:77906da86b60585ce12215807090eb327e7386c8fafb5402369e421f44eff17e                                                                                                                0.0s
+ => [ 2/12] RUN apt update && apt install -y --no-install-recommends            ca-certificates gpg gpg-agent debian-keyring                software-properties-common lsb-release apt-utils            python3 pip                          294.1s
+ => ERROR [ 3/12] RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null                && echo 'deb [signed-by=/usr/share/key  12.7s 
+------                                                                                                                                                                                                                                              
+ > [ 3/12] RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null                && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null      && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                             && apt install -y cmake:                                                                                                                                                                     
+1.866 Get:1 http://security.ubuntu.com/ubuntu jammy-security InRelease [110 kB]                                                                                                                                                                     
+1.880 Get:2 https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu jammy InRelease [23.8 kB]                                                                                                                                               
+1.943 Get:3 https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu jammy/main amd64 Packages [17.4 kB]
+2.007 Get:4 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages [44.7 kB]
+2.013 Get:5 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
+2.059 Get:6 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [1691 kB]
+2.157 Get:7 https://apt.kitware.com/ubuntu jammy InRelease [15.5 kB]
+2.275 Get:8 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [1081 kB]
+2.311 Err:7 https://apt.kitware.com/ubuntu jammy InRelease
+2.311   The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1A127079A92F09ED
+2.334 Get:9 https://apt.kitware.com/ubuntu focal InRelease [15.5 kB]
+2.448 Get:10 https://apt.kitware.com/ubuntu focal/main amd64 Packages [78.7 kB]
+2.459 Get:11 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [2124 kB]
+2.647 Get:12 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [119 kB]
+3.107 Get:13 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [109 kB]
+3.539 Get:14 http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages [17.5 MB]
+5.700 Get:15 http://archive.ubuntu.com/ubuntu jammy/restricted amd64 Packages [164 kB]
+6.183 Get:16 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages [1792 kB]
+7.010 Get:17 http://archive.ubuntu.com/ubuntu jammy/multiverse amd64 Packages [266 kB]
+7.541 Get:18 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [1357 kB]
+8.344 Get:19 http://archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [2174 kB]
+9.177 Get:20 http://archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [61.3 kB]
+9.784 Get:21 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [1974 kB]
+10.60 Get:22 http://archive.ubuntu.com/ubuntu jammy-backports/main amd64 Packages [80.9 kB]
+10.98 Get:23 http://archive.ubuntu.com/ubuntu jammy-backports/universe amd64 Packages [33.3 kB]
+11.11 Reading package lists...
+11.62 W: GPG error: https://apt.kitware.com/ubuntu jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1A127079A92F09ED
+11.62 E: The repository 'https://apt.kitware.com/ubuntu jammy InRelease' is not signed.
+11.62 Repository: 'deb https://apt.kitware.com/ubuntu/ jammy main'
+11.62 Description:
+11.62 Archive for codename: jammy components: main
+11.62 More info: https://apt.kitware.com/ubuntu/
+11.62 Adding repository.
+11.62 Adding deb entry to /etc/apt/sources.list.d/archive_uri-https_apt_kitware_com_ubuntu_-jammy.list
+11.62 Adding disabled deb-src entry to /etc/apt/sources.list.d/archive_uri-https_apt_kitware_com_ubuntu_-jammy.list
+11.64 
+11.64 WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+11.64 
+11.66 Reading package lists...
+12.17 Building dependency tree...
+12.28 Reading state information...
+12.32 Some packages could not be installed. This may mean that you have
+12.32 requested an impossible situation or if you are using the unstable
+12.32 distribution that some required packages have not yet been created
+12.32 or been moved out of Incoming.
+12.32 The following information may help to resolve the situation:
+12.32 
+12.32 The following packages have unmet dependencies:
+12.37  cmake : Depends: libssl1.1 (>= 1.1.1) but it is not installable
+12.38 E: Unable to correct problems, you have held broken packages.
+------
+Dockerfile:70
+--------------------
+  69 |     # Build: CMake (https://apt.kitware.com/)
+  70 | >>> RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
+  71 | >>>     && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
+  72 | >>>     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
+  73 | >>>     && apt install -y cmake
+  74 |     
+--------------------
+ERROR: failed to solve: process "/bin/bash -c wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null                && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null      && apt-add-repository \"deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main\"                                                                                             && apt install -y cmake" did not complete successfully: exit code: 100
+
+ *  The terminal process "/bin/bash '-c', 'docker build --pull --rm -f ".devcontainer/Dockerfile" -t cppshelf:latest ".devcontainer"'" terminated with exit code: 1. 
+ *  Terminal will be reused by tasks, press any key to close it.
