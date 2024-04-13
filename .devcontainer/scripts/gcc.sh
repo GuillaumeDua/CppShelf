@@ -2,14 +2,38 @@
 
 this_script_name=$(basename "$0")
 
+arg_silent=1
+arg_versions='all'
+
 help()
 {
     echo "Usage: ${this_script_name}
         [ -s | --silent ]
         [ -v | --versions ]
         [ -h | --help ]"
-    exit 1
+    exit 0
 }
+to_boolean() {
+    if [[ $# != 1 ]]; then
+        echo "[${this_script_name}]: to_boolean: missing argument" >> /dev/stderr
+        exit 1
+    fi
+    case "$1" in
+        [Yy]|[Yy][Ee][Ss]|1|[Tt][Rr][Uu][Ee]) echo 1;;
+        [Nn]|[Nn][Oo]|0|[Ff][Aa][Ll][Ss][Ee]) echo 0;;
+        *) echo "[${this_script_name}]: to_boolean: invalid conversion from [$1] to boolean" >> /dev/stderr && exit 1;;
+    esac
+}
+
+toto=$(to_boolean 'aca')
+
+log(){
+    if [[ "${arg_silent}" == 1 ]]; then
+        return 0;
+    fi
+    echo "[${this_script_name}]: " $@
+}
+
 
 # --- options management ---
 
@@ -21,9 +45,6 @@ getopt_result=$(getopt -a -n ${this_script_name} --options ${options_short} --lo
 # if [ "$options_count" -eq 0 ]; then
 #   help
 # fi
-
-arg_silent=1
-arg_versions='all'
 
 eval set -- "$getopt_result"
 
@@ -52,8 +73,8 @@ do
   esac
 done
 
-echo "silent:   [${arg_silent}]";
-echo "versions: [${arg_versions}]";
+log "silent:   [${arg_silent}]"
+log "versions: [${arg_versions}]"
 
 exit 0;
 
