@@ -9,7 +9,7 @@ help(){
     echo "Usage: ${this_script_name}"
     echo '
         [ -s | --silent ]   : (case insensitive) y|yes|1|true or n|no|0|false -> default is 1
-        [ -v | --versions ] : space-separated list of versions to install -> default is all
+        [ -v | --versions ] : (case insensitive) all, or a space-separated list of versions numbers to install -> default is all
         [ -h | --help ]'
     exit 0
 }
@@ -23,15 +23,25 @@ log(){
     fi
     echo "[${this_script_name}]: " $@
 }
-to_boolean() {
+to_boolean(){
     if [[ $# != 1 ]]; then
-        error "to_boolean: missing argument"
+        error "$0: missing argument"
         exit 1
     fi
     case "$1" in
         [Yy]|[Yy][Ee][Ss]|1|[Tt][Rr][Uu][Ee]) echo 1;;
         [Nn]|[Nn][Oo]|0|[Ff][Aa][Ll][Ss][Ee]) echo 0;;
         *) error "to_boolean: invalid conversion from [$1] to boolean" && exit 1;;
+    esac
+}
+is_all(){
+    if [[ $# != 1 ]]; then
+        error "$0: missing argument"
+        exit 1
+    fi
+    case "$1" in
+        [Aa][Ll][Ll]) echo 1;;
+        *) echo 0;;
     esac
 }
 
@@ -86,6 +96,19 @@ log "versions: [${arg_versions}]"
 
 arg_silent=$(to_boolean $arg_silent)
 
+# --- install versions ---
+
+if [[ $(is_all $arg_versions) == 1 ]]; then
+    gcc_versions=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)
+elif [[ $arg_versions =~ "^\d+(\ \d+)*$" ]]; then
+    log "user provided versions list will be installed: [${arg_versions}]"
+    gcc_versions="${arg_versions}"
+else
+    error "invalid value for argument version [${arg_versions}]"
+    exit 1
+fi
+
+log "GCC version to be installed: [" $gcc_versions "]"
 
 # ARG gcc_versions
 # RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
