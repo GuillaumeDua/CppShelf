@@ -5,35 +5,43 @@ this_script_name=$(basename "$0")
 arg_silent=1
 arg_versions='all'
 
-help()
-{
-    echo "Usage: ${this_script_name}
-        [ -s | --silent ]
-        [ -v | --versions ]
-        [ -h | --help ]"
+help(){
+    echo "Usage: ${this_script_name}"
+    echo '
+        [ -s | --silent ]   : (case insensitive) y|yes|1|true or n|no|0|false -> default is 1
+        [ -v | --versions ] : space-separated list of versions to install -> default is all
+        [ -h | --help ]'
     exit 0
 }
-to_boolean() {
-    if [[ $# != 1 ]]; then
-        echo "[${this_script_name}]: to_boolean: missing argument" >> /dev/stderr
-        exit 1
-    fi
-    case "$1" in
-        [Yy]|[Yy][Ee][Ss]|1|[Tt][Rr][Uu][Ee]) echo 1;;
-        [Nn]|[Nn][Oo]|0|[Ff][Aa][Ll][Ss][Ee]) echo 0;;
-        *) echo "[${this_script_name}]: to_boolean: invalid conversion from [$1] to boolean" >> /dev/stderr && exit 1;;
-    esac
+error(){
+    echo "[${this_script_name}]: " $@ >> /dev/stderr
+    exit 1
 }
-
-toto=$(to_boolean 'aca')
-
 log(){
     if [[ "${arg_silent}" == 1 ]]; then
         return 0;
     fi
     echo "[${this_script_name}]: " $@
 }
+to_boolean() {
+    if [[ $# != 1 ]]; then
+        error "to_boolean: missing argument"
+        exit 1
+    fi
+    case "$1" in
+        [Yy]|[Yy][Ee][Ss]|1|[Tt][Rr][Uu][Ee]) echo 1;;
+        [Nn]|[Nn][Oo]|0|[Ff][Aa][Ll][Ss][Ee]) echo 0;;
+        *) error "to_boolean: invalid conversion from [$1] to boolean" && exit 1;;
+    esac
+}
 
+
+# --- precondition: sudoer ---
+
+if [ "$EUID" -ne 0 ]; then
+  error "Requires root privileges"
+  exit 1
+fi
 
 # --- options management ---
 
@@ -67,7 +75,7 @@ do
       break
       ;;
     *)
-      echo "${this_script_name}: Unexpected option: [$1]"
+      echo "${this_script_name}: Unexpected option: [$1]" >> /dev/stderr
       help
       ;;
   esac
@@ -76,7 +84,8 @@ done
 log "silent:   [${arg_silent}]"
 log "versions: [${arg_versions}]"
 
-exit 0;
+arg_silent=$(to_boolean $arg_silent)
+
 
 # ARG gcc_versions
 # RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
@@ -96,3 +105,5 @@ exit 0;
 #             --slave   /usr/bin/g++  g++  /usr/bin/g++-{}            \
 #             --slave   /usr/bin/gcov gcov /usr/bin/gcov-{}           \
 #     '
+
+exit 0;
