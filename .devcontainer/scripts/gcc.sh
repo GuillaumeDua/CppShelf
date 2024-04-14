@@ -8,8 +8,8 @@ arg_versions='all'
 help(){
     echo "Usage: ${this_script_name}" 1>&2
     echo '
-        [ -s | --silent ]   : (case insensitive) y|yes|1|true or n|no|0|false -> default is 1
-        [ -v | --versions ] : all|latest|(space-separated list of versions numbers to install) -> default is all
+        [ -s | --silent ]   : y|yes|1|true or n|no|0|false (case insensitive) -> default is [1]
+        [ -v | --versions ] : all|latest|(space-separated list of versions numbers to install) -> default is [all]
         [ -h | --help ]' 1>&2
     exit 0
 }
@@ -47,11 +47,6 @@ fi
 options_short=s:,v:,h
 options_long=silent:,versions:,help
 getopt_result=$(getopt -a -n ${this_script_name} --options ${options_short} --longoptions ${options_long} -- "$@")
-
-# options_count=$#
-# if [ "$options_count" -eq 0 ]; then
-#   help
-# fi
 
 eval set -- "$getopt_result"
 
@@ -92,7 +87,7 @@ if [ "$arg_versions" = 'all' ]; then
     gcc_versions=$all_gcc_versions_available
 elif [ "$arg_versions" = 'latest' ]; then
     gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
-elif [[ $arg_versions =~ "^\d+(\ \d+)*$" ]]; then
+elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user provided version(s) list: [${arg_versions}]"
     gcc_versions="${arg_versions}"
 else
