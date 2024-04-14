@@ -9,7 +9,7 @@ arg_alias=0
 
 help(){
     echo "Usage: ${this_script_name}" 1>&2
-    echo '
+    echo "
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
         [ -l | --list ]     : Only list available versions. Boolean -> default is [0]
@@ -19,8 +19,8 @@ help(){
         [ -h | --help ]     : Display usage/help
 
     For instance, to only install the two latest versions, use:
-        sudo ./${this_script_name} --versions="$(sudo ./${this_script_name} -l | tail -2)"
-        ' 1>&2
+        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} -l | tail -2)\"
+        " 1>&2
     exit 0
 }
 error(){
