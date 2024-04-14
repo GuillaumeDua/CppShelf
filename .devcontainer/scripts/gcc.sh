@@ -9,10 +9,14 @@ arg_alias=0
 help(){
     echo "Usage: ${this_script_name}" 1>&2
     echo '
-        [ -v | --versions ] : all|latest|(space-separated list of versions numbers to install) -> default is [all]
-        [ -s | --silent ]   : y|yes|1|true or n|no|0|false (case insensitive) -> default is [1]
-        [ -a | --alias]     : y|yes|1|true or n|no|0|false (case insensitive) -> default is [0]
-        [ -h | --help ]' 1>&2
+        Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
+
+        [ -l | --list ]     : Only list available versions. Boolean -> default is [0]
+        [ -v | --versions ] : Versions to install.          String: all|latest|(space-separated of numbers) -> default is [all]
+        [ -s | --silent ]   : Run in silent mod.            Boolean -> default is [1]
+        [ -a | --alias]     : Set bash/zsh-rc aliases.      Boolean -> default is [0]
+        [ -h | --help ]     : Display usage/help
+        ' 1>&2
     exit 0
 }
 error(){
