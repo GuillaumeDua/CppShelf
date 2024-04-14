@@ -31,7 +31,10 @@ to_boolean(){
     case "$1" in
         [Yy]|[Yy][Ee][Ss]|1|[Tt][Rr][Uu][Ee]) echo 1;;
         [Nn]|[Nn][Oo]|0|[Ff][Aa][Ll][Ss][Ee]) echo 0;;
-        *) error "to_boolean: invalid conversion from [$1] to boolean" && exit 1;;
+        *)
+            error "to_boolean: invalid conversion from [$1] to boolean"
+            exit 1
+            ;;
     esac
 }
 
@@ -78,7 +81,10 @@ done
 log "arguments - silent:   [${arg_silent}]"
 log "arguments - versions: [${arg_versions}]"
 
-arg_silent=$(to_boolean $arg_silent)
+arg_silent=$(to_boolean "${arg_silent}")
+if [ "$arg_silent" == '' ] ; then
+    exit 1;
+fi
 
 # --- install versions ---
 
