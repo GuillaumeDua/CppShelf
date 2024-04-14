@@ -3,6 +3,7 @@
 this_script_name=$(basename "$0")
 
 arg_versions='all'
+arg_list=0
 arg_silent=1
 arg_alias=0
 
@@ -53,8 +54,8 @@ fi
 
 # --- options management ---
 
-options_short=s:,v:,a:,h
-options_long=silent:,versions:,alias:,help
+options_short=s:,v:,a:,l,h
+options_long=silent:,versions:,alias:,help,list
 getopt_result=$(getopt -a -n ${this_script_name} --options ${options_short} --longoptions ${options_long} -- "$@")
 
 eval set -- "$getopt_result"
@@ -73,6 +74,13 @@ do
     -v | --versions )
       arg_versions="$2"
       shift 2
+      ;;
+    -l | --list )
+      arg_list=1
+      arg_silent=1
+      arg_versions='all'
+      shift;
+      break
       ;;
     -h | --help)
       help
@@ -99,6 +107,11 @@ if [ "$arg_silent" == '' ] ; then
     exit 1;
 fi
 
+arg_list=$(to_boolean "${arg_list}")
+if [ "$arg_list" == '' ] ; then
+    exit 1;
+fi
+
 # --- install versions ---
 
 all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)
@@ -112,6 +125,11 @@ elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
 else
     error "invalid value for argument version [${arg_versions}]"
     exit 1
+fi
+
+if [[ ${arg_list} == 1 ]]; then
+    echo "${gcc_versions}"
+    exit 0
 fi
 
 log "GCC version to be installed: [${gcc_versions}]"
