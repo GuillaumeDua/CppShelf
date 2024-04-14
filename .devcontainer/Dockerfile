@@ -2,9 +2,7 @@
 # TODO: build image on weekly basis
 
 FROM ubuntu:latest as cpp-build-toolchain
-
-ENV DEBIAN_FRONTEND noninteractive
-
+ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"] 
 
 # Basics / installation prerequisites
@@ -55,23 +53,22 @@ RUN apt update && apt install -y --no-install-recommends    \
 #     && apt install -y cmake
 
 # Build: CMake (https://apt.kitware.com/)
-# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-#     && apt-get update -y                        \
-#     && apt install kitware-archive-keyring      \
-#     && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
-#     # quick-fix ¯\_(ツ)_/¯
-#     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
-#     && apt-get update -y                        \
-#     && apt install -y cmake                     \
-#     && rm -rf /var/lib/apt/lists/*
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+    && apt-get update -y                        \
+    && apt install kitware-archive-keyring      \
+    && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
+    # quick-fix ¯\_(ツ)_/¯
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
+    && apt-get update -y                        \
+    && apt install -y cmake                     \
+    && rm -rf /var/lib/apt/lists/*
 
 # Build: CMake (https://apt.kitware.com/)
-# TODO: make sure the appropriate version is installed
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
-    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
-    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
-    && apt install -y cmake
+# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
+#     && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
+#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
+#     && apt install -y cmake
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG integrate_Bazel=
@@ -115,7 +112,7 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
 # C++ toolchain: GCC
 # GCC - version are either externaly provided, or all available are selected by default
 # - simpler alternative: apt install with wildcard ¯\_(ツ)_/¯
-#   TODO: in a separe script + wget ?
+#   WIP: in a separe script + embedded or wget ?
 ARG gcc_versions
 RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
     \

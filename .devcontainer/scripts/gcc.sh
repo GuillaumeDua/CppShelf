@@ -109,7 +109,7 @@ mapfile -t gcc_versions_to_install < <(echo $gcc_versions | tr " " "\n")
 for version in "${gcc_versions_to_install[@]}"; do
     log "installing ${version} ..."
 
-    apt install -y --no-install-recommends                                      \
+    apt install -qq -y --no-install-recommends                                  \
             gcc-${version} g++-${version}                                       \
             gcc-${version}-multilib g++-${version}-multilib                     \
         || error "installation of [${version}] failed"
