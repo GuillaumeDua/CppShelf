@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# =======================================================================
-# This file is part of https://github.com/GuillaumeDua/CppShelf
+# =============================================================================================
+# This file is part of https://github.com/GuillaumeDua/CppShelf,
+# and will soon be part of https://hub.docker.com/repository/docker/gussd/cpp-toolchain/general
 # License: see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
-# =======================================================================
+# =============================================================================================
 
 this_script_name=$(basename "$0")
 
