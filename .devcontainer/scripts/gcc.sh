@@ -10,25 +10,28 @@ arg_alias=0
 help(){
     echo "Usage: ${this_script_name}" 1>&2
     echo '
-        Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
+    Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
         [ -l | --list ]     : Only list available versions. Boolean -> default is [0]
         [ -v | --versions ] : Versions to install.          String: all|latest|(space-separated of numbers) -> default is [all]
         [ -s | --silent ]   : Run in silent mod.            Boolean -> default is [1]
         [ -a | --alias]     : Set bash/zsh-rc aliases.      Boolean -> default is [0]
         [ -h | --help ]     : Display usage/help
+
+    For instance, to only install the two latest versions, use:
+        sudo ./${this_script_name} --versions="$(sudo ./${this_script_name} -l | tail -2)"
         ' 1>&2
     exit 0
 }
 error(){
-    echo "[${this_script_name}]: $@" >> /dev/stderr
+    echo -e "[${this_script_name}]: $@" >> /dev/stderr
     exit 1
 }
 log(){
     if [[ "${arg_silent}" == 1 ]]; then
         return 0;
     fi
-    echo "[${this_script_name}]: $@"
+    echo -e "[${this_script_name}]: $@"
 }
 to_boolean(){
     if [[ $# != 1 ]]; then
@@ -72,7 +75,7 @@ do
       shift 2
       ;;
     -v | --versions )
-      arg_versions="$2"
+      arg_versions=$(echo $2 | tr -d '\n' | tr '\n' ' ')
       shift 2
       ;;
     -l | --list )
@@ -128,7 +131,7 @@ else
 fi
 
 if [[ ${arg_list} == 1 ]]; then
-    echo "${gcc_versions}"
+    echo -e "${gcc_versions}"
     exit 0
 fi
 
@@ -154,7 +157,7 @@ done
 
 # --- summary ---
 
-gcc_versions=$(apt list --installed | grep -oP '^gcc-\K([0-9]+)' | uniq | sort -n | tr "\n" " ") # dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP '^gcc-\K([0-9]+)' | uniq | sort -n
+gcc_versions=$(apt list --installed | grep -oP '^gcc-\K([0-9]+)' | uniq | sort -n | xargs) # dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP '^gcc-\K([0-9]+)' | uniq | sort -n
 log "GCC version now detected: [${gcc_versions}]"
 
 # --- Create aliases ---
