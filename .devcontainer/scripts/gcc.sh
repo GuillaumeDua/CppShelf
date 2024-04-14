@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# =======================================================================
+# This file is part of https://github.com/GuillaumeDua/CppShelf
+# License: see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
+# =======================================================================
+
 this_script_name=$(basename "$0")
 
 arg_versions='all'
