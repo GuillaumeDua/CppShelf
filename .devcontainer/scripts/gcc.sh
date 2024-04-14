@@ -6,11 +6,11 @@ arg_silent=1
 arg_versions='all'
 
 help(){
-    echo "Usage: ${this_script_name}"
+    echo "Usage: ${this_script_name}" 1>&2
     echo '
         [ -s | --silent ]   : (case insensitive) y|yes|1|true or n|no|0|false -> default is 1
-        [ -v | --versions ] : (case insensitive) all, or a space-separated list of versions numbers to install -> default is all
-        [ -h | --help ]'
+        [ -v | --versions ] : all|latest|(space-separated list of versions numbers to install) -> default is all
+        [ -h | --help ]' 1>&2
     exit 0
 }
 error(){
@@ -34,17 +34,6 @@ to_boolean(){
         *) error "to_boolean: invalid conversion from [$1] to boolean" && exit 1;;
     esac
 }
-is_all(){
-    if [[ $# != 1 ]]; then
-        error "$0: missing argument"
-        exit 1
-    fi
-    case "$1" in
-        [Aa][Ll][Ll]) echo 1;;
-        *) echo 0;;
-    esac
-}
-
 
 # --- precondition: sudoer ---
 
@@ -98,8 +87,11 @@ arg_silent=$(to_boolean $arg_silent)
 
 # --- install versions ---
 
-if [[ $(is_all $arg_versions) == 1 ]]; then
-    gcc_versions=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)
+all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)
+if [ "$arg_versions" = 'all' ]; then
+    gcc_versions=$all_gcc_versions_available
+elif [ "$arg_versions" = 'latest' ]; then
+    gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
 elif [[ $arg_versions =~ "^\d+(\ \d+)*$" ]]; then
     log "user provided versions list will be installed: [${arg_versions}]"
     gcc_versions="${arg_versions}"
