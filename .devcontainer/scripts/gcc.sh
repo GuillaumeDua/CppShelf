@@ -14,14 +14,14 @@ help(){
     exit 0
 }
 error(){
-    echo "[${this_script_name}]: " $@ >> /dev/stderr
+    echo "[${this_script_name}]: $@" >> /dev/stderr
     exit 1
 }
 log(){
     if [[ "${arg_silent}" == 1 ]]; then
         return 0;
     fi
-    echo "[${this_script_name}]: " $@
+    echo "[${this_script_name}]: $@"
 }
 to_boolean(){
     if [[ $# != 1 ]]; then
@@ -80,8 +80,8 @@ do
   esac
 done
 
-log "silent:   [${arg_silent}]"
-log "versions: [${arg_versions}]"
+log "arguments - silent:   [${arg_silent}]"
+log "arguments - versions: [${arg_versions}]"
 
 arg_silent=$(to_boolean $arg_silent)
 
@@ -93,7 +93,7 @@ if [ "$arg_versions" = 'all' ]; then
 elif [ "$arg_versions" = 'latest' ]; then
     gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
 elif [[ $arg_versions =~ "^\d+(\ \d+)*$" ]]; then
-    log "user provided versions list will be installed: [${arg_versions}]"
+    log "using user provided version(s) list: [${arg_versions}]"
     gcc_versions="${arg_versions}"
 else
     error "invalid value for argument version [${arg_versions}]"
@@ -102,23 +102,22 @@ fi
 
 log "GCC version to be installed: [" $gcc_versions "]"
 
-# ARG gcc_versions
-# RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
-#     \
-#     echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
-#     echo gcc_versions=\'${gcc_versions}\' >> /etc/bash.bashrc;      \
-#     # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
-#     echo gcc_versions=\'${gcc_versions}\' >> /etc/zsh/zshrc;        \
-#     # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
-#     \
-#     echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '          \
-#         apt install -y --no-install-recommends                      \
-#             gcc-{} g++-{}                                           \
-#             gcc-{}-multilib g++-{}-multilib                         \
-#         && update-alternatives                                      \
-#             --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {}         \
-#             --slave   /usr/bin/g++  g++  /usr/bin/g++-{}            \
-#             --slave   /usr/bin/gcov gcov /usr/bin/gcov-{}           \
-#     '
+# --- installations ---
+mapfile -t gcc_versions_to_install < <(echo $gcc_versions | tr " " "\n")
+
+for version in "${gcc_versions_to_install[@]}"; do
+    log "installing ${version} ..."
+
+    apt install -y --no-install-recommends                                      \
+            gcc-${version} g++-${version}                                       \
+            gcc-${version}-multilib g++-${version}-multilib                     \
+        || error "installation of [${version}] failed"
+    update-alternatives                                                         \
+            --install /usr/bin/gcc  gcc  /usr/bin/gcc-${version} ${version}     \
+            --slave   /usr/bin/g++  g++  /usr/bin/g++-${version}                \
+            --slave   /usr/bin/gcov gcov /usr/bin/gcov-${version}               \
+        || error "update-alternatives of [${version}] failed"
+
+done
 
 exit 0;
