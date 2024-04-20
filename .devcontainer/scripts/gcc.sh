@@ -123,19 +123,38 @@ fi
 
 # --- install versions ---
 
-all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)
+gcc_version_regex='^gcc-\K([0-9]{2})'
+all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP $gcc_version_regex | sort -n | uniq)
 if [ "$arg_versions" = 'all' ]; then
     gcc_versions=$all_gcc_versions_available
 elif [ "$arg_versions" = 'latest' ]; then
     gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
+elif [[ "$arg_versions" =~  ^from=[0-9]+$ ]]; then
+    from_version=$(echo "${arg_versions}" | grep -oP '^from=\K([0-9])+$')
+    log "using user-provided rule: >= $from_version"
+    if [ -z "$from_version" ]; then
+        error "invalid version='from=\"some_digit\"' value"
+        exit 1
+    fi
+    gcc_versions=$(echo "$all_gcc_versions_available" | awk "\$1 >= ${arg_versions}")
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
-    log "using user provided version(s) list: [${arg_versions}]"
+    log "using user-provided version(s) list: [${arg_versions}]"
     gcc_versions="${arg_versions}"
 else
     error "invalid value for argument version [${arg_versions}]"
     exit 1
 fi
 
+if [ -z "$gcc_versions" ]; then
+    log "empty versions range, nothing to do"
+    exit 0
+fi
+if [[ ! $(echo -n $gcc_versions) =~  ^[0-9]+( [0-9]+)*$ ]]; then
+    error "invalid versions range: [$gcc_versions]"
+    exit 1
+fi
+
+## --- list mod ? ---
 if [[ ${arg_list} == 1 ]]; then
     echo -e "${gcc_versions}"
     exit 0
@@ -144,7 +163,7 @@ fi
 log "GCC version to be installed: [${gcc_versions}]"
 
 # --- installations ---
-mapfile -t gcc_versions_to_install < <(echo $gcc_versions | tr " " "\n")
+mapfile -t gcc_versions_to_install < <(echo -n "$gcc_versions")
 
 for version in "${gcc_versions_to_install[@]}"; do
     log "installing ${version} ..."
@@ -162,12 +181,11 @@ for version in "${gcc_versions_to_install[@]}"; do
 done
 
 # --- summary ---
-
-gcc_versions=$(apt list --installed | grep -oP '^gcc-\K([0-9]+)' | uniq | sort -n | xargs) # dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP '^gcc-\K([0-9]+)' | uniq | sort -n
+gcc_versions=$(dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $gcc_version_regex | uniq | sort -n)
+# gcc_versions=$(apt list --installed | grep -oP $gcc_version_regex | uniq | sort -n | xargs)
 log "GCC version now detected: [${gcc_versions}]"
 
 # --- Create aliases ---
-
 arg_alias=$(to_boolean "${arg_alias}")
 if [ "$arg_alias" == '' ] ; then
     exit 1;
