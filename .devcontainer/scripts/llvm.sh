@@ -128,9 +128,8 @@ if [ -f "${internal_script_path}" ]; then
     rm "${internal_script_path}"
 fi
 
-## key
-wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
-    && wget -q -O impl.sh https://apt.llvm.org/llvm.sh \
+wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
+    && wget -qO impl.sh https://apt.llvm.org/llvm.sh \
     && chmod +x "${internal_script_path}"
 if [ $? != 0 ] || [ ! -f "${internal_script_path}" ]; then
     error 'fetching [https://apt.llvm.org/llvm.sh] failed'
@@ -141,9 +140,9 @@ fi
 
 llvm_version_regex='LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
 list_installed_gcc_versions(){
-    cat ${internal_script_path} | grep -oP $gcc_version_regex | uniq | sort -n
+    cat ${internal_script_path} | grep -oP $llvm_version_regex | uniq | sort -n
 }
 
-echo -e $(list_installed_gcc_versions)
+echo -e "$(list_installed_gcc_versions)"
 
 # --- install versions ---
