@@ -121,9 +121,16 @@ if [ "$arg_list" == '' ] ; then
     exit 1;
 fi
 
-# --- install versions ---
+# --- list versions ---
 
 gcc_version_regex='^gcc-\K([0-9]{2})'
+list_installed_gcc_versions(){
+    dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $gcc_version_regex | uniq | sort -n
+    # apt list --installed | grep -oP $gcc_version_regex | uniq | sort -n | xargs
+}
+
+# --- install versions ---
+
 all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP $gcc_version_regex | sort -n | uniq)
 if [ "$arg_versions" = 'all' ]; then
     gcc_versions=$all_gcc_versions_available
@@ -140,13 +147,14 @@ elif [[ "$arg_versions" =~  ^from=[0-9]+$ ]]; then
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user-provided version(s) list: [${arg_versions}]"
     gcc_versions="${arg_versions}"
-else
+elif [ ! -z "$gcc_versions" ]; then
     error "invalid value for argument version [${arg_versions}]"
     exit 1
 fi
 
 if [ -z "$gcc_versions" ]; then
     log "empty versions range, nothing to do"
+    echo -e "$(list_installed_gcc_versions)" # result for the caller
     exit 0
 fi
 if [[ ! $(echo -n $gcc_versions) =~  ^[0-9]+( [0-9]+)*$ ]]; then
@@ -169,7 +177,7 @@ for version in "${gcc_versions_to_install[@]}"; do
     log "installing ${version} ..."
 
     apt install -qq -y --no-install-recommends                                  \
-            gcc-${version} g++-${version}                                       \
+            gcc-${version}          g++-${version}                              \
             gcc-${version}-multilib g++-${version}-multilib                     \
         || error "installation of [${version}] failed"
     update-alternatives                                                         \
@@ -181,9 +189,9 @@ for version in "${gcc_versions_to_install[@]}"; do
 done
 
 # --- summary ---
-gcc_versions=$(dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $gcc_version_regex | uniq | sort -n)
-# gcc_versions=$(apt list --installed | grep -oP $gcc_version_regex | uniq | sort -n | xargs)
+gcc_versions=$(list_installed_gcc_versions)
 log "GCC version now detected: [${gcc_versions}]"
+echo -e "${gcc_versions}" # result for the caller
 
 # --- Create aliases ---
 arg_alias=$(to_boolean "${arg_alias}")
