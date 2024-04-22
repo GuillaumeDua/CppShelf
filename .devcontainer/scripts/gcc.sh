@@ -153,7 +153,7 @@ elif [ ! -z "$gcc_versions" ]; then
 fi
 
 if [ -z "$gcc_versions" ]; then
-    log "empty versions range, nothing to do"
+    log "invalid or empty versions range, nothing to do"
     echo -e "$(list_installed_gcc_versions)" # result for the caller
     exit 0
 fi
@@ -168,7 +168,7 @@ if [[ ${arg_list} == 1 ]]; then
     exit 0
 fi
 
-log "GCC version to be installed: [${gcc_versions}]"
+log "GCC version(s) to be installed: [${gcc_versions}]"
 
 # --- installations ---
 mapfile -t gcc_versions_to_install < <(echo -n "$gcc_versions")

@@ -140,14 +140,52 @@ fi
 
 llvm_version_to_install_regex='LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
 list_to_install_llvm_versions(){
-    cat ${internal_script_path} | grep -oP $llvm_version_regex | uniq | sort -n
+    cat ${internal_script_path} | grep -oP $llvm_version_to_install_regex | uniq | sort -n
 }
 llvm_version_installed_regex='^clang-\K([0-9]{2})'
 list_installed_llvm_versions(){
-    dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $llvm_version_installed_regex
+    dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $llvm_version_installed_regex | uniq | sort -n
 }
 
-echo -e "$(list_installed_gcc_versions)"
-all_llvm_versions_available=$(cat ${internal_script_path} | grep -oP $llvm_version_regex | uniq | sort -n)
-
 # --- install versions ---
+
+all_llvm_versions_available=$(list_to_install_llvm_versions)
+
+if [ "$arg_versions" = 'all' ]; then
+    llvm_versions=$all_llvm_versions_available
+elif [ "$arg_versions" = 'latest' ]; then
+    llvm_versions=$(echo ${all_llvm_versions_available} | tr " " "\n" | tail -1)
+elif [[ "$arg_versions" =~  ^from=[0-9]+$ ]]; then
+    from_version=$(echo "${arg_versions}" | grep -oP '^from=\K([0-9])+$')
+    log "using user-provided rule: >= $from_version"
+    if [ -z "$from_version" ]; then
+        error "invalid version='from=\"some_digit\"' value"
+        exit 1
+    fi
+    llvm_versions=$(echo "$all_llvm_versions_available" | awk "\$1 >= ${arg_versions}")
+elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
+    log "using user-provided version(s) list: [${arg_versions}]"
+    llvm_versions="${arg_versions}"
+elif [ ! -z "$llvm_versions" ]; then
+    error "invalid value for argument version [${arg_versions}]"
+    exit 1
+fi
+
+if [ -z "$llvm_versions" ]; then
+    log "invalid or empty versions range, nothing to do"
+    echo -e "$(list_installed_llvm_versions)" # result for the caller
+    exit 0
+fi
+if [[ ! $(echo -n $llvm_versions) =~  ^[0-9]+( [0-9]+)*$ ]]; then
+    error "invalid versions range: [$llvm_versions]"
+    exit 1
+fi
+
+## --- list mod ? ---
+if [[ ${arg_list} == 1 ]]; then
+    echo -e "${llvm_versions}"
+    exit 0
+fi
+
+log "LLVM version(s) to be installed: [${llvm_versions}]"
+
