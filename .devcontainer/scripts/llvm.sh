@@ -138,11 +138,16 @@ fi
 
 # --- list versions ---
 
-llvm_version_regex='LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
-list_installed_gcc_versions(){
+llvm_version_to_install_regex='LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
+list_to_install_llvm_versions(){
     cat ${internal_script_path} | grep -oP $llvm_version_regex | uniq | sort -n
+}
+llvm_version_installed_regex='^clang-\K([0-9]{2})'
+list_installed_llvm_versions(){
+    dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $llvm_version_installed_regex
 }
 
 echo -e "$(list_installed_gcc_versions)"
+all_llvm_versions_available=$(cat ${internal_script_path} | grep -oP $llvm_version_regex | uniq | sort -n)
 
 # --- install versions ---
