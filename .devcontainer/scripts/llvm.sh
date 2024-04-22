@@ -122,12 +122,17 @@ if [ "$arg_list" == '' ] ; then
 fi
 
 # --- fetch llvm.sh ---
+# or use:
+#   sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+#   wget https://apt.llvm.org/llvm-snapshot.gpg.key
+#   sudo apt-key add llvm-snapshot.gpg.key
 
 internal_script_path='impl.sh'
 if [ -f "${internal_script_path}" ]; then
     rm "${internal_script_path}"
 fi
 
+# NO_PUBKEY 1A127079A92F09ED
 wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
     && wget -qO impl.sh https://apt.llvm.org/llvm.sh \
     && chmod +x "${internal_script_path}"
@@ -147,7 +152,7 @@ list_installed_llvm_versions(){
     dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $llvm_version_installed_regex | uniq | sort -n
 }
 
-# --- install versions ---
+# --- which versions ---
 
 all_llvm_versions_available=$(list_to_install_llvm_versions)
 
@@ -189,3 +194,34 @@ fi
 
 log "LLVM version(s) to be installed: [${llvm_versions}]"
 
+# --- clean update-alternatives ---
+sudo rm -rf /etc/alternatives/clang* /etc/alternatives/llvm-symbolizer /etc/alternatives/lldb
+sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-symbolizer /var/lib/dpkg/alternatives/lldb
+# --- installations ---
+yes '' | ./${internal_script_path} $llvm_versions all # TODO: quiet
+
+mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
+
+for version in "${llvm_versions_to_install[@]}"; do
+
+    apt install -qq -y --no-install-recommends \
+      clang-format-${version} \
+      clang-tidy-${version}   \
+      lldb-${version}
+    # clang and clang-tools
+    update-alternatives                                                                                                   \
+        --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                               \
+        --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                   \
+        --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}              \
+        --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                \
+        --slave /usr/bin/clangd                   clangd                    /usr/bin/clangd-${version}                    \
+        --slave /usr/bin/clang-check              clang-check               /usr/bin/clang-check-${version}               \
+        --slave /usr/bin/clang-query              clang-query               /usr/bin/clang-query-${version}               \
+        --slave /usr/bin/clang-apply-replacements clang-apply-replacements  /usr/bin/clang-apply-replacements-${version}  \
+        --slave /usr/bin/sancov                   sancov                    /usr/bin/sancov-${version}                    \
+        --slave /usr/bin/scan-build               scan-build                /usr/bin/scan-build-${version}                \
+        --slave /usr/bin/scan-view                scan-view                 /usr/bin/scan-view-${version}                 \
+        --slave /usr/bin/llvm-symbolizer          llvm-symbolizer           /usr/bin/llvm-symbolizer-${version}           \
+        --slave /usr/bin/lldb                     lldb                      /usr/bin/lldb-${version}
+
+done
