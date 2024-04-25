@@ -227,6 +227,23 @@ for version in "${llvm_versions_to_install[@]}"; do
 
 done
 
+# --- summary ---
+llvm_versions=$(list_installed_llvm_versions)
+log "LLVM versions now detected: [$(echo -e $(list_installed_llvm_versions))]" 
+echo -e "${llvm_versions}" # result for the caller
+
+# --- Create aliases ---
+arg_alias=$(to_boolean "${arg_alias}")
+if [ "$arg_alias" == '' ] ; then
+    exit 1;
+fi
+
+if [[ "${arg_alias}" == 1 ]]; then
+    log "alias: adding aliases for [bash zsh]"
+    [[ -f '/etc/bash.bashrc' ]] && echo llvm_versions=\'${llvm_versions}\' >> /etc/bash.bashrc;
+    [[ -f '/etc/zsh/zshrc' ]]   && echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;
+fi
+
 exit 0;
 
 # Legacy inline integration
