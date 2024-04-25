@@ -160,14 +160,14 @@ if [ "$arg_versions" = 'all' ]; then
     llvm_versions=$all_llvm_versions_available
 elif [ "$arg_versions" = 'latest' ]; then
     llvm_versions=$(echo ${all_llvm_versions_available} | tr " " "\n" | tail -1)
-elif [[ "$arg_versions" =~  ^from=[0-9]+$ ]]; then
-    from_version=$(echo "${arg_versions}" | grep -oP '^from=\K([0-9])+$')
-    log "using user-provided rule: >= $from_version"
+elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
+    from_version=$(echo "${arg_versions}" | grep -oP '^>=\K([0-9])+$')
+    log "using user-provided rule: >=[$from_version]"
     if [ -z "$from_version" ]; then
-        error "invalid version='from=\"some_digit\"' value"
+        error "invalid version='>=[0-9]+' value"
         exit 1
     fi
-    llvm_versions=$(echo "$all_llvm_versions_available" | awk "\$1 >= ${arg_versions}")
+    llvm_versions=$(echo "$all_llvm_versions_available" | awk "\$1 >= ${from_version}")
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user-provided version(s) list: [${arg_versions}]"
     llvm_versions="${arg_versions}"
@@ -199,6 +199,7 @@ sudo rm -rf /etc/alternatives/clang* /etc/alternatives/llvm-symbolizer /etc/alte
 sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-symbolizer /var/lib/dpkg/alternatives/lldb
 # --- installations ---
 yes '' | ./${internal_script_path} $llvm_versions all # TODO: quiet
+sudo rm -rf ${internal_script_path}
 
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 
@@ -225,3 +226,32 @@ for version in "${llvm_versions_to_install[@]}"; do
         --slave /usr/bin/lldb                     lldb                      /usr/bin/lldb-${version}
 
 done
+
+exit 0;
+
+# Legacy inline integration
+#
+# ARG llvm_versions=all
+# RUN apt install -y wget bash \
+#     && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
+#     && wget https://apt.llvm.org/llvm.sh \  
+#     && chmod +x llvm.sh \
+#     && llvm_versions=${llvm_versions:=$(cat llvm.sh | grep -oP 'LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)' | sort -n)} \
+#     \
+#     echo "[toolchain] Embedding llvm versions = [${llvm_versions}]";    \
+#     echo llvm_versions=\'${llvm_versions}\' >> /etc/bash.bashrc;        \
+#     # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
+#     echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;          \
+#     # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
+#     \
+#     && (yes '' | ./llvm.sh $llvm_versions) \
+#     && echo $llvm_versions | tr " " "\n" | xargs -I {} sh -c '          \
+#         update-alternatives                                                                 \
+#             --install /usr/bin/clang clang /usr/bin/clang-{} {}                             \
+#             --slave /usr/bin/clang++         clang++         /usr/bin/clang++-{}            \
+#             --slave /usr/bin/clang-format    clang-format    /usr/bin/clang-format-{}       \
+#             --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-{}         \
+#             --slave /usr/bin/clangd          clangd          /usr/bin/clangd-{}             \
+#             --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-{}    \
+#             --slave /usr/bin/lldb            lldb            /usr/bin/lldb-{}               \
+#     '

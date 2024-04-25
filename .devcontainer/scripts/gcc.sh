@@ -129,21 +129,21 @@ list_installed_gcc_versions(){
     # apt list --installed | grep -oP $gcc_version_regex | uniq | sort -n | xargs
 }
 
-# --- install versions ---
+# --- which versions ---
 
 all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP $gcc_version_regex | sort -n | uniq)
 if [ "$arg_versions" = 'all' ]; then
     gcc_versions=$all_gcc_versions_available
 elif [ "$arg_versions" = 'latest' ]; then
     gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
-elif [[ "$arg_versions" =~  ^from=[0-9]+$ ]]; then
-    from_version=$(echo "${arg_versions}" | grep -oP '^from=\K([0-9])+$')
-    log "using user-provided rule: >= $from_version"
+elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
+    from_version=$(echo "${arg_versions}" | grep -oP '^>=\K([0-9])+$')
+    log "using user-provided rule: >=[$from_version]"
     if [ -z "$from_version" ]; then
-        error "invalid version='from=\"some_digit\"' value"
+        error "invalid version='>=[0-9]+' value"
         exit 1
     fi
-    gcc_versions=$(echo "$all_gcc_versions_available" | awk "\$1 >= ${arg_versions}")
+    gcc_versions=$(echo "$all_gcc_versions_available" | awk "\$1 >= ${from_version}")
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user-provided version(s) list: [${arg_versions}]"
     gcc_versions="${arg_versions}"
@@ -153,7 +153,7 @@ elif [ ! -z "$gcc_versions" ]; then
 fi
 
 if [ -z "$gcc_versions" ]; then
-    log "invalid or empty versions range, nothing to do"
+    error "invalid or empty versions range, nothing to do"
     echo -e "$(list_installed_gcc_versions)" # result for the caller
     exit 0
 fi
@@ -190,7 +190,7 @@ done
 
 # --- summary ---
 gcc_versions=$(list_installed_gcc_versions)
-log "GCC version now detected: [${gcc_versions}]"
+log "GCC versions now detected: [$(echo -e $(list_installed_gcc_versions))]" 
 echo -e "${gcc_versions}" # result for the caller
 
 # --- Create aliases ---
@@ -206,3 +206,24 @@ if [[ "${arg_alias}" == 1 ]]; then
 fi
 
 exit 0;
+
+# Legacy inline integration
+#
+# ARG gcc_versions
+# RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
+#     \
+#     echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
+#     echo gcc_versions=\'${gcc_versions}\' >> /etc/bash.bashrc;      \
+#     # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
+#     echo gcc_versions=\'${gcc_versions}\' >> /etc/zsh/zshrc;        \
+#     # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
+#     \
+#     echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '          \
+#         apt install -y --no-install-recommends                      \
+#             gcc-{} g++-{}                                           \
+#             gcc-{}-multilib g++-{}-multilib                         \
+#         && update-alternatives                                      \
+#             --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {}         \
+#             --slave   /usr/bin/g++  g++  /usr/bin/g++-{}            \
+#             --slave   /usr/bin/gcov gcov /usr/bin/gcov-{}           \
+#     '
