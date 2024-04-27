@@ -1,0 +1,54 @@
+=> [ 2/16] RUN apt update && apt install -y --no-install-recommends            ca-certificates gpg gpg-agent debian-keyring                software-properties-common lsb-release apt-utils            pyt  343.7s
+ => ERROR [ 3/16] RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null     && apt-add-repository "deb  8.7s
+------
+ > [ 3/16] RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"     && apt-get update -y                            && apt install kitware-archive-keyring          && rm /etc/apt/trusted.gpg.d/kitware.gpg        && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED     && apt-get update -y                            && apt install -y cmake                         && rm -rf /var/lib/apt/lists/*:
+1.715 Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [90.7 kB]
+1.724 Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+1.759 Get:3 https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu noble InRelease [23.8 kB]
+1.830 Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [89.7 kB]
+1.899 Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [90.8 kB]
+1.971 Get:6 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+1.993 Ign:7 https://apt.kitware.com/ubuntu noble InRelease
+2.079 Err:8 https://apt.kitware.com/ubuntu noble Release
+2.079   404  Not Found [IP: 66.194.253.25 443]
+2.099 Get:9 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+2.184 Get:10 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+6.478 Get:11 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+7.089 Reading package lists...
+7.526 W: https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu/dists/noble/InRelease: Signature by key 60C317803A41BA51845E371A1E9377A2BA9EF27F uses weak algorithm (rsa1024)
+7.526 E: The repository 'https://apt.kitware.com/ubuntu noble Release' does not have a Release file.
+7.527 Repository: 'deb https://apt.kitware.com/ubuntu/ noble main'
+7.527 Description:
+7.527 Archive for codename: noble components: main
+7.527 More info: https://apt.kitware.com/ubuntu/
+7.527 Adding repository.
+7.527 Adding deb entry to /etc/apt/sources.list.d/archive_uri-https_apt_kitware_com_ubuntu_-noble.list
+7.527 Adding disabled deb-src entry to /etc/apt/sources.list.d/archive_uri-https_apt_kitware_com_ubuntu_-noble.list
+7.610 Hit:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+7.610 Hit:2 http://archive.ubuntu.com/ubuntu noble InRelease
+7.627 Hit:3 https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu noble InRelease
+7.639 Hit:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease
+7.669 Hit:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+7.846 Ign:6 https://apt.kitware.com/ubuntu noble InRelease
+7.933 Err:7 https://apt.kitware.com/ubuntu noble Release
+7.933   404  Not Found [IP: 66.194.253.25 443]
+7.939 Reading package lists...
+8.383 W: https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu/dists/noble/InRelease: Signature by key 60C317803A41BA51845E371A1E9377A2BA9EF27F uses weak algorithm (rsa1024)
+8.383 E: The repository 'https://apt.kitware.com/ubuntu noble Release' does not have a Release file.
+------
+Dockerfile:56
+--------------------
+  55 |     # Build: CMake (https://apt.kitware.com/)
+  56 | >>> RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+  57 | >>>     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+  58 | >>>     && apt-get update -y                        \
+  59 | >>>     && apt install kitware-archive-keyring      \
+  60 | >>>     && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
+  61 | >>>     # quick-fix ¯\_(ツ)_/¯
+  62 | >>>     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
+  63 | >>>     && apt-get update -y                        \
+  64 | >>>     && apt install -y cmake                     \
+  65 | >>>     && rm -rf /var/lib/apt/lists/*
+  66 |     
+--------------------
+ERROR: failed to solve: process "/bin/bash -c wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null     && apt-add-repository \"deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main\"     && apt-get update -y                            && apt install kitware-archive-keyring          && rm /etc/apt/trusted.gpg.d/kitware.gpg        && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED     && apt-get update -y                            && apt install -y cmake                         && rm -rf /var/lib/apt/lists/*" did not complete successfully: exit code: 100

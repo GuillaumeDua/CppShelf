@@ -7,10 +7,11 @@ SHELL ["/bin/bash", "-c"]
 
 # Basics / installation prerequisites
 RUN apt update && apt install -y --no-install-recommends    \
-        ca-certificates gpg gpg-agent debian-keyring        \
+        ca-certificates  debian-keyring                     \
+        gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
         python3 pip                                         \
-    && add-apt-repository ppa:ubuntu-toolchain-r/test       \
+#   && add-apt-repository ppa:ubuntu-toolchain-r/test       \
     && apt-get update -y                                    \
     && apt install -y                                       \
         # remote
@@ -44,31 +45,42 @@ RUN apt update && apt install -y --no-install-recommends    \
 # Build: CMake (https://apt.kitware.com/)
 # if GPG error:
 #   RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-# RUN apt-get update -y  \
-#     && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-#     && apt-get update -y  \
-#     && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
-#     && apt-get install -y kitware-archive-keyring \
-#     && apt install -y cmake
+RUN apt-get update -y  \
+    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+    && apt-get update -y  \
+    && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
+    && apt-get install -y kitware-archive-keyring \
+    && apt install -y cmake \
+    && rm -rf /var/lib/apt/lists/*
 
 # Build: CMake (https://apt.kitware.com/)
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-    && apt-get update -y                        \
-    && apt install kitware-archive-keyring      \
-    && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
-    # quick-fix ¯\_(ツ)_/¯
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
-    && apt-get update -y                        \
-    && apt install -y cmake                     \
-    && rm -rf /var/lib/apt/lists/*
+# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+#     && apt-get update -y                        \
+#     && apt install kitware-archive-keyring      \
+#     && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
+#     # quick-fix ¯\_(ツ)_/¯
+#     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
+#     && apt-get update -y                        \
+#     && apt install -y cmake                     \
+#     && rm -rf /var/lib/apt/lists/*
 
 # Build: CMake (https://apt.kitware.com/)
 # RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
 #     && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
 #     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
 #     && apt install -y cmake
+
+# Build: CMake (https://apt.kitware.com/)
+# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
+#     | gpg --dearmor - \
+#     | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+#     && apt-add-repository -y "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+#     && apt-get update \
+#     && apt-get install -y cmake \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && cmake --version
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG integrate_Bazel=
@@ -143,13 +155,16 @@ RUN if [[ ${integrate_Build2} = "y" ]]; then                                    
 # Remote
 RUN apt-get update -y \
     && apt install -y \
-        openssh-server wget rsync ssh \
+        openssh-server rsync ssh \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /var/run/sshd \
     && useradd -ms /bin/bash vscodeuser \
-    && echo 'vscodeuser:password' | chpasswd
+    && echo 'vscodeuser:password' | chpasswd \
+    && echo 'root:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
     && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
     && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config \
-    && mkdir -p mkdir /var/run/sshd \
+    && mkdir -p /var/run/sshd \
     && service ssh stop
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
