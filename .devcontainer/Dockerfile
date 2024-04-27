@@ -109,61 +109,25 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
     libc6 libc6-dev libstdc++6 libc6-arm64-cross \
     binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
 
-# C++ toolchain: GNU/GCC
-# GCC - version are either externaly provided, or all available are selected by default
-# - simpler alternative: apt install with wildcard ¯\_(ツ)_/¯
-#   WIP: in a separe script + embedded or wget ?
-COPY ./scripts/gcc.sh /tmp/installation_scripts/gcc.sh
-ARG gcc_versions='from=11'
-RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
-    \
-    echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
-    echo gcc_versions=\'${gcc_versions}\' >> /etc/bash.bashrc;      \
-    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
-    echo gcc_versions=\'${gcc_versions}\' >> /etc/zsh/zshrc;        \
-    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
-    \
-    echo $gcc_versions | tr " " "\n" | xargs -I {} sh -c '          \
-        apt install -y --no-install-recommends                      \
-            gcc-{} g++-{}                                           \
-            gcc-{}-multilib g++-{}-multilib                         \
-        && update-alternatives                                      \
-            --install /usr/bin/gcc  gcc  /usr/bin/gcc-{} {}         \
-            --slave   /usr/bin/g++  g++  /usr/bin/g++-{}            \
-            --slave   /usr/bin/gcov gcov /usr/bin/gcov-{}           \
-    '
+ENV TOOLCHAIN_TMP_DIR=/tmp/install_toolchain/
 
-# ISSUE: inconsistency: Not available for g++-13
-# g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
-# g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
+# C++ toolchain: GNU/GCC
+COPY ./scripts/gcc.sh ${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh
+WORKDIR ${TOOLCHAIN_TMP_DIR}
+ARG GCC_VERSIONS='from=11'
+RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
+    echo -e "[C++ toolchain] Installing GCC_VERSIONS=[$GCC_VERSIONS] ..." ;\
+    chmod +x ${script_path} \
+    && ${script_path} --silent=yes --alias=yes --versions="$GCC_VERSIONS"
 
 # C++ toolchain: LLVM/Clang (https://apt.llvm.org/)
-COPY ./scripts/llvm.sh /tmp/installation_scripts/llvm.sh
-# WIP: acquire list -> foreach using xargs -> update-alternatives
-ARG llvm_versions=all
-RUN apt install -y wget bash \
-    && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
-    && wget https://apt.llvm.org/llvm.sh \  
-    && chmod +x llvm.sh \
-    && llvm_versions=${llvm_versions:=$(cat llvm.sh | grep -oP 'LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)' | sort -n)} \
-    \
-    echo "[toolchain] Embedding llvm versions = [${llvm_versions}]";    \
-    echo llvm_versions=\'${llvm_versions}\' >> /etc/bash.bashrc;        \
-    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
-    echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;          \
-    # \'' fix coloration in vscode with docker extension ¯\_(ツ)_/¯
-    \
-    && (yes '' | ./llvm.sh $llvm_versions) \
-    && echo $llvm_versions | tr " " "\n" | xargs -I {} sh -c '          \
-        update-alternatives                                                                 \
-            --install /usr/bin/clang clang /usr/bin/clang-{} {}                             \
-            --slave /usr/bin/clang++         clang++         /usr/bin/clang++-{}            \
-            --slave /usr/bin/clang-format    clang-format    /usr/bin/clang-format-{}       \
-            --slave /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-{}         \
-            --slave /usr/bin/clangd          clangd          /usr/bin/clangd-{}             \
-            --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-{}    \
-            --slave /usr/bin/lldb            lldb            /usr/bin/lldb-{}               \
-    '
+COPY ./scripts/llvm.sh ${TOOLCHAIN_TMP_DIR}/llvm.sh
+WORKDIR ${TOOLCHAIN_TMP_DIR}
+ARG LLVM_VERSIONS='all'
+RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
+    echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;\
+    chmod +x ${script_path} \
+    && ${script_path} --silent=yes --alias=yes --versions="$LLVM_VERSIONS"
 
 # Build: Build2-0.16.0 (depends on a compiler)
 # WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)

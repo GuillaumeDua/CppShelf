@@ -212,6 +212,8 @@ exit 0;
 
 # Legacy inline integration
 #
+# simpler alternative for 'all': apt install gcc-* g++-* ¯\_(ツ)_/¯
+#
 # ARG gcc_versions
 # RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
 #     \
