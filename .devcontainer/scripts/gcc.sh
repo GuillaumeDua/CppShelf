@@ -147,13 +147,13 @@ elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user-provided version(s) list: [${arg_versions}]"
     gcc_versions="${arg_versions}"
-elif [ ! -z "$gcc_versions" ]; then
+elif [ ! -z "$arg_versions" ]; then
     error "invalid value for argument version [${arg_versions}]"
     exit 1
 fi
 
 if [ -z "$gcc_versions" ]; then
-    error "invalid or empty versions range, nothing to do"
+    error "empty versions range, nothing to do"
     echo -e "$(list_installed_gcc_versions)" # result for the caller
     exit 0
 fi
@@ -180,6 +180,9 @@ for version in "${gcc_versions_to_install[@]}"; do
             gcc-${version}          g++-${version}                              \
             gcc-${version}-multilib g++-${version}-multilib                     \
         || error "installation of [${version}] failed"
+    # ISSUE: inconsistency: Not available for g++-13
+    #   g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
+    #   g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
     update-alternatives                                                         \
             --install /usr/bin/gcc  gcc  /usr/bin/gcc-${version} ${version}     \
             --slave   /usr/bin/g++  g++  /usr/bin/g++-${version}                \

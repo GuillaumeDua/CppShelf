@@ -171,13 +171,13 @@ elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user-provided version(s) list: [${arg_versions}]"
     llvm_versions="${arg_versions}"
-elif [ ! -z "$llvm_versions" ]; then
+elif [ ! -z "$arg_versions" ]; then
     error "invalid value for argument version [${arg_versions}]"
     exit 1
 fi
 
 if [ -z "$llvm_versions" ]; then
-    log "invalid or empty versions range, nothing to do"
+    log "empty versions range, nothing to do"
     echo -e "$(list_installed_llvm_versions)" # result for the caller
     exit 0
 fi
