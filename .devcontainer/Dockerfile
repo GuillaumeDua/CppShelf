@@ -109,11 +109,12 @@ RUN apt update -y && apt-get install -y --no-install-recommends \
     libc6 libc6-dev libstdc++6 libc6-arm64-cross \
     binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
 
-# C++ toolchain: GCC
+# C++ toolchain: GNU/GCC
 # GCC - version are either externaly provided, or all available are selected by default
 # - simpler alternative: apt install with wildcard ¯\_(ツ)_/¯
 #   WIP: in a separe script + embedded or wget ?
-ARG gcc_versions
+COPY ./scripts/gcc.sh /tmp/installation_scripts/gcc.sh
+ARG gcc_versions='from=11'
 RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -oP '^gcc-\K([0-9]{2})' | sort -n | uniq)}; \
     \
     echo "[toolchain] Embedding gcc versions = [${gcc_versions}]";  \
@@ -136,7 +137,8 @@ RUN gcc_versions=${gcc_versions:=$(apt list --all-versions 2>/dev/null  | grep -
 # g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
 # g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
 
-# C++ toolchain: LLVM (https://apt.llvm.org/)
+# C++ toolchain: LLVM/Clang (https://apt.llvm.org/)
+COPY ./scripts/llvm.sh /tmp/installation_scripts/llvm.sh
 # WIP: acquire list -> foreach using xargs -> update-alternatives
 ARG llvm_versions=all
 RUN apt install -y wget bash \
