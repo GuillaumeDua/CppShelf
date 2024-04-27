@@ -114,7 +114,7 @@ ENV TOOLCHAIN_TMP_DIR=/tmp/install_toolchain/
 # C++ toolchain: GNU/GCC
 COPY ./scripts/gcc.sh ${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh
 WORKDIR ${TOOLCHAIN_TMP_DIR}
-ARG GCC_VERSIONS='from=11'
+ARG GCC_VERSIONS='>=11'
 RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
     echo -e "[C++ toolchain] Installing GCC_VERSIONS=[$GCC_VERSIONS] ..." ;\
     chmod +x ${script_path} \
@@ -123,7 +123,7 @@ RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
 # C++ toolchain: LLVM/Clang (https://apt.llvm.org/)
 COPY ./scripts/llvm.sh ${TOOLCHAIN_TMP_DIR}/llvm.sh
 WORKDIR ${TOOLCHAIN_TMP_DIR}
-ARG LLVM_VERSIONS='all'
+ARG LLVM_VERSIONS='>=14'
 RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
     echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;\
     chmod +x ${script_path} \
