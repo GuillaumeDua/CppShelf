@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 # =============================================================================================
 # This file is part of https://github.com/GuillaumeDua/CppShelf,
 # and will soon be part of https://hub.docker.com/repository/docker/gussd/cpp-toolchain/general
@@ -127,7 +129,7 @@ fi
 
 # --- fetch llvm.sh ---
 # or use:
-#   sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+#   sudo add-apt-repository "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs) main"
 #   wget https://apt.llvm.org/llvm-snapshot.gpg.key
 #   sudo apt-key add llvm-snapshot.gpg.key
 
@@ -138,7 +140,7 @@ fi
 
 # NO_PUBKEY 1A127079A92F09ED
 wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
-    && wget -qO impl.sh https://apt.llvm.org/llvm.sh \
+    && wget -qO ${internal_script_path} https://apt.llvm.org/llvm.sh \
     && chmod +x "${internal_script_path}"
 if [ $? != 0 ] || [ ! -f "${internal_script_path}" ]; then
     error 'fetching [https://apt.llvm.org/llvm.sh] failed'

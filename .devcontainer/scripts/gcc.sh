@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 # =============================================================================================
 # This file is part of https://github.com/GuillaumeDua/CppShelf,
 # and will soon be part of https://hub.docker.com/repository/docker/gussd/cpp-toolchain/general
