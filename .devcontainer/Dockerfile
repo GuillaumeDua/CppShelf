@@ -6,7 +6,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"] 
 
 # Basics / installation prerequisites
-RUN apt update && apt install -y --no-install-recommends    \
+RUN apt update -q \
+    && apt install -y --no-install-recommends               \
         ca-certificates  debian-keyring                     \
         gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
@@ -24,7 +25,7 @@ RUN apt update && apt install -y --no-install-recommends    \
         # versioning
         git subversion                                      \
         # dev: heavy libraries
-        # https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
+        # https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz (+ detect, install latest instead of 1.84)
         # libboost-all-dev                                    \
         # tools: dev
         gdb                                                 \
@@ -43,16 +44,31 @@ RUN apt update && apt install -y --no-install-recommends    \
 # -------------
 
 # Build: CMake (https://apt.kitware.com/)
+RUN internal_script_path='impl.sh'; \
+    wget -qO ${internal_script_path} https://apt.kitware.com/kitware-archive.sh \
+    && chmod +x "${internal_script_path}" \
+    && ./${internal_script_path} --release jammy \
+    && rm  -rf ${internal_script_path}
+
+# Build: CMake (https://apt.kitware.com/)
+# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+#     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+#     && apt-get update \ 
+#     && apt-get install -q -y cmake \
+#     && rm -rf /var/lib/apt/lists/*
+
+# Build: CMake (https://apt.kitware.com/)
 # if GPG error:
 #   RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-RUN apt-get update -y  \
-    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-    && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-    && apt-get update -y  \
-    && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
-    && apt-get install -y kitware-archive-keyring \
-    && apt install -y cmake \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update -y  \
+#     && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+#     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+#     && apt-get update -y  \
+#     && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
+#     && apt-get install -y kitware-archive-keyring \
+#     && apt install -y cmake \
+#     && rm -rf /var/lib/apt/lists/*
 
 # Build: CMake (https://apt.kitware.com/)
 # RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
