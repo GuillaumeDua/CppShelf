@@ -189,7 +189,7 @@ for version in "${gcc_versions_to_install[@]}"; do
     # ISSUE: inconsistency: Not available for g++-13
     #   g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
     #   g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
-    update-alternatives                                                         \
+    update-alternatives --quiet                                                 \
             --install /usr/bin/gcc  gcc  /usr/bin/gcc-${version} ${version}     \
             --slave   /usr/bin/g++  g++  /usr/bin/g++-${version}                \
             --slave   /usr/bin/gcov gcov /usr/bin/gcov-${version}               \
@@ -215,6 +215,8 @@ if [[ "${arg_alias}" == 1 ]]; then
 fi
 
 exit 0;
+
+# add-apt-repository ppa:ubuntu-toolchain-r/test
 
 # Legacy inline integration
 #

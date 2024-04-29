@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-c"]
 # Basics / installation prerequisites
 RUN apt update -q \
     && apt install -y --no-install-recommends               \
-        ca-certificates  debian-keyring                     \
+        ca-certificates debian-keyring                      \
         gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
         python3 pip                                         \
@@ -44,59 +44,12 @@ RUN apt update -q \
 # -------------
 
 # Build: CMake (https://apt.kitware.com/)
+#   "jammy" instead of $(lsb_release -cs) -> kitware-archive.sh supports only Ubuntu releases up to Jammy
 RUN internal_script_path='impl.sh'; \
     wget -qO ${internal_script_path} https://apt.kitware.com/kitware-archive.sh \
     && chmod +x "${internal_script_path}" \
     && ./${internal_script_path} --release jammy \
     && rm  -rf ${internal_script_path}
-
-# Build: CMake (https://apt.kitware.com/)
-# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
-#     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-#     && apt-get update \ 
-#     && apt-get install -q -y cmake \
-#     && rm -rf /var/lib/apt/lists/*
-
-# Build: CMake (https://apt.kitware.com/)
-# if GPG error:
-#   RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-# RUN apt-get update -y  \
-#     && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#     && echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-#     && apt-get update -y  \
-#     && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
-#     && apt-get install -y kitware-archive-keyring \
-#     && apt install -y cmake \
-#     && rm -rf /var/lib/apt/lists/*
-
-# Build: CMake (https://apt.kitware.com/)
-# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-#     && apt-get update -y                        \
-#     && apt install kitware-archive-keyring      \
-#     && rm /etc/apt/trusted.gpg.d/kitware.gpg    \
-#     # quick-fix ¯\_(ツ)_/¯
-#     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1A127079A92F09ED \
-#     && apt-get update -y                        \
-#     && apt install -y cmake                     \
-#     && rm -rf /var/lib/apt/lists/*
-
-# Build: CMake (https://apt.kitware.com/)
-# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null            \
-#     && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null  \
-#     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"                                                                                         \
-#     && apt install -y cmake
-
-# Build: CMake (https://apt.kitware.com/)
-# RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-#     | gpg --dearmor - \
-#     | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#     && apt-add-repository -y "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
-#     && apt-get update \
-#     && apt-get install -y cmake \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && cmake --version
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG integrate_Bazel=

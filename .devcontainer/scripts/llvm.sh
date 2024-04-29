@@ -138,12 +138,16 @@ if [ -f "${internal_script_path}" ]; then
     rm "${internal_script_path}"
 fi
 
+external_script_url='https://apt.llvm.org/llvm.sh'
+
+# wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+# wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 # NO_PUBKEY 1A127079A92F09ED
 wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
-    && wget -qO ${internal_script_path} https://apt.llvm.org/llvm.sh \
+    && wget -qO ${internal_script_path} ${external_script_url} \
     && chmod +x "${internal_script_path}"
 if [ $? != 0 ] || [ ! -f "${internal_script_path}" ]; then
-    error 'fetching [https://apt.llvm.org/llvm.sh] failed'
+    error "fetching [${external_script_url}] failed"
     exit 1
 fi
 
@@ -204,32 +208,47 @@ log "LLVM version(s) to be installed: [${llvm_versions}]"
 sudo rm -rf /etc/alternatives/clang* /etc/alternatives/llvm-symbolizer /etc/alternatives/lldb
 sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-symbolizer /var/lib/dpkg/alternatives/lldb
 # --- installations ---
-yes '' | ./${internal_script_path} $llvm_versions all # TODO: quiet
+yes '' | ./${internal_script_path} $llvm_versions all \
+    > /dev/null 2>&1 \
+    || error "running [${external_script_url} ${llvm_versions} all] failed"
 sudo rm -rf ${internal_script_path}
 
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 
 for version in "${llvm_versions_to_install[@]}"; do
+    add-apt-repository -y \
+        deb http://apt.llvm.org/$(lsb_release -cs)/         \
+        llvm-toolchain-$(lsb_release -cs)-${version} main   \
+        > /dev/null                                         \
+    || error "adding apt-repository for [${version}] failed"
+done
 
+apt update -qy
+
+for version in "${llvm_versions_to_install[@]}"; do
+
+    # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
     apt install -qq -y --no-install-recommends \
-      clang-format-${version} \
-      clang-tidy-${version}   \
-      lldb-${version}
+        clang-format-${version} \
+        clang-tidy-${version}   \
+        lldb-${version}         \
+    || error "installation of [${version}] (tools) failed"
     # clang and clang-tools
-    update-alternatives                                                                                                   \
-        --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                               \
-        --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                   \
-        --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}              \
-        --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                \
-        --slave /usr/bin/clangd                   clangd                    /usr/bin/clangd-${version}                    \
-        --slave /usr/bin/clang-check              clang-check               /usr/bin/clang-check-${version}               \
-        --slave /usr/bin/clang-query              clang-query               /usr/bin/clang-query-${version}               \
-        --slave /usr/bin/clang-apply-replacements clang-apply-replacements  /usr/bin/clang-apply-replacements-${version}  \
-        --slave /usr/bin/sancov                   sancov                    /usr/bin/sancov-${version}                    \
-        --slave /usr/bin/scan-build               scan-build                /usr/bin/scan-build-${version}                \
-        --slave /usr/bin/scan-view                scan-view                 /usr/bin/scan-view-${version}                 \
-        --slave /usr/bin/llvm-symbolizer          llvm-symbolizer           /usr/bin/llvm-symbolizer-${version}           \
-        --slave /usr/bin/lldb                     lldb                      /usr/bin/lldb-${version}
+    update-alternatives --quiet                                                                                             \
+        --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+        --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
+        --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}                \
+        --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                  \
+        --slave /usr/bin/clangd                   clangd                    /usr/bin/clangd-${version}                      \
+        --slave /usr/bin/clang-check              clang-check               /usr/bin/clang-check-${version}                 \
+        --slave /usr/bin/clang-query              clang-query               /usr/bin/clang-query-${version}                 \
+        --slave /usr/bin/clang-apply-replacements clang-apply-replacements  /usr/bin/clang-apply-replacements-${version}    \
+        --slave /usr/bin/sancov                   sancov                    /usr/bin/sancov-${version}                      \
+        --slave /usr/bin/scan-build               scan-build                /usr/bin/scan-build-${version}                  \
+        --slave /usr/bin/scan-view                scan-view                 /usr/bin/scan-view-${version}                   \
+        --slave /usr/bin/llvm-symbolizer          llvm-symbolizer           /usr/bin/llvm-symbolizer-${version}             \
+        --slave /usr/bin/lldb                     lldb                      /usr/bin/lldb-${version}                        \
+    || error "update-alternatives of [${version}] failed"
 
 done
 
