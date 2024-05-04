@@ -6,15 +6,15 @@ ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"] 
 
 # Basics / installation prerequisites
-RUN apt update -q \
+RUN apt update -qqy \
     && apt install -y --no-install-recommends               \
         ca-certificates debian-keyring                      \
         gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
         python3 pip                                         \
 #   && add-apt-repository ppa:ubuntu-toolchain-r/test       \
-    && apt-get update -y                                    \
-    && apt install -y                                       \
+    && apt-get update -qqy                                  \
+    && apt install -qqy                                     \
         # remote
         wget ssh                                            \
         sudo tzdata curl libssl-dev                         \
@@ -62,16 +62,24 @@ RUN if [[ ${integrate_Bazel} = "y" ]]; then                     \
         ;                                                       \
     fi
 
+ENV TOOLCHAIN_TMP_DIR=/tmp/install_toolchain/
 # Dependency managers
+ENV VCPKG_URL       https://github.com/microsoft/vcpkg/archive/master.tar.gz
 RUN \
     # vcpkg
-    wget -qO vcpkg.tar.gz https://github.com/microsoft/vcpkg/archive/master.tar.gz \
+    wget -qO vcpkg.tar.gz ${VCPKG_URL} \
     && mkdir /opt/vcpkg \
     && tar xf vcpkg.tar.gz --strip-components=1 -C /opt/vcpkg \
-    && /opt/vcpkg/bootstrap-vcpkg.sh \
-    && ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg \
+    && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics \
+    && ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
+RUN \
     # conan
-    && pip install conan
+    # work-around for error: externally-managed-environment
+    apt install -qqy pipx \
+    && pipx install --quiet conan
+    # wget -qO get_pip.py https://bootstrap.pypa.io/get-pip.py \
+    # && python3 get_pip.py \
+    # && pip install conan
 
 # Tooling: static analysis
 # Tooling: runtime analysis
@@ -89,8 +97,6 @@ RUN apt update -y && apt upgrade -y \
 RUN apt update -y && apt-get install -y --no-install-recommends \
     libc6 libc6-dev libstdc++6 libc6-arm64-cross \
     binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
-
-ENV TOOLCHAIN_TMP_DIR=/tmp/install_toolchain/
 
 # C++ toolchain: GNU/GCC
 COPY ./scripts/gcc.sh ${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh
@@ -137,6 +143,11 @@ RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/
     && service ssh stop
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
+
+# Cleanup
+RUN apt clean \
+    && rm -rf ${TOOLCHAIN_TMP_DIR} \
+    && rm -rf /var/lib/apt/lists/*
 
 # CMD ["zsh"]
 # ENTRYPOINT ["zsh"]
