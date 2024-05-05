@@ -1,1 +1,20 @@
-// TODO: https://containers.dev/implementors/json_reference/
+{
+    "name": "cppshelf - C++ development container",
+    "dockerComposeFile": "docker-compose.yaml",
+    // or image with a specific tag ?
+    "service": "cppdev",
+    "workspaceFolder": "/workspace",
+    "remoteUser": "vscodeuser",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash",
+                "remote.SSH.showLoginTerminal": true
+            }
+        },
+        "extensions": [
+            "ms-vscode.cpptools"
+        ]
+    }
+}
+// features: https://github.com/devcontainers/features
