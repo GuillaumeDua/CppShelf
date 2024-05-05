@@ -6,15 +6,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"] 
 
 # Basics / installation prerequisites
-RUN apt update -qqy \
-    && apt install -y --no-install-recommends               \
+RUN apt update -qqy && apt install -qqy --no-install-recommends \
         ca-certificates debian-keyring                      \
         gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
         python3 pip                                         \
 #   && add-apt-repository ppa:ubuntu-toolchain-r/test       \
-    && apt-get update -qqy                                  \
-    && apt install -qqy                                     \
+#   && apt update -qqy && apt install -qqy --no-install-recommends \
         # remote
         wget ssh                                            \
         sudo tzdata curl libssl-dev                         \
@@ -37,6 +35,7 @@ RUN apt update -qqy \
         emacs nano vim                                      \
         # tools: others
         docker-compose jq                                   \
+        ripgrep                                             \
     && rm -rf /var/lib/apt/lists/*
 
 # -------------
@@ -53,13 +52,16 @@ RUN internal_script_path='impl.sh'; \
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG integrate_Bazel=
-RUN if [[ ${integrate_Bazel} = "y" ]]; then                     \
-        apt install apt-transport-https curl gnupg -y           \
+RUN if [[ ${integrate_Bazel} = "y" ]]; then                             \
+        apt update -qqy && apt install -qqy --no-install-recommends     \
+            apt-transport-https curl gnupg                              \
         && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
-        && mv bazel-archive-keyring.gpg /usr/share/keyrings     \
+        && mv bazel-archive-keyring.gpg /usr/share/keyrings             \
         && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list \
-        && apt update -y && apt install -y bazel                \
-        ;                                                       \
+        && apt update -qqy && apt install -qqy --no-install-recommends  \ 
+            bazel                                                       \
+        && rm -rf /var/lib/apt/lists/*                                  \
+        ;                                                               \
     fi
 
 ENV TOOLCHAIN_TMP_DIR=/tmp/install_toolchain/
@@ -67,57 +69,57 @@ ENV TOOLCHAIN_TMP_DIR=/tmp/install_toolchain/
 ENV VCPKG_URL       https://github.com/microsoft/vcpkg/archive/master.tar.gz
 RUN \
     # vcpkg
-    wget -qO vcpkg.tar.gz ${VCPKG_URL} \
-    && mkdir /opt/vcpkg \
-    && tar xf vcpkg.tar.gz --strip-components=1 -C /opt/vcpkg \
-    && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics \
+    wget -qO vcpkg.tar.gz ${VCPKG_URL}                          \
+    && mkdir /opt/vcpkg                                         \
+    && tar xf vcpkg.tar.gz --strip-components=1 -C /opt/vcpkg   \
+    && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics            \
     && ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
 RUN \
     # conan
-    # work-around for error: externally-managed-environment
-    apt install -qqy pipx \
-    && pipx install --quiet conan
-    # wget -qO get_pip.py https://bootstrap.pypa.io/get-pip.py \
-    # && python3 get_pip.py \
-    # && pip install conan
+    #   work-around for pip "error: externally-managed-environment"
+    apt update -qqy && apt install -qqy --no-install-recommends \
+        pipx                                                    \
+    && pipx install --quiet conan                               \
+    && rm -rf /var/lib/apt/lists/*
 
+# TODO
 # Tooling: static analysis
 # Tooling: runtime analysis
 
 # Tooling: shells (bash, zsh, )
 # Tooling: zsh
-RUN apt update -y && apt upgrade -y \
-    && apt install -y \
+RUN apt update -qqy && apt install -qqy --no-install-recommends \
+    # apt update -qqy && apt upgrade -qqy && apt install -qqy \
         bash zsh \
     && yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" \
     && rm -rf /var/lib/apt/lists/*
 # see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
 # C++ toolchain
-RUN apt update -y && apt-get install -y --no-install-recommends \
-    libc6 libc6-dev libstdc++6 libc6-arm64-cross \
-    binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
+RUN apt update -qqy && apt install -qqy --no-install-recommends \
+        libc6 libc6-dev libstdc++6 libc6-arm64-cross            \
+        binutils-aarch64-linux-gnu binutils-powerpc64-linux-gnu
 
 # C++ toolchain: GNU/GCC
 COPY ./scripts/gcc.sh ${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh
 WORKDIR ${TOOLCHAIN_TMP_DIR}
 ARG GCC_VERSIONS='>=11'
-RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
-    echo -e "[C++ toolchain] Installing GCC_VERSIONS=[$GCC_VERSIONS] ..." ;\
-    chmod +x ${script_path} \
+RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh;                        \
+    echo -e "[C++ toolchain] Installing GCC_VERSIONS=[$GCC_VERSIONS] ..." ; \
+    chmod +x ${script_path}                                                 \
     && ${script_path} --silent=yes --alias=yes --versions="$GCC_VERSIONS"
 
 # C++ toolchain: LLVM/Clang (https://apt.llvm.org/)
 COPY ./scripts/llvm.sh ${TOOLCHAIN_TMP_DIR}/llvm.sh
 WORKDIR ${TOOLCHAIN_TMP_DIR}
 ARG LLVM_VERSIONS='>=14'
-RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh; \
-    echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;\
+RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh;                            \
+    echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;   \
     chmod +x ${script_path} \
     && ${script_path} --silent=yes --alias=yes --versions="$LLVM_VERSIONS"
 
 # Build: Build2-0.16.0 (depends on a compiler)
-# WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
+#   WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
 ARG integrate_Build2
 RUN if [[ ${integrate_Build2} = "y" ]]; then                                        \
         mkdir -p /tmp/build2-build && cd /tmp/build2-build                          \
@@ -128,18 +130,17 @@ RUN if [[ ${integrate_Build2} = "y" ]]; then                                    
     fi
 
 # Remote
-RUN apt-get update -y \
-    && apt install -y \
-        openssh-server rsync ssh \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir /var/run/sshd \
-    && useradd -ms /bin/bash vscodeuser \
-    && echo 'vscodeuser:password' | chpasswd \
+RUN apt update -qqy && apt install -qqy --no-install-recommends \
+        openssh-server rsync ssh                                \
+    && rm -rf /var/lib/apt/lists/*                              \
+    && mkdir /var/run/sshd                                      \
+    && useradd -ms /bin/bash vscodeuser                         \
+    && echo 'vscodeuser:password' | chpasswd                    \
     && echo 'root:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
     && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
-    && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config \
-    && mkdir -p /var/run/sshd \
+    && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config     \
+    && mkdir -p /var/run/sshd                                   \
     && service ssh stop
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
