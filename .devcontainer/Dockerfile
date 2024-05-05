@@ -113,7 +113,7 @@ RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh;                        \
 COPY ./scripts/llvm.sh ${TOOLCHAIN_TMP_DIR}/llvm.sh
 WORKDIR ${TOOLCHAIN_TMP_DIR}
 ARG LLVM_VERSIONS='>=14'
-RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh;                            \
+RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh;                           \
     echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;   \
     chmod +x ${script_path} \
     && ${script_path} --silent=yes --alias=yes --versions="$LLVM_VERSIONS"
