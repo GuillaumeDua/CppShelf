@@ -20,6 +20,8 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         build-essential pkg-config                          \
         # build: CMake generators
         make ninja-build                                    \
+        # build: cache
+        ccache                                              \
         # versioning
         git subversion                                      \
         # dev: heavy libraries
@@ -110,13 +112,13 @@ RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/gcc.sh;                        \
     && ${script_path} --silent=yes --alias=yes --versions="$GCC_VERSIONS"
 
 # C++ toolchain: LLVM/Clang (https://apt.llvm.org/)
-COPY ./scripts/llvm.sh ${TOOLCHAIN_TMP_DIR}/llvm.sh
+COPY ./scripts/llvm.sh ${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh
 WORKDIR ${TOOLCHAIN_TMP_DIR}
 ARG LLVM_VERSIONS='>=14'
 RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh;                           \
     echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;   \
-    chmod +x ${script_path} \
-    && ${script_path} --silent=yes --alias=yes --versions="$LLVM_VERSIONS"
+    chmod +x ${script_path}                                                     \
+    && ${script_path} --silent=no --alias=yes --versions="$LLVM_VERSIONS"
 
 # Build: Build2-0.16.0 (depends on a compiler)
 #   WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
