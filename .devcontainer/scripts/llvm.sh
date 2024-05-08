@@ -46,6 +46,9 @@ error(){
     echo -e "[${this_script_name}]: $@" >> /dev/stderr
     clean; exit 1
 }
+warning(){
+    echo -e "[${this_script_name}]: $@" >> /dev/stderr
+}
 log(){
     if [[ "${arg_silent}" == 1 ]]; then
         return 0;
@@ -210,12 +213,8 @@ log "LLVM version(s) to be installed: [${llvm_versions}]"
 # --- clean update-alternatives ---
 sudo rm -rf /etc/alternatives/clang* /etc/alternatives/llvm-symbolizer /etc/alternatives/lldb
 sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-symbolizer /var/lib/dpkg/alternatives/lldb
-# --- installations ---
-# > /dev/null 2>&1
-yes '' | ./${internal_script_path} $llvm_versions all  \
-    || error "running [${external_script_url} ${llvm_versions} all] failed"
 
-mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
+# --- installations ---
 
 # for version in "${llvm_versions_to_install[@]}"; do
 #     add-apt-repository -y \
@@ -223,17 +222,27 @@ mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 #         > /dev/null                                         \
 #     || error "adding apt-repository for [${version}] failed"
 # done
+# apt update -qqy
 
-apt update -qqy
+# quick-fix: Ubuntu-24.04-noble not fully supported yet, switching to Ubuntu-22.04-jammy
+codename=$(lsb_release -cs)
+if [ "${codename}" = "noble" ]; then
+    warning "codename=[${codename}] is not supported yet, switching to [jammy]"
+    codename="jammy"
+fi
 
+mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
+    yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
+    || error "running [${external_script_url} ${version} all] failed"
+
     # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
-    apt install -qq -y --no-install-recommends \
-        clang-format-${version} \
-        clang-tidy-${version}   \
-        lldb-${version}         \
-    || error "installation of [${version}] (tools) failed"
+    # apt install -qq -y --no-install-recommends \
+    #     clang-format-${version} \
+    #     clang-tidy-${version}   \
+    #     lldb-${version}         \
+    # || error "installation of [${version}] (tools) failed"
     # clang and clang-tools
     update-alternatives --quiet                                                                                             \
         --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \

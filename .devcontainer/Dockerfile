@@ -45,11 +45,12 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
 # -------------
 
 # Build: CMake (https://apt.kitware.com/)
-#   "jammy" instead of $(lsb_release -cs) -> kitware-archive.sh supports only Ubuntu releases up to Jammy
+#   quick-fix: Ubuntu-22.04-jammy instead of Ubuntu-24.04-noble -> kitware-archive.sh supports only Ubuntu releases up to Ubuntu-22.04-jammy
 RUN internal_script_path='impl.sh'; \
+    codename=$(value=$(lsb_release -cs); [[ "${value}" == "noble" ]] && value="jammy"; echo "${value}"); \
     wget -qO ${internal_script_path} https://apt.kitware.com/kitware-archive.sh \
     && chmod +x "${internal_script_path}" \
-    && ./${internal_script_path} --release jammy \
+    && ./${internal_script_path} --release ${codename} \
     && rm  -rf ${internal_script_path}
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
@@ -118,7 +119,7 @@ ARG LLVM_VERSIONS='>=14'
 RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh;                           \
     echo -e "[C++ toolchain] Installing LLVM_VERSIONS=[$LLVM_VERSIONS] ..." ;   \
     chmod +x ${script_path}                                                     \
-    && ${script_path} --silent=no --alias=yes --versions="$LLVM_VERSIONS"
+    && ${script_path} --silent=yes --alias=yes --versions="$LLVM_VERSIONS"
 
 # Build: Build2-0.16.0 (depends on a compiler)
 #   WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
