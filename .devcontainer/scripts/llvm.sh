@@ -15,6 +15,8 @@ arg_list=0
 arg_silent=1
 arg_alias=0
 
+internal_script_path='impl.sh'
+
 help(){
     echo "Usage: ${this_script_name}" 1>&2
     echo "
@@ -35,15 +37,21 @@ help(){
         " 1>&2
     exit 0
 }
+clean(){
+    if [ -f "${internal_script_path}" ]; then
+        rm -rf "${internal_script_path}"
+    fi
+}
 error(){
     echo -e "[${this_script_name}]: $@" >> /dev/stderr
-    exit 1
+    clean; exit 1
 }
 log(){
     if [[ "${arg_silent}" == 1 ]]; then
         return 0;
     fi
     echo -e "[${this_script_name}]: $@"
+    return 0
 }
 to_boolean(){
     if [[ $# != 1 ]]; then
@@ -63,8 +71,7 @@ to_boolean(){
 # --- precondition: sudoer ---
 
 if [ "$EUID" -ne 0 ]; then
-  error "Requires root privileges"
-  exit 1
+    error "Requires root privileges"
 fi
 
 # --- options management ---
@@ -133,9 +140,9 @@ fi
 #   wget https://apt.llvm.org/llvm-snapshot.gpg.key
 #   sudo apt-key add llvm-snapshot.gpg.key
 
-internal_script_path='impl.sh'
 if [ -f "${internal_script_path}" ]; then
-    rm "${internal_script_path}"
+    echo -e "temporary file [${internal_script_path}] already exists" >> /dev/stderr # not using error to avoid deleting the file
+    exit 1
 fi
 
 external_script_url='https://apt.llvm.org/llvm.sh'
@@ -148,7 +155,6 @@ wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --bat
     && chmod +x "${internal_script_path}"
 if [ $? != 0 ] || [ ! -f "${internal_script_path}" ]; then
     error "fetching [${external_script_url}] failed"
-    exit 1
 fi
 
 # --- list versions ---
@@ -175,7 +181,6 @@ elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
     log "using user-provided rule: >=[$from_version]"
     if [ -z "$from_version" ]; then
         error "invalid version='>=[0-9]+' value"
-        exit 1
     fi
     llvm_versions=$(echo "$all_llvm_versions_available" | awk "\$1 >= ${from_version}")
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
@@ -183,23 +188,21 @@ elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     llvm_versions="${arg_versions}"
 elif [ ! -z "$arg_versions" ]; then
     error "invalid value for argument version [${arg_versions}]"
-    exit 1
 fi
 
 if [ -z "$llvm_versions" ]; then
     log "empty versions range, nothing to do"
     echo -e "$(list_installed_llvm_versions)" # result for the caller
-    exit 0
+    clean; exit 0
 fi
 if [[ ! $(echo -n $llvm_versions) =~  ^[0-9]+( [0-9]+)*$ ]]; then
     error "invalid versions range: [$llvm_versions]"
-    exit 1
 fi
 
 ## --- list mod ? ---
 if [[ ${arg_list} == 1 ]]; then
     echo -e "${llvm_versions}"
-    exit 0
+    clean; exit 0
 fi
 
 log "LLVM version(s) to be installed: [${llvm_versions}]"
@@ -208,22 +211,20 @@ log "LLVM version(s) to be installed: [${llvm_versions}]"
 sudo rm -rf /etc/alternatives/clang* /etc/alternatives/llvm-symbolizer /etc/alternatives/lldb
 sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-symbolizer /var/lib/dpkg/alternatives/lldb
 # --- installations ---
-yes '' | ./${internal_script_path} $llvm_versions all \
-    > /dev/null 2>&1 \
+# > /dev/null 2>&1
+yes '' | ./${internal_script_path} $llvm_versions all  \
     || error "running [${external_script_url} ${llvm_versions} all] failed"
-sudo rm -rf ${internal_script_path}
 
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 
-for version in "${llvm_versions_to_install[@]}"; do
-    add-apt-repository -y \
-        deb http://apt.llvm.org/$(lsb_release -cs)/         \
-        llvm-toolchain-$(lsb_release -cs)-${version} main   \
-        > /dev/null                                         \
-    || error "adding apt-repository for [${version}] failed"
-done
+# for version in "${llvm_versions_to_install[@]}"; do
+#     add-apt-repository -y \
+#         "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${version}" main   \
+#         > /dev/null                                         \
+#     || error "adding apt-repository for [${version}] failed"
+# done
 
-apt update -qy
+apt update -qqy
 
 for version in "${llvm_versions_to_install[@]}"; do
 
