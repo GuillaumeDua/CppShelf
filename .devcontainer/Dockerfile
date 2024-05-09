@@ -56,7 +56,7 @@ RUN internal_script_path='impl.sh'; \
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG OPT_IN_INTEGRATE_BAZEL='no'
-RUN if [[ ${OPT_IN_INTEGRATE_BAZEL} = "y" ]]; then                             \
+RUN if [[ "${OPT_IN_INTEGRATE_BAZEL}" = "y" ]]; then                             \
         apt update -qqy && apt install -qqy --no-install-recommends     \
             apt-transport-https curl gnupg                              \
         && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
@@ -124,7 +124,7 @@ RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh;                           
 # Build: Build2-0.16.0 (depends on a compiler)
 #   WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
 ARG OPT_IN_INTEGRATE_BUILD2='no'
-RUN if [[ ${OPT_IN_INTEGRATE_BUILD2} = "y" ]]; then                                        \
+RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                                        \
         mkdir -p /tmp/build2-build && cd /tmp/build2-build                          \
         && curl -sSfO https://download.build2.org/0.16.0/build2-install-0.16.0.sh   \
         && echo '4d2babfaff6d0412e0ab61a3d3c68a87de54c0779254d62f4569b44a56c6ea08 *build2-install-0.16.0.sh' | shasum -a 256 -c \
@@ -139,7 +139,9 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
     && mkdir /var/run/sshd                                      \
     && useradd -ms /bin/bash vscodeuser                         \
     && echo 'vscodeuser:password' | chpasswd                    \
-    && echo 'root:password' | chpasswd
+    && echo 'root:password' | chpasswd                          \
+    && adduser vscodeuser sudo                                  \
+    && echo 'vscodeuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
     && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
     && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config     \
@@ -155,12 +157,3 @@ RUN apt clean \
 
 # CMD ["zsh"]
 # ENTRYPOINT ["zsh"]
-
-# Cleanup
-
-# QUESTION: ENV for CI -> gcc latest, clang latest ? or rely on alternative-updates ?
-
-# ---
-# docker compose:
-# - allow mounting sources
-# - allow remote: ssh + rsync connection
