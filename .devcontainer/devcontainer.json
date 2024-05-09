@@ -5,16 +5,28 @@
     "service": "cpp-toolchain-dev",
     "workspaceFolder": "/workspace",
     "remoteUser": "vscodeuser",
+    "features": {
+        "git": "os-provided",
+        "sshd": "latest"
+    },
     "customizations": {
         "vscode": {
             "settings": {
                 "terminal.integrated.shell.linux": "/bin/bash",
                 "remote.SSH.showLoginTerminal": true
-            }
+            },
+            "extensions": [
+                "ms-vscode.cpptools",
+                "twxs.cmake",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ms-vscode.cmake-tools",
+                "Gruntfuggly.todo-tree",
+                "enkia.tokyo-night"
+            ]
         },
-        "extensions": [
-            "ms-vscode.cpptools"
-        ]
+        "postCreateCommand": {
+            "git-safe-dir-workspace": "git config --global --add safe.directory /workspace"
+        }
     }
 }
 // features: https://github.com/devcontainers/features
