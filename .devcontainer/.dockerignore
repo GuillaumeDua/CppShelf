@@ -1,0 +1,4 @@
+# .dockerignore
+.cache
+.vscode
+build
