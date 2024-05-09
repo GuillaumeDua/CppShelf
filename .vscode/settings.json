@@ -2,15 +2,49 @@
 {
     "terminal.integrated.profiles.linux": {
         "zsh": {
-            "path": "/usr/bin/zsh"
+            "path": "/usr/bin/zsh",
+            "icon": "terminal"
         },
         "bash": {
-            "path": "/usr/bin/bash"
+            "path": "/usr/bin/bash",
+            "icon": "terminal-bash"
         }
     },
     "terminal.integrated.defaultProfile.linux": "zsh", 
     // "C_Cpp.errorSquiggles": "disabled",
     "debug.terminal.clearBeforeReusing": true,
-    "clang-tidy.buildPath": "./build/"
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.path": "/usr/bin/clangd",
+    "clangd.checkUpdates": true,
+    "clangd.arguments": [
+        "--enable-config",
+        "-log=verbose",
+        "-pretty",
+        "--background-index",
+        "-compile-commands-dir=${workspaceFolder}/build/",
+        "header-insertion=never"
+    ],
+    "clang-tidy.buildPath": "./build/",
     // "clang-tidy.buildPath": "${workspaceFolder}/build"
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureOnOpen": true,
+    "cmake.configureSettings": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_GENERATOR": "Ninja"
+    },
+    "cmake.options.statusBarVisibility": "compact",
+    "[cpp][c]": {
+        "editor.wordBasedSuggestions": "off",
+        "editor.suggest.insertMode": "replace",
+        "editor.semanticHighlighting.enabled": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.tabCompletion": "on",
+        "editor.detectIndentation": false
+    },
+    "files.associations": {
+        "*.h": "cpp",
+        "*.hpp": "cpp",
+        "*.cpp": "cpp",
+    },
 }
