@@ -47,4 +47,74 @@
         "*.hpp": "cpp",
         "*.cpp": "cpp",
     },
+    "todo-tree.general.tags": [
+        "BUG",
+        "WARNING",
+        "FIXME",
+        "TODO",
+        "WIP",
+        "REFACTO",
+        "QUICK-FIX",
+        "QUESTION",
+        "NOTE",
+        "TECH-DEBT"
+    ],
+    "todo-tree.highlights.useColourScheme": true,
+    "todo-tree.highlights.customHighlight": {
+        "BUG": {
+            "icon": "bug",
+            "iconColour": "#e94242",
+            "background": "#e94242",
+            "foreground": "#1a1b26"
+        },
+        "WARNING": {
+            "icon": "alert",
+            "iconColour": "#e0af68",
+            "background": "#e0af68",
+            "foreground": "#1a1b26"
+        },
+        "FIXME": {
+            "icon": "flame"
+        },
+        "WIP": {
+            "icon": "tools",
+            "iconColour": "#7aa2f7",
+            "background": "#7aa2f7",
+            "foreground": "#1a1b26"
+        },
+        "TODO": {
+            "icon": "hourglass",
+            "iconColour": "#9ece6a",
+            "background": "#9ece6a",
+            "foreground": "#1a1b26"
+        },
+        "REFACTO": {
+            "icon": "fold",
+            "iconColour": "#ff9e64",
+            "background": "#ff9e64",
+            "foreground": "#1a1b26"
+        },
+        "QUICK-FIX": {
+            "icon": "zap",
+            "iconColour": "#e0af68",
+            "background": "#e0af68",
+            "foreground": "#1a1b26"
+        },
+        "TECH-DEBT": {
+            "icon": "graph",
+            "iconColour": "#e94242",
+            "background": "#e94242",
+            "foreground": "#1a1b26"
+        },
+        "QUESTION": {
+            "icon": "question",
+            "iconColour": "#bb9af7",
+            "background": "#bb9af7"
+        },
+        "NOTE": {
+            "icon": "note",
+            "iconColour": "#2ac3de",
+            "background": "#2ac3de",
+        }
+    },
 }
