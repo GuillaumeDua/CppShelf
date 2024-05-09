@@ -2,7 +2,7 @@
     "name": "cppshelf - C++ development container",
     "dockerComposeFile": "docker-compose.yaml",
     // or image with a specific tag ?
-    "service": "cppdev",
+    "service": "cpp-toolchain-dev",
     "workspaceFolder": "/workspace",
     "remoteUser": "vscodeuser",
     "customizations": {

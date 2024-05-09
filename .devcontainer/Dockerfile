@@ -1,7 +1,8 @@
 # TODO: move to dedicated repo
 # TODO: build image on weekly basis
 
-FROM ubuntu:latest as cpp-build-toolchain
+ARG BASE_IMAGE=ubuntu:latest
+FROM ${BASE_IMAGE} as cpp-toolchain-dev
 ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"] 
 
@@ -54,8 +55,8 @@ RUN internal_script_path='impl.sh'; \
     && rm  -rf ${internal_script_path}
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
-ARG integrate_Bazel=
-RUN if [[ ${integrate_Bazel} = "y" ]]; then                             \
+ARG OPT_IN_INTEGRATE_BAZEL='no'
+RUN if [[ ${OPT_IN_INTEGRATE_BAZEL} = "y" ]]; then                             \
         apt update -qqy && apt install -qqy --no-install-recommends     \
             apt-transport-https curl gnupg                              \
         && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
@@ -86,11 +87,10 @@ RUN \
     && rm -rf /var/lib/apt/lists/*
 
 # TODO
-# Tooling: static analysis
-# Tooling: runtime analysis
+# - Tooling: static analysis
+# - Tooling: runtime analysis
 
-# Tooling: shells (bash, zsh, )
-# Tooling: zsh
+# Tooling: shells - bash, zsh
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
     # apt update -qqy && apt upgrade -qqy && apt install -qqy \
         bash zsh \
@@ -123,8 +123,8 @@ RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh;                           
 
 # Build: Build2-0.16.0 (depends on a compiler)
 #   WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
-ARG integrate_Build2
-RUN if [[ ${integrate_Build2} = "y" ]]; then                                        \
+ARG OPT_IN_INTEGRATE_BUILD2='no'
+RUN if [[ ${OPT_IN_INTEGRATE_BUILD2} = "y" ]]; then                                        \
         mkdir -p /tmp/build2-build && cd /tmp/build2-build                          \
         && curl -sSfO https://download.build2.org/0.16.0/build2-install-0.16.0.sh   \
         && echo '4d2babfaff6d0412e0ab61a3d3c68a87de54c0779254d62f4569b44a56c6ea08 *build2-install-0.16.0.sh' | shasum -a 256 -c \
