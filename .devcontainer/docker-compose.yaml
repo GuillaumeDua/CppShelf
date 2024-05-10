@@ -4,11 +4,11 @@ services:
   cpp-toolchain-dev:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
       args:
         BASE_IMAGE: 'ubuntu:latest'
-        GCC_VERSIONS: '>=11'
-        LLVM_VERSIONS: '>=16'
+        GCC_VERSIONS: '>=13'
+        LLVM_VERSIONS: '>=17'
         OPT_IN_INTEGRATE_BAZEL: no
         OPT_IN_INTEGRATE_BUILD2: no
     ports:

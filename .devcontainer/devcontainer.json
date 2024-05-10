@@ -1,6 +1,6 @@
 {
     "name": "cppshelf - C++ development container",
-    "dockerComposeFile": "docker-compose.yaml",
+    "dockerComposeFile": "./docker-compose.yaml",
     // or image with a specific tag ?
     "service": "cpp-toolchain-dev",
     "workspaceFolder": "/workspace",
@@ -16,6 +16,11 @@
                 "remote.SSH.showLoginTerminal": true
             },
             "extensions": [
+                "ms-vscode.remote-explorer",
+                "ms-vscode-remote.remote-ssh-edit",
+                "ms-vscode.remote-server",
+                "ms-vscode-remote.vscode-remote-extensionpack",
+                "ms-vscode-remote.remote-ssh",
                 "ms-vscode.cpptools",
                 "twxs.cmake",
                 "llvm-vs-code-extensions.vscode-clangd",
@@ -27,6 +32,8 @@
         "postCreateCommand": {
             "git-safe-dir-workspace": "git config --global --add safe.directory /workspace"
         }
-    }
+    },
+    "shutdownAction": "stopCompose",
+    "overrideCommand": true
 }
 // features: https://github.com/devcontainers/features
