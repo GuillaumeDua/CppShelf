@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   cpp-toolchain-dev:
+    user: vscodeuser
     build:
-      context: .
+      context: . # TODO: image with a specific tag
       dockerfile: ./Dockerfile
       args:
         BASE_IMAGE: 'ubuntu:latest'
@@ -15,3 +16,10 @@ services:
       - "2222:22"
     volumes:
       - ..:/workspace
+# Runs the service on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+network_mode: service:db
+# Required for ptrace-based debuggers like C++, Go, and Rust
+cap_add:
+- SYS_PTRACE
+security_opt:
+- seccomp:unconfined

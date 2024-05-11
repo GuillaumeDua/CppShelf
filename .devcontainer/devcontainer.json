@@ -1,10 +1,11 @@
 {
-    "name": "cppshelf - C++ development container",
+    "name": "cppshelf_devcontainer",
     "dockerComposeFile": "./docker-compose.yaml",
-    // or image with a specific tag ?
     "service": "cpp-toolchain-dev",
     "workspaceFolder": "/workspace",
     "remoteUser": "vscodeuser",
+    "shutdownAction": "stopCompose",
+    "overrideCommand": true,
     "features": {
         "git": "os-provided",
         "sshd": "latest"
@@ -32,8 +33,6 @@
         "postCreateCommand": {
             "git-safe-dir-workspace": "git config --global --add safe.directory /workspace"
         }
-    },
-    "shutdownAction": "stopCompose",
-    "overrideCommand": true
+    }
 }
 // features: https://github.com/devcontainers/features
