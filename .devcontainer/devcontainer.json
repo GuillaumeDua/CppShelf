@@ -13,21 +13,31 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "terminal.integrated.shell.linux": "/bin/bash",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": { "zsh": { "path": "/bin/zsh" } },
                 "remote.SSH.showLoginTerminal": true
             },
             "extensions": [
+                // remote
                 "ms-vscode.remote-explorer",
                 "ms-vscode-remote.remote-ssh-edit",
                 "ms-vscode.remote-server",
                 "ms-vscode-remote.vscode-remote-extensionpack",
                 "ms-vscode-remote.remote-ssh",
+                // dev
                 "ms-vscode.cpptools",
                 "twxs.cmake",
                 "llvm-vs-code-extensions.vscode-clangd",
                 "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools-extension-pack",
+                "fredericbonnet.cmake-test-adapter",
+                // misc
                 "Gruntfuggly.todo-tree",
-                "enkia.tokyo-night"
+                "enkia.tokyo-night",
+                // documentation
+                "DavidAnson.vscode-markdownlint",
+                "yzhang.markdown-all-in-one",
+                "cschlosser.doxdocgen"
             ]
         },
         "postCreateCommand": {

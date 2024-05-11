@@ -90,14 +90,6 @@ RUN \
 # - Tooling: static analysis
 # - Tooling: runtime analysis
 
-# Tooling: shells - bash, zsh
-RUN apt update -qqy && apt install -qqy --no-install-recommends \
-    # apt update -qqy && apt upgrade -qqy && apt install -qqy \
-        bash zsh \
-    && yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" \
-    && rm -rf /var/lib/apt/lists/*
-# see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
-
 # C++ toolchain
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
         libc6 libc6-dev libstdc++6 libc6-arm64-cross            \
@@ -132,7 +124,8 @@ RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                           
         ;                                                                           \
     fi
 
-# Remote
+# Users, remote
+# WIP: username as argument. default is same as host
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
         openssh-server rsync ssh                                \
     && rm -rf /var/lib/apt/lists/*                              \
@@ -147,6 +140,18 @@ RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/
     && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config     \
     && mkdir -p /var/run/sshd                                   \
     && service ssh stop
+
+# Tooling: shells - bash, zsh
+#   depends on users
+#   WIP: for vscodeuser
+RUN apt update -qqy && apt install -qqy --no-install-recommends \
+        bash zsh \
+    # && yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" \
+    # ZSH: Default powerline10k theme, no plugins installed
+    && yes | sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.5/zsh-in-docker.sh)" \
+    && rm -rf /var/lib/apt/lists/*
+# see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
+
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
 
