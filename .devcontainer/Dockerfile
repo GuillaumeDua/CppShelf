@@ -39,6 +39,7 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         # tools: others
         docker-compose jq                                   \
         ripgrep                                             \
+        mlocate                                             \
     && rm -rf /var/lib/apt/lists/*
 
 # -------------
@@ -116,7 +117,7 @@ RUN script_path=${TOOLCHAIN_TMP_DIR}/scripts/llvm.sh;                           
 # Build: Build2-0.16.0 (depends on a compiler)
 #   WIP: see https://github.com/r-sitko/cxx-modules-build2/blob/master/Dockerfile (fix yes-es)
 ARG OPT_IN_INTEGRATE_BUILD2='no'
-RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                                        \
+RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                               \
         mkdir -p /tmp/build2-build && cd /tmp/build2-build                          \
         && curl -sSfO https://download.build2.org/0.16.0/build2-install-0.16.0.sh   \
         && echo '4d2babfaff6d0412e0ab61a3d3c68a87de54c0779254d62f4569b44a56c6ea08 *build2-install-0.16.0.sh' | shasum -a 256 -c \
@@ -125,25 +126,35 @@ RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                           
     fi
 
 # Users, remote
-# WIP: username as argument. default is same as host
-RUN apt update -qqy && apt install -qqy --no-install-recommends \
-        openssh-server rsync ssh                                \
-    && rm -rf /var/lib/apt/lists/*                              \
-    && mkdir /var/run/sshd                                      \
-    && useradd -ms /bin/bash vscodeuser                         \
-    && echo 'vscodeuser:password' | chpasswd                    \
-    && echo 'root:password' | chpasswd                          \
-    && adduser vscodeuser sudo                                  \
-    && echo 'vscodeuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
-    && echo 'AllowUsers vscodeuser' >> /etc/ssh/sshd_config     \
-    && mkdir -p /var/run/sshd                                   \
+#   WIP: user with no password at all ?
+#   https://dev.to/emmanuelnk/using-sudo-without-password-prompt-as-non-root-docker-user-52bg
+ARG USER_NAME='vscodeuser'
+ARG USER_PASSWORD=''
+RUN apt update -qqy && apt install -qqy --no-install-recommends                 \
+        openssh-server rsync ssh                                                \
+    && rm -rf /var/lib/apt/lists/*                                              \
+    && mkdir /var/run/sshd                                                      \
+    && if [[ -z "${USER_NAME}" ]]; then                                         \
+        echo "Adding user [${USER_NAME}] with password [${USER_PASSWORD}] ..."  \
+        && useradd -ms /bin/bash ${USER_NAME}                                   \
+        && echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd                      \
+        && echo 'root:password' | chpasswd                                      \
+        && adduser ${USER_NAME} sudo                                            \
+        && echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers           \
+    ;                                                                           \
+    fi
+
+RUN    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config  \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config  \
+    && [[ -z "${USER_NAME}" ]]                                                                  \
+        && echo "No ARG [USER_NAME] provided"                                                   \
+        || echo "AllowUsers ${USER_NAME}" >> /etc/ssh/sshd_config                               \
+    && mkdir -p /var/run/sshd                                                                   \
     && service ssh stop
 
 # Tooling: shells - bash, zsh
 #   depends on users
-#   WIP: for vscodeuser
+#   WIP: for ${USER_NAME}
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
         bash zsh \
     # && yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" \

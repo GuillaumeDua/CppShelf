@@ -2,16 +2,21 @@ version: '3.8'
 
 services:
   cpp-toolchain-dev:
-    user: vscodeuser
+    environment:
+      - USER_NAME=vscodeuser
+    user: ${USER_NAME}
     build:
       context: . # TODO: image with a specific tag
       dockerfile: ./Dockerfile
       args:
         BASE_IMAGE: 'ubuntu:latest'
+        USER_NAME: ${USER_NAME}
+        USER_PASSWORD: 'password'
         GCC_VERSIONS: '>=13'
         LLVM_VERSIONS: '>=17'
         OPT_IN_INTEGRATE_BAZEL: no
         OPT_IN_INTEGRATE_BUILD2: no
+
     ports:
       - "2222:22"
     volumes:
