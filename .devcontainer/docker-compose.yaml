@@ -22,6 +22,8 @@ services:
     volumes:
       - ..:/workspace
     # git
+    #   WIP: commit as USERNAME in container
+    #     ssh-keygen -f '/home/vscodeuser/.ssh/known_hosts' -R 'github.com'
     command:
       sh -c "git config --global --add safe.directory /workspace"
     # network_mode: host
