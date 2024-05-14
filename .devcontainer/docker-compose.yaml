@@ -21,6 +21,7 @@ services:
       - "2222:22"
     volumes:
       - ..:/workspace
+      - ssh_config:/home/${USER_NAME}/.ssh/config
     # git
     #   WIP: commit as USERNAME in container
     #     ssh-keygen -f '/home/vscodeuser/.ssh/known_hosts' -R 'github.com'
