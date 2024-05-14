@@ -4,12 +4,12 @@ services:
   cpp-toolchain-dev:
     environment:
       - USER_NAME=vscodeuser
-    user: ${USER_NAME}
+    # user: ${USER_NAME}
     build:
       context: . # TODO: image with a specific tag
       dockerfile: ./Dockerfile
       args:
-        BASE_IMAGE: 'ubuntu:latest'
+        BASE_IMAGE: 'ubuntu:jammy' # llvm.sh is failing for now on noble (24.04)
         USER_NAME: ${USER_NAME}
         USER_PASSWORD: 'password'
         GCC_VERSIONS: '>=13'
@@ -21,7 +21,7 @@ services:
       - "2222:22"
     volumes:
       - ..:/workspace
-      - ssh_config:/home/${USER_NAME}/.ssh/config
+      - ./ssh_config:/home/${USER_NAME}/.ssh/config
     # git
     #   WIP: commit as USERNAME in container
     #     ssh-keygen -f '/home/vscodeuser/.ssh/known_hosts' -R 'github.com'

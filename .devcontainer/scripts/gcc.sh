@@ -159,7 +159,7 @@ elif [ ! -z "$arg_versions" ]; then
 fi
 
 if [ -z "$gcc_versions" ]; then
-    error "empty versions range, nothing to do"
+    error "empty request versions range [${gcc_versions}] , nothing to do. Available versions: [${all_gcc_versions_available}], requested versions: [${arg_versions}](${from_version})"
     echo -e "$(list_installed_gcc_versions)" # result for the caller
     exit 0
 fi

@@ -1,0 +1,45 @@
+=> [cpp-toolchain-dev] preparing layers for inline cache                  3.9s
+ => [cpp-toolchain-dev] exporting to image                                 0.0s
+ => => exporting layers                                                    0.0s
+ => => writing image sha256:838a54f5495ecd9e088c9068f0a1b73049988a10e73f7  0.0s
+ => => naming to docker.io/library/cppshelf_devcontainer-cpp-toolchain-de  0.0s
+[559528 ms] Docker Compose override file for creating container:
+version: '3.8'
+
+services:
+  'cpp-toolchain-dev':
+    entrypoint: ["/bin/sh", "-c", "echo Container started\n
+trap \"exit 0\" 15\n
+/usr/local/share/ssh-init.sh\n
+exec \"$$@\"\n
+while sleep 1 & wait $$!; do :; done", "-"]
+    command: []
+    labels:
+      - 'devcontainer.local_folder=c:\DEV\PROJECTS\cpp\CppShelf'
+      - 'devcontainer.config_file=c:\DEV\PROJECTS\cpp\CppShelf\.devcontainer\devcontainer.json'
+    volumes:
+      - vscode:/vscode
+      - \\wsl.localhost\Ubuntu-22.04\mnt\wslg\runtime-dir\wayland-0:/tmp/vscode-wayland-08f91df4-df50-4020-b664-9b3ede156cab.sock
+volumes:
+  
+  vscode:
+    external: true
+[559528 ms] Writing docker-compose.devcontainer.containerFeatures-1715711578435-3a1ce96c-25f3-412f-8c4f-16db3ec0ad8c.yml to c:\Users\Guss\AppData\Roaming\Code\User\globalStorage\ms-vscode-remote.remote-containers\data\docker-compose
+[559530 ms] Start: Run: docker-compose --project-name cppshelf_devcontainer -f c:\DEV\PROJECTS\cpp\CppShelf\.devcontainer\docker-compose.yaml -f c:\Users\Guss\AppData\Roaming\Code\User\globalStorage\ms-vscode-remote.remote-containers\data\docker-compose\docker-compose.devcontainer.build-1715711024655.yml -f c:\Users\Guss\AppData\Roaming\Code\User\globalStorage\ms-vscode-remote.remote-containers\data\docker-compose\docker-compose.devcontainer.containerFeatures-1715711578435-3a1ce96c-25f3-412f-8c4f-16db3ec0ad8c.yml up -d
+
+[+] Running 0/2
+ - Network cppshelf_devcontainer_default                Created            0.5s
+ - Container cppshelf_devcontainer-cpp-toolchain-dev-1  Starting           0.4s
+Error response from daemon: unable to find user vscodeuser: no matching entries
+in passwd file
+[560551 ms] Error: Command failed: docker-compose --project-name cppshelf_devcontainer -f c:\DEV\PROJECTS\cpp\CppShelf\.devcontainer\docker-compose.yaml -f c:\Users\Guss\AppData\Roaming\Code\User\globalStorage\ms-vscode-remote.remote-containers\data\docker-compose\docker-compose.devcontainer.build-1715711024655.yml -f c:\Users\Guss\AppData\Roaming\Code\User\globalStorage\ms-vscode-remote.remote-containers\data\docker-compose\docker-compose.devcontainer.containerFeatures-1715711578435-3a1ce96c-25f3-412f-8c4f-16db3ec0ad8c.yml up -d
+[560551 ms]     at QtA (c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js:429:3379)
+[560551 ms]     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[560551 ms]     at async utA (c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js:409:3486)
+[560551 ms]     at async KtA (c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js:481:3865)
+[560552 ms]     at async $C (c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js:481:4807)
+[560552 ms]     at async hrA (c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js:661:13255)
+[560552 ms]     at async lrA (c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js:661:12996)
+[560563 ms] Exit code 1
+[560566 ms] Command failed: C:\DEV\TOOLS\VisualCode\Code.exe c:\Users\Guss\.vscode\extensions\ms-vscode-remote.remote-containers-0.362.0\dist\spec-node\devContainersSpecCLI.js up --user-data-folder c:\Users\Guss\AppData\Roaming\Code\User\globalStorage\ms-vscode-remote.remote-containers\data --container-session-data-folder /tmp/devcontainers-77cfa45c-26bc-49b2-8711-f28d492105751715711018453 --workspace-folder c:\DEV\PROJECTS\cpp\CppShelf --workspace-mount-consistency cached --id-label devcontainer.local_folder=c:\DEV\PROJECTS\cpp\CppShelf --id-label devcontainer.config_file=c:\DEV\PROJECTS\cpp\CppShelf\.devcontainer\devcontainer.json --log-level debug --log-format json --config c:\DEV\PROJECTS\cpp\CppShelf\.devcontainer\devcontainer.json --default-user-env-probe loginInteractiveShell --mount type=volume,source=vscode,target=/vscode,external=true --mount type=bind,source=\\wsl.localhost\Ubuntu-22.04\mnt\wslg\runtime-dir\wayland-0,target=/tmp/vscode-wayland-08f91df4-df50-4020-b664-9b3ede156cab.sock --skip-post-create --update-remote-user-uid-default on --mount-workspace-git-root
+[560567 ms] Exit code 1

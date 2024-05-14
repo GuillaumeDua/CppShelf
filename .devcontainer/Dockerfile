@@ -12,8 +12,8 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
         python3 pip                                         \
-#   && add-apt-repository ppa:ubuntu-toolchain-r/test       \
-#   && apt update -qqy && apt install -qqy --no-install-recommends \
+   && add-apt-repository ppa:ubuntu-toolchain-r/test        \
+   && apt update -qqy && apt install -qqy --no-install-recommends \
         # remote
         wget ssh                                            \
         sudo tzdata curl libssl-dev                         \
@@ -39,7 +39,7 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         # tools: others
         docker-compose jq                                   \
         ripgrep                                             \
-        mlocate                                             \
+        # mlocate                                           \ # error: Unable to locate package mlocate :shrug:
     && rm -rf /var/lib/apt/lists/*
 
 # -------------
@@ -84,7 +84,8 @@ RUN \
     #   work-around for pip "error: externally-managed-environment"
     apt update -qqy && apt install -qqy --no-install-recommends \
         pipx                                                    \
-    && pipx install --quiet conan                               \
+    # && pipx --quiet install conan                             \ # this feature is not released yet
+    && (pipx install conan > /dev/null 2>&1)                    \
     && rm -rf /var/lib/apt/lists/*
 
 # TODO
@@ -154,6 +155,7 @@ RUN    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/s
 
 # Tooling: shells - bash, zsh
 #   depends on users
+# USER ${USER_NAME}
 #   WIP: for ${USER_NAME}
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
         bash zsh \
