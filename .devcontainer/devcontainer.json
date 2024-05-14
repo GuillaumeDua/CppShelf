@@ -3,7 +3,7 @@
     "dockerComposeFile": "./docker-compose.yaml",
     "service": "cpp-toolchain-dev",
     "workspaceFolder": "/workspace",
-    "remoteUser": "vscodeuser",
+    // "remoteUser": "vscodeuser",
     "shutdownAction": "stopCompose",
     "overrideCommand": true,
     "features": {
@@ -39,6 +39,7 @@
         },
         "postCreateCommand": {
             "git-safe-dir-workspace": "git config --global --add safe.directory /workspace"
+            
         }
     }
 }

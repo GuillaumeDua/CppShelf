@@ -129,34 +129,33 @@ RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                           
 # Users, remote
 #   WIP: user with no password at all ?
 #   https://dev.to/emmanuelnk/using-sudo-without-password-prompt-as-non-root-docker-user-52bg
-ARG USER_NAME='vscodeuser'
-ARG USER_PASSWORD=''
-RUN apt update -qqy && apt install -qqy --no-install-recommends                 \
-        openssh-server rsync ssh                                                \
-    && rm -rf /var/lib/apt/lists/*                                              \
-    && mkdir /var/run/sshd                                                      \
-    && if [[ -z "${USER_NAME}" ]]; then                                         \
-        echo "Adding user [${USER_NAME}] with password [${USER_PASSWORD}] ..."  \
-        && useradd -ms /bin/bash ${USER_NAME}                                   \
-        && echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd                      \
-        && echo 'root:password' | chpasswd                                      \
-        && adduser ${USER_NAME} sudo                                            \
-        && echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers           \
-    ;                                                                           \
-    fi
+ARG REMOTE_USER_NAME='vscodeuser'
+ARG REMOTE_USER_PASSWORD=''
+RUN apt update -qqy && apt install -qqy --no-install-recommends                                 \
+        openssh-server rsync ssh                                                                \
+    && rm -rf /var/lib/apt/lists/*                                                              \
+    && mkdir /var/run/sshd                                                                      \
+    && [[ -z "${REMOTE_USER_NAME}" ]]                                                           \
+        && echo "No REMOTE_USER_NAME provided, skipping user creation..."                       \
+        || (                                                                                    \
+            echo "Adding user [${REMOTE_USER_NAME}] with password [${REMOTE_USER_PASSWORD}] ..."\
+            && useradd -ms /bin/bash ${REMOTE_USER_NAME}                                        \
+            && echo "${REMOTE_USER_NAME}:${REMOTE_USER_PASSWORD}" | chpasswd                    \
+            && echo 'root:password' | chpasswd                                                  \
+            && adduser ${REMOTE_USER_NAME} sudo                                                 \
+            && echo "${REMOTE_USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                \
+        )
 
 RUN    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config  \
     && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config  \
-    && [[ -z "${USER_NAME}" ]]                                                                  \
-        && echo "No ARG [USER_NAME] provided"                                                   \
-        || echo "AllowUsers ${USER_NAME}" >> /etc/ssh/sshd_config                               \
+    && [[ -z "${REMOTE_USER_NAME}" ]]                                                           \
+        && echo "No ARG [REMOTE_USER_NAME] provided"                                            \
+        || echo "AllowUsers ${REMOTE_USER_NAME}" >> /etc/ssh/sshd_config                        \
     && mkdir -p /var/run/sshd                                                                   \
     && service ssh stop
 
 # Tooling: shells - bash, zsh
-#   depends on users
-# USER ${USER_NAME}
-#   WIP: for ${USER_NAME}
+# TODO: for all users
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
         bash zsh \
     # && yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" \
