@@ -10,13 +10,15 @@ services:
       dockerfile: ./Dockerfile
       args:
         BASE_IMAGE: 'ubuntu:jammy' # llvm.sh is failing for now on noble (24.04)
-        REMOTE_USER_NAME: ${REMOTE_USER_NAME}
-        REMOTE_USER_PASSWORD: ${REMOTE_USER_PASSWORD}
+        REMOTE_USER_NAME: root
+        REMOTE_USER_PASSWORD: 
         GCC_VERSIONS: '>=13'
         LLVM_VERSIONS: '>=17'
         OPT_IN_INTEGRATE_BAZEL: no
         OPT_IN_INTEGRATE_BUILD2: no
-
+      ssh:
+        - default
+        # On Windows PowerShell (admin):
     ports:
       - "2222:22"
     volumes:

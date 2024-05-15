@@ -9,6 +9,7 @@
     "features": {
         "git": "os-provided",
         "sshd": "latest"
+        // see https://github.com/devcontainers/features/tree/main/src
     },
     "customizations": {
         "vscode": {
