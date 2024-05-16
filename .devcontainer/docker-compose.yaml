@@ -16,9 +16,8 @@ services:
         LLVM_VERSIONS: '>=17'
         OPT_IN_INTEGRATE_BAZEL: no
         OPT_IN_INTEGRATE_BUILD2: no
-      ssh:
+      ssh: # requires ssh-agent service running on host
         - default
-        # On Windows PowerShell (admin):
     ports:
       - "2222:22"
     volumes:

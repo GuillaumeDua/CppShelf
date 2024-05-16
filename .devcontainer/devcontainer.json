@@ -7,9 +7,9 @@
     "shutdownAction": "stopCompose",
     "overrideCommand": true,
     "features": {
-        "git": "os-provided",
-        "sshd": "latest"
         // see https://github.com/devcontainers/features/tree/main/src
+        "ghcr.io/devcontainers/features/git:1": {}, // "git": "os-provided",
+        "ghcr.io/devcontainers/features/sshd:1": {} // "sshd": "latest"
     },
     "customizations": {
         "vscode": {
