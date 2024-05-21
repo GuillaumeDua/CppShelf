@@ -168,7 +168,7 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 # see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
-EXPOSE 22
+# EXPOSE 22
 # CMD ["/usr/sbin/sshd", "-D"]
 
 # Cleanup

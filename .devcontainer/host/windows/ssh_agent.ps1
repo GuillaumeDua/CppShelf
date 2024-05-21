@@ -24,3 +24,5 @@ if ((Get-Service -Name ssh-agent).Status -ne "Running"){
 else {
     Write-Output "[$PSScriptRoot] Service [ssh-agent] is always running"
 }
+
+# start-ssh-agent

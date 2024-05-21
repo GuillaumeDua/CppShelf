@@ -3,6 +3,7 @@ version: '3.8'
 services:
   cpp-toolchain-dev:
     # environment:
+    #   SSH_AUTH_SOCK: $SSH_AUTH_SOCK
     #   - USER_NAME=vscodeuser
     # user: ${USER_NAME}
     build:
@@ -22,6 +23,7 @@ services:
       - "2222:22"
     volumes:
       - ..:/workspace
+      # - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
     # - ./ssh_config:/home/${USER_NAME}/.ssh/config
     # git
     #   WIP: commit as USERNAME in container
@@ -34,3 +36,5 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
+    #post-create command : gh support - https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+    # curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >> ~/.ssh/known_hosts
