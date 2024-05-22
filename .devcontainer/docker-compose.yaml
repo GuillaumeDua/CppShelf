@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   cpp-toolchain-dev:
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
     # environment:
     #   SSH_AUTH_SOCK: $SSH_AUTH_SOCK
     #   - USER_NAME=vscodeuser
