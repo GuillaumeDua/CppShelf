@@ -1,17 +1,10 @@
 #pragma once
 
-#if not __cplusplus >= 201703L
-# error "csl::ensure: csl/cxx17/ensure.hpp requires C++17"
-#endif
-#if __cplusplus >= 202002L
-# warning "csl::ensure: C++20 available, consider using csl/cxx20/ensure.hpp"
-#endif
-
 #include <type_traits>
 #include <utility>
 #include <functional>
 
-#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ensure::details::mp {
 #if defined(__cpp_lib_type_identity)
@@ -37,14 +30,7 @@ namespace csl::ensure::details::mp::type_traits {
     template <class T, typename ... args_ts>
     struct is_aggregate_constructible : impl::is_aggregate_constructible_impl<T, void, args_ts...>{};
     template <class T, typename ... args_ts>
-    constexpr inline static bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
-
-    template <typename T, typename = void>
-    struct is_hashable : std::false_type {};
-    template <typename T>
-    struct is_hashable<T, std::void_t<decltype(std::hash<T>{})>> : std::true_type{};
-    template <typename T>
-    constexpr inline static bool is_hashable_v = is_hashable<T>::value;
+    constexpr bool is_aggregate_constructible_v = is_aggregate_constructible<T, args_ts...>::value;
 }
 namespace csl::ensure::details::mp::type_traits::comparison {
     // is_equality_comparable_with
@@ -55,13 +41,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() == std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() == std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline static bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
+    constexpr bool is_equality_comparable_with_v = is_equality_comparable_with<T, U>::value;
 
     // operator==
     template <class T>
     struct is_equality_comparable : is_equality_comparable_with<T, T> {};
     template <typename T>
-    constexpr inline static bool is_equality_comparable_v = is_equality_comparable<T>::value;
+    constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
 
     // is_not_equality_comparable_with
     template <class, class, class = void>
@@ -71,13 +57,13 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() not_eq std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() not_eq std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline static bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
+    constexpr bool is_not_equality_comparable_with_v = is_not_equality_comparable_with<T, U>::value;
 
     // operator not_eq
     template <class T>
     struct is_not_equality_comparable : is_not_equality_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline static bool is_not_equality_comparable_v = is_not_equality_comparable<T>::value;
+    constexpr bool is_not_equality_comparable_v = is_not_equality_comparable<T>::value;
 
     // is_less_than_comparable_with
     template <class, class, class = void>
@@ -87,29 +73,29 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() < std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() < std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline static bool is_less_than_comparable_with_v = is_less_than_comparable_with<T, U>::value;
+    constexpr bool is_less_than_comparable_with_v = is_less_than_comparable_with<T, U>::value;
 
     // operator <
     template <class T>
     struct is_less_than_comparable : is_less_than_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline static bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
+    constexpr bool is_less_than_comparable_v = is_less_than_comparable<T>::value;
 
-    // is_greater_than_comparable_with
+    // is_more_than_comparable_with
     template <class, class, class = void>
-    struct is_greater_than_comparable_with : std::false_type {};
+    struct is_more_than_comparable_with : std::false_type {};
     template <class T, class U>
-    struct is_greater_than_comparable_with<T, U, std::void_t<
+    struct is_more_than_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() > std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() > std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline static bool is_greater_than_comparable_with_v = is_greater_than_comparable_with<T, U>::value;
+    constexpr bool is_more_than_comparable_with_v = is_more_than_comparable_with<T, U>::value;
 
     // operator >
     template <class T>
-    struct is_greater_than_comparable : is_greater_than_comparable_with<T, T>{};
+    struct is_more_than_comparable : is_more_than_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline static bool is_greater_than_comparable_v = is_greater_than_comparable<T>::value;
+    constexpr bool is_more_than_comparable_v = is_more_than_comparable<T>::value;
 
     // is_less_equal_comparable
     template <class, class, class = void>
@@ -119,29 +105,29 @@ namespace csl::ensure::details::mp::type_traits::comparison {
         decltype(std::declval<const T&>() <= std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() <= std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline static bool is_less_equal_comparable_with_v = is_less_equal_comparable_with<T, U>::value;
+    constexpr bool is_less_equal_comparable_with_v = is_less_equal_comparable_with<T, U>::value;
 
     // operator <=
     template <class T>
     struct is_less_equal_comparable : is_less_equal_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline static bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
+    constexpr bool is_less_equal_comparable_v = is_less_equal_comparable<T>::value;
 
-    // is_greater_equal_comparable
+    // is_more_equal_comparable
     template <class, class, class = void>
-    struct is_greater_equal_comparable_with : std::false_type {};
+    struct is_more_equal_comparable_with : std::false_type {};
     template <class T, class U>
-    struct is_greater_equal_comparable_with<T, U, std::void_t<
+    struct is_more_equal_comparable_with<T, U, std::void_t<
         decltype(std::declval<const T&>() >= std::declval<const U&>())
     >> : std::is_convertible<bool, decltype(std::declval<const T&>() >= std::declval<const U&>())> {};
     template <typename T, typename U>
-    constexpr inline static bool is_greater_equal_comparable_with_v = is_greater_equal_comparable_with<T, U>::value;
+    constexpr bool is_more_equal_comparable_with_v = is_more_equal_comparable_with<T, U>::value;
 
     // operator <=
     template <class T>
-    struct is_greater_equal_comparable : is_greater_equal_comparable_with<T, T>{};
+    struct is_more_equal_comparable : is_more_equal_comparable_with<T, T>{};
     template <typename T>
-    constexpr inline static bool is_greater_equal_comparable_v = is_greater_equal_comparable<T>::value;
+    constexpr bool is_more_equal_comparable_v = is_more_equal_comparable<T>::value;
 }
 namespace csl::ensure::details::mp::type_traits::arythmetic {
     // operator+(T,U)
@@ -152,12 +138,12 @@ namespace csl::ensure::details::mp::type_traits::arythmetic {
         decltype(std::declval<const T&>() + std::declval<U &&>())>
     > : std::true_type {};
     template <class T, class U>
-    constexpr inline static bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
+    constexpr bool supports_op_plus_with_v = supports_op_plus_with<T,U>::value;
     // operator+(T, T)
     template <class T>
     struct supports_op_plus : supports_op_plus_with<T, T> {};
     template <typename T>
-    constexpr inline static bool supports_op_plus_v = supports_op_plus<T>::value;
+    constexpr bool supports_op_plus_v = supports_op_plus<T>::value;
 }
 
 namespace csl::ensure
@@ -174,50 +160,43 @@ namespace csl::ensure
         using const_lvalue_reference = const T &;
         using const_rvalue_reference = const T &&;
 
-        // constructor: defaut
-        template <std::enable_if_t<std::is_default_constructible_v<underlying_type>, bool> = true>
+        // constructor: aggregate-initialization
+        template <std::enable_if_t<
+            std::is_default_constructible_v<underlying_type>
+        , bool> = true
+        >
         constexpr explicit strong_type()
         noexcept(std::is_nothrow_default_constructible_v<underlying_type>)
         {}
-        // constructor: aggregate-initialization
-        template <
-            typename ...Ts,
-            std::enable_if_t<
-                std::is_aggregate_v<T>
-                and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
-            , bool> = true
+        template <typename ...Ts, std::enable_if_t<
+            std::is_aggregate_v<T> and details::mp::type_traits::is_aggregate_constructible_v<underlying_type, Ts&&...>
+        , bool> = true
         >
+        // constructor: values
         constexpr explicit strong_type(Ts && ... values)
         noexcept(noexcept(underlying_type{ std::forward<decltype(values)>(values)... }))
         : value{ std::forward<decltype(values)>(values)... }
         {}
-        // constructor: values (piecewise)
-        template <
-            typename ...Ts,
-            std::enable_if_t<std::is_constructible_v<underlying_type, Ts&&...>, bool> = true
+        template <typename ...Ts, std::enable_if_t<
+            std::is_constructible_v<underlying_type, Ts&&...>
+        , bool> = true
         >
         constexpr explicit strong_type(Ts && ... values)
         noexcept(std::is_nothrow_constructible_v<underlying_type, Ts&&...>)
         : value(std::forward<decltype(values)>(values)...)
         {}
-        // constructor: value (copy)
+        // constructor: copy
         template <std::enable_if_t<std::is_copy_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(const_lvalue_reference arg)
         noexcept(std::is_nothrow_copy_constructible_v<underlying_type>)
         : value(arg)
         {}
-        // constructor: value (move)
+        // constructor: move
         template <std::enable_if_t<std::is_move_constructible_v<underlying_type>, bool> = true>
         constexpr explicit strong_type(underlying_type&& arg)
         noexcept(std::is_nothrow_move_constructible_v<underlying_type>)
         : value{ std::forward<decltype(arg)>(arg) }
         {}
-
-        constexpr strong_type(const strong_type &) = default;
-        constexpr strong_type(strong_type &&) noexcept = default;
-
-        // destructor
-        ~strong_type() noexcept(std::is_nothrow_destructible_v<underlying_type>) = default;
 
         constexpr lvalue_reference       underlying()        & noexcept { return value; }
         constexpr const_lvalue_reference underlying() const  & noexcept { return value; }
@@ -229,7 +208,7 @@ namespace csl::ensure
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
-        // TODO(Guss): arythmetic operators
+        // TODO: arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
@@ -238,8 +217,7 @@ namespace csl::ensure
         constexpr type & operator=(type && other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
 
-        template <
-            typename arg_type,
+        template <typename arg_type,
             std::enable_if_t<std::is_assignable_v<underlying_type&, const arg_type&>, bool> = true
         >
         constexpr type & operator=(const arg_type & arg)
@@ -248,18 +226,21 @@ namespace csl::ensure
             value = arg;
             return *this;
         }
-        template <
-            typename arg_type,
+        template <typename arg_type,
             std::enable_if_t<std::is_assignable_v<underlying_type&, arg_type &&>, bool> = true
         >
         constexpr type & operator=(arg_type && arg)
-        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(csl_fwd(arg))>)
+        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(fwd(arg))>)
         {
-            value = csl_fwd(value);
+            value = fwd(value);
             return *this;
         }
 
-#pragma region invocation
+        // TODO: comparisons
+        // <,>,
+        // <=, >=
+
+#pragma region comparison
         template <
             typename ... arguments_ts,
             std::enable_if_t<
@@ -270,7 +251,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) &
         noexcept(std::is_nothrow_invocable_v<lvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, csl_fwd(args)...);
+            return std::invoke(value, fwd(args)...);
         }
         template <
             typename ... arguments_ts,
@@ -282,7 +263,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) const &
         noexcept(std::is_nothrow_invocable_v<const_lvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, csl_fwd(args)...);
+            return std::invoke(value, fwd(args)...);
         }
         template <
             typename ... arguments_ts,
@@ -294,7 +275,7 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) &&
         noexcept(std::is_nothrow_invocable_v<rvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, csl_fwd(args)...);
+            return std::invoke(value, fwd(args)...);
         }
         template <
             typename ... arguments_ts,
@@ -306,29 +287,15 @@ namespace csl::ensure
         operator()(arguments_ts && ... args) const &&
         noexcept(std::is_nothrow_invocable_v<const_rvalue_reference, arguments_ts&&...>)
         {
-            return std::invoke(value, csl_fwd(args)...);
+            return std::invoke(value, fwd(args)...);
         }
 #pragma endregion
 #pragma region comparison
-    // comparison: operator ==
+        // comparison: operator ==
         template <
             typename other_type,
             std::enable_if_t<
-                std::is_same_v<type, other_type>
-            and details::mp::type_traits::comparison::is_equality_comparable_v<underlying_type>
-            , bool> = true
-        >
-        constexpr auto operator==(const other_type & arg) const
-        noexcept(noexcept(value == arg.underlying()))
-        -> bool
-        {
-            return value == arg.underlying();
-        }
-        template <
-            typename other_type,
-            std::enable_if_t<
-                not std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_equality_comparable_with_v<underlying_type, other_type>
+                details::mp::type_traits::comparison::is_equality_comparable_with_v<T, other_type>
             , bool> = true
         >
         constexpr auto operator==(const other_type & arg) const
@@ -337,25 +304,11 @@ namespace csl::ensure
         {
             return value == arg;
         }
-    // comparison: operator not_eq
+        // comparison: operator not_eq
         template <
             typename other_type,
             std::enable_if_t<
-                std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_not_equality_comparable_v<underlying_type>
-            , bool> = true
-        >
-        constexpr auto operator not_eq(const other_type & arg) const
-        noexcept(noexcept(value not_eq arg.underlying()))
-        -> bool
-        {
-            return value not_eq arg.underlying();
-        }
-        template <
-            typename other_type,
-            std::enable_if_t<
-                not std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_not_equality_comparable_with_v<underlying_type, other_type>
+                details::mp::type_traits::comparison::is_not_equality_comparable_with_v<T, other_type>
             , bool> = true
         >
         constexpr auto operator not_eq(const other_type & arg) const
@@ -364,119 +317,6 @@ namespace csl::ensure
         {
             return value not_eq arg;
         }
-        
-    // comparison: operator<
-        template <
-            typename other_type,
-            std::enable_if_t<
-                std::is_same_v<type, other_type>
-            and details::mp::type_traits::comparison::is_less_than_comparable_v<underlying_type>
-            , bool> = true
-        >
-        constexpr auto operator<(const other_type & arg) const
-        noexcept(noexcept(value < arg.underlying()))
-        -> bool
-        {
-            return value < arg.underlying();
-        }
-        template <
-            typename other_type,
-            std::enable_if_t<
-                not std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_less_than_comparable_with_v<underlying_type, other_type>
-            , bool> = true
-        >
-        constexpr auto operator<(const other_type & arg) const
-        noexcept(noexcept(value < arg))
-        -> bool
-        {
-            return value < arg;
-        }
-    // comparison: operator<=
-        template <
-            typename other_type,
-            std::enable_if_t<
-                std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_less_equal_comparable_v<underlying_type>
-            , bool> = true
-        >
-        constexpr auto operator<=(const underlying_type & arg) const
-        noexcept(noexcept(value <= arg.underlying()))
-        -> bool
-        {
-            return value <= arg.underlying();
-        }
-        template <
-            typename other_type,
-            std::enable_if_t<
-                std::is_same_v<type, other_type>
-            and details::mp::type_traits::comparison::is_less_equal_comparable_with_v<underlying_type, other_type>
-            , bool> = true
-        >
-        constexpr auto operator<=(const other_type & arg) const
-        noexcept(noexcept(value <= arg))
-        -> bool
-        {
-            return value <= arg;
-        }
-    // comparison: operator>
-        template <
-            typename other_type,
-            std::enable_if_t<
-                std::is_same_v<type, other_type>
-            and details::mp::type_traits::comparison::is_greater_than_comparable_v<underlying_type>
-            , bool> = true
-        >
-        constexpr auto operator>(const other_type & arg) const
-        noexcept(noexcept(value > arg.underlying()))
-        -> bool
-        {
-            return value > arg.underlying();
-        }
-        template <
-            typename other_type,
-            std::enable_if_t<
-                not std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_greater_than_comparable_with_v<underlying_type, other_type>
-            , bool> = true
-        >
-        constexpr auto operator>(const other_type & arg) const
-        noexcept(noexcept(value > arg))
-        -> bool
-        {
-            return value > arg;
-        }
-    // comparison: operator>=
-        template <
-            typename other_type,
-            std::enable_if_t<
-                std::is_same_v<type, other_type>
-                and details::mp::type_traits::comparison::is_greater_equal_comparable_v<underlying_type>
-            , bool> = true
-        >
-        constexpr auto operator>=(const underlying_type & arg) const
-        noexcept(noexcept(value >= arg.underlying()))
-        -> bool
-        {
-            return value >= arg.underlying();
-        }
-        template <
-            typename other_type,
-            std::enable_if_t<
-                std::is_same_v<type, other_type>
-            and details::mp::type_traits::comparison::is_less_equal_comparable_with_v<underlying_type, other_type>
-            , bool> = true
-        >
-        constexpr auto operator>=(const other_type & arg) const
-        noexcept(noexcept(value >= arg))
-        -> bool
-        {
-            return value >= arg;
-        }
-
-    // WIP: all comparisons operators supports (tests)
-    // WIP: all comparisons operators supports (tests, with ambiguous overload resolution -> implicit conversions)
-
 #pragma endregion
 
     private:
@@ -507,7 +347,7 @@ namespace csl::ensure::type_traits {
     template <typename T, typename tag>
     struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
     template <typename T>
-    constexpr inline static bool is_strong_type_v = is_strong_type<T>::value;
+    constexpr bool is_strong_type_v = is_strong_type<T>::value;
 
 // is_strong_type_of
     template <typename, typename>
@@ -518,7 +358,7 @@ namespace csl::ensure::type_traits {
         strong_underlying_t
     > : std::true_type{};
     template <typename strong_type, typename T>
-    constexpr inline static bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
+    constexpr bool is_strong_type_of_v = is_strong_type_of<strong_type, T>::value;
 
 // is_tagged_by
     template <typename, typename>
@@ -529,7 +369,7 @@ namespace csl::ensure::type_traits {
         strong_tag_t
     > : std::true_type{};
     template <typename T, typename U>
-    constexpr inline static bool is_tagged_by_v = is_tagged_by<T, U>::value;
+    constexpr bool is_tagged_by_v = is_tagged_by<T, U>::value;
 
 // underlying_type
     template <typename>
@@ -557,10 +397,10 @@ namespace csl::ensure {
             typename T,
             std::enable_if_t<
                 csl::ensure::type_traits::is_strong_type_v<T>
-            and csl::ensure::details::mp::type_traits::is_hashable_v<T>
             , bool> = true
         >
         auto operator()(const T & value) const {
+        // TODO(Guss): requires hashable
             using type = std::decay_t<decltype(value)>;
             using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
             return std::invoke(hasher{}, value);
@@ -589,12 +429,10 @@ namespace csl::ensure {
 template <typename T, typename tag>
 struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
 
-// --- opt-ins supports ---
 
-// opt-in: iostream support
-#if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
 #if defined(__has_include)
 #if __has_include(<iostream>)
+
 #include <iostream>
 // std::ostream& operator<<
 namespace csl::ensure::details::mp::type_traits {
@@ -606,7 +444,7 @@ namespace csl::ensure::details::mp::type_traits {
         decltype(std::declval<std::ostream&>() << std::declval<const T&>())
     >> : std::true_type{};
     template <typename T>
-    constexpr inline static bool is_ostream_shiftable_v = is_ostream_shiftable<T>::value;
+    constexpr bool is_ostream_shiftable_v = is_ostream_shiftable<T>::value;
 }
 namespace csl::io {
     template <
@@ -618,48 +456,9 @@ namespace csl::io {
         return os << underlying_value;
     }
 }
-#else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but __has_include(<iostream>) == false"
-#endif
-#else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but defined(__has_include) == false"
 #endif
 #endif
 
+#undef fwd
 
-// opt-in: fmt support - (CPO: fmt::formatter)
-#if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
-#if defined(__has_include)
-#if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
-#include <fmt/core.h>
-#include <fmt/format.h>
-
-namespace csl::ensure::details::mp::type_traits {
-    template <typename T, class = void>
-    struct has_fmt_formatter : std::false_type{};
-    template <typename T>
-    struct has_fmt_formatter<T, std::void_t<decltype(
-        std::declval<fmt::formatter<T>>().format(std::declval<const T &>(), std::declval<fmt::format_context&>())
-    )>> : std::true_type{};
-    template <typename T>
-    constexpr inline static bool has_fmt_formatter_v = has_fmt_formatter<T>::value;
-}
-
-template <typename T, typename tag>
-struct fmt::formatter<
-    csl::ensure::strong_type<T, tag>,
-    std::enable_if_t<csl::ensure::details::mp::type_traits::has_fmt_formatter_v<T>, char>
-> : formatter<T> {
-    static auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) {
-        return fmt::formatter<T>{}.format(csl::ensure::to_underlying(value), context);
-    }
-};
-#else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but (__has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)) == false"
-#endif
-#else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but defined(__has_include) == false"
-#endif
-#endif
-
-#undef csl_fwd
+// TODO(Guss): fmt

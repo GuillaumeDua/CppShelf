@@ -110,7 +110,7 @@ The key idea of this library is to ease iterations over aggregates's member-vari
 which is especially convenient when dealing with **reflection** and **serialization**.
 
 - `csl::ag::size<T>` gives the fields count in a given aggregate type type  
-  (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `to_tuple` or `to_tuple_view` conversion)
+  (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `as_tuple` or `as_tuple_view` conversion)
 - `csl::ag::get<size_t N>(aggregate auto value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
 
 ---
@@ -257,7 +257,7 @@ Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed u
 
 ```cpp
 template <csl::ag::concepts::aggregate T>
-constexpr inline static auto size_v = size<T>::value;
+constexpr auto size_v = size<T>::value;
 ```
 
 #### csl::ag::element<std::size_t, concepts::aggregate>
@@ -346,7 +346,7 @@ while using a `rvalue-reference` will results in a perfect-forwarding that membe
 struct A{ int i; float f; };
 
 constexpr auto value = A{ .i = 42, .f = 0.13f };
-constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
+constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
 
 [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
     static_assert((std::same_as<
@@ -378,10 +378,10 @@ static_assert(std::same_as<
 
 static_assert(std::same_as<int, csl::ag::element_t<0, A>>);
 static_assert(std::same_as<int, std::tuple_element_t<0, csl::ag::to_tuple_t<A>>>);
-static_assert(std::same_as<int, std::tuple_element_t<0,decltype(csl::ag::to_tuple(A{}))>>);
+static_assert(std::same_as<int, std::tuple_element_t<0,decltype(csl::ag::as_tuple(A{}))>>);
 
 constexpr auto value = A{ .i = 42, .f = 0.13f };
-constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
+constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
 
 static_assert(42    == std::get<0>(value_as_tuple));
 static_assert(0.13f == std::get<1>(value_as_tuple));
@@ -404,7 +404,7 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
   
   ```cpp
   struct A{ int i; float f; };
-  constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
+  constexpr auto value = csl::ag::as_tuple(A{ .i = 42, .f = 0.13f });
 
   [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
       ((std::cout << std::get<indexes>(value) << ' '), ...);
@@ -442,7 +442,7 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
   ```cpp
   struct A{ int & i; float && f; };
   int i = 42; float f = .13f;
-  /* not constexpr */ auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
+  /* not constexpr */ auto value = csl::ag::as_tuple(A{ .i = i, .f = std::move(f) });
 
   [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
       ((std::cout << std::get<indexes>(value) << ' '), ...);
@@ -481,7 +481,7 @@ struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue
 int i = 42;
 
 { // using a rvalue
-    [[maybe_unused]] auto view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });
+    [[maybe_unused]] auto view = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) });
 
     static_assert(std::same_as<
         decltype(view),
@@ -496,7 +496,7 @@ int i = 42;
 
 { // using a const-lvalue
     const auto & value = type{ i, i, i, std::move(i) };
-    [[maybe_unused]] auto view = csl::ag::to_tuple_view(value);
+    [[maybe_unused]] auto view = csl::ag::as_tuple_view(value);
 
     static_assert(std::same_as<
         decltype(view),

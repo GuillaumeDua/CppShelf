@@ -1,4 +1,4 @@
-// available on godbolt: https://godbolt.org/z/Gd7fMKK8e
+// available on godbolt: https://godbolt.org/z/ssEW9ferd
 
 #include <csl/functional.hpp>
 
@@ -7,10 +7,10 @@ auto func(int, char) -> bool { return {}; }
 const auto lambda = [](int, char) -> bool { return {}; };
 const auto std_function = std::function{ lambda };
 // non-static member functions
-struct type { auto mem_func(int, char) -> bool { return {}; } }; // NOLINT(*-convert-member-functions-to-static)
+struct type { auto mem_func(int, char) -> bool { return {}; } };
 
 // demo
-auto main(int, char*[]) -> int {
+auto main(int, char*argv[]) -> int {
     using namespace csl::functional;
 
     // function trait: functors
@@ -22,15 +22,6 @@ auto main(int, char*[]) -> int {
         >);
         static_assert(std::is_same_v<bool, typename trait::result_type>);
         static_assert(type_traits::is_invocable_v<F, arguments<int, char>>);
-        static_assert(std::tuple_size_v<typename trait::arguments_type> == 2);
-        static_assert(std::is_same_v<
-            int,
-            std::tuple_element_t<0, typename trait::arguments_type>
-        >);
-        static_assert(std::is_same_v<
-            char,
-            std::tuple_element_t<1, typename trait::arguments_type>
-        >);
     };
     const auto test_each_function = [test_function]<concepts::simple_callable ... Fs>(){
         ((test_function.template operator()<Fs>()), ...);
@@ -56,7 +47,6 @@ auto main(int, char*[]) -> int {
     };
     using trait = overload_trait_t<decltype(overloaded)>;
     // overload: argument types
-    static_assert(std::tuple_size_v<trait> == 3);
     static_assert(std::is_same_v<
         typename std::tuple_element_t<0, trait>::arguments_type,
         arguments<>

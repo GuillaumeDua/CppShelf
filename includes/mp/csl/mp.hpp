@@ -1,9 +1,5 @@
 #pragma once
 
-#if not __cplusplus >= 202002L
-# error "csl/mp.hpp requires C++20"
-#endif
-
 #include <type_traits>
 #include <utility>
 #include <tuple>
@@ -12,8 +8,8 @@
 #include <algorithm>
 #include <iterator>
 
-#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
-#define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
+#define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+#define static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
 // [WIP] organisation refactoring
 //  sequences::* : op on sequences
@@ -78,7 +74,7 @@ namespace csl::mp {
     template <typename ... Ts>
     struct is_pack<pack<Ts...>> : std::true_type{};
     template <typename T>
-    constexpr inline static bool is_pack_v = is_pack<T>::value;
+    constexpr bool is_pack_v = is_pack<T>::value;
     template <typename T>
     concept PackType = is_pack_v<T>;
 
@@ -88,7 +84,7 @@ namespace csl::mp {
     template <template <typename...> typename T, typename ... Ts, typename ... Us>
     struct is_same_template<T<Ts...>, T<Us...>> : std::true_type{};
     template <typename T, typename U>
-    constexpr inline static bool is_same_template_v = is_same_template<T, U>::value;
+    constexpr bool is_same_template_v = is_same_template<T, U>::value;
     template <typename T, typename U>
     concept SameTemplateAs = is_same_template<T, U>::value;
 
@@ -98,7 +94,7 @@ namespace csl::mp {
     template <template <typename ...> typename pack_type, typename ... Ts>
     struct is_instance_of<pack_type, pack_type<Ts...>> : std::true_type{};
     template <template <typename ...> typename pack_type, typename T>
-    constexpr inline static bool is_instance_of_v = is_instance_of<pack_type, T>::value;
+    constexpr bool is_instance_of_v = is_instance_of<pack_type, T>::value;
     template <template <typename ...> typename pack_type, typename T>
     concept InstanceOf = is_instance_of_v<pack_type, T>;
 }
@@ -198,7 +194,7 @@ namespace csl::mp {
     template <std::size_t index, typename pack>
     using nth_t = nth_element_t<index, pack>::type;
     template <std::size_t index, typename pack>
-    constexpr inline static std::size_t nth_v = nth_element_t<index, pack>::value;
+    constexpr std::size_t nth_v = nth_element_t<index, pack>::value;
 #else
     // Indexed pack
     template <typename>
@@ -209,15 +205,15 @@ namespace csl::mp {
     template <std::size_t I, typename T>
     using pack_element_t = typename  pack_element<T>::template nth_<I>::type;
     template <std::size_t I, typename T>
-    constexpr inline static std::size_t pack_element_v = I /*Note : equivalent to pack_element<I, T>::value;*/;
+    constexpr std::size_t pack_element_v = I /*Note : equivalent to pack_element<I, T>::value;*/;
 
     template <std::size_t I, typename T>
     using nth_t = pack_element_t<I, T>;
     template <std::size_t I, typename T>
-    constexpr inline static std::size_t nth_v = pack_element_v<I, T>;
+    constexpr std::size_t nth_v = pack_element_v<I, T>;
 
     template <typename T, typename pack_type>
-    constexpr inline static std::size_t index_of_v = pack_element<pack_type>::template index_of_<T>::index;
+    constexpr std::size_t index_of_v = pack_element<pack_type>::template index_of_<T>::index;
     // rindex_of -> index_of_v<T, reverse<pack_type>>
 #endif
 
@@ -231,7 +227,7 @@ namespace csl::mp {
     // get<index>
     template <std::size_t index, typename ... Ts>
     constexpr decltype(auto) get(Ts && ... values) noexcept {
-        return std::get<index>(std::tuple<decltype(values)...>{ csl_fwd(values)...});
+        return std::get<index>(std::tuple<decltype(values)...>{ fwd(values)...});
     }
     template <std::size_t index, TupleType T>
     constexpr decltype(auto) get(T && value) noexcept {
@@ -239,7 +235,7 @@ namespace csl::mp {
     }
     template <std::size_t index, typename T, auto ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...> && value) noexcept {
-        return mp::seq::get<index>(csl_fwd(value));
+        return mp::seq::get<index>(fwd(value));
     }
 
     // todo : remove
@@ -258,7 +254,7 @@ namespace csl::mp {
     template <template <typename...> typename pack_type, typename ... Ts>
     struct is_template_with_ttps<pack_type<Ts...>> : std::true_type{};
     template <typename ... Ts>
-    constexpr inline static bool is_template_with_ttps_v = is_template_with_ttps<Ts...>::value;
+    constexpr bool is_template_with_ttps_v = is_template_with_ttps<Ts...>::value;
 
     template <typename T>
     concept TemplateType_ttps = is_template_with_ttps_v<T>;
@@ -269,7 +265,7 @@ namespace csl::mp {
     template <template <auto...> typename pack_type, auto ... values>
     struct is_template_with_nttps<pack_type<values...>> : std::true_type{};
     template <typename ... Ts>
-    constexpr inline static bool is_template_with_nttps_v = is_template_with_nttps<Ts...>::value;
+    constexpr bool is_template_with_nttps_v = is_template_with_nttps<Ts...>::value;
 
     template <typename T>
     concept TemplateType_nttps = is_template_with_nttps_v<T>;
@@ -280,7 +276,7 @@ namespace csl::mp {
         constexpr static bool value = is_template_with_ttps_v<Ts...> or is_template_with_nttps_v<Ts...>;
     };
     template <typename ... Ts>
-    constexpr inline static bool is_template_v = is_template<Ts...>::value;
+    constexpr bool is_template_v = is_template<Ts...>::value;
 
     template <typename T>
     concept TemplateType = is_template_v<T>;
@@ -292,7 +288,7 @@ namespace csl::mp {
     template <template <typename...> typename pack, typename ... ttps>
     struct size<pack<ttps...>> : size<ttps...>{};
     template <typename ... ttps>
-    constexpr inline static std::size_t size_v = size<ttps...>::value;
+    constexpr std::size_t size_v = size<ttps...>::value;
 
     // contains
     template <typename T, typename ... ttps>
@@ -300,7 +296,7 @@ namespace csl::mp {
     template <typename T, template <typename...> typename pack, typename ... ttps>
     struct contains<T, pack<ttps...>> : contains<T, ttps...>{};
     template <typename T, typename ... ttps>
-    constexpr inline static bool contains_v = contains<T, ttps...>::value;
+    constexpr bool contains_v = contains<T, ttps...>::value;
 
     // count - occurences of T in ttps...
     template <typename T, typename ... ttps>
@@ -308,7 +304,7 @@ namespace csl::mp {
     template <typename T, template <typename...> typename pack, typename ... ttps>
     struct count<T, pack<ttps...>> : count<T, ttps...>{};
     template <typename T, typename ... ttps>
-    constexpr inline static std::size_t count_v = count<T, ttps...>::value;
+    constexpr std::size_t count_v = count<T, ttps...>::value;
 
     // cat / append
     template <typename, typename...>
@@ -418,7 +414,7 @@ namespace csl::mp {
         static_assert(value not_eq std::string::npos, "rindex_of : not found");
     };
     template <typename T, typename ... Ts>
-    constexpr inline static std::size_t rindex_of_v = rindex_of<T, Ts...>::value;
+    constexpr std::size_t rindex_of_v = rindex_of<T, Ts...>::value;
 
     // index_of
     template <typename T, typename ... Ts>
@@ -435,17 +431,17 @@ namespace csl::mp {
         static_assert(value not_eq std::string::npos, "index_of : not found");
     };
     template <typename T, typename ... Ts>
-    constexpr inline static std::size_t index_of_v = index_of<T, Ts...>::value;
+    constexpr std::size_t index_of_v = index_of<T, Ts...>::value;
 
     template <typename T, typename ... Ts>
     using first_index_of = index_of<T, Ts...>;
     template <typename T, typename ... Ts>
-    constexpr inline static std::size_t  first_index_of_v = first_index_of<T, Ts...>::value;
+    constexpr std::size_t  first_index_of_v = first_index_of<T, Ts...>::value;
 
     template <typename T, typename ... Ts>
     using last_index_of = rindex_of<T, Ts...>;
     template <typename T, typename ... Ts>
-    constexpr inline static std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
+    constexpr std::size_t last_index_of_v = last_index_of<T, Ts...>::value;
 #endif
 
     // at
@@ -494,8 +490,8 @@ namespace csl::mp {
     using deduplicate_t = typename deduplicate<T>::type;
 }
 
-#undef csl_fwd
-#undef csl_static_dependent_error
+#undef fwd
+#undef static_dependent_error
 
 // wip : https://godbolt.org/z/TfMqM5TaG
 // wip, benchemarked : https://godbolt.org/z/fj4z8sjzh
