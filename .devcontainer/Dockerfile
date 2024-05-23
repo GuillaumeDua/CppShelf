@@ -42,10 +42,6 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         # mlocate                                           \ # error: Unable to locate package mlocate :shrug:
     && rm -rf /var/lib/apt/lists/*
 
-# -------------
-# Build systems
-# -------------
-
 # Build: CMake (https://apt.kitware.com/)
 #   quick-fix: Ubuntu-22.04-jammy instead of Ubuntu-24.04-noble -> kitware-archive.sh supports only Ubuntu releases up to Ubuntu-22.04-jammy
 RUN internal_script_path='impl.sh'; \
@@ -57,7 +53,7 @@ RUN internal_script_path='impl.sh'; \
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG OPT_IN_INTEGRATE_BAZEL='no'
-RUN if [[ "${OPT_IN_INTEGRATE_BAZEL}" = "y" ]]; then                             \
+RUN if [[ "${OPT_IN_INTEGRATE_BAZEL}" = "y" ]]; then                    \
         apt update -qqy && apt install -qqy --no-install-recommends     \
             apt-transport-https curl gnupg                              \
         && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
