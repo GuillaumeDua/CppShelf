@@ -44,12 +44,15 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
 
 # Build: CMake (https://apt.kitware.com/)
 #   quick-fix: Ubuntu-22.04-jammy instead of Ubuntu-24.04-noble -> kitware-archive.sh supports only Ubuntu releases up to Ubuntu-22.04-jammy
-RUN internal_script_path='impl.sh'; \
-    codename=$(value=$(lsb_release -cs); [[ "${value}" == "noble" ]] && value="jammy"; echo "${value}"); \
-    wget -qO ${internal_script_path} https://apt.kitware.com/kitware-archive.sh \
-    && chmod +x "${internal_script_path}" \
-    && ./${internal_script_path} --release ${codename} \
-    && rm  -rf ${internal_script_path}
+RUN internal_script_path='impl.sh';                                                                         \
+    codename=$(value=$(lsb_release -cs); [[ "${value}" == "noble" ]] && value="jammy"; echo "${value}");    \
+    wget -qO ${internal_script_path} https://apt.kitware.com/kitware-archive.sh                             \
+    && chmod +x "${internal_script_path}"                                                                   \
+    && ./${internal_script_path} --release ${codename}                                                      \
+    && rm  -rf ${internal_script_path}                                                                      \
+    && apt update -qqy && apt install -qqy --no-install-recommends                                          \
+        cmake                                                                                               \
+    && rm -rf /var/lib/apt/lists/*
 
 # Build: Bazel (https://bazel.build/install/ubuntu)
 ARG OPT_IN_INTEGRATE_BAZEL='no'

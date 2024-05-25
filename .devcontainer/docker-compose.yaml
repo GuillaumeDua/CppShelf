@@ -21,7 +21,10 @@ services:
       - "2222:22"
     volumes:
       - ..:/workspace
+      - build:/workspace/build/ # build: persistent, yet excluded from mounting
     cap_add:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
+volumes:
+  build: # build: persistent, yet excluded from mounting
