@@ -2,3 +2,11 @@
 .cache
 .vscode
 build
+
+# Ignore all files that contain secrets
+*.env
+*.pem
+*.key
+
+# Ignore all hidden files and directories
+.*
