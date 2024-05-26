@@ -1,9 +1,9 @@
-# .dockerignore
+# cache
 .cache
 .vscode
 build
 
-# Ignore all files that contain secrets
+# secrets
 *.env
 *.pem
 *.key
