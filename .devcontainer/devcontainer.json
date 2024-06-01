@@ -4,6 +4,7 @@
     "service": "cpp-toolchain-dev",
     "workspaceFolder": "/workspace",
     // "remoteUser": "vscodeuser",
+    // "overrideCommand": false,
     "shutdownAction": "stopCompose",
     "overrideCommand": true,
     "features": {
