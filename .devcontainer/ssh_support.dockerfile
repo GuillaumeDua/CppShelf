@@ -6,12 +6,14 @@ RUN apt-get update && apt-get install -qqy \
     rsync
 RUN mkdir /var/run/sshd
 
+# Remote user (opt-in)
 ARG USER_NAME
 ARG USER_PASSWORD=default
 RUN ([ -z "${USER_NAME}" ] || [ -z "${USER_PASSWORD}" ]) && "[ARG] USER_NAME and/or USER_PASSWORD is empty, no user will be created." \
     || (                                                        \
         echo "Adding user [${USER_NAME}] ..."                   \
-        && sudo useradd -m ${USER_NAME} && echo "${USER_NAME}:${USER_PASSWORD}" | sudo chpasswd
+        && useradd -m ${USER_NAME}                              \
+        && echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd      \
         # && adduser --disabled-password --gecos '' ${USER_NAME}   \
         # && adduser ${USER_NAME} sudo                             \
         # && passwd -d ${USER_NAME}                                \
