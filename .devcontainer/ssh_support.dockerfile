@@ -14,15 +14,17 @@ RUN ([ -z "${USER_NAME}" ] || [ -z "${USER_PASSWORD}" ]) && "[ARG] USER_NAME and
         echo "Adding user [${USER_NAME}] ..."                   \
         && useradd -m ${USER_NAME}                              \
         && echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd      \
+        # mkdir /var/run/sshd && \
+        # echo '${USER_NAME} ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+        # sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+        # sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+        # echo "AllowUsers ${USER_NAME}" >> /etc/ssh/sshd_config
         # && adduser --disabled-password --gecos '' ${USER_NAME}   \
         # && adduser ${USER_NAME} sudo                             \
         # && passwd -d ${USER_NAME}                                \
         # && sed -E -i 's|^#?(PasswordAuthentication)\s.*|\1 no|' /etc/ssh/sshd_config \
         # && if ! grep '^PasswordAuthentication\s' /etc/ssh/sshd_config; then echo 'PasswordAuthentication no' |sudo tee -a /etc/ssh/sshd_config; fi \
     )
-# RUN systemctl enable sshd
-# RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
-#     && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
