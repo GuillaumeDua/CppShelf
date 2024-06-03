@@ -7,16 +7,10 @@ services:
       dockerfile: ./Dockerfile
       args:
         BASE_IMAGE: 'ubuntu:jammy' # llvm.sh is failing for now on noble (24.04)
-        REMOTE_USER_NAME: root
-        REMOTE_USER_PASSWORD: 
         GCC_VERSIONS: '>=13'
         LLVM_VERSIONS: '>=17'
         OPT_IN_INTEGRATE_BAZEL: no
         OPT_IN_INTEGRATE_BUILD2: no
-    #   ssh: # requires ssh-agent service running on host
-    #     - default
-    # ports:
-    #   - "2222:22"
     volumes:
       - ..:/workspace
       - build:/workspace/build/ # build: excluded from mounting -> persistent per container
@@ -24,16 +18,18 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
-  ssh-support:
-    # environment:
-    #   - SSH_AUTH_SOCK=/ssh-agent
-    build:
-      dockerfile: ./ssh_support.dockerfile
-      args:
-        USER_NAME: 'vscodeuser'
-        USER_PASSWORD: 'vscodeuser'
     ports:
       - "2201:22"
+  # ssh-support:
+  #   build:
+  #     dockerfile: ./ssh_support.dockerfile
+  #     args:
+  #       USER_NAME: 'vscodeuser'
+  #       USER_PASSWORD: 'vscodeuser'
+  #   ports:
+  #     - "2201:22"
+  #   networks:
+  #     - ssh_support_network
 
 volumes:
   build: # excluded from mounting

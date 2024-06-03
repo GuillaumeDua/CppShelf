@@ -128,35 +128,6 @@ RUN if [[ "${OPT_IN_INTEGRATE_BUILD2}" = "y" ]]; then                           
         ;                                                                           \
     fi
 
-# Users, remote
-#   WIP: user with no password at all ?
-#   https://dev.to/emmanuelnk/using-sudo-without-password-prompt-as-non-root-docker-user-52bg
-
-# ARG REMOTE_USER_NAME='vscodeuser'
-# ARG REMOTE_USER_PASSWORD=''
-# RUN apt update -qqy && apt install -qqy --no-install-recommends                                 \
-#         openssh-server rsync ssh                                                                \
-#     && rm -rf /var/lib/apt/lists/*                                                              \
-#     && mkdir /var/run/sshd                                                                      \
-#     && [[ -z "${REMOTE_USER_NAME}" ]]                                                           \
-#         && echo "No REMOTE_USER_NAME provided, skipping user creation..."                       \
-#         || (                                                                                    \
-#             echo "Adding user [${REMOTE_USER_NAME}] with password [${REMOTE_USER_PASSWORD}] ..."\
-#             && useradd -ms /bin/bash ${REMOTE_USER_NAME}                                        \
-#             && echo "${REMOTE_USER_NAME}:${REMOTE_USER_PASSWORD}" | chpasswd                    \
-#             && echo 'root:password' | chpasswd                                                  \
-#             && adduser ${REMOTE_USER_NAME} sudo                                                 \
-#             && echo "${REMOTE_USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                \
-#         )
-
-# RUN    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config  \
-#     && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config  \
-#     && [[ -z "${REMOTE_USER_NAME}" ]]                                                           \
-#         && echo "No ARG [REMOTE_USER_NAME] provided"                                            \
-#         || echo "AllowUsers ${REMOTE_USER_NAME}" >> /etc/ssh/sshd_config                        \
-#     && mkdir -p /var/run/sshd                                                                   \
-#     && service ssh stop
-
 # Tooling: shells - bash, zsh
 # TODO: for all users
 RUN apt update -qqy && apt install -qqy --no-install-recommends \
@@ -167,13 +138,7 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 # see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
-# EXPOSE 22
-# CMD ["/usr/sbin/sshd", "-D"]
-
 # Cleanup
 RUN apt clean \
     && rm -rf ${TOOLCHAIN_TMP_DIR} \
     && rm -rf /var/lib/apt/lists/*
-
-# CMD ["zsh"]
-# ENTRYPOINT ["zsh"]
