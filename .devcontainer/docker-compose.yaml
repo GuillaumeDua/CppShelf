@@ -20,5 +20,16 @@ services:
     security_opt:
       - seccomp:unconfined
 
+  # ssh_support:
+  #   container_name: cpp-toolchain-dev_ssh-support
+  #   depends_on:
+  #     - cpp-toolchain-dev
+  #   build:
+  #     dockerfile: ./ssh_support.dockerfile
+  #     args:
+  #       BASE_IMAGE: 'cppshelf_devcontainer-cpp-toolchain-dev'
+  #       USER_NAME: 'vscodeuser'
+  #       USER_PASSWORD: 'vscodeuser'
+
 volumes:
   build: # excluded from mounting
