@@ -1,5 +1,6 @@
 services:
   cpp-toolchain-dev:
+    container_name: cpp-toolchain-dev
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
     build:
@@ -18,23 +19,6 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
-    networks:
-      - dev_network
-  ssh-support:
-    build:
-      dockerfile: ./ssh_support.dockerfile
-      args:
-        USER_NAME: 'vscodeuser'
-        USER_PASSWORD: 'vscodeuser'
-    ports:
-      - "2222:22"
-    networks:
-      - dev_network
-    depends_on:
-      - cpp-toolchain-dev
 
 volumes:
   build: # excluded from mounting
-networks:
-  dev_network:
-    driver: bridge
