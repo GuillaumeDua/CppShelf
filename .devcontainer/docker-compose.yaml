@@ -7,7 +7,7 @@ services:
       context: . # TODO: image with a specific tag
       dockerfile: ./Dockerfile
       args:
-        BASE_IMAGE: 'ubuntu:jammy' # llvm.sh is failing for now on noble (24.04)
+        BASE_IMAGE: 'ubuntu:latest' # 'ubuntu:jammy' # llvm.sh is failing for now on noble (24.04)
         GCC_VERSIONS: '>=13'
         LLVM_VERSIONS: '>=17'
         OPT_IN_INTEGRATE_BAZEL: no

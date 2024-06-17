@@ -226,10 +226,10 @@ sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-sy
 
 # quick-fix: Ubuntu-24.04-noble not fully supported yet, switching to Ubuntu-22.04-jammy
 codename=$(lsb_release -cs)
-if [ "${codename}" = "noble" ]; then
-    warning "codename=[${codename}] is not supported yet, switching to [jammy]"
-    codename="jammy"
-fi
+# if [ "${codename}" = "noble" ]; then
+#     warning "codename=[${codename}] is not supported yet, switching to [jammy]"
+#     codename="jammy"
+# fi
 
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
