@@ -142,3 +142,5 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
 RUN apt clean \
     && rm -rf ${TOOLCHAIN_TMP_DIR} \
     && rm -rf /var/lib/apt/lists/*
+
+# CMD ["zsh"]

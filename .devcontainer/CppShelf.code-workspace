@@ -59,7 +59,7 @@
 			"variant": "cpp",
 			"bitset": "cpp"
 		},
-		"C_Cpp.errorSquiggles": "Disabled",
+		"C_Cpp.errorSquiggles": "disabled",
 		"debug.terminal.clearBeforeReusing": true
 	}
 }

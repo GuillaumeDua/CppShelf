@@ -37,7 +37,8 @@
                 "enkia.tokyo-night",
                 "DavidAnson.vscode-markdownlint",
                 "yzhang.markdown-all-in-one",
-                "cschlosser.doxdocgen"
+                "cschlosser.doxdocgen",
+                "ms-azuretools.vscode-docker"
             ]
         },
         "postCreateCommand": {
