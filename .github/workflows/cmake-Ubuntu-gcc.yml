@@ -2,11 +2,6 @@ name: cmake-Ubuntu-gcc
 
 on: [push, pull_request]
 
-env:
-  relase_id: 13
-  CC:   gcc-13
-  CXX:  g++-13
-
 jobs:
   cmake-Ubuntu-gcc_build_test:
 
@@ -14,20 +9,17 @@ jobs:
 
     strategy:
         matrix:
+            GCC_COMPILER_VERSIONS: [13, 14]
             BUILD_TYPE: [Debug, Release]
-            CSL_COMPONENTS: [wf, mp]
+            CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Initialize compiler (GCC)
       run: |
-          sudo apt update
-          sudo apt install gcc-$relase_id g++-$relase_id
-          sudo update-alternatives \
-            --install /usr/bin/gcc gcc /usr/bin/gcc-$relase_id 100 \
-            --slave /usr/bin/g++ g++  /usr/bin/g++-$relase_id \
-            --slave /usr/bin/gcov gcov /usr/bin/gcov-$relase_id
+          chmod +x .devcontainer/scripts/gcc.sh
+          ./.devcontainer/scripts/gcc.sh --silent=yes --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
@@ -37,10 +29,12 @@ jobs:
     - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
-            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                   \
-            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
-            -S ${{github.workspace}}                                                                \
+            -DCMAKE_C_COMPILER=/usr/bin/gcc-${{matrix.GCC_COMPILER_VERSIONS}}                                               \
+            -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{matrix.GCC_COMPILER_VERSIONS}}                                             \
+            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                           \
+            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}} \
+            -S ${{github.workspace}}                                                                                        \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
 
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
