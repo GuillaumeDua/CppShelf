@@ -1,0 +1,35 @@
+services:
+  cpp-toolchain-dev:
+    container_name: cpp-toolchain-dev
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
+    build:
+      context: . # TODO: image with a specific tag
+      dockerfile: ./Dockerfile
+      args:
+        BASE_IMAGE: 'ubuntu:latest' # 'ubuntu:jammy' # llvm.sh is failing for now on noble (24.04)
+        GCC_VERSIONS: '>=13'
+        LLVM_VERSIONS: '>=17'
+        OPT_IN_INTEGRATE_BAZEL: no
+        OPT_IN_INTEGRATE_BUILD2: no
+    volumes:
+      - ..:/workspace
+      # - build:/workspace/build/ # build: excluded from mounting -> persistent per container
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+
+  # ssh_support:
+  #   container_name: cpp-toolchain-dev_ssh-support
+  #   depends_on:
+  #     - cpp-toolchain-dev
+  #   build:
+  #     dockerfile: ./ssh_support.dockerfile
+  #     args:
+  #       BASE_IMAGE: 'cppshelf_devcontainer-cpp-toolchain-dev'
+  #       USER_NAME: 'vscodeuser'
+  #       USER_PASSWORD: 'vscodeuser'
+
+# volumes:
+#   build: # excluded from mounting

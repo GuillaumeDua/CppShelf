@@ -1,0 +1,50 @@
+{
+    "name": "cppshelf_devcontainer",
+    "dockerComposeFile": "./docker-compose.yaml",
+    "service": "cpp-toolchain-dev",
+    "workspaceFolder": "/workspace",
+    // "remoteUser": "vscodeuser",
+    // "overrideCommand": false,
+    "shutdownAction": "stopCompose",
+    "overrideCommand": true,
+    "features": {
+        // see https://github.com/devcontainers/features/tree/main/src
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}, // https://github.com/cli/cli?tab=readme-ov-file#installation
+        "ghcr.io/devcontainers/features/sshd:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": { "zsh": { "path": "/bin/zsh" } },
+                "remote.SSH.showLoginTerminal": true
+            },
+            "extensions": [
+                "ms-vscode.remote-explorer",
+                "ms-vscode-remote.remote-ssh-edit",
+                "ms-vscode.remote-server",
+                "ms-vscode-remote.vscode-remote-extensionpack",
+                "ms-vscode-remote.remote-ssh",
+                "ms-vscode.cpptools",
+                "twxs.cmake",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools-extension-pack",
+                "fredericbonnet.cmake-test-adapter",
+                "josetr.cmake-language-support-vscode",
+                "Gruntfuggly.todo-tree",
+                "enkia.tokyo-night",
+                "DavidAnson.vscode-markdownlint",
+                "yzhang.markdown-all-in-one",
+                "cschlosser.doxdocgen",
+                "ms-azuretools.vscode-docker",
+                "github.vscode-github-actions"
+            ]
+        },
+        "postCreateCommand": {
+            "git-safe-dir-workspace": "git config --global --add safe.directory /workspace"
+        }
+    }
+}
+// features: https://github.com/devcontainers/features
