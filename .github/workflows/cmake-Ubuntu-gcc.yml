@@ -19,7 +19,7 @@ jobs:
     - name: Initialize compiler (GCC)
       run: |
           chmod +x .devcontainer/scripts/gcc.sh
-          ./.devcontainer/scripts/gcc.sh --silent=yes --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
+          sudo ./.devcontainer/scripts/gcc.sh --silent=yes --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
