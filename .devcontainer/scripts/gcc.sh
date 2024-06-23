@@ -35,8 +35,16 @@ help(){
         " 1>&2
     exit 0
 }
+error_diagnosis(){
+    is_lsb_release_installed=$(command -v lsb_release >/dev/null 2>&1 && echo true || echo false)
+    if [ "${is_lsb_release_installed}" = true ]; then
+        echo -e "[${this_script_name}]: diagnosis helper:"
+        echo -e "\t- while running on [$(lsb_release -d)]" >> /dev/stderr
+    fi
+}
 error(){
     echo -e "[${this_script_name}]: $@" >> /dev/stderr
+    error_diagnosis
     exit 1
 }
 log(){
@@ -113,7 +121,6 @@ do
   esac
 done
 
-log ""
 log "arguments - versions: [${arg_versions}]"
 log "arguments - silent:   [${arg_silent}]"
 log "arguments - alias:    [${arg_alias}]"
