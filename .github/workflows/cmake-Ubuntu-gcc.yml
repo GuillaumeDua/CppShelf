@@ -33,7 +33,12 @@ jobs:
         cmake \
             -DCMAKE_C_COMPILER=/usr/bin/gcc-${{matrix.GCC_COMPILER_VERSIONS}}                                               \
             -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{matrix.GCC_COMPILER_VERSIONS}}                                             \
-            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                           \
+            -DCSL_BUILD_ALL:BOOL=FALSE                                                                                      \
+            -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                                \
+            -DCSL_ENABLE_ALL_TESTS:BOOL=FALSE                                                                               \
+            -DCSL_BUILD_TESTS_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                          \
+            -DCSL_ENABLE_ALL_EXAMPLES:BOOL=FALSE                                                                            \
+            -DCSL_BUILD_EXAMPLES_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                       \
             -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
             -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}} \
             -S ${{github.workspace}}                                                                                        \

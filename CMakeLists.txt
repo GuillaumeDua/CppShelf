@@ -71,6 +71,7 @@ endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 ### Components - tests
+enable_testing()
 option(CSL_ENABLE_ALL_TESTS "Build all tests for csl" OFF) # force all tests
 message(VERBOSE "[${PROJECT_NAME}] CSL_ENABLE_ALL_TESTS set to ${CSL_ENABLE_ALL_TESTS} ...")
 
@@ -80,14 +81,14 @@ message(VERBOSE "[${PROJECT_NAME}] CSL_ENABLE_ALL_EXAMPLES set to ${CSL_ENABLE_A
 
 ### Opt-ins: Tests, Examples
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-    option(CSL_TEST_${component_name}    "[${PROJECT_NAME}] csl::${component_name} (tests)"   ${CSL_ENABLE_ALL_TESTS})
-    option(CSL_EXAMPLE_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_ENABLE_ALL_EXAMPLES})
+    option(CSL_BUILD_TESTS_${component_name}   "[${PROJECT_NAME}] csl::${component_name} (tests)"   ${CSL_ENABLE_ALL_TESTS})
+    option(CSL_BUILD_EXAMPLES_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_ENABLE_ALL_EXAMPLES})
 endforeach()
 
 # list(LENGTH CSL_ENABLED_TESTS_LIST CSL_ENABLED_TESTS_LIST_length)
 # if (NOT ${CSL_ENABLED_TESTS_LIST_length} EQUAL 0)
 #     enable_testing()
-#     add_compile_options(-Wall -Wno-unknown-pragmas)
+#     add_compile_options(-Wall -Wextra -Wno-unknown-pragmas)
 #     #TODO(Guss): sanitizers
 
 #     # if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -121,15 +122,15 @@ function(csl_create_component component_name)
     )
 
     # test
-    option(CSL_TEST_${component_name} "[${PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_ENABLE_ALL_TESTS})
-    if (CSL_TEST_${component_name})
+    option(CSL_BUILD_TESTS_${component_name} "[${PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_ENABLE_ALL_TESTS})
+    if (CSL_BUILD_TESTS_${component_name})
         message(STATUS "[${PROJECT_NAME}] csl::${component_name} (tests)")
         add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
     endif()
 
     # example
-    option(CSL_EXAMPLE_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_ENABLE_ALL_EXAMPLES})
-    if (CSL_EXAMPLE_${component_name})
+    option(CSL_BUILD_EXAMPLES_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_ENABLE_ALL_EXAMPLES})
+    if (CSL_BUILD_EXAMPLES_${component_name})
         if (NOT EXISTS ${PROJECT_SOURCE_DIR}/examples/${component_name}/CMakeLists.txt)
             # message(AUTHOR_WARNING "[${PROJECT_NAME}] : csl::${component_name} has no examples available, skipping ...")
         else()
