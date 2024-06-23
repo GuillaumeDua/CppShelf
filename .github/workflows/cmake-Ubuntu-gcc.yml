@@ -18,6 +18,7 @@ jobs:
 
     - name: Initialize compiler (GCC)
       run: |
+          sudo apt update -qqy
           chmod +x .devcontainer/scripts/gcc.sh
           sudo ./.devcontainer/scripts/gcc.sh --silent=yes --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
 
