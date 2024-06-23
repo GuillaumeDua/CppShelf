@@ -113,6 +113,7 @@ do
   esac
 done
 
+log ""
 log "arguments - versions: [${arg_versions}]"
 log "arguments - silent:   [${arg_silent}]"
 log "arguments - alias:    [${arg_alias}]"
@@ -133,7 +134,7 @@ ubuntu_toolchain_r_ppa="ubuntu-toolchain-r/test"
 is_ubuntu_toolchain_r_ppa_added=$(grep -r "${ubuntu_toolchain_r_ppa}" /etc/apt/sources.list.d/ >/dev/null 2>&1 && echo true || echo false)
 if [ "${is_ubuntu_toolchain_r_ppa_added}" = false ]; then
     log "adding ppa: [${ubuntu_toolchain_r_ppa}] ..."
-    sudo add-apt-repository ppa:ubuntu-toolchain-r/test && apt update -qqy
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt update -qqy
 fi
 
 # --- list versions ---

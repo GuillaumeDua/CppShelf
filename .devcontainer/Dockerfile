@@ -12,7 +12,7 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         gpg gpg-agent gnupg                                 \
         software-properties-common lsb-release apt-utils    \
         python3 pip                                         \
-   && add-apt-repository ppa:ubuntu-toolchain-r/test        \
+   && add-apt-repository -y ppa:ubuntu-toolchain-r/test     \
    && apt update -qqy && apt install -qqy --no-install-recommends \
         # remote
         wget ssh                                            \
