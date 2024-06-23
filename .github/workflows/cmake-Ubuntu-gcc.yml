@@ -20,7 +20,8 @@ jobs:
       run: |
           sudo apt update -qqy
           chmod +x .devcontainer/scripts/gcc.sh
-          sudo ./.devcontainer/scripts/gcc.sh --silent=yes --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
+          sudo ./.devcontainer/scripts/gcc.sh --silent=no --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
+          
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
