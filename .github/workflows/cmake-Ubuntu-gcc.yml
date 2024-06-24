@@ -12,17 +12,19 @@ jobs:
             GCC_COMPILER_VERSIONS: [13, 14]
             BUILD_TYPE: [Debug, Release]
             CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
+            # include:
+            #   - STL_IMPLEMENTATION: libstdc++
+            #   - STL_IMPLEMENTATION: libc++ -lc++abi
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Initialize compiler (GCC)
+    - name: Install compiler (GCC)
       run: |
           sudo apt update -qqy
           chmod +x .devcontainer/scripts/gcc.sh
           sudo ./.devcontainer/scripts/gcc.sh --silent=no --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
           
-
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
@@ -50,9 +52,7 @@ jobs:
             --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
             --config ${{matrix.BUILD_TYPE}}
 
-    # Tests
     - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
       run: ctest -R csl_test_${{matrix.CSL_COMPONENTS}}
-
