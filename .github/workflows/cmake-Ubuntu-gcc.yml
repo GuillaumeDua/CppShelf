@@ -9,12 +9,9 @@ jobs:
 
     strategy:
         matrix:
+            CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
             GCC_COMPILER_VERSIONS: [13, 14]
             BUILD_TYPE: [Debug, Release]
-            CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
-            # include:
-            #   - STL_IMPLEMENTATION: libstdc++
-            #   - STL_IMPLEMENTATION: libc++ -lc++abi
 
     steps:
     - uses: actions/checkout@v3
