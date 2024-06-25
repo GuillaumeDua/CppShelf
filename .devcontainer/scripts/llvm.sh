@@ -14,6 +14,7 @@ arg_versions='all'
 arg_list=0
 arg_silent=1
 arg_alias=0
+arg_minimalistic=0
 
 internal_script_path='impl.sh'
 
@@ -22,15 +23,16 @@ help(){
     echo "
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
-        [ -l | --list ]     : Only list available versions. Boolean -> default is [0]
-        [ -v | --versions ] : Versions to install.          String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
-            - [all]        : all versions availables
-            - [latest]     : only the latest version available
-            - [>=(number)] : all versions greater or equal to <number>. Ex: '>=42'
-            - [numbers...] : only listed versions. Ex: '13 25 42' (space-separated)
-        [ -s | --silent ]   : Run in silent mod.            Boolean -> default is [1]
-        [ -a | --alias]     : Set bash/zsh-rc aliases.      Boolean -> default is [0]
-        [ -h | --help ]     : Display usage/help
+        [ -l | --list ]         : Only list available versions. Boolean -> default is [0]
+        [ -v | --versions ]     : Versions to install.          String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
+            - [all]             : all versions availables
+            - [latest]          : only the latest version available
+            - [>=(number)]      : all versions greater or equal to <number>. Ex: '>=42'
+            - [numbers...]      : only listed versions. Ex: '13 25 42' (space-separated)
+        [ -s | --silent ]       : Run in silent mod.            Boolean -> default is [1]
+        [ -a | --alias]         : Set bash/zsh-rc aliases.      Boolean -> default is [0]
+        [ -m | --minimalistic]  : only clang/clang++, not tools.Boolean -> default is [0]
+        [ -h | --help ]         : Display usage/help
 
     For instance, to only install the two latest versions available, use:
         sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} -l | tail -2)\"
@@ -79,8 +81,8 @@ fi
 
 # --- options management ---
 
-options_short=s:,v:,a:,l,h
-options_long=silent:,versions:,alias:,help,list
+options_short=s:,v:,a:,m,l,h
+options_long=silent:,versions:,alias:,minimalistic,help,list
 getopt_result=$(getopt -a -n ${this_script_name} --options ${options_short} --longoptions ${options_long} -- "$@")
 
 eval set -- "$getopt_result"
@@ -100,6 +102,9 @@ do
       arg_versions=$(echo $2 | tr -d '\n' | tr '\n' ' ')
       shift 2
       ;;
+    -m | --minimalistic )
+        arg_minimalistic=1
+        shift;
     -l | --list )
       arg_list=1
       arg_silent=1
@@ -123,9 +128,10 @@ do
   esac
 done
 
-log "arguments - versions: [${arg_versions}]"
-log "arguments - silent:   [${arg_silent}]"
-log "arguments - alias:    [${arg_alias}]"
+log "arguments - versions:          [${arg_versions}]"
+log "arguments - silent:            [${arg_silent}]"
+log "arguments - alias:             [${arg_alias}]"
+log "arguments - arg_minimalistic:  [${arg_minimalistic}]"
 
 arg_silent=$(to_boolean "${arg_silent}")
 if [ "$arg_silent" == '' ] ; then
@@ -134,6 +140,11 @@ fi
 
 arg_list=$(to_boolean "${arg_list}")
 if [ "$arg_list" == '' ] ; then
+    exit 1;
+fi
+
+arg_minimalistic=$(to_boolean "${arg_minimalistic}")
+if [ "$arg_minimalistic" == '' ] ; then
     exit 1;
 fi
 
@@ -244,21 +255,29 @@ for version in "${llvm_versions_to_install[@]}"; do
     #     lldb-${version}         \
     # || error "installation of [${version}] (tools) failed"
     # clang and clang-tools
-    update-alternatives --quiet                                                                                             \
-        --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
-        --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
-        --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}                \
-        --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                  \
-        --slave /usr/bin/clangd                   clangd                    /usr/bin/clangd-${version}                      \
-        --slave /usr/bin/clang-check              clang-check               /usr/bin/clang-check-${version}                 \
-        --slave /usr/bin/clang-query              clang-query               /usr/bin/clang-query-${version}                 \
-        --slave /usr/bin/clang-apply-replacements clang-apply-replacements  /usr/bin/clang-apply-replacements-${version}    \
-        --slave /usr/bin/sancov                   sancov                    /usr/bin/sancov-${version}                      \
-        --slave /usr/bin/scan-build               scan-build                /usr/bin/scan-build-${version}                  \
-        --slave /usr/bin/scan-view                scan-view                 /usr/bin/scan-view-${version}                   \
-        --slave /usr/bin/llvm-symbolizer          llvm-symbolizer           /usr/bin/llvm-symbolizer-${version}             \
-        --slave /usr/bin/lldb                     lldb                      /usr/bin/lldb-${version}                        \
-    || error "update-alternatives of [${version}] failed"
+    
+    if [[ ${arg_minimalistic} == 1 ]]; then
+        update-alternatives --quiet                                                                                             \
+            --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+            --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
+        || error "update-alternatives of [${version}] failed"
+    else
+        update-alternatives --quiet                                                                                             \
+            --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+            --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
+            --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}                \
+            --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                  \
+            --slave /usr/bin/clangd                   clangd                    /usr/bin/clangd-${version}                      \
+            --slave /usr/bin/clang-check              clang-check               /usr/bin/clang-check-${version}                 \
+            --slave /usr/bin/clang-query              clang-query               /usr/bin/clang-query-${version}                 \
+            --slave /usr/bin/clang-apply-replacements clang-apply-replacements  /usr/bin/clang-apply-replacements-${version}    \
+            --slave /usr/bin/sancov                   sancov                    /usr/bin/sancov-${version}                      \
+            --slave /usr/bin/scan-build               scan-build                /usr/bin/scan-build-${version}                  \
+            --slave /usr/bin/scan-view                scan-view                 /usr/bin/scan-view-${version}                   \
+            --slave /usr/bin/llvm-symbolizer          llvm-symbolizer           /usr/bin/llvm-symbolizer-${version}             \
+            --slave /usr/bin/lldb                     lldb                      /usr/bin/lldb-${version}                        \
+        || error "update-alternatives of [${version}] failed"
+    fi
 
 done
 
