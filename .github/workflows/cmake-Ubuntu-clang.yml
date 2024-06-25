@@ -20,8 +20,8 @@ jobs:
     - name: Install compiler (clang)
       run: |
           sudo apt update -qqy
-          chmod +x .devcontainer/scripts/clang.sh
-          sudo ./.devcontainer/scripts/clang.sh --silent=no --alias=no --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
+          chmod +x .devcontainer/scripts/llvm.sh
+          sudo ./.devcontainer/scripts/llvm.sh --silent=no --alias=no --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
           
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
