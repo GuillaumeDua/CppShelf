@@ -21,7 +21,8 @@ jobs:
       run: |
           sudo apt update -qqy
           chmod +x .devcontainer/scripts/llvm.sh
-          sudo ./.devcontainer/scripts/llvm.sh --silent=no --alias=no --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
+          sudo ./.devcontainer/scripts/llvm.sh --silent=no --alias=no --minimalistic --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
+    #TODO: silent
           
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
