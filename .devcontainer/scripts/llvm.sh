@@ -91,40 +91,41 @@ while :
 do
   case "$1" in
     -s | --silent )
-      arg_silent="$2"
-      shift 2
-      ;;
+        arg_silent="$2"
+        shift 2
+        ;;
     -a | --alias )
-      arg_alias="$2"
-      shift 2
-      ;;
+        arg_alias="$2"
+        shift 2
+        ;;
     -v | --versions )
-      arg_versions=$(echo $2 | tr -d '\n' | tr '\n' ' ')
-      shift 2
-      ;;
+        arg_versions=$(echo $2 | tr -d '\n' | tr '\n' ' ')
+        shift 2
+        ;;
     -m | --minimalistic )
         arg_minimalistic=1
         shift;
+        ;;
     -l | --list )
-      arg_list=1
-      arg_silent=1
-      arg_versions='all'
-      shift;
-      break
-      ;;
+        arg_list=1
+        arg_silent=1
+        arg_versions='all'
+        shift;
+        break
+        ;;
     -h | --help)
-      help
-      exit 0
-      shift
-      ;;
+        help
+        exit 0
+        shift
+        ;;
     --)
-      shift;
-      break
-      ;;
+        shift;
+        break
+        ;;
     *)
-      echo "${this_script_name}: Unexpected option: [$1]" >> /dev/stderr
-      help
-      ;;
+        echo "${this_script_name}: Unexpected option: [$1]" >> /dev/stderr
+        help
+        ;;
   esac
 done
 
