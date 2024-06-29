@@ -2,33 +2,26 @@ name: cmake-Ubuntu-gcc
 
 on: [push, pull_request]
 
-env:
-  relase_id: 13
-  CC:   gcc-13
-  CXX:  g++-13
-
 jobs:
   cmake-Ubuntu-gcc_build_test:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest
 
     strategy:
         matrix:
+            CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
+            GCC_COMPILER_VERSIONS: [13, 14]
             BUILD_TYPE: [Debug, Release]
-            CSL_COMPONENTS: [wf, mp]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - name: Initialize compiler (GCC)
+    - name: Install compiler (GCC)
       run: |
-          sudo apt update
-          sudo apt install gcc-$relase_id g++-$relase_id
-          sudo update-alternatives \
-            --install /usr/bin/gcc gcc /usr/bin/gcc-$relase_id 100 \
-            --slave /usr/bin/g++ g++  /usr/bin/g++-$relase_id \
-            --slave /usr/bin/gcov gcov /usr/bin/gcov-$relase_id
-
+          sudo apt update -qqy
+          chmod +x .devcontainer/scripts/gcc.sh
+          sudo ./.devcontainer/scripts/gcc.sh --silent=no --alias=no --versions="${{matrix.GCC_COMPILER_VERSIONS}}"
+          
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
@@ -37,10 +30,17 @@ jobs:
     - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
-            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                   \
-            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
-            -S ${{github.workspace}}                                                                \
+            -DCMAKE_C_COMPILER=/usr/bin/gcc-${{matrix.GCC_COMPILER_VERSIONS}}                                               \
+            -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{matrix.GCC_COMPILER_VERSIONS}}                                             \
+            -DCSL_BUILD_ALL:BOOL=FALSE                                                                                      \
+            -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                                \
+            -DCSL_ENABLE_ALL_TESTS:BOOL=FALSE                                                                               \
+            -DCSL_BUILD_TESTS_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                          \
+            -DCSL_ENABLE_ALL_EXAMPLES:BOOL=FALSE                                                                            \
+            -DCSL_BUILD_EXAMPLES_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                       \
+            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}} \
+            -S ${{github.workspace}}                                                                                        \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
 
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
@@ -49,9 +49,7 @@ jobs:
             --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
             --config ${{matrix.BUILD_TYPE}}
 
-    # Tests
     - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
       run: ctest -R csl_test_${{matrix.CSL_COMPONENTS}}
-

@@ -1,0 +1,28 @@
+# git config --global core.autocrlf false
+# git config --global core.eol lf
+
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.dll binary
+*.so binary
+*.bin binary
+
+*.hpp text
+*.cpp text
+*.txt text
+*.html text
+*.md text
+*.yml text
+*.xml text
+*.in text
+.gitattributes text
+.gitignore text

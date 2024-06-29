@@ -2,66 +2,57 @@ name: cmake-Ubuntu-clang
 
 on: [push, pull_request]
 
-env:
-  release_id: 16
-  CC:   clang-16
-  CXX:  clang++-16
-  gcc_release_id: 13
-
 jobs:
   cmake-Ubuntu-clang_build_test:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest
 
     strategy:
         matrix:
+            CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
+            CLANG_COMPILER_VERSIONS: [17, 18]
             BUILD_TYPE: [Debug, Release]
             STL_IMPLEMENTATION: [libstdc++, libc++ -lc++abi]
-            CSL_COMPONENTS: [wf, mp]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - name: Initialize compiler (Clang)
-    # sudo add-apt-repository ppa:ubuntu-toolchain-r/test -> latest gcc
-    # todo: only install clang, libc++, libc++abi
+    - name: Install compiler (clang)
       run: |
-          sudo apt update
-          sudo apt install gcc-$gcc_release_id libstdc++-$gcc_release_id-dev
-          sudo apt-get purge --auto-remove llvm python3-lldb-14 llvm-14 # https://github.com/llvm/llvm-project/issues/64182
-          wget https://apt.llvm.org/llvm.sh \
-            && chmod +x llvm.sh             \
-            && sudo ./llvm.sh $release_id   \
-            && rm llvm.sh
-          sudo update-alternatives \
-            --install /usr/bin/clang clang /usr/bin/clang-$release_id 100
-          sudo update-alternatives \
-            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$release_id 100
-          sudo apt install libc++1-$release_id libc++-$release_id-dev libc++abi-$release_id-dev libc++abi1-$release_id
-
-    - name: cmake create build env - ${{matrix.BUILD_TYPE}} - ${{matrix.STL_IMPLEMENTATION}}
+          sudo apt update -qqy
+          chmod +x .devcontainer/scripts/llvm.sh
+          sudo ./.devcontainer/scripts/llvm.sh --silent=no --alias=no --minimalistic --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
+    #TODO: silent
+          
+    - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
         cmake -E make_directory ${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       
-    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
+    - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
-            -DCMAKE_CXX_FLAGS="-stdlib=${{matrix.STL_IMPLEMENTATION}}"                              \
-            -DCSL_BUILD_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                   \
-            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                        \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}    \
-            -S ${{github.workspace}}                                                                \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-${{matrix.CLANG_COMPILER_VERSIONS}}                                           \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${{matrix.CLANG_COMPILER_VERSIONS}}                                       \
+            -DCMAKE_CXX_FLAGS="-stdlib=${{matrix.STL_IMPLEMENTATION}}"                                                      \
+            -DCSL_BUILD_ALL:BOOL=FALSE                                                                                      \
+            -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                                \
+            -DCSL_ENABLE_ALL_TESTS:BOOL=FALSE                                                                               \
+            -DCSL_BUILD_TESTS_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                          \
+            -DCSL_ENABLE_ALL_EXAMPLES:BOOL=FALSE                                                                            \
+            -DCSL_BUILD_EXAMPLES_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                       \
+            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}} \
+            -S ${{github.workspace}}                                                                                        \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
 
-    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
+    - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       run: |
         cmake \
             --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}  \
             --config ${{matrix.BUILD_TYPE}}
 
-    # Tests
-    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION}})
+    - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
       run: ctest -R csl_test_${{matrix.CSL_COMPONENTS}}

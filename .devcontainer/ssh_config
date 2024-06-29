@@ -1,0 +1,4 @@
+Host github.com
+  ForwardAgent yes
+  Hostname ssh.github.com
+  Port 443

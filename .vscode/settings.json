@@ -1,70 +1,132 @@
+// TODO: configure/interface recommended extensions and apps: clangd, etc.
 {
-    "C_Cpp.errorSquiggles": "disabled",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "/usr/bin/zsh",
+            "icon": "terminal"
+        },
+        "bash": {
+            "path": "/usr/bin/bash",
+            "icon": "terminal-bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh", 
     "debug.terminal.clearBeforeReusing": true,
-    "clang-tidy.buildPath": "./build/",
-    // "clang-tidy.buildPath": "${workspaceFolder}/build"
+    "C_Cpp.errorSquiggles": "disabled",
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.path": "/usr/bin/clangd",
+    "clangd.checkUpdates": true,
+    "clangd.arguments": [
+        "--enable-config",
+        "-log=verbose",
+        "-pretty",
+        "--background-index",
+        "-compile-commands-dir=${workspaceFolder}/build/",
+        "header-insertion=never"
+    ],
+    "clang-tidy.buildPath": "./build/", // "${workspaceFolder}/build"
+    // TODO(Guillaume): requires integration of https://github.com/microsoft/vscode-cmake-tools/issues/1090
+    // "cmake.configureArgs": [
+    //     "--warn-unused-cli"
+    // ],
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureOnOpen": true,
     "cmake.generator": "Ninja",
     "cmake.configureSettings": {
+        "CMAKE_GENERATOR": "Ninja",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CSL_BUILD_ALL": true,
         "CSL_ENABLE_ALL_TESTS": true,
         "CSL_ENABLE_ALL_EXAMPLES": true,
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         // CSL OPT-INS
         // TODO(Guss): test matrix
         "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT": true,
         "CSL_ENSURE__OPT_IN__FMT_SUPPORT": true
+        
+    },
+    "cmake.options.statusBarVisibility": "compact",
+    "[cpp][c]": {
+        "editor.wordBasedSuggestions": "off",
+        "editor.suggest.insertMode": "replace",
+        "editor.semanticHighlighting.enabled": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.tabCompletion": "on",
+        "editor.detectIndentation": false
     },
     "files.associations": {
-        "array": "cpp",
-        "atomic": "cpp",
-        "bit": "cpp",
-        "*.tcc": "cpp",
-        "cctype": "cpp",
-        "clocale": "cpp",
-        "cmath": "cpp",
-        "compare": "cpp",
-        "concepts": "cpp",
-        "cstdarg": "cpp",
-        "cstddef": "cpp",
-        "cstdint": "cpp",
-        "cstdio": "cpp",
-        "cstdlib": "cpp",
-        "cwchar": "cpp",
-        "cwctype": "cpp",
-        "deque": "cpp",
-        "set": "cpp",
-        "unordered_map": "cpp",
-        "vector": "cpp",
-        "exception": "cpp",
-        "algorithm": "cpp",
-        "functional": "cpp",
-        "iterator": "cpp",
-        "memory": "cpp",
-        "memory_resource": "cpp",
-        "numeric": "cpp",
-        "optional": "cpp",
-        "random": "cpp",
-        "string": "cpp",
-        "string_view": "cpp",
-        "system_error": "cpp",
-        "tuple": "cpp",
-        "type_traits": "cpp",
-        "utility": "cpp",
-        "fstream": "cpp",
-        "initializer_list": "cpp",
-        "iosfwd": "cpp",
-        "iostream": "cpp",
-        "istream": "cpp",
-        "limits": "cpp",
-        "new": "cpp",
-        "numbers": "cpp",
-        "ostream": "cpp",
-        "ranges": "cpp",
-        "sstream": "cpp",
-        "stdexcept": "cpp",
-        "streambuf": "cpp",
-        "typeinfo": "cpp",
-        "variant": "cpp",
-        "bitset": "cpp"
-    }
+        "*.h": "cpp",
+        "*.hpp": "cpp",
+        "*.cpp": "cpp",
+    },
+    "todo-tree.general.tags": [
+        "BUG",
+        "WARNING",
+        "FIXME",
+        "TODO",
+        "WIP",
+        "REFACTO",
+        "QUICK-FIX",
+        "QUESTION",
+        "NOTE",
+        "TECH-DEBT"
+    ],
+    "todo-tree.highlights.useColourScheme": true,
+    "todo-tree.highlights.customHighlight": {
+        "BUG": {
+            "icon": "bug",
+            "iconColour": "#e94242",
+            "background": "#e94242",
+            "foreground": "#1a1b26"
+        },
+        "WARNING": {
+            "icon": "alert",
+            "iconColour": "#e0af68",
+            "background": "#e0af68",
+            "foreground": "#1a1b26"
+        },
+        "FIXME": {
+            "icon": "flame"
+        },
+        "WIP": {
+            "icon": "tools",
+            "iconColour": "#7aa2f7",
+            "background": "#7aa2f7",
+            "foreground": "#1a1b26"
+        },
+        "TODO": {
+            "icon": "hourglass",
+            "iconColour": "#9ece6a",
+            "background": "#9ece6a",
+            "foreground": "#1a1b26"
+        },
+        "REFACTO": {
+            "icon": "fold",
+            "iconColour": "#ff9e64",
+            "background": "#ff9e64",
+            "foreground": "#1a1b26"
+        },
+        "QUICK-FIX": {
+            "icon": "zap",
+            "iconColour": "#e0af68",
+            "background": "#e0af68",
+            "foreground": "#1a1b26"
+        },
+        "TECH-DEBT": {
+            "icon": "graph",
+            "iconColour": "#e94242",
+            "background": "#e94242",
+            "foreground": "#1a1b26"
+        },
+        "QUESTION": {
+            "icon": "question",
+            "iconColour": "#bb9af7",
+            "background": "#bb9af7"
+        },
+        "NOTE": {
+            "icon": "note",
+            "iconColour": "#2ac3de",
+            "background": "#2ac3de",
+        }
+    },
 }
