@@ -165,6 +165,7 @@ external_script_url='https://apt.llvm.org/llvm.sh'
 # wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 # wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 # NO_PUBKEY 1A127079A92F09ED
+# REFACTO: remove gpg key -> already added by ${external_script_url}
 wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
     && wget -qO ${internal_script_path} ${external_script_url} \
     && chmod +x "${internal_script_path}"
@@ -246,12 +247,10 @@ codename=$(lsb_release -cs)
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
-    yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1
-    exit_code=$?
-
-    if [ $exit_code -ne 0 ]; then
-        error "running [${external_script_url} ${version} all] failed"
-    fi
+    trap '' PIPE
+    yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
+    || error "running [${external_script_url} ${version} all] failed"
+    trap - PIPE
 
     # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
     # apt install -qq -y --no-install-recommends \
