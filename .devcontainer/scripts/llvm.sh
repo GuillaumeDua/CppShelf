@@ -248,8 +248,11 @@ codename=$(lsb_release -cs)
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
-    # yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
-    ./${internal_script_path} ${version} all -n ${codename} \
+    # fix potential conflicts:
+    #   sudo apt-get purge --auto-remove llvm python3-lldb-14 llvm-14 -y; \
+
+    # yes '' |
+    ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
     || error "running [${external_script_url} ${version} all] failed"
 
     # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
