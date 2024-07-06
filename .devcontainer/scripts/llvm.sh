@@ -249,7 +249,7 @@ mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
     # yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
-    { while true; do echo ""; done; } | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
+    ./${internal_script_path} ${version} all -n ${codename} \
     || error "running [${external_script_url} ${version} all] failed"
 
     # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
