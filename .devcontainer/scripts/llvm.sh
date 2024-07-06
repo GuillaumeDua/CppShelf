@@ -129,11 +129,6 @@ do
   esac
 done
 
-log "arguments - versions:          [${arg_versions}]"
-log "arguments - silent:            [${arg_silent}]"
-log "arguments - alias:             [${arg_alias}]"
-log "arguments - arg_minimalistic:  [${arg_minimalistic}]"
-
 arg_silent=$(to_boolean "${arg_silent}")
 if [ "$arg_silent" == '' ] ; then
     exit 1;
@@ -148,6 +143,12 @@ arg_minimalistic=$(to_boolean "${arg_minimalistic}")
 if [ "$arg_minimalistic" == '' ] ; then
     exit 1;
 fi
+
+log "arguments - versions:          [${arg_versions}]"
+log "arguments - silent:            [${arg_silent}]"
+log "arguments - alias:             [${arg_alias}]"
+log "arguments - list:              [${arg_list}]"
+log "arguments - arg_minimalistic:  [${arg_minimalistic}]"
 
 # --- fetch llvm.sh ---
 # or use:
@@ -247,7 +248,8 @@ codename=$(lsb_release -cs)
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
-    (yes '' ||: ) | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
+    # yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
+    { while true; do echo ""; done; } | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
     || error "running [${external_script_url} ${version} all] failed"
 
     # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
