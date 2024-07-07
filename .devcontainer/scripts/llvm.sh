@@ -306,6 +306,7 @@ for version in "${llvm_versions_to_install[@]}"; do
     fi
 
 done
+clean;
 
 # --- summary ---
 llvm_versions=$(list_installed_llvm_versions)
@@ -324,7 +325,6 @@ if [[ "${arg_alias}" == 1 ]]; then
     [[ -f '/etc/zsh/zshrc' ]]   && echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;
 fi
 
-clean();
 exit 0;
 
 # Legacy inline integration
