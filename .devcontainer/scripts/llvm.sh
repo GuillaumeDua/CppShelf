@@ -324,6 +324,7 @@ if [[ "${arg_alias}" == 1 ]]; then
     [[ -f '/etc/zsh/zshrc' ]]   && echo llvm_versions=\'${llvm_versions}\' >> /etc/zsh/zshrc;
 fi
 
+clean();
 exit 0;
 
 # Legacy inline integration
