@@ -121,10 +121,6 @@ do
   esac
 done
 
-log "arguments - versions: [${arg_versions}]"
-log "arguments - silent:   [${arg_silent}]"
-log "arguments - alias:    [${arg_alias}]"
-
 arg_silent=$(to_boolean "${arg_silent}")
 if [ "$arg_silent" == '' ] ; then
     exit 1;
@@ -134,6 +130,11 @@ arg_list=$(to_boolean "${arg_list}")
 if [ "$arg_list" == '' ] ; then
     exit 1;
 fi
+
+log "arguments - versions: [${arg_versions}]"
+log "arguments - silent:   [${arg_silent}]"
+log "arguments - alias:    [${arg_alias}]"
+log "arguments - list:     [${arg_list}]"
 
 # --- use ppa:ubuntu-toolchain-r/test
 

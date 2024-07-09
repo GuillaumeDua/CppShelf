@@ -15,6 +15,7 @@ arg_list=0
 arg_silent=1
 arg_alias=0
 arg_minimalistic=0
+arg_cleanup=0
 
 internal_script_path='impl.sh'
 
@@ -23,15 +24,16 @@ help(){
     echo "
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
-        [ -l | --list ]         : Only list available versions. Boolean -> default is [0]
-        [ -v | --versions ]     : Versions to install.          String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
-            - [all]             : all versions availables
-            - [latest]          : only the latest version available
-            - [>=(number)]      : all versions greater or equal to <number>. Ex: '>=42'
-            - [numbers...]      : only listed versions. Ex: '13 25 42' (space-separated)
-        [ -s | --silent ]       : Run in silent mod.            Boolean -> default is [1]
-        [ -a | --alias]         : Set bash/zsh-rc aliases.      Boolean -> default is [0]
-        [ -m | --minimalistic]  : only clang/clang++, not tools.Boolean -> default is [0]
+        [ -l | --list ]         : Only list available versions.                             Boolean -> default is [0]
+        [ -v | --versions ]     : Versions to install.                                      String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
+            - [all]             : all versions availables                                       Ex: 'all'
+            - [latest]          : only the latest version available                             Ex: 'latest'
+            - [>=(number)]      : all versions greater or equal to <number>.                    Ex: '>=42'
+            - [numbers...]      : only listed versions.                                         Ex: '13 25 42' (space-separated)
+        [ -s | --silent ]       : Run in silent mod.                                        Boolean -> default is [1]
+        [ -a | --alias]         : Set bash/zsh-rc aliases.                                  Boolean -> default is [0]
+        [ -m | --minimalistic]  : only clang/clang++, not tools.                            Boolean -> default is [0]
+        [ -c | --cleanup]       : purge any (pre-)existing llvm/clang package installation. Boolean -> default is [0]
         [ -h | --help ]         : Display usage/help
 
     For instance, to only install the two latest versions available, use:
@@ -81,8 +83,8 @@ fi
 
 # --- options management ---
 
-options_short=s:,v:,a:,m,l,h
-options_long=silent:,versions:,alias:,minimalistic,help,list
+options_short=s:,v:,a:,m,c,l,h
+options_long=silent:,versions:,alias:,minimalistic,cleanup,help,list
 getopt_result=$(getopt -a -n ${this_script_name} --options ${options_short} --longoptions ${options_long} -- "$@")
 
 eval set -- "$getopt_result"
@@ -104,6 +106,10 @@ do
         ;;
     -m | --minimalistic )
         arg_minimalistic=1
+        shift;
+        ;;
+    -c | --cleanup )
+        arg_cleanup=1
         shift;
         ;;
     -l | --list )
@@ -129,11 +135,6 @@ do
   esac
 done
 
-log "arguments - versions:          [${arg_versions}]"
-log "arguments - silent:            [${arg_silent}]"
-log "arguments - alias:             [${arg_alias}]"
-log "arguments - arg_minimalistic:  [${arg_minimalistic}]"
-
 arg_silent=$(to_boolean "${arg_silent}")
 if [ "$arg_silent" == '' ] ; then
     exit 1;
@@ -148,6 +149,18 @@ arg_minimalistic=$(to_boolean "${arg_minimalistic}")
 if [ "$arg_minimalistic" == '' ] ; then
     exit 1;
 fi
+
+arg_cleanup=$(to_boolean "${arg_cleanup}")
+if [ "$arg_cleanup" == '' ] ; then
+    exit 1;
+fi
+
+log "arguments - versions:          [${arg_versions}]"
+log "arguments - silent:            [${arg_silent}]"
+log "arguments - alias:             [${arg_alias}]"
+log "arguments - list:              [${arg_list}]"
+log "arguments - minimalistic:      [${arg_minimalistic}]"
+log "arguments - cleanup:           [${arg_cleanup}]"
 
 # --- fetch llvm.sh ---
 # or use:
@@ -165,6 +178,7 @@ external_script_url='https://apt.llvm.org/llvm.sh'
 # wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 # wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 # NO_PUBKEY 1A127079A92F09ED
+# REFACTO: remove gpg key -> already added by ${external_script_url}
 wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
     && wget -qO ${internal_script_path} ${external_script_url} \
     && chmod +x "${internal_script_path}"
@@ -243,10 +257,21 @@ codename=$(lsb_release -cs)
 #     codename="jammy"
 # fi
 
+if [[ ${arg_cleanup} == 1 ]]; then
+    sudo apt-get remove -y "llvm-*"
+    sudo apt-get remove -y "lldb-*"
+    sudo apt-get remove -y "clang-*"
+    sudo apt-get remove -y "python3-lldb-*"
+fi
+
 mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
-    yes '' | ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
+    # fix potential conflicts:
+    #   sudo apt-get purge --auto-remove llvm python3-lldb-14 llvm-14 -y; \
+
+    # yes '' |
+    ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
     || error "running [${external_script_url} ${version} all] failed"
 
     # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
@@ -281,6 +306,7 @@ for version in "${llvm_versions_to_install[@]}"; do
     fi
 
 done
+clean;
 
 # --- summary ---
 llvm_versions=$(list_installed_llvm_versions)
