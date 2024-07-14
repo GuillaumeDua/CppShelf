@@ -120,6 +120,7 @@ namespace csl::mp::details {
     template <std::size_t index, typename T>
     struct tuple_element_storage {
         T value;
+        constexpr auto operator<=>(const tuple_element_storage &) const = default;
     };
 
     template <typename indexes, typename ... Ts>
@@ -141,6 +142,8 @@ namespace csl::mp::details {
         constexpr tuple_storage(const tuple_storage &) = default;
         constexpr tuple_storage & operator=(tuple_storage &&) noexcept = default;
         constexpr tuple_storage & operator=(const tuple_storage &) = default;
+
+        constexpr auto operator<=>(const tuple_storage &) const = default;
     };
 
     template <typename>
@@ -191,6 +194,9 @@ namespace csl::mp {
         requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
         : storage{ fwd(args)... }
         {}
+
+        // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
+        constexpr auto operator<=>(const tuple &) const = default;
 
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
         template <std::size_t index>
@@ -1118,5 +1124,5 @@ namespace csl::mp {
 #undef csl_static_dependent_error
 
 // wip : https://godbolt.org/z/TfMqM5TaG
-// wip, benchemarked : https://godbolt.org/z/fj4z8sjzh
+// wip, benchmarked : https://godbolt.org/z/fj4z8sjzh
 // wip bench : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg
