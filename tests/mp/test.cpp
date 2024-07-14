@@ -219,12 +219,12 @@ namespace test::tuples::std_interopterability::get {
 // ADL
 namespace test::tuples::get::ADL {
     using std::get;
-    // using csl::mp::get;
+    // using csl::mp::get; // WIP
 
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
-    // static_assert(42 == get<0>(value));
+    //static_assert(42 == get<0>(value));
     // static_assert('a' == get<1>(value));
 }
 
