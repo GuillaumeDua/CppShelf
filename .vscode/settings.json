@@ -1,17 +1,5 @@
 // TODO: configure/interface recommended extensions and apps: clangd, etc.
 {
-    "terminal.integrated.profiles.linux": {
-        "zsh": {
-            "path": "/usr/bin/zsh",
-            "icon": "terminal"
-        },
-        "bash": {
-            "path": "/usr/bin/bash",
-            "icon": "terminal-bash"
-        }
-    },
-    "terminal.integrated.defaultProfile.linux": "zsh", 
-    "debug.terminal.clearBeforeReusing": true,
     "C_Cpp.errorSquiggles": "disabled",
     "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.path": "/usr/bin/clangd",
@@ -64,6 +52,46 @@
         "*.hpp": "cpp",
         "*.cpp": "cpp",
     },
+    "debug.terminal.clearBeforeReusing": true,
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh"
+        },
+        "fish": {
+            "path": "fish"
+        },
+        "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+        },
+        "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh",
     "todo-tree.general.tags": [
         "BUG",
         "WARNING",
