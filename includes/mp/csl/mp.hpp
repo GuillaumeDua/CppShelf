@@ -119,7 +119,7 @@ namespace csl::mp::details {
 
     template <std::size_t index, typename T>
     struct tuple_element_storage {
-        T value;
+        T value; // NOLINT(*-non-private-member-variables-in-classes)
         constexpr auto operator<=>(const tuple_element_storage &) const = default;
     };
 
@@ -190,7 +190,7 @@ namespace csl::mp {
 
     // storage
         constexpr tuple() = default;
-        constexpr tuple(auto && ... args)
+        explicit constexpr tuple(auto && ... args)
         requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
         : storage{ fwd(args)... }
         {}
@@ -244,7 +244,7 @@ namespace csl::mp {
     constexpr bool is_tuple_v = is_tuple<T>::value;
 
     namespace concepts {
-        template <typename T> concept Tuple = is_tuple_v<T>;
+        template <typename T> concept Tuple = is_tuple_v<std::remove_cvref_t<T>>;
     }
 }
 namespace csl::mp::details::concepts {
@@ -359,7 +359,7 @@ namespace csl::mp {
 
     // tuple_cat
     constexpr auto tuple_cat(){ return csl::mp::tuple{}; }
-    constexpr auto tuple_cat(auto && ... tuples)
+    constexpr auto tuple_cat(/* TODO: tuplelike */ auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
         constexpr auto size = (... + csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>);
@@ -368,7 +368,7 @@ namespace csl::mp {
             return csl::mp::tuple<>{};
         else
         {
-            // TODO: use `make_two_dimension_index` from the old `flatten` poc ?
+            // TODO(Guillaume): use `make_two_dimension_index` from the old `flatten` poc ?
             constexpr auto indexes_map = [&](){
 
                 // scenario:
@@ -645,16 +645,14 @@ namespace csl::mp {
 // tuple: API
 namespace csl::mp {
 
-    // tuple-size
-    // tuple-element
-    // get
+    // tuple_size
+    // tuple_element
 
-    // template <std::size_t index>
-    // [[nodiscard]] constexpr auto & get() & noexcept {
-    //     static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
-    //     using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
-    //     return static_cast<accessor&>(storage).value;
-    // }
+    template <std::size_t index>
+    [[nodiscard]] constexpr auto get(concepts::Tuple auto && value) noexcept -> decltype(auto) {
+        return value.template get<index>();
+    }
+    // WIP
 
     // make_tuple
     // forward_as_tuple
