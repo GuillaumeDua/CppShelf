@@ -4,6 +4,7 @@
 #include <csl/mp.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <type_traits>
 #include <concepts>
 
@@ -219,28 +220,29 @@ namespace test::tuples::std_interopterability::tuple_element {
     static_assert(std::is_same_v<int,  std::tuple_element_t<0, invalid_tuple>>);
 }
 namespace test::tuples::std_interopterability::get {
+    // NOTE: std::get is not a customization point, event since with C++17
+    using std::get;
+
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
-    // WIP
-    // static_assert(42 == std::get<0>(value)); // NOLINT(*-magic-numbers)
-    // static_assert('a' == std::get<1>(value));
+    static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
+    static_assert('a' == get<1>(value));
 }
 
 // ADL
 namespace test::tuples::get::ADL {
-    // using std::get;
-    // using csl::mp::get;
+    using csl::mp::get;
 
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
-    // static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
-    // static_assert('a' == get<1>(value));
+    static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
+    static_assert('a' == get<1>(value));
 }
 
 // structured binding
-namespace test::tuples::structed_binding {
+namespace test::tuples::structured_binding {
 
     using type = csl::mp::tuple<int, char>;
 
