@@ -680,14 +680,9 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 // TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 
 
-
-
-
 // ===================
 // -- OLD, to refactor
 // ===================
-
-
 
 #if false
 
