@@ -25,6 +25,7 @@
 //  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
 
 // sequences
+#include <array>
 namespace csl::mp::seq {
     // reverse_integer_sequence
     template <typename T>
