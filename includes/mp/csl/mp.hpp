@@ -10,8 +10,6 @@
 #include <bits/utility.h>
 #include <type_traits>
 #include <concepts>
-#include <utility>
-#include <tuple>
 // todo : remove dependency on std::tuple and std::integer_sequence
 //  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
@@ -20,13 +18,14 @@
 #define fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
-// [WIP] organisation refactoring
+// [WIP] refactoring => reorder/sort
 //  sequences::* : op on sequences
 //  seq types    : sequences definitions
 //  tuple
 //  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
 
 // sequences
+#include <array>
 namespace csl::mp::seq {
     // reverse_integer_sequence
     template <typename T>
@@ -66,7 +65,7 @@ namespace csl::mp::seq {
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
-        return get<index, values...>;
+        return get<index, values...>; // TODO(Guillaume) : impl, test
     }
 }
 
@@ -115,8 +114,45 @@ namespace csl::mp::details {
         constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
     };
 
+    template <std::size_t index, typename T>
+    struct tuple_element_storage {
+        T value; // NOLINT(*-non-private-member-variables-in-classes)
+        constexpr auto operator<=>(const tuple_element_storage &) const = default;
+    };
+
+    template <typename indexes, typename ... Ts>
+    struct tuple_storage{
+        static_assert([](){ return false; }(), "csl::mp::details::tuple_storage: ill-formed");
+    };
+    template <std::size_t ... indexes, typename ... Ts>
+    struct tuple_storage<std::index_sequence<indexes...>, Ts...>
+    : tuple_element_storage<indexes, Ts>...
+    {
+        explicit constexpr tuple_storage(auto && ... args)
+        requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
+        : tuple_element_storage<indexes, Ts>{ fwd(args) }...
+        {}
+
+        constexpr tuple_storage() = default;
+        constexpr ~tuple_storage() = default;
+        constexpr tuple_storage(tuple_storage&&) noexcept = default;
+        constexpr tuple_storage(const tuple_storage &) = default;
+        constexpr tuple_storage & operator=(tuple_storage &&) noexcept = default;
+        constexpr tuple_storage & operator=(const tuple_storage &) = default;
+
+        constexpr auto operator<=>(const tuple_storage &) const = default;
+    };
+
+    template <typename>
+    struct tuple_storage_accessor;
+    template <std::size_t index, typename T>
+    struct tuple_storage_accessor<tuple_element<index, T>> : std::type_identity<tuple_element_storage<index, T>>{};
+    template <typename T>
+    using tuple_storage_accessor_t = tuple_storage_accessor<T>::type;
+
     template <typename ... Ts>
     struct tuple_impl : Ts... {
+    // tuple-element indexing
         using Ts::deduce_type...;
         using Ts::deduce_index...;
 
@@ -143,7 +179,58 @@ namespace csl::mp {
     struct tuple : mp::details::make_tuple_t<
         std::make_index_sequence<sizeof...(Ts)>,
         Ts...
-    >{};
+    >{
+        using type = tuple<Ts...>;
+        constexpr static auto size = sizeof...(Ts);
+        using index_sequence_type = std::make_index_sequence<size>;
+        using storage_type = details::tuple_storage<index_sequence_type, Ts...>;
+
+    // storage
+        constexpr tuple() = default;
+        explicit constexpr tuple(auto && ... args)
+        requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
+        : storage{ fwd(args)... }
+        {}
+
+        // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
+        constexpr auto operator<=>(const tuple &) const = default;
+
+        // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
+        template <std::size_t index>
+        [[nodiscard]] constexpr auto & get() & noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<accessor&>(storage).value;
+        }
+        template <std::size_t index>
+        [[nodiscard]] constexpr const auto & get() const & noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<const accessor&>(storage).value;
+        }
+        template <std::size_t index>
+        [[nodiscard]] constexpr auto && get() && noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<accessor &&>(std::move(storage)).value;
+        }
+        template <std::size_t index>
+        [[nodiscard]] constexpr const auto && get() const && noexcept {
+            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            return static_cast<const accessor &&>(std::move(storage)).value;
+        }
+
+    // storage accessors
+        // get/at/operator[] -> cvref qualifiers matrix
+        // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
+        // compare/operator<=>
+
+        // visit/operator()
+
+    private:
+        storage_type storage;
+    };
 
     // is_tuple
     template <typename>
@@ -154,7 +241,7 @@ namespace csl::mp {
     constexpr bool is_tuple_v = is_tuple<T>::value;
 
     namespace concepts {
-        template <typename T> concept Tuple = is_tuple_v<T>;
+        template <typename T> concept Tuple = is_tuple_v<std::remove_cvref_t<T>>;
     }
 }
 namespace csl::mp::details::concepts {
@@ -269,7 +356,7 @@ namespace csl::mp {
 
     // tuple_cat
     constexpr auto tuple_cat(){ return csl::mp::tuple{}; }
-    constexpr auto tuple_cat(auto && ... tuples)
+    constexpr auto tuple_cat(/* TODO: tuplelike */ auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
         constexpr auto size = (... + csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>);
@@ -278,7 +365,7 @@ namespace csl::mp {
             return csl::mp::tuple<>{};
         else
         {
-            // TODO: use `make_two_dimension_index` from the old `flatten` poc ?
+            // TODO(Guillaume): use `make_two_dimension_index` from the old `flatten` poc ?
             constexpr auto indexes_map = [&](){
 
                 // scenario:
@@ -531,7 +618,7 @@ namespace csl::mp {
     //     [&](){}();
     // }
 
-    // // for_each_with_index
+    // for_each_with_index
     // template <concepts::ValidTuple tuple_type>
     // void for_each_with_index(tuple_type && value, auto && visitor){
     //     [&](){}();
@@ -539,48 +626,60 @@ namespace csl::mp {
 
     // apply
 
-    // projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
+    // projection: column vs. row
+    // column: projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
     //  project_by_index<0>(tuple_of_tuplelike) -> tuple{ int, int }
     //  project_by_index<1>(tuple_of_tuplelike) -> tuple{ char, char }
+
+    // tuple_storage: if are_same<Ts...> -> use std::array instead
 
     // print:
     //  fmt (opt-in or detected dependencies)
     //      -> csl::ag-like compact vs. pretty printing
     //  std::ostream printing
-
-    // concept: tuple-like interface
-    //  std::tuple_size, std::tuple_element
-    // concepts value tuple-like interface
-    //  std::get
-
-    // tuple_storage: if are_same<Ts...> -> use std::array instead
-
-    // make_tuple
-    // to_tuple(csl::ag::concept::aggregate auto && value)
 }
 
-// compatibility with std::tuple_element for structured binding
+// tuple: API
+namespace csl::mp {
+
+    // tuple_size
+    // tuple_element
+
+    template <std::size_t index>
+    [[nodiscard]] constexpr auto get(concepts::Tuple auto && value) noexcept -> decltype(auto) {
+        return value.template get<index>();
+    }
+    // WIP
+
+    // make_tuple
+    // forward_as_tuple
+}
+
+#pragma region std utility inter-operatiblity (structured binding)
+
+//  N4606 [namespace.std]/1 :
+//  A program may add a template specialization for any standard library template to namespace std
+//  only if the declaration depends on a user-defined type 
+//  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
+
+#include <utility> // std::tuple_size, std::tuple_element
+
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
 template <csl::mp::concepts::Tuple tuple_type>
 struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
 
 template <std::size_t index, csl::mp::concepts::Tuple tuple_type>
 struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
-
 // NOLINTEND(cert-dcl58-cpp)
+#pragma endregion
 
 
 // TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 
 
-
-
-
 // ===================
 // -- OLD, to refactor
 // ===================
-
-
 
 #if false
 
@@ -1017,5 +1116,5 @@ namespace csl::mp {
 #undef static_dependent_error
 
 // wip : https://godbolt.org/z/TfMqM5TaG
-// wip, benchemarked : https://godbolt.org/z/fj4z8sjzh
+// wip, benchmarked : https://godbolt.org/z/fj4z8sjzh
 // wip bench : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg

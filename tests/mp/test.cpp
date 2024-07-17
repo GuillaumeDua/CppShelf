@@ -4,9 +4,9 @@
 #include <csl/mp.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <type_traits>
 #include <concepts>
-#include <iostream> // debug only
 
 // tuples: details
 namespace test::tuples::concepts::deductible {
@@ -104,6 +104,8 @@ namespace test::tuples::tuple_cat {
         csl::mp::tuple<>,
         csl::mp::tuple_cat_result_t<csl::mp::tuple<>, csl::mp::tuple<>>
     >);
+
+    // TODO(Guillaume): values
 }
 namespace test::tuples::set_union {
     using T0 = csl::mp::tuple<int, char>;
@@ -168,7 +170,38 @@ namespace test::tuples::deduplicate {
     >);
 }
 
+// construction
+namespace test::tuples::storage::constructors::default_ {
+    using type = csl::mp::tuple<int, char>;
+    [[maybe_unused]] constexpr auto value = type{};
+}
+namespace test::tuples::storage::constructors::value {
+    using type = csl::mp::tuple<int, char>;
+    [[maybe_unused]] constexpr auto value = type{ 42, 'a' };
+}
+namespace test::tuples::storage::constructors::copy {
+    using type = csl::mp::tuple<int, char>;
+    constexpr auto value = type{ 42, 'a' };
+    [[maybe_unused]] constexpr auto copy = value;
+}
+namespace test::tuples::storage::constructors::move {
+    using type = csl::mp::tuple<int, char, std::string_view>;
+    [[maybe_unused]] const static auto moved_to = []{
+        auto tmp = type{ 42, 'a', std::string{} }; // NOLINT(*-magic-numbers)
+        auto value = std::move(tmp); // NOLINT(performance-move-const-arg)
+        return value;
+    }();
+}
+namespace test::tuples::get {
+    using type = csl::mp::tuple<int, char>;
+    constexpr auto value = type{ 42, 'a' };
+
+    static_assert(42 == value.template get<0>()); // NOLINT(*-magic-numbers)
+    static_assert('a' == value.template get<1>());
+}
+
 // std::tuple interface/inter-operatiblity
+#include <tuple>
 namespace test::tuples::std_interopterability::tuple_size {
     using valid_tuple = csl::mp::tuple<int, char>;
     using invalid_tuple = csl::mp::tuple<int, char, int>;
@@ -185,6 +218,48 @@ namespace test::tuples::std_interopterability::tuple_element {
     static_assert(std::is_same_v<int,  std::tuple_element_t<0, invalid_tuple>>);
     static_assert(std::is_same_v<char, std::tuple_element_t<1, invalid_tuple>>);
     static_assert(std::is_same_v<int,  std::tuple_element_t<0, invalid_tuple>>);
+}
+namespace test::tuples::std_interopterability::get {
+    // NOTE: std::get is not a customization point, event since with C++17
+    using std::get;
+
+    using type = csl::mp::tuple<int, char>;
+    constexpr auto value = type{ 42, 'a' };
+
+    static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
+    static_assert('a' == get<1>(value));
+}
+
+// ADL
+namespace test::tuples::get::ADL {
+    using csl::mp::get;
+
+    using type = csl::mp::tuple<int, char>;
+    constexpr auto value = type{ 42, 'a' };
+
+    static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
+    static_assert('a' == get<1>(value));
+}
+
+// structured binding
+namespace test::tuples::structured_binding {
+
+    using type = csl::mp::tuple<int, char>;
+
+    constexpr void lvalue(){
+        constexpr auto value = type{};
+        [[maybe_unused]] auto & [i, c] = value; // NOLINT(*-qualified-auto)
+    }
+    constexpr void const_lvalue(){
+        constexpr auto value = type{};
+        [[maybe_unused]] const auto & [i, c] = value;
+    }
+    constexpr void rvalue(){
+        [[maybe_unused]] auto && [i, c] = type{};
+    }
+    constexpr void const_rvalue(){
+        [[maybe_unused]] const auto && [i, c] = type{};
+    }
 }
 
 // sequences
@@ -254,6 +329,7 @@ namespace test::nth {
 //         pack<char, char, int, int, bool>>);
 // }
 
+// #include <iostream> // debug only
 auto main() -> int {
 
     // using namespace csl::mp;
