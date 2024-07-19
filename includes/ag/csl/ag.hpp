@@ -841,7 +841,7 @@ namespace csl::ag::concepts {
 }
 
 // -----------------------------------
-//           WIP: REFACTO
+//  WIP: REFACTO: formatting/printing
 // -----------------------------------
 
 // WIP: CSL_AG__ENABLE_IOSTREAM_SUPPORT
@@ -1080,12 +1080,12 @@ namespace csl::ag::details::concepts {
 	concept formattable_aggregate = 
 		csl::ag::concepts::aggregate<T> and
 		(not std::is_array_v<T>) and
-		(not is_std_array<T>::value)
+		(not csl::ag::details::mp::is_std_array<T>::value)
 	;
 }
 
 // TODO(Guss) : opt-in (include as an extra file : csl::ag::io)
-template <formattable_aggregate T, class CharT>
+template <csl::ag::details::concepts::formattable_aggregate T, class CharT>
 struct fmt::formatter<T, CharT>
 {
     // TODO(Guss)
@@ -1093,12 +1093,12 @@ struct fmt::formatter<T, CharT>
 
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
 
-        auto it = ctx.begin(), end = ctx.end();
+        auto it = ctx.begin();
+        auto end = ctx.end();
         if (it != end && (*it == 'c' || *it == 'p'))
             presentation = *it++;
         if (it != end && *it != '}')
             throw fmt::format_error{"invalid format"};
-
         return it;
     }
 
