@@ -1,3 +1,5 @@
+# TODO: options naming consistency: CSL_${component_name}__ENABLE_smthg
+
 # opt-in: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT
 option(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable iostream support" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT set to [${CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT}]")

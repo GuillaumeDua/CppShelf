@@ -14,8 +14,8 @@ namespace test::ag::size_ {
     ;
 }
 
-#if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
-#pragma message("[csl::ag] test size with CSL_AG_ENABLE_BITFIELDS_SUPPORT=OFF")
+#if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+#pragma message("[csl::ag] test size with CSL_AG__ENABLE_BITFIELDS_SUPPORT=OFF")
 namespace test::ag::size_::trivial_cases {
     using expect_1 = struct { int i; };
     using expect_2 = struct { int i; char c; };
@@ -43,7 +43,7 @@ namespace test::ag::size_::non_trivial_cases {
 }
 #else
 namespace test::ag::size_::trivial_cases {
-#pragma message("[csl::ag] test size with CSL_AG_ENABLE_BITFIELDS_SUPPORT=ON")
+#pragma message("[csl::ag] test size with CSL_AG__ENABLE_BITFIELDS_SUPPORT=ON")
     template <typename T, size_t expected_fields_count>
     consteval auto is_simple_construction_valid() -> bool {
         return

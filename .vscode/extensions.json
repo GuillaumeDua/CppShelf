@@ -19,7 +19,8 @@
         "ms-vscode.remote-server",
         "ms-vscode-remote.remote-ssh-edit",
         "ms-vscode.remote-explorer",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "gruntfuggly.todo-tree"
     ],
     "unwantedRecommendations": []
 }

@@ -196,8 +196,8 @@ namespace csl::ag::concepts {
 namespace csl::ag::details {
 
 #pragma region fields_count
-    #if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
-    # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
+    #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+    # pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
     [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
@@ -218,7 +218,7 @@ namespace csl::ag::details {
             return fields_count_impl<T, indice - 1>();
     }
     #else
-    # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
+    # pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
     #endif
 
     template <concepts::aggregate T, std::size_t indice>
@@ -241,7 +241,7 @@ namespace csl::ag::details {
     constexpr std::size_t fields_count = fields_count_impl<
         T,
         sizeof(T)
-        #if defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
+        #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
         * sizeof(std::byte) * CHAR_BIT
         #endif
     >();
@@ -844,6 +844,8 @@ namespace csl::ag::concepts {
 //           WIP: REFACTO
 // -----------------------------------
 
+// WIP: CSL_AG__ENABLE_IOSTREAM_SUPPORT
+
 // csl::ag::io
 // REFACTO: #134
 #include <string_view>
@@ -1057,11 +1059,14 @@ namespace csl::ag::io {
     }
 }
 
-// fmt
+// Opt-in fmt support
 //	wip : https://godbolt.org/z/7b1Ga168P
 //  wip (presentation) : https://godbolt.org/z/qfTMoT7fo
 //		see https://github.com/GuillaumeDua/CppShelf/issues/57
-#ifdef FMT_FORMAT_H_
+#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and not __has_include(<fmt/format.h>)
+    static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
+#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
+
 # include <fmt/ranges.h>
 
 namespace csl::ag::details::mp {
@@ -1120,9 +1125,13 @@ struct fmt::formatter<T, CharT>
     }
 };
 
-#undef csl_fwd
+#endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
-#endif
+// TODO(Guss) Opt-in std::format support
+#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and not __has_include(<format>)
+    static_assert(false, "csl::ag: [CSL_AG_ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing. Did you forget a dependency ?");
+#elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT)
+#endif // CSL_AG__ENABLE_FORMAT_SUPPORT
 
 // TODO(Guss): for_each(_fields)(aggregate auto &&, visitor F&&)
 //  [ ] std::hash
@@ -1131,3 +1140,5 @@ struct fmt::formatter<T, CharT>
 // TODO(Guss): opt-in(s) ?
 //  [ ] operator==
 //  [ ] operator= / assign
+
+#undef csl_fwd

@@ -1,147 +1,61 @@
-set(csl_ag_hpp_path ${PROJECT_SOURCE_DIR}/includes/ag/csl/ag.hpp)
-if (NOT EXISTS ${csl_ag_hpp_path})
-    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : missing file ${csl_ag_hpp_path}")
+# --- Options ---
+# CSL_AG__ENABLE_BITFIELDS_SUPPORT
+option(CSL_AG__ENABLE_BITFIELDS_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::ag : enable bitfields support (slower compilation)" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG__ENABLE_BITFIELDS_SUPPORT set to [${CSL_AG__ENABLE_BITFIELDS_SUPPORT}]")
+if (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 endif()
 
-# Configuration ...
-## CSL_AG_ENABLE_BITFIELDS_SUPPORT
-option(CSL_AG_ENABLE_BITFIELDS_SUPPORT "csl::ag : enable bitfields support (slower compilation)" FALSE)
-message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_ENABLE_BITFIELDS_SUPPORT set to [${CSL_AG_ENABLE_BITFIELDS_SUPPORT}]")
-if (CSL_AG_ENABLE_BITFIELDS_SUPPORT)
-    add_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
-else()
-    remove_definitions(-DCSL_AG_ENABLE_BITFIELDS_SUPPORT)
+# CSL_AG__ENABLE_FORMAT_SUPPORT
+option(CSL_AG__ENABLE_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::ag : enable std::format support" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG__ENABLE_FORMAT_SUPPORT set to [${CSL_AG__ENABLE_FORMAT_SUPPORT}]")
+if (CSL_AG__ENABLE_FORMAT_SUPPORT)
+    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_FORMAT_SUPPORT)
 endif()
 
-# Generates "partial" specializations for `to_tuple_view_impl<N, T>`,
-#                                     and `element<N, T>`
-# According to the following template :
-#
-# template <std::size_t N> requires (N == /* 0..AG_MAX_FIELDS_COUNT */)
-# auto to_tuple_view_impl(Aggregate auto && value) {
-#	auto && [ v[0..AG_MAX_FIELDS_COUNT]... ] = value;
-#	return make_tuple_view<decltype(value)>( v[0..AG_MAX_FIELDS_COUNT]... );
-# }
+# CSL_AG__ENABLE_FMTLIB_SUPPORT
+option(CSL_AG__ENABLE_FMTLIB_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable fmt support" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_FMTLIB_SUPPORT set to [${CSL_AG__ENABLE_FMTLIB_SUPPORT}]")
+if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
 
-# Handle options ...
-## CSL_AG_MAX_FIELDS_COUNT_OPTION
-set(CSL_AG_MAX_FIELDS_COUNT_OPTION "32" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
-message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION set to [${CSL_AG_MAX_FIELDS_COUNT_OPTION}]")
-if (NOT CSL_AG_MAX_FIELDS_COUNT_OPTION MATCHES "^[0-9]+$")
-    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG_MAX_FIELDS_COUNT_OPTION is not a valid number")
-endif()
-set(AG_MAX_FIELDS_COUNT ${CSL_AG_MAX_FIELDS_COUNT_OPTION})
+    set(FETCHCONTENT_QUIET ON)
+    message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} fetching [fmt] library ...")
+   
+    if (NOT TARGET fmt::fmt-header-only)
+        list(APPEND CMAKE_MESSAGE_INDENT "  ")
+        include(FetchContent)
+        FetchContent_Declare(fmt
+            GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+            GIT_TAG master
+        )
+        FetchContent_MakeAvailable(fmt)
+        list(POP_BACK CMAKE_MESSAGE_INDENT)
+    endif()
 
-# Generates specialization as a file ...
-set(csl_ag__cmake_generated_code__filepath ${PROJECT_SOURCE_DIR}/build/generated/csl_ag.hpp)
-file(WRITE
-    ${csl_ag__cmake_generated_code__filepath}
-    ""
-)
-
-# WIP
-# TODO: one target per generated block
-
-file(APPEND
-    ${csl_ag__cmake_generated_code__filepath}
-    "// Generated code with CSL_AG_MAX_FIELDS_COUNT_OPTION = ${CSL_AG_MAX_FIELDS_COUNT_OPTION}\n"
-)
-
-## Generates `make_to_tuple` ...
-set(identities "v0")
-set(identities_decltype "decltype(v0)")
-file(APPEND
-    ${csl_ag__cmake_generated_code__filepath}
-    "#pragma region make_to_tuple<N,T>\n"
-)
-foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
-
-    file(APPEND
-        ${csl_ag__cmake_generated_code__filepath}
-        "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-[[nodiscard]] consteval auto make_to_tuple(concepts\:\:aggregate auto && value) noexcept {
-\tauto && [ ${identities} ] = value;
-\treturn std::type_identity<std::tuple<${identities_decltype}>>{};
-}\n"
-    )
-    string(APPEND identities ",v${ID}")
-    string(APPEND identities_decltype ",decltype(v${ID})")
-endforeach()
-file(APPEND
-    ${csl_ag__cmake_generated_code__filepath}
-    "#pragma endregion\n"
-)
-
-## Generates `to_tuple_view_impl` ...
-set(identities "v0")
-set(identities_decltype "decltype(v0)")
-set(identities_fwd "csl_fwd(v0)")
-file(APPEND
-    ${csl_ag__cmake_generated_code__filepath}
-    "#pragma region to_tuple_view_impl<N,T>\n"
-)
-foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
-
-    file(APPEND
-        ${csl_ag__cmake_generated_code__filepath}
-        "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-[[nodiscard]] constexpr auto to_tuple_view_impl(concepts\:\:aggregate auto && value) noexcept {
-\tauto && [ ${identities} ] = value;
-\treturn make_tuple_view<decltype(value)>( ${identities_fwd} );
-}\n"
-    )
-    string(APPEND identities ",v${ID}")
-    string(APPEND identities_decltype ",decltype(v${ID})")
-    string(APPEND identities_fwd ",csl_fwd(v${ID})")
-endforeach()
-file(APPEND
-    ${csl_ag__cmake_generated_code__filepath}
-    "#pragma endregion\n"
-)
-
-# Generates `element<N, T>` specializations ...
-# set(identities "v0")
-# set(identities_decltype "decltype(v0)")
-# set(identities_fwd "csl_fwd(v0)")
-# file(APPEND
-#     ${csl_ag__cmake_generated_code__filepath}
-#     "#pragma region element<N, T>\n"
-# )
-# foreach (ID RANGE 1 ${AG_MAX_FIELDS_COUNT})
-
-#     file(APPEND
-#         ${csl_ag__cmake_generated_code__filepath}
-#         "\ttemplate <std::size_t N, concepts::aggregate T> requires (fields_count<T> == ${ID}) // NOLINT
-#     struct element<N, T> : std::tuple_element<
-#         N,
-#         std::remove_cvref_t<decltype([]() constexpr {
-#             auto && [ ${identities} ] = declval<T>();
-#             return std::tuple<${identities_decltype}>{ ${identities_fwd} };
-#         }())>>
-#     {};\n"
-#     )
-#     string(APPEND identities ",v${ID}")
-#     string(APPEND identities_decltype ",decltype(v${ID})")
-#     string(APPEND identities_fwd ",csl_fwd(v${ID})")
-# endforeach()
-# file(APPEND
-#     ${csl_ag__cmake_generated_code__filepath}
-#     "#pragma endregion\n"
-# )
-
-# injects into ag/csl/ag.hpp
-
-file(READ ${csl_ag__cmake_generated_code__filepath} csl_ag_hpp_to_inject)
-file(READ ${csl_ag_hpp_path} csl_ag_hpp_file_content)
-string(REGEX REPLACE
-    "(\\/\\/ GENERATED CONTENT, DO NOT EDIT MANUALLY !\n)(.*)(\\/\\/ END OF GENERATED CONTENT)"
-    "\\1${csl_ag_hpp_to_inject}\\3"
-    csl_ag_hpp_file_content_with_injection  # OUTPUT
-    "${csl_ag_hpp_file_content}"            # INPUT
-)
-
-if ("${csl_ag_hpp_file_content_with_injection}" STREQUAL "${csl_ag_hpp_file_content}")
-    message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : sources already up-to-date (no new content was injected)")
+    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT)
+    if (TARGET fmt::fmt-header-only)
+        add_dependencies(csl_${component_name}_lib fmt::fmt-header-only)
+        target_link_libraries(csl_${component_name}_lib INTERFACE fmt::fmt-header-only)
+    elseif(target fmt::fmt)
+        add_dependencies(csl_${component_name}_lib fmt::fmt)
+        target_link_libraries(csl_${component_name}_lib INTERFACE fmt::fmt)
+    else()
+        message(ERROR "[${CMAKE_PROJECT_NAME}] csl::${component_name}: ill-formed fmt library")
+    endif()
 endif()
 
-FILE(WRITE ${csl_ag_hpp_path} "${csl_ag_hpp_file_content_with_injection}")
+# --- code generation ---
+
+## CSL_AG__MAX_FIELDS_SUPPORTED_COUNT
+set(CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT 32)
+set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT "${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT}" CACHE STRING "csl::ag : max fields count for aggregate to reflect")
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT set to [${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT}]")
+if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
+    message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT is not a valid number")
+endif()
+
+if (NOT ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT} STREQUAL ${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT})
+    message(VERBOSE )
+    include(${PROJECT_SOURCE_DIR}/cmake/ag_generate_cpp_code.cmake)
+    ag_generate_cpp_code()
+endif()

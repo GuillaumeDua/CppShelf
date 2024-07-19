@@ -157,11 +157,11 @@ static_assert(csl::ag::size_v<S> == 5); // ☣️ UB by default
 
 If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :
 
-- Using `CMake`, edit the cache to set the `CSL_AG_ENABLE_BITFIELDS_SUPPORT` option to `on`.  
+- Using `CMake`, edit the cache to set the `CSL_AG__ENABLE_BITFIELDS_SUPPORT` option to `on`.  
   or
-- Using plain **C++**, define the preprocessor variable `CSL_AG_ENABLE_BITFIELDS_SUPPORT`.
+- Using plain **C++**, define the preprocessor variable `CSL_AG__ENABLE_BITFIELDS_SUPPORT`.
   ```cpp
-  #define CSL_AG_ENABLE_BITFIELDS_SUPPORT true
+  #define CSL_AG__ENABLE_BITFIELDS_SUPPORT true
   ```
 
 > ❔ **Question** : Why such option exists ?
