@@ -126,7 +126,8 @@
         "QUESTION": {
             "icon": "question",
             "iconColour": "#bb9af7",
-            "background": "#bb9af7"
+            "background": "#bb9af7",
+            "foreground": "#1a1b26"
         },
         "NOTE": {
             "icon": "note",

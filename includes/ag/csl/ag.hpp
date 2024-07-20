@@ -1075,7 +1075,7 @@ namespace csl::ag::details::mp {
 	template <typename T, std::size_t N>
 	struct is_std_array<std::array<T, N>> : std::true_type{};
 }
-namespace csl::ag::details::concepts {
+namespace csl::ag::io::concepts {
 	template <typename T>
 	concept formattable_aggregate = 
 		csl::ag::concepts::aggregate<T> and
@@ -1084,11 +1084,13 @@ namespace csl::ag::details::concepts {
 	;
 }
 
-// TODO(Guss) : opt-in (include as an extra file : csl::ag::io)
-template <csl::ag::details::concepts::formattable_aggregate T, class CharT>
+// QUESTION(Guss): opt-in -> include as an extra file : csl::ag::io ?
+// QUESTION(Guss): use a custom join instead ?
+template <csl::ag::io::concepts::formattable_aggregate T, class CharT>
 struct fmt::formatter<T, CharT>
 {
-    // TODO(Guss)
+    // WIP: p{N}
+    // WIP: private presentation
     char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
 
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
@@ -1104,9 +1106,9 @@ struct fmt::formatter<T, CharT>
 
     // or : return format_to(out, "{}", csl::ag::to_tuple_view(value));
     template <typename FormatContext>
-    constexpr auto format(const T & value, FormatContext& ctx)
+    constexpr auto format(const T & value, FormatContext& ctx) const
     {
-        auto&& out = ctx.out();
+        auto && out = ctx.out();
         constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
         if (size == 0)
             return out;
