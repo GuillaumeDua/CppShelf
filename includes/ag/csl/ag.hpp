@@ -1090,9 +1090,11 @@ namespace csl::ag::io::concepts {
 template <csl::ag::io::concepts::formattable_aggregate T, class CharT>
 struct fmt::formatter<T, CharT>
 {
+private:
     // WIP: p{N}
-    // WIP: private presentation
+    // QUESTION: add full presentation, with: `[index](type): value`
     char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
+public:
 
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
 

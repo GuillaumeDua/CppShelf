@@ -21,8 +21,8 @@
         "-log=verbose",
         "-pretty",
         "--background-index",
-        "-compile-commands-dir=${workspaceFolder}/build/"
-        // "header-insertion=never"
+        "-compile-commands-dir=${workspaceFolder}/build/",
+        "-header-insertion=never"
     ],
     "clang-tidy.buildPath": "./build/", // "${workspaceFolder}/build"
     // TODO(Guillaume): requires integration of https://github.com/microsoft/vscode-cmake-tools/issues/1090
