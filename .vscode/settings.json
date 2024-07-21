@@ -41,10 +41,10 @@
         // CSL OPT-INS
         // TODO(Guss): test matrix
         // csl::ensure
-        "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT": true,
-        "CSL_ENSURE__OPT_IN__FMT_SUPPORT": true,
+        "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT": true,
+        "CSL_ENSURE__ENABLE_FMT_SUPPORT": true,
         // csl::ag
-        "CSL_AG__ENABLE_IOSTREAM_SUPPORT": true,
+        // "CSL_AG__ENABLE_IOSTREAM_SUPPORT": true,
         "CSL_AG__ENABLE_FMTLIB_SUPPORT": true,
         "CSL_AG__ENABLE_FORMAT_SUPPORT": true
         

@@ -1,4 +1,11 @@
 # --- Options ---
+# CSL_AG__VERBOSE_BUILD
+option(CSL_AG__VERBOSE_BUILD "[${CMAKE_PROJECT_NAME}] csl::${component_name}: verbose build (might use additional useful build messages)" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__VERBOSE_BUILD set to [${CSL_AG__VERBOSE_BUILD}]")
+if (CSL_AG__VERBOSE_BUILD)
+    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__VERBOSE_BUILD)
+endif()
+
 # CSL_AG__ENABLE_BITFIELDS_SUPPORT
 option(CSL_AG__ENABLE_BITFIELDS_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable bitfields support (slower compilation)" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_BITFIELDS_SUPPORT set to [${CSL_AG__ENABLE_BITFIELDS_SUPPORT}]")

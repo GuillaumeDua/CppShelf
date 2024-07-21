@@ -167,7 +167,7 @@ Refer to the component's documention to check for configuration preprocessor con
 Example:
 
 ```cpp
-#define CSL_ENSURE__OPT_IN__FMT_SUPPORT // enable `fmt` support, if available
+#define CSL_ENSURE__ENABLE_FMT_SUPPORT // enable `fmt` support, if available
 #include <csl/ensure.hpp>
 
 void func(){

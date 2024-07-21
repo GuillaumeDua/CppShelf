@@ -197,7 +197,9 @@ namespace csl::ag::details {
 
 #pragma region fields_count
     #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-    # pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
+    # if defined(CSL_AG__VERBOSE_BUILD)
+    #  pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
+    # endif
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
     [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
@@ -840,106 +842,18 @@ namespace csl::ag::concepts {
     ;
 }
 
-// -----------------------------------
-//  WIP: REFACTO: formatting/printing
-// -----------------------------------
+// ---------------------
+//  formatting/printing
+// ---------------------
 
-// WIP: CSL_AG__ENABLE_IOSTREAM_SUPPORT
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT)
+
+static_assert(false, "(experimentale) CSL_AG__ENABLE_IOSTREAM_SUPPORT feature is disabled for now");
 
 // csl::ag::io
 // REFACTO: #134
 #include <string_view>
 
-// TODO(Guss): remove this coupling with gcl
-namespace gcl::cx::details {
-    struct type_prefix_tag { constexpr inline static std::string_view value = "T = "; };
-    struct value_prefix_tag { constexpr inline static std::string_view value = "value = "; };
-
-    template <typename prefix_tag_t>
-    constexpr static auto parse_mangling(std::string_view value, std::string_view function) {
-        value.remove_prefix(value.find(function) + function.size());
-    #if defined(__GNUC__) or defined(__clang__)
-            value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
-        #if defined(__clang__)
-            value.remove_suffix(value.length() - value.rfind(']'));
-        #elif defined(__GNUC__) // GCC
-            value.remove_suffix(value.length() - value.find(';'));
-        #endif
-    #elif defined(_MSC_VER)
-        if (auto enum_token_pos = value.find("enum "); enum_token_pos == 0)
-            value.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
-        value.remove_suffix(value.length() - value.rfind(">(void)"));
-    #endif
-        return value;
-    }
-}
-namespace gcl::cx {
-    template <typename T>
-    consteval static auto type_name()
-    -> std::string_view
-    {
-    #if defined(__GNUC__) or defined(__clang__)
-        return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
-    #elif defined(_MSC_VER)
-        return details::parse_mangling<details::type_prefix_tag>(__FUNCSIG__, __func__);
-    #else
-        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
-    #endif
-    }
-    template <typename T>
-    constexpr inline static auto type_name_v = type_name<T>();
-    template <auto value>
-    constexpr static auto type_name()
-    -> std::string_view
-    {
-        return type_name<decltype(value)>();
-    }
-
-    template <auto value>
-    constexpr static auto value_name()
-    -> std::string_view
-    {
-    #if defined(__GNUC__) or defined(__clang__)
-        return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
-    #elif defined(_MSC_VER)
-        return details::parse_mangling<details::value_prefix_tag>(__FUNCSIG__, __func__);
-    #else
-        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
-    #endif
-    }
-    template <auto value>
-    constexpr inline static auto value_name_v = value_name<value>();
-}
-// TODO(Guss): remove this coupling with gcl
-namespace gcl::pattern
-{
-	template <typename T, typename>
-    struct strong_type
-    {
-        using underlying_type = T;
-        using reference = T&;
-        using const_reference = const T &;
-
-        constexpr explicit strong_type(const_reference arg)
-        requires std::copy_constructible<T>
-        : value(arg)
-        {}
-        constexpr explicit strong_type(T&& arg)
-        requires std::move_constructible<T>
-        : value{ std::forward<decltype(arg)>(arg) }
-        {}
-
-        [[nodiscard]] constexpr reference       underlying()        { return value; }
-        [[nodiscard]] constexpr const_reference underlying() const  { return value; }
-
-		// Implicit conversions
-        [[nodiscard]] constexpr operator reference ()               { return underlying(); } /* NOLINT(google-explicit-constructor)*/
-        [[nodiscard]] constexpr operator const_reference () const   { return underlying(); } /* NOLINT(google-explicit-constructor)*/
-
-    private:
-        T value;
-    };
-}
 namespace gcl::io {
     using abs = gcl::pattern::strong_type<std::size_t, struct indent_abs_t>;
     using rel = gcl::pattern::strong_type<int,         struct indent_rel_t>;
@@ -1058,6 +972,7 @@ namespace csl::ag::io {
         return os.bounded_to();
     }
 }
+#endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
 // Opt-in fmt support
 //	wip : https://godbolt.org/z/7b1Ga168P
