@@ -1,5 +1,4 @@
 // Force CSL_AG__ENABLE_FMTLIB_SUPPORT=ON
-#include <type_traits>
 #if not defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
 # define CSL_AG__ENABLE_FMTLIB_SUPPORT true // force fmtlib support. Prefer using CMake cache instead CSL_AG__ENABLE_FMTLIB_SUPPORT=ON
 #endif
@@ -76,6 +75,7 @@ namespace test::ag::io {
 }
 
 #include <tuple>
+#include <type_traits>
 
 auto main() -> int {
     using namespace test::ag;

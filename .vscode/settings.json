@@ -45,8 +45,8 @@
         "CSL_ENSURE__ENABLE_FMT_SUPPORT": true,
         // csl::ag
         // "CSL_AG__ENABLE_IOSTREAM_SUPPORT": true,
-        "CSL_AG__ENABLE_FMTLIB_SUPPORT": true,
-        "CSL_AG__ENABLE_FORMAT_SUPPORT": true
+        // "CSL_AG__ENABLE_FMTLIB_SUPPORT": true,
+        // "CSL_AG__ENABLE_FORMAT_SUPPORT": true
         
     },
     "cmake.options.statusBarVisibility": "compact",

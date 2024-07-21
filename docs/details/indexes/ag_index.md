@@ -194,7 +194,7 @@ To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_FIELDS_SUP
 #### Formatting and printing (experimentale, WIP)
 
 ⚠️ This section is **experimentale**, and **SHOULD NOT** be used in production.  
-Breaking changes are very likely, as the API is instable for now.
+Breaking changes are very likely, as the API is instable **for now**.
 
 All options in this section are opt-ins *(`OFF` by default)*
 
@@ -208,6 +208,8 @@ All options in this section are opt-ins *(`OFF` by default)*
   ```
 
 - `CSL_AG__ENABLE_FMTLIB_SUPPORT`: makes `csl::ag` depends on the `fmt` library, and add `fmt::formatter<csl::ag::aggregate T>`.
+
+  > If [fmtlib](https://github.com/fmtlib/fmt)'s `cmake` target `fmt::fmt-header-only` is not available when building `csl::ag` with `CSL_AG__ENABLE_FMTLIB_SUPPORT` set to `ON`, then such a dependency will be injected using `cmake FetchContent`.
 
   ```cpp
   const auto formatted = fmt::format("my aggregate = {}", my_aggregate{});
