@@ -1068,6 +1068,7 @@ namespace csl::ag::io {
 #elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
 
 # include <fmt/ranges.h>
+# include <fmt/compile.h>
 
 namespace csl::ag::details::mp {
 	template <typename>
@@ -1104,7 +1105,6 @@ struct fmt::formatter<T, CharT>
         return it;
     }
 
-    // or : return format_to(out, "{}", csl::ag::to_tuple_view(value));
     template <typename FormatContext>
     constexpr auto format(const T & value, FormatContext& ctx) const
     {
@@ -1113,9 +1113,12 @@ struct fmt::formatter<T, CharT>
         if (size == 0)
             return out;
         *out++ = '{';
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        // QUESTION: How to make such statement constexpr ?
+        // format_to(out, "{}", csl::ag::to_tuple_view(value));
+        // format_to(out, FMT_COMPILE("{}"), fmt::join(csl::ag::to_tuple_view(value), ", "));
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             (
-                format_to(
+                fmt::format_to(
                     out, "{}{}",
                     csl::ag::get<indexes>(value),
                     (indexes == (size - 1) ? "" : ", ")
