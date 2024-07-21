@@ -102,9 +102,9 @@ So a `tuple_view` must be consumed using the same cvref semantic as an owning `t
 - ✅ Good `make_tuple_view(tuplelike&&)` implementation [here](https://godbolt.org/z/b135YPnMh).
   - using [quick DSL](https://godbolt.org/z/EsEva354T)
 
-WIP: https://godbolt.org/z/59rMGMYMx
-MVE: https://godbolt.org/z/6jjM5Tb4b
-MVE + small tuple factory : https://godbolt.org/z/ahheTT8T9
+- WIP: https://godbolt.org/z/59rMGMYMx
+    - MVE: https://godbolt.org/z/6jjM5Tb4b
+    - MVE + small tuple factory : https://godbolt.org/z/ahheTT8T9
 
 ISSUE: view and tuple for `std::get<T>`: types might occure more than once
 
@@ -267,7 +267,7 @@ void print(csl::ag::concepts::aggregate auto && value){
 
     std::cout
       << "--------------------------------------------\n"
-      << "| " << gcl::cx::type_name_v<decltype(value)> << '\n'
+      << "| " << csl::typeinfo::type_name_v<decltype(value)> << '\n'
       << "--------------------------------------------\n"
     ;
 
@@ -281,11 +281,11 @@ void print(csl::ag::concepts::aggregate auto && value){
         ((
             std::cout
                 << std::left
-                << std::setw(12) << gcl::cx::type_name_v<csl::ag::element_t<indexes, type>>
+                << std::setw(12) << csl::typeinfo::type_name_v<csl::ag::element_t<indexes, type>>
                 << " -> "
-                << std::setw(12) << gcl::cx::type_name_v<decltype(csl::ag::get<indexes>(csl_fwd(value)))>
+                << std::setw(12) << csl::typeinfo::type_name_v<decltype(csl::ag::get<indexes>(csl_fwd(value)))>
                 << " -> "
-                << std::setw(12) << gcl::cx::type_name_v<decltype(csl::ag::get<Ts>(csl_fwd(value)))>
+                << std::setw(12) << csl::typeinfo::type_name_v<decltype(csl::ag::get<Ts>(csl_fwd(value)))>
                 << "\n"
         ), ...);
     }(

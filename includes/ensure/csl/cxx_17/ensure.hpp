@@ -592,7 +592,7 @@ struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_ha
 // --- opt-ins supports ---
 
 // opt-in: iostream support
-#if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
+#if defined(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
 #if defined(__has_include)
 #if __has_include(<iostream>)
 #include <iostream>
@@ -619,16 +619,16 @@ namespace csl::io {
     }
 }
 #else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but __has_include(<iostream>) == false"
+# error "csl::ensure: CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT enabled, but __has_include(<iostream>) == false"
 #endif
 #else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT enabled, but defined(__has_include) == false"
+# error "csl::ensure: CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT enabled, but defined(__has_include) == false"
 #endif
 #endif
 
 
 // opt-in: fmt support - (CPO: fmt::formatter)
-#if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
+#if defined(CSL_ENSURE__ENABLE_FMT_SUPPORT)
 #if defined(__has_include)
 #if __has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)
 #include <fmt/core.h>
@@ -655,10 +655,10 @@ struct fmt::formatter<
     }
 };
 #else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but (__has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)) == false"
+# error "csl::ensure: CSL_ENSURE__ENABLE_FMT_SUPPORT enabled, but (__has_include(<fmt/core.h>) and __has_include(<fmt/format.h>)) == false"
 #endif
 #else
-# error "csl::ensure: CSL_ENSURE__OPT_IN__FMT_SUPPORT enabled, but defined(__has_include) == false"
+# error "csl::ensure: CSL_ENSURE__ENABLE_FMT_SUPPORT enabled, but defined(__has_include) == false"
 #endif
 #endif
 

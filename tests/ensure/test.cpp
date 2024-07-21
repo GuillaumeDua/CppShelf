@@ -295,15 +295,15 @@ namespace test::CPO {
 namespace test::io_ {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     void shift_to_ostream_support(){
-        #if defined(CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT)
+        #if defined(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
         using namespace csl::io;
-        std::cout << "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT: value = " << mm{42} << '\n';
+        std::cout << "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT: value = " << mm{42} << '\n';
         #endif
     }
 
     void fmt_support(){
-        #if defined(CSL_ENSURE__OPT_IN__FMT_SUPPORT)
-        fmt::print("CSL_ENSURE__OPT_IN__FMT_SUPPORT: value = {}\n", mm{42});
+        #if defined(CSL_ENSURE__ENABLE_FMT_SUPPORT)
+        fmt::print("CSL_ENSURE__ENABLE_FMT_SUPPORT: value = {}\n", mm{42});
         #endif
     }
 }

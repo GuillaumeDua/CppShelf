@@ -22,7 +22,7 @@
         "-pretty",
         "--background-index",
         "-compile-commands-dir=${workspaceFolder}/build/",
-        "header-insertion=never"
+        "-header-insertion=never"
     ],
     "clang-tidy.buildPath": "./build/", // "${workspaceFolder}/build"
     // TODO(Guillaume): requires integration of https://github.com/microsoft/vscode-cmake-tools/issues/1090
@@ -40,8 +40,13 @@
         "CSL_ENABLE_ALL_EXAMPLES": true,
         // CSL OPT-INS
         // TODO(Guss): test matrix
-        "CSL_ENSURE__OPT_IN__IOSTREAM_SUPPORT": true,
-        "CSL_ENSURE__OPT_IN__FMT_SUPPORT": true
+        // csl::ensure
+        "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT": true,
+        "CSL_ENSURE__ENABLE_FMT_SUPPORT": true,
+        // csl::ag
+        // "CSL_AG__ENABLE_IOSTREAM_SUPPORT": true,
+        // "CSL_AG__ENABLE_FMTLIB_SUPPORT": true,
+        // "CSL_AG__ENABLE_FORMAT_SUPPORT": true
         
     },
     "cmake.options.statusBarVisibility": "compact",
@@ -121,7 +126,8 @@
         "QUESTION": {
             "icon": "question",
             "iconColour": "#bb9af7",
-            "background": "#bb9af7"
+            "background": "#bb9af7",
+            "foreground": "#1a1b26"
         },
         "NOTE": {
             "icon": "note",

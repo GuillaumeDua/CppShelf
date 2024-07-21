@@ -196,8 +196,10 @@ namespace csl::ag::concepts {
 namespace csl::ag::details {
 
 #pragma region fields_count
-    #if not defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
-    # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
+    #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+    # if defined(CSL_AG__VERBOSE_BUILD)
+    #  pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
+    # endif
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
     [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
@@ -218,7 +220,7 @@ namespace csl::ag::details {
             return fields_count_impl<T, indice - 1>();
     }
     #else
-    # pragma message("csl::ag : CSL_AG_ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
+    # pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
     #endif
 
     template <concepts::aggregate T, std::size_t indice>
@@ -241,7 +243,7 @@ namespace csl::ag::details {
     constexpr std::size_t fields_count = fields_count_impl<
         T,
         sizeof(T)
-        #if defined(CSL_AG_ENABLE_BITFIELDS_SUPPORT)
+        #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
         * sizeof(std::byte) * CHAR_BIT
         #endif
     >();
@@ -840,104 +842,18 @@ namespace csl::ag::concepts {
     ;
 }
 
-// -----------------------------------
-//           WIP: REFACTO
-// -----------------------------------
+// ---------------------
+//  formatting/printing
+// ---------------------
+
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT)
+
+static_assert(false, "(experimentale) CSL_AG__ENABLE_IOSTREAM_SUPPORT feature is disabled for now");
 
 // csl::ag::io
 // REFACTO: #134
 #include <string_view>
 
-// TODO(Guss): remove this coupling with gcl
-namespace gcl::cx::details {
-    struct type_prefix_tag { constexpr inline static std::string_view value = "T = "; };
-    struct value_prefix_tag { constexpr inline static std::string_view value = "value = "; };
-
-    template <typename prefix_tag_t>
-    constexpr static auto parse_mangling(std::string_view value, std::string_view function) {
-        value.remove_prefix(value.find(function) + function.size());
-    #if defined(__GNUC__) or defined(__clang__)
-            value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
-        #if defined(__clang__)
-            value.remove_suffix(value.length() - value.rfind(']'));
-        #elif defined(__GNUC__) // GCC
-            value.remove_suffix(value.length() - value.find(';'));
-        #endif
-    #elif defined(_MSC_VER)
-        if (auto enum_token_pos = value.find("enum "); enum_token_pos == 0)
-            value.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
-        value.remove_suffix(value.length() - value.rfind(">(void)"));
-    #endif
-        return value;
-    }
-}
-namespace gcl::cx {
-    template <typename T>
-    consteval static auto type_name()
-    -> std::string_view
-    {
-    #if defined(__GNUC__) or defined(__clang__)
-        return details::parse_mangling<details::type_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
-    #elif defined(_MSC_VER)
-        return details::parse_mangling<details::type_prefix_tag>(__FUNCSIG__, __func__);
-    #else
-        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
-    #endif
-    }
-    template <typename T>
-    constexpr inline static auto type_name_v = type_name<T>();
-    template <auto value>
-    constexpr static auto type_name()
-    -> std::string_view
-    {
-        return type_name<decltype(value)>();
-    }
-
-    template <auto value>
-    constexpr static auto value_name()
-    -> std::string_view
-    {
-    #if defined(__GNUC__) or defined(__clang__)
-        return details::parse_mangling<details::value_prefix_tag>(__PRETTY_FUNCTION__, __FUNCTION__);
-    #elif defined(_MSC_VER)
-        return details::parse_mangling<details::value_prefix_tag>(__FUNCSIG__, __func__);
-    #else
-        static_assert(false, "gcl::cx::typeinfo : unhandled plateform");
-    #endif
-    }
-    template <auto value>
-    constexpr inline static auto value_name_v = value_name<value>();
-}
-// TODO(Guss): remove this coupling with gcl
-namespace gcl::pattern
-{
-	template <typename T, typename>
-    struct strong_type
-    {
-        using underlying_type = T;
-        using reference = T&;
-        using const_reference = const T &;
-
-        constexpr explicit strong_type(const_reference arg)
-        requires std::copy_constructible<T>
-        : value(arg)
-        {}
-        constexpr explicit strong_type(T&& arg)
-        requires std::move_constructible<T>
-        : value{ std::forward<decltype(arg)>(arg) }
-        {}
-
-        [[nodiscard]] constexpr reference       underlying()        { return value; }
-        [[nodiscard]] constexpr const_reference underlying() const  { return value; }
-
-		// Implicit conversions
-        [[nodiscard]] constexpr operator reference ()               { return underlying(); } /* NOLINT(google-explicit-constructor)*/
-        [[nodiscard]] constexpr operator const_reference () const   { return underlying(); } /* NOLINT(google-explicit-constructor)*/
-
-    private:
-        T value;
-    };
-}
 namespace gcl::io {
     using abs = gcl::pattern::strong_type<std::size_t, struct indent_abs_t>;
     using rel = gcl::pattern::strong_type<int,         struct indent_rel_t>;
@@ -1056,13 +972,18 @@ namespace csl::ag::io {
         return os.bounded_to();
     }
 }
+#endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-// fmt
-//	wip : https://godbolt.org/z/7b1Ga168P
+// Opt-in fmt support
+//	wip : https://godbolt.org/z/Enj5nTzj6
 //  wip (presentation) : https://godbolt.org/z/qfTMoT7fo
 //		see https://github.com/GuillaumeDua/CppShelf/issues/57
-#ifdef FMT_FORMAT_H_
+#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and not __has_include(<fmt/format.h>)
+    static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
+#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
+
 # include <fmt/ranges.h>
+# include <fmt/compile.h>
 
 namespace csl::ag::details::mp {
 	template <typename>
@@ -1070,45 +991,56 @@ namespace csl::ag::details::mp {
 	template <typename T, std::size_t N>
 	struct is_std_array<std::array<T, N>> : std::true_type{};
 }
-namespace csl::ag::details::concepts {
+namespace csl::ag::io::concepts {
 	template <typename T>
-	concept formattable_aggregate = 
+	concept formattable = 
 		csl::ag::concepts::aggregate<T> and
 		(not std::is_array_v<T>) and
-		(not is_std_array<T>::value)
+		(not csl::ag::details::mp::is_std_array<T>::value)
 	;
 }
 
-// TODO(Guss) : opt-in (include as an extra file : csl::ag::io)
-template <formattable_aggregate T, class CharT>
+// QUESTION(Guss): opt-in -> include as an extra file:
+//  csl/ag/features/io.hpp
+//  - csl/ag/features/io/fmtlib.hpp
+//  - csl/ag/features/io/std_format.hpp
+//  - csl/ag/features/io/iostream.hpp
+// QUESTION(Guss): use a custom join instead ?
+template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
-    // TODO(Guss)
+    using csl_product = void;
+private:
+    // WIP: p{N}
+    // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
     char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
+public:
 
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
 
-        auto it = ctx.begin(), end = ctx.end();
+        auto it = ctx.begin();
+        auto end = ctx.end();
         if (it != end && (*it == 'c' || *it == 'p'))
             presentation = *it++;
         if (it != end && *it != '}')
             throw fmt::format_error{"invalid format"};
-
         return it;
     }
 
-    // or : return format_to(out, "{}", csl::ag::to_tuple_view(value));
     template <typename FormatContext>
-    constexpr auto format(const T & value, FormatContext& ctx)
+    constexpr auto format(const T & value, FormatContext& ctx) const
     {
-        auto&& out = ctx.out();
+        auto && out = ctx.out();
         constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
         if (size == 0)
             return out;
         *out++ = '{';
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        // QUESTION: How to make such statement constexpr ?
+        // format_to(out, "{}", csl::ag::to_tuple_view(value));
+        // format_to(out, FMT_COMPILE("{}"), fmt::join(csl::ag::to_tuple_view(value), ", "));
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             (
-                format_to(
+                fmt::format_to(
                     out, "{}{}",
                     csl::ag::get<indexes>(value),
                     (indexes == (size - 1) ? "" : ", ")
@@ -1120,9 +1052,20 @@ struct fmt::formatter<T, CharT>
     }
 };
 
-#undef csl_fwd
+namespace csl::ag::io::concepts {
+    template <typename T>
+    concept fmt_formatter_is_csl_product = requires {
+        typename fmt::formatter<T>::csl_product;
+    };
+}
 
-#endif
+#endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
+
+// TODO(Guss) Opt-in std::format support
+#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and not __has_include(<format>)
+    static_assert(false, "csl::ag: [CSL_AG_ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing. Did you forget a dependency ?");
+#elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT)
+#endif // CSL_AG__ENABLE_FORMAT_SUPPORT
 
 // TODO(Guss): for_each(_fields)(aggregate auto &&, visitor F&&)
 //  [ ] std::hash
@@ -1131,3 +1074,5 @@ struct fmt::formatter<T, CharT>
 // TODO(Guss): opt-in(s) ?
 //  [ ] operator==
 //  [ ] operator= / assign
+
+#undef csl_fwd
