@@ -205,6 +205,7 @@ CMake</h4>
 </blockquote>
 <h3><a class="anchor" id="autotoc_md11"></a>
 Configuration</h3>
+<p>This project can be configured using the following cmake cache entries, grouped by categories:</p>
 <h4><a class="anchor" id="autotoc_md12"></a>
 Bitfields support</h4>
 <p>⚠️ By default, bitfields support is <b>disabled</b>. <br  />
@@ -218,9 +219,9 @@ Bitfields support</h4>
 <div class="line">static_assert(csl::ag::size_v&lt;S&gt; == 5); <span class="comment">// ☣️ UB by default</span></div>
 </div><!-- fragment --><p>If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :</p>
 <ul>
-<li>Using <code>CMake</code>, edit the cache to set the <code>CSL_AG_ENABLE_BITFIELDS_SUPPORT</code> option to <code>on</code>. <br  />
+<li>Using <code>CMake</code>, edit the cache to set the <code>CSL_AG__ENABLE_BITFIELDS_SUPPORT</code> option to <code>on</code>. <br  />
  or</li>
-<li>Using plain <b>C++</b>, define the preprocessor variable <code>CSL_AG_ENABLE_BITFIELDS_SUPPORT</code>. <div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG_ENABLE_BITFIELDS_SUPPORT true</span></div>
+<li>Using plain <b>C++</b>, define the preprocessor variable <code>CSL_AG__ENABLE_BITFIELDS_SUPPORT</code>. <div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_BITFIELDS_SUPPORT true</span></div>
 </div><!-- fragment --></li>
 </ul>
 <blockquote class="doxtable">
@@ -230,9 +231,9 @@ Bitfields support</h4>
 </blockquote>
 <h4><a class="anchor" id="autotoc_md13"></a>
 Highier limit for aggregate field count</h4>
-<p>This library relies on a <b>CMake</b> cache variable <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> to generate code in order to properly handle aggregate types with fields up to this value.</p>
-<p>By default, <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> is set to <code>128</code>, meaning the library supports aggregate types with up to 128 fields.</p>
-<p>To extend such support, edit your <b>CMake</b> cache to set <code>CSL_AG_MAX_FIELDS_COUNT_OPTION</code> to a greater integral value.</p>
+<p>This library relies on a <b>CMake</b> cache variable <code>CSL_AG__MAX_FIELDS_SUPPORTED_COUNT</code> to generate code in order to properly handle aggregate types with fields up to this value.</p>
+<p>By default, <code>CSL_AG__MAX_FIELDS_SUPPORTED_COUNT</code> is set to <code>128</code>, meaning the library supports aggregate types with up to 128 fields.</p>
+<p>To extend such support, edit your <b>CMake</b> cache to set <code>CSL_AG__MAX_FIELDS_SUPPORTED_COUNT</code> to a greater integral value.</p>
 <blockquote class="doxtable">
 <p>❔ <b>Question</b> : What if I don't use <b>CMake</b> ?</p>
 <p>Then the library will always use the default value. </p>
@@ -244,16 +245,60 @@ Highier limit for aggregate field count</h4>
 <p>The choice here to use <b>CMake</b> in order to generate C++ code <b>upstream</b> is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).</p>
 <p>👉 If you are willing to propose a better design, you can submit a <a href="https://github.com/GuillaumeDua/CppShelf/pulls">PR here</a>. </p>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md14"></a>
+<h4><a class="anchor" id="autotoc_md14"></a>
+Formatting and printing (experimentale, WIP)</h4>
+<p>⚠️ This section is <b>experimentale</b>, and <b>SHOULD NOT</b> be used in production. <br  />
+ Breaking changes are very likely, as the API is instable <b>for now</b>.</p>
+<p>All options in this section are opt-ins *(<code>OFF</code> by default)*</p>
+<ul>
+<li><code>CSL_AG__ENABLE_FORMAT_SUPPORT</code>: add <code>std::formatter&lt;csl::ag::aggregate T&gt;</code></li>
+</ul>
+<div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> formatted = std::format(<span class="stringliteral">&quot;my aggregate = {}&quot;</span>, my_aggregate{});</div>
+<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value);   <span class="comment">// default presentation (compact)</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{:c}&quot;</span>, my_aggregate_value); <span class="comment">// compact presentation</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{:p}&quot;</span>, my_aggregate_value); <span class="comment">// pretty  presentation</span></div>
+</div><!-- fragment --><ul>
+<li><code>CSL_AG__ENABLE_FMTLIB_SUPPORT</code>: makes <code>csl::ag</code> depends on the <code>fmt</code> library, and add <code>fmt::formatter&lt;csl::ag::aggregate T&gt;</code>.</li>
+</ul>
+<blockquote class="doxtable">
+<p>If <a href="https://github.com/fmtlib/fmt">fmtlib</a>'s <code>cmake</code> target <code>fmt::fmt-header-only</code> is not available when building <code>csl::ag</code> with <code>CSL_AG__ENABLE_FMTLIB_SUPPORT</code> set to <code>ON</code>, then such a dependency will be injected using <code>cmake FetchContent</code>. </p>
+</blockquote>
+<div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> formatted = fmt::format(<span class="stringliteral">&quot;my aggregate = {}&quot;</span>, my_aggregate{});</div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value);   <span class="comment">// default presentation (compact)</span></div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{:c}&quot;</span>, my_aggregate_value); <span class="comment">// compact presentation</span></div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{:p}&quot;</span>, my_aggregate_value); <span class="comment">// pretty  presentation</span></div>
+</div><!-- fragment --><ul>
+<li><code>CSL_AG__ENABLE_IOSTREAM_SUPPORT</code>: add <code>csl::ag::io::operator&lt;&lt;(const csl::io::indented_ostream os, csl::ag::concepts::structured_bindable auto &amp;&amp; value)</code></li>
+</ul>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line">std::cout &lt;&lt; my_aggregate{}; <span class="comment">// equivalent to: `indented_ostream{std::cout} &lt;&lt; my_aggregate{};`</span></div>
+<div class="line">indented_ostream{std::cout, 2} &lt;&lt; my_aggregate{}; <span class="comment">// explicit indentation</span></div>
+</div><!-- fragment --><p>About compact vs. pretty presentations:</p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i{}; };</div>
+<div class="line"><span class="keyword">struct </span>my_aggregate{ <span class="keywordtype">char</span> c = <span class="charliteral">&#39;a&#39;</span>; A a = A{ .i = 13} };</div>
+</div><!-- fragment --><ul>
+<li>Compact presentation:</li>
+</ul>
+<div class="fragment"><div class="line">my_aggregate: { char: &#39;c&#39;, A: { int: 13 } }</div>
+</div><!-- fragment --><ul>
+<li>Pretty presentation:</li>
+</ul>
+<div class="fragment"><div class="line">my_aggregate: {</div>
+<div class="line">    char: &#39;c&#39;,</div>
+<div class="line">    A: {</div>
+<div class="line">        int: 13</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md15"></a>
 Content</h2>
 <p>All components that are part of the public interface are defined in the namespace <code>csl::ag</code>, <br  />
  except for nested-namespaces named <code>details</code>. <br  />
 </p>
 <p>In other words, the library provides <b>no guarantee</b> to any direct use of namespaces named with a pattern like <code>csl::ag::*::details::*</code>.</p>
-<h3><a class="anchor" id="autotoc_md15"></a>
+<h3><a class="anchor" id="autotoc_md16"></a>
 Aggregate-related concepts</h3>
 <p>All concepts that are part of the public interface are defined in the namespace <code>csl::ag::concepts</code>.</p>
-<h4><a class="anchor" id="autotoc_md16"></a>
+<h4><a class="anchor" id="autotoc_md17"></a>
 unqualified_aggregate&lt;T&gt;</h4>
 <p>Requirements that given <code>T</code> type must meet to be considered as an unqualified (e.g, not cvref-qualified) aggregate type by this library components.</p>
 <ul>
@@ -263,18 +308,18 @@ unqualified_aggregate&lt;T&gt;</h4>
 <li><code>not std::is_polymorphic_v&lt;T&gt;</code></li>
 <li><code>not std::is_reference_v&lt;T&gt;</code></li>
 </ul>
-<h4><a class="anchor" id="autotoc_md17"></a>
+<h4><a class="anchor" id="autotoc_md18"></a>
 aggregate&lt;T&gt;</h4>
 <p><code>T</code> must be a possibly cvref-qualified aggregate, meeting the <code>unqualified_aggregate&lt;std::remove_cvref_t&lt;T&gt;&gt;</code> requirement.</p>
 <p>Note that such requirement is widely used in this library.</p>
-<h4><a class="anchor" id="autotoc_md18"></a>
+<h4><a class="anchor" id="autotoc_md19"></a>
 aggregate_constructible_from&lt;T, args_ts...&gt;</h4>
 <p><code>T</code> must be a valid aggregate type, constructible using brace-initialization using values of types <code>args_ts...</code>.</p>
-<h4><a class="anchor" id="autotoc_md19"></a>
+<h4><a class="anchor" id="autotoc_md20"></a>
 aggregate_constructible_from_n_values&lt;T, std::size_t N&gt;</h4>
 <p><code>T</code> must be a valid aggregate type, constructible using <code>N</code> values (which types does not matter here). <br  />
  This does not mean that <code>T</code> has <code>N</code> fields : it can be more.</p>
-<h4><a class="anchor" id="autotoc_md20"></a>
+<h4><a class="anchor" id="autotoc_md21"></a>
 tuplelike&lt;T&gt;</h4>
 <p><code>T</code> must meet the tuplelike interface, with valid implementation of :</p>
 <ul>
@@ -282,24 +327,24 @@ tuplelike&lt;T&gt;</h4>
 <li><a href="https://en.cppreference.com/w/cpp/utility/tuple/get">std::get&lt;std::size_t&gt;(/*possibly cvref-qualified */ T)</a></li>
 <li><a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_element">std::tuple_element&lt;std::size_t, T&gt;</a></li>
 </ul>
-<h4><a class="anchor" id="autotoc_md21"></a>
+<h4><a class="anchor" id="autotoc_md22"></a>
 csl::ag::concepts::structured_bindable&lt;T&gt;</h4>
 <p><code>T</code> must either match <code>tuplelike&lt;T&gt;</code> or <code>aggregate&lt;T&gt;</code> requirements.</p>
 <p>See the <a href="https://en.cppreference.com/w/cpp/language/structured_binding">structured_binding documentation</a> for more details.</p>
-<h3><a class="anchor" id="autotoc_md22"></a>
+<h3><a class="anchor" id="autotoc_md23"></a>
 Aggregate-related type-traits</h3>
-<h4><a class="anchor" id="autotoc_md23"></a>
+<h4><a class="anchor" id="autotoc_md24"></a>
 csl::ag::size&lt;T&gt;</h4>
 <p>Integral constant type which value represents the count of fields for a given aggregate type.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">static_assert(<a class="code" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a> == 2);</div>
 <div class="line">static_assert(csl::ag::size_v&lt;A&gt;      == 2);</div>
-<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:635</div></div>
+<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition:</b> ag.hpp:637</div></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/5cr1x7K3T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
 <p>Just like <code>std::tuple_size</code>/<code>std::tuple_size_v</code>, the <b>value</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;csl::ag::concepts::aggregate T&gt;</div>
 <div class="line">constexpr <span class="keyword">inline</span> <span class="keyword">static</span> <span class="keyword">auto</span> size_v = size&lt;T&gt;::value;</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md24"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md25"></a>
 csl::ag::element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>Type-identity of a field's type of a given aggregate type.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
@@ -309,7 +354,7 @@ csl::ag::element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>Just like <code>std::tuple_element/std::tuple_element_t</code>, the <b>type</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using</span> element_t = <span class="keyword">typename</span> element&lt;N, T&gt;::type;</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md25"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md26"></a>
 csl::ag::view_element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>In a similar way to <code>csl::ag::element&lt;std::size_t, T&gt;</code>, <code>csl::ag::view_element&lt;std::size_t,T&gt;</code> is a type-identity for a field's type of a given aggregate view type. <br  />
  For more details about aggregate's view, see the <a href="#non-owning-conversion-view">to-tuple non-owning conversion (view)</a> section.</p>
@@ -326,7 +371,7 @@ csl::ag::view_element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>The <code>type</code> nested-type can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using</span> view_element_t = <span class="keyword">typename</span> view_element&lt;N, T&gt;::type;</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md26"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md27"></a>
 to-tuple conversion for aggregate types</h3>
 <p>This library provides two ways to convert an aggregate's value to <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>, distinguishing between proprietary and non-proprietary tuples of values.</p>
 <ul>
@@ -343,7 +388,7 @@ to-tuple conversion for aggregate types</h3>
 <p class="startli">See the <a href="#non-owning-conversion-view">Non-owning conversion (view)</a> section hereunder.</p>
 </li>
 </ul>
-<h4><a class="anchor" id="autotoc_md27"></a>
+<h4><a class="anchor" id="autotoc_md28"></a>
 Owning conversion</h4>
 <p>The following factory (as a function) creates a <code>std::tuple</code> of <code>csl::ag::elements</code>, never altered. <br  />
 </p>
@@ -452,7 +497,7 @@ Owning conversion</h4>
 </table>
 </li>
 </ul>
-<h4><a class="anchor" id="autotoc_md28"></a>
+<h4><a class="anchor" id="autotoc_md29"></a>
 Non-owning conversion (view, lightweight accessor)</h4>
 <p>This factory (as a function) creates non-owning <b>lightweight accessors</b> (views), <br  />
  returning a non-owning tuple (<code>std::tuple</code> of references), for which each element represents an accessor to an aggregate value's field.</p>
@@ -524,9 +569,9 @@ Non-owning conversion (view, lightweight accessor)</h4>
 <div class="line"> </div>
 <div class="line"><span class="comment">// still not propagation for fields 2 and 3 ...</span></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/M3ejaf7Mc"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
-<h3><a class="anchor" id="autotoc_md29"></a>
+<h3><a class="anchor" id="autotoc_md30"></a>
 tuplelike interface for aggregates</h3>
-<h4><a class="anchor" id="autotoc_md30"></a>
+<h4><a class="anchor" id="autotoc_md31"></a>
 std::tuple_element</h4>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>type{ <span class="keyword">const</span> <span class="keywordtype">int</span> i = 0; <span class="keywordtype">char</span> &amp; c; };</div>
 <div class="line"><span class="keywordtype">char</span> c = <span class="charliteral">&#39;c&#39;</span>;</div>
@@ -541,7 +586,7 @@ std::tuple_element</h4>
 <div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;decltype(value)&gt;&gt;</div>
 <div class="line">&gt;);</div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/YPj7931b9"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
-<h4><a class="anchor" id="autotoc_md31"></a>
+<h4><a class="anchor" id="autotoc_md32"></a>
 std::get</h4>
 <p>Simple example :</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
@@ -574,14 +619,14 @@ std::get</h4>
 <div class="line">static_assert(csl::ag::get&lt;0&gt;(value) == 42);    <span class="comment">// pass</span></div>
 <div class="line">static_assert(csl::ag::get&lt;1&gt;(value) == <span class="charliteral">&#39;c&#39;</span>);   <span class="comment">// pass</span></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/h9jbrc8d6"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
-<h3><a class="anchor" id="autotoc_md32"></a>
+<h3><a class="anchor" id="autotoc_md33"></a>
 Pretty-printing</h3>
 <p>There are two way to pretty-print aggregate types :</p>
 <ul>
 <li>using the legacy C++'s way : <code>std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, T&amp;&amp;)</code> overload</li>
 <li>using the <code>fmt</code> or <code>std::format</code> library</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md33"></a>
+<h4><a class="anchor" id="autotoc_md34"></a>
 using std::ostream :</h4>
 <p>Simple example :</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
@@ -653,7 +698,7 @@ using std::ostream :</h4>
 <div class="line">   }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/hsofqExoT"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 std::tuple and aggregate types homogeneity</h2>
 <p>As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bindable <span class="keyword">auto</span> &amp;&amp; value) {</div>
@@ -682,7 +727,7 @@ std::tuple and aggregate types homogeneity</h2>
 <div class="line">  }(std::make_index_sequence&lt;size&gt;{});</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/j6ahehMn1"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> Try me on compiler-explorer</a>.</p>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md36"></a>
 Current limitations</h2>
 <p>As-is, this implementation internally relies on structured-binding, which design choice expose two main limitations :</p>
 <ul>
@@ -691,7 +736,7 @@ Current limitations</h2>
 <li>Aggregate types with more fields than their size are currently not supported.</li>
 <li>Ill-formed aggregate types using union-fields are not supported</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md36"></a>
+<h2><a class="anchor" id="autotoc_md37"></a>
 (Internal details) Where's the magic ?</h2>
 <p>Everything has its own dirty secrets, and this library is no exception. <br  />
 </p>
