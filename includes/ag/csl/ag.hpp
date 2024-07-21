@@ -975,7 +975,7 @@ namespace csl::ag::io {
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
 // Opt-in fmt support
-//	wip : https://godbolt.org/z/7b1Ga168P
+//	wip : https://godbolt.org/z/Enj5nTzj6
 //  wip (presentation) : https://godbolt.org/z/qfTMoT7fo
 //		see https://github.com/GuillaumeDua/CppShelf/issues/57
 #if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and not __has_include(<fmt/format.h>)
@@ -993,21 +993,25 @@ namespace csl::ag::details::mp {
 }
 namespace csl::ag::io::concepts {
 	template <typename T>
-	concept formattable_aggregate = 
+	concept formattable = 
 		csl::ag::concepts::aggregate<T> and
 		(not std::is_array_v<T>) and
 		(not csl::ag::details::mp::is_std_array<T>::value)
 	;
 }
 
-// QUESTION(Guss): opt-in -> include as an extra file : csl::ag::io ?
+// QUESTION(Guss): opt-in -> include as an extra file:
+//  csl/ag/features/io.hpp
+//  - csl/ag/features/io/fmtlib.hpp
+//  - csl/ag/features/io/std_format.hpp
+//  - csl/ag/features/io/iostream.hpp
 // QUESTION(Guss): use a custom join instead ?
-template <csl::ag::io::concepts::formattable_aggregate T, class CharT>
+template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
 private:
     // WIP: p{N}
-    // QUESTION: add full presentation, with: `[index](type): value`
+    // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
     char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
 public:
 
