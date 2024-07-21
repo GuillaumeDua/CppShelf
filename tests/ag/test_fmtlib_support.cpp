@@ -25,8 +25,14 @@ namespace test::ag::types::owning {
     // struct two_fields_inheritance : two_fields { }; // decomposes into 2 elements, but only 1 name was provided
 }
 
-// QUESTION: formattable type_traits + concept ?
-// QUESTION: concept to check if csl::ag formatter or another
+namespace tests::concepts {
+    namespace types = test::ag::types::owning;
+    static_assert(csl::ag::io::concepts::fmt_formatter_is_csl_product<types::simple>);
+    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<int>);
+    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<std::tuple<int>>);
+    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<std::array<int, 3>>);
+}
+
 // WIP: check no clash with user-defined formatters -> complete, partial/generics, etc.
 
 #include <cassert> // TODO(Guillaume): GoogleTest or Catch2 test-suite -> one test per type

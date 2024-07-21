@@ -1009,6 +1009,7 @@ namespace csl::ag::io::concepts {
 template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
+    using csl_product = void;
 private:
     // WIP: p{N}
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
@@ -1050,6 +1051,13 @@ public:
         return out;
     }
 };
+
+namespace csl::ag::io::concepts {
+    template <typename T>
+    concept fmt_formatter_is_csl_product = requires {
+        typename fmt::formatter<T>::csl_product;
+    };
+}
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
