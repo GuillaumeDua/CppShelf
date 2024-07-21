@@ -846,9 +846,17 @@ namespace csl::ag::concepts {
 //  formatting/printing
 // ---------------------
 
+// QUESTION(Guss): opt-in -> include as an extra file:
+//  csl/ag/features/io.hpp
+//  - csl/ag/features/io/fmtlib.hpp
+//  - csl/ag/features/io/std_format.hpp
+//  - csl/ag/features/io/iostream.hpp -> should internally use std::format or fmt::format, if availble
+
 #if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT)
 
 static_assert(false, "(experimentale) CSL_AG__ENABLE_IOSTREAM_SUPPORT feature is disabled for now");
+
+else if false
 
 // csl::ag::io
 // REFACTO: #134
@@ -999,13 +1007,20 @@ namespace csl::ag::io::concepts {
 		(not csl::ag::details::mp::is_std_array<T>::value)
 	;
 }
+# include <variant>
+# include <charconv>
+namespace csl::ag::io::details::presentation {
+    struct compact{};
+    struct pretty{
+        std::size_t depth{ 0 };
+    };
+    using type = std::variant<compact, pretty>;
+}
+namespace csl::ag::io::details::functional {
+    template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+    template<class... Ts> overload(Ts...) -> overload<Ts...>;
+}
 
-// QUESTION(Guss): opt-in -> include as an extra file:
-//  csl/ag/features/io.hpp
-//  - csl/ag/features/io/fmtlib.hpp
-//  - csl/ag/features/io/std_format.hpp
-//  - csl/ag/features/io/iostream.hpp
-// QUESTION(Guss): use a custom join instead ?
 template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
@@ -1013,31 +1028,37 @@ struct fmt::formatter<T, CharT>
 private:
     // WIP: p{N}
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
-    char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
-public:
-
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
-
-        auto it = ctx.begin();
-        auto end = ctx.end();
-        if (it != end && (*it == 'c' || *it == 'p'))
-            presentation = *it++;
-        if (it != end && *it != '}')
-            throw fmt::format_error{"invalid format"};
-        return it;
-    }
+    csl::ag::io::details::presentation::type presentation; // [c:compact, pN:pretty (where N is the depth level)]
 
     template <typename FormatContext>
-    constexpr auto format(const T & value, FormatContext& ctx) const
+    constexpr auto format_compact(const T & value, FormatContext& ctx) const
     {
         auto && out = ctx.out();
         constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
         if (size == 0)
             return out;
         *out++ = '{';
-        // QUESTION: How to make such statement constexpr ?
-        // format_to(out, "{}", csl::ag::to_tuple_view(value));
-        // format_to(out, FMT_COMPILE("{}"), fmt::join(csl::ag::to_tuple_view(value), ", "));
+        // QUESTION: How to make such statement constexpr ? write into buffer -> IILE ?
+        // fmt::format_to(out, "{}", csl::ag::to_tuple_view(value));
+        fmt::format_to(
+            out,
+            FMT_COMPILE("{}"),
+            fmt::join(
+                csl::ag::to_tuple_view(value),
+                ", "
+            )
+        ); // NOTE: fmt::join does NOT adds single-quote on chars
+        *out++ = '}';
+        return out;
+    }
+    template <typename FormatContext>
+    constexpr auto format_pretty(const T & value, FormatContext& ctx) const
+    {
+        auto && out = ctx.out();
+        constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
+        if (size == 0)
+            return out;
+        *out++ = '{';
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             (
                 fmt::format_to(
@@ -1047,8 +1068,61 @@ public:
                 )
             , ...);
         }(std::make_index_sequence<size>{});
+        fmt::format_to(out, "{}", csl::ag::to_tuple_view(value));
         *out++ = '}';
         return out;
+    }
+public:
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+
+        auto it = ctx.begin();
+        auto end = ctx.end();
+        
+        if (it != end and *it == 'c'){
+            it++;
+            presentation = csl::ag::io::details::presentation::compact{};
+        }
+        else if (it != end and *it == 'p'){
+            it++;
+            presentation = csl::ag::io::details::presentation::pretty{
+                [&](){
+                    std::size_t result{};
+                    auto [ptr, ec] = std::from_chars(it, end, result);
+
+                    if (ec == std::errc()){
+                        it = ptr;
+                        return result;
+                    }
+                    
+                    if (ec == std::errc::invalid_argument)
+                        throw std::invalid_argument{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (not a number)"};
+                    if (ec == std::errc::result_out_of_range)
+                        throw std::out_of_range{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (out of std::size_t range)"};
+                    throw std::runtime_error{"fmt::formatter<csl::ag::io::concepts::formattable>: unknown error"};
+                }()
+            };
+        }
+        if (it != end and *it != '}')
+            throw fmt::format_error{"invalid format"};
+        return it;
+    }
+
+    template <typename FormatContext>
+    constexpr auto format(const T & value, FormatContext& ctx) const
+    {
+        using namespace csl::ag::io::details;
+        return std::visit(csl::ag::io::details::functional::overload{
+            [&](const presentation::compact &){
+                return format_compact(value, ctx);
+            },
+            [&](const presentation::pretty & p){
+                return format_pretty(value, ctx);
+            },
+            [](const auto &){
+                throw std::runtime_error{"invalid presentation"};
+            },
+        }, presentation);
     }
 };
 

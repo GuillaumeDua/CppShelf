@@ -17,7 +17,8 @@ namespace test::ag::types::owning {
     };
     struct nested_std_tuplelike{
         bool b;
-        std::tuple<int, char> tu;
+        std::string_view sv;
+        std::tuple<int, char, std::string_view> tu;
         std::array<char, 3> a;
         std::pair<int, int> p;
     };
@@ -44,6 +45,7 @@ namespace test::ag::io {
 
     template <typename T>
     constexpr void check(piece<T>){
+        //fmt::print(FMT_COMPILE("{}\n{}\n\n"), piece<T>::value, piece<T>::expected_result);
         assert(fmt::format(FMT_COMPILE("{}"), piece<T>::value) == piece<T>::expected_result); // NOTE: not compile-time for now.
     }
 
@@ -72,11 +74,12 @@ namespace test::ag::io {
     struct piece<test::ag::types::owning::nested_std_tuplelike>{
         constexpr static inline test::ag::types::owning::nested_std_tuplelike value{
             .b = true,
-            .tu = { 2, 'b'},
+            .sv = "hello",
+            .tu = { 2, 'b', "str"},
             .a = {'a', 'b', 'c'},
             .p = { 42, 43 }, // NOLINT
         };
-        constexpr static inline std::string_view expected_result = "{true, (2, 'b'), ['a', 'b', 'c'], (42, 43)}";
+        constexpr static inline std::string_view expected_result = "{true, hello, (2, b, str), [a, b, c], (42, 43)}";
     };
 }
 
