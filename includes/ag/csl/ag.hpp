@@ -1034,10 +1034,11 @@ namespace csl::ag::io::details {
     }
 }
 
+// // TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
 template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
-    using csl_product = void; // TODO(Guillaume): type_trait, concept to detect that
+    using csl_product = void;
 private:
     // WIP: p{N}
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
@@ -1067,6 +1068,12 @@ private:
     template <typename FormatContext>
     constexpr auto format_pretty(const T & value, FormatContext& ctx) const
     {
+        // WIP: indented_formatter<
+        //          depth = 0,
+        //          indent_char = '\t',
+        //          element_iterator_t = element_iterator<
+        //              condition_t = csl::ag::io::type_traits::is_formattable,
+        //              accessor_t = decltype([](const auto & element){ return std::get etc. }) ?
         auto && out = ctx.out();
         constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
         if (size == 0)
@@ -1075,13 +1082,15 @@ private:
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             (
                 fmt::format_to(
-                    out, "{}{}",
+                    out,
+                    csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
+                        ? "{}{}"
+                        : "{}{}",
                     csl::ag::get<indexes>(value),
                     (indexes == (size - 1) ? "" : ", ")
                 )
             , ...);
         }(std::make_index_sequence<size>{});
-        fmt::format_to(out, "{}", csl::ag::to_tuple_view(value));
         *out++ = '}';
         return out;
     }
@@ -1142,10 +1151,10 @@ public:
     }
 };
 
-namespace csl::ag::io::concepts {
+namespace csl::ag::concepts {
     template <typename T>
-    concept fmt_formatter_is_csl_product = requires {
-        typename fmt::formatter<T>::csl_product;
+    concept csl_product = requires {
+        typename T::csl_product;
     };
 }
 

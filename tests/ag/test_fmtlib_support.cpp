@@ -28,10 +28,10 @@ namespace test::ag::types::owning {
 
 namespace tests::concepts {
     namespace types = test::ag::types::owning;
-    static_assert(csl::ag::io::concepts::fmt_formatter_is_csl_product<types::simple>);
-    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<int>);
-    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<std::tuple<int>>);
-    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<std::array<int, 3>>);
+    static_assert(csl::ag::concepts::csl_product<fmt::formatter<types::simple>>);
+    static_assert(not csl::ag::concepts::csl_product<fmt::formatter<int>>);
+    static_assert(not csl::ag::concepts::csl_product<fmt::formatter<std::tuple<int>>>);
+    static_assert(not csl::ag::concepts::csl_product<fmt::formatter<std::array<int, 3>>>);
 }
 
 // WIP: check no clash with user-defined formatters -> complete, partial/generics, etc.
@@ -53,8 +53,8 @@ namespace test::ag::io {
     struct piece<test::ag::types::owning::simple>{
         constexpr static inline test::ag::types::owning::simple value{ .i = 42 };
         constexpr static inline std::string_view expected_result = "{42}";
-        // TODO(Guillaume): expected_result_default
         // TODO(Guillaume): expected_result_compact
+        // TODO(Guillaume): expected_result_default = expected_result_compact
         // TODO(Guillaume): expected_result_pretty
     };
     template <>
@@ -114,8 +114,8 @@ auto main() -> int {
                 .c = 'c'
             }
         };
-    fmt::println("default : {}", value);
-    fmt::println("default : {:c}", value);
-    fmt::println("default : {:p}", value);
-    fmt::println("default : {:p2}", value);
+    fmt::println("default  : {}", value);
+    fmt::println("compatct : {:c}", value);
+    fmt::println("pretty   : {:p}", value);
+    fmt::println("pretty(2): {:p2}", value);
 }
