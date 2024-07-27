@@ -53,6 +53,7 @@ namespace test::ag::io {
     struct piece<test::ag::types::owning::simple>{
         constexpr static inline test::ag::types::owning::simple value{ .i = 42 };
         constexpr static inline std::string_view expected_result = "{42}";
+        // TODO(Guillaume): expected_result_default
         // TODO(Guillaume): expected_result_compact
         // TODO(Guillaume): expected_result_pretty
     };
@@ -101,4 +102,20 @@ auto main() -> int {
     []<csl::ag::io::concepts::formattable ... Ts>(std::tuple<std::type_identity<Ts>...>){
         ((io::check(io::piece<Ts>{})), ...);
     }(to_test);
+
+    // WIP
+    const auto value = test::ag::types::owning::nested{
+            .i = 1,
+            .field_1 = {
+                11,
+            },
+            .field_2 = {
+                .i = 12,
+                .c = 'c'
+            }
+        };
+    fmt::println("default : {}", value);
+    fmt::println("default : {:c}", value);
+    fmt::println("default : {:p}", value);
+    fmt::println("default : {:p2}", value);
 }

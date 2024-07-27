@@ -1005,6 +1005,7 @@ namespace csl::ag::io::concepts {
 		csl::ag::concepts::aggregate<T> and
 		(not std::is_array_v<T>) and
 		(not csl::ag::details::mp::is_std_array<T>::value)
+        // QUESTION: and not is_std_tuple ?
 	;
 }
 # include <variant>
@@ -1020,11 +1021,23 @@ namespace csl::ag::io::details::functional {
     template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
     template<class... Ts> overload(Ts...) -> overload<Ts...>;
 }
+namespace csl::ag::io::details {
+    constexpr auto is_digit(char c) noexcept -> bool {
+        return c >= '0' and c <= '9';
+    }
+    template <std::integral T>
+    requires (not std::is_reference_v<T>)
+    constexpr auto to_digit(char c) -> T {
+        if (not is_digit(c))
+            throw std::invalid_argument{"to_digit: not a valid digit"};
+        return static_cast<T>(c - '0'); // NOTE: Poor's man B10 conversion
+    }
+}
 
 template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
-    using csl_product = void;
+    using csl_product = void; // TODO(Guillaume): type_trait, concept to detect that
 private:
     // WIP: p{N}
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
@@ -1085,23 +1098,26 @@ public:
         }
         else if (it != end and *it == 'p'){
             it++;
-            presentation = csl::ag::io::details::presentation::pretty{
-                [&](){
-                    std::size_t result{};
-                    auto [ptr, ec] = std::from_chars(it, end, result);
+            presentation = decltype(presentation){csl::ag::io::details::presentation::pretty{
+                .depth = *it == '}'
+                    ? std::size_t{}
+                    : csl::ag::io::details::to_digit<decltype(csl::ag::io::details::presentation::pretty::depth)>(*it++)
+            }};
+                //[&](){
+                    // NOTE: std::from_chars is not constexpr
+                    // std::size_t result{};
+                    // auto [ptr, error] = std::from_chars(it, end, result);
 
-                    if (ec == std::errc()){
-                        it = ptr;
-                        return result;
-                    }
-                    
-                    if (ec == std::errc::invalid_argument)
-                        throw std::invalid_argument{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (not a number)"};
-                    if (ec == std::errc::result_out_of_range)
-                        throw std::out_of_range{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (out of std::size_t range)"};
-                    throw std::runtime_error{"fmt::formatter<csl::ag::io::concepts::formattable>: unknown error"};
-                }()
-            };
+                    // if (error == std::errc()){
+                    //     it = ptr;
+                    //     return result;
+                    // }
+                    // if (error == std::errc::invalid_argument)
+                    //     throw std::invalid_argument{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (not a number)"};
+                    // if (error == std::errc::result_out_of_range)
+                    //     throw std::out_of_range{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (out of std::size_t range)"};
+                    // throw std::runtime_error{"fmt::formatter<csl::ag::io::concepts::formattable>: unknown error"};
+                // }()
         }
         if (it != end and *it != '}')
             throw fmt::format_error{"invalid format"};
