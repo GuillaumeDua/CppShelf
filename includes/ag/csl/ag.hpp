@@ -1083,9 +1083,11 @@ private:
             (
                 fmt::format_to(
                     out,
-                    csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
-                        ? "{}{}"
-                        : "{}{}",
+                    "{}{}",
+                    // csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
+                    //     ? "{}{}"
+                    //     : fmt::format(FMT_COMPILE("{{}}{{:p{}}}"), static_cast<char>(std::get<csl::ag::io::details::presentation::pretty>(presentation).depth))
+                    // ,
                     csl::ag::get<indexes>(value),
                     (indexes == (size - 1) ? "" : ", ")
                 )
