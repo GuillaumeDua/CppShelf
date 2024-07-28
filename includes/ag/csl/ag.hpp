@@ -1014,6 +1014,7 @@ namespace csl::ag::io::details::presentation {
     struct compact{};
     struct pretty{
         std::size_t depth{ 0 };
+        // char filler = '\t'; // requires a runtime format indirection, see https://godbolt.org/z/q3h45zYdE
     };
     using type = std::variant<compact, pretty>;
 }
@@ -1029,12 +1030,14 @@ namespace csl::ag::io::details {
     requires (not std::is_reference_v<T>)
     constexpr auto to_digit(char c) -> T {
         if (not is_digit(c))
-            throw std::invalid_argument{"to_digit: not a valid digit"};
+            // throw std::invalid_argument{"to_digit: not a valid digit"};
+            throw std::invalid_argument{fmt::format("to_digit: not a valid digit: [{}]", c)};
         return static_cast<T>(c - '0'); // NOTE: Poor's man B10 conversion
     }
 }
 
-// // TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
+// TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
+// QUESTION: use string-formatter, with filler + width ?
 template <csl::ag::io::concepts::formattable T, class CharT>
 struct fmt::formatter<T, CharT>
 {
@@ -1066,7 +1069,7 @@ private:
         return out;
     }
     template <typename FormatContext>
-    constexpr auto format_pretty(const T & value, FormatContext& ctx) const
+    constexpr auto format_pretty(const csl::ag::io::details::presentation::pretty & presentation, const T & value, FormatContext& ctx) const
     {
         // WIP: indented_formatter<
         //          depth = 0,
@@ -1078,22 +1081,60 @@ private:
         constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
         if (size == 0)
             return out;
-        *out++ = '{';
+        // *out++ = '{';
+        fmt::format_to(
+            out,
+            "{: >{}}{{\n",
+            "", presentation.depth
+        );
+        // (csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
+        //         // ? fmt::format_to(
+        //         //     out,
+        //         //     "{: >{}}{:p{}}\n",
+        //         //     "", presentation.depth + 1,
+        //         //     csl::ag::get<indexes>(value),
+        //         //     presentation.depth + 1
+        //         // )
+        //         ? fmt::format_to(
+        //             out,
+        //             "{: >{}}{:p{}}\n",
+        //             "", presentation.depth + 1,
+        //             csl::ag::get<indexes>(value),
+        //             presentation.depth + 1
+        //         )
+        //         : fmt::format_to(
+        //             out,
+        //             "{: >{}}{}\n",
+        //             "", presentation.depth + 1,
+        //             csl::ag::get<indexes>(value)
+        //         ))
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             (
-                fmt::format_to(
+                (fmt::format_to(
                     out,
-                    "{}{}",
-                    // csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
-                    //     ? "{}{}"
-                    //     : fmt::format(FMT_COMPILE("{{}}{{:p{}}}"), static_cast<char>(std::get<csl::ag::io::details::presentation::pretty>(presentation).depth))
-                    // ,
+                    "{: >{}}",
+                    "", presentation.depth + 1
+                ),
+                csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
+                ? fmt::format_to(
+                    out,
+                    fmt::runtime("{:p{}}"),
                     csl::ag::get<indexes>(value),
-                    (indexes == (size - 1) ? "" : ", ")
+                    presentation.depth
                 )
-            , ...);
+                : fmt::format_to(
+                    out,
+                    "{}",
+                    csl::ag::get<indexes>(value)
+                )
+            ), ...);
         }(std::make_index_sequence<size>{});
-        *out++ = '}';
+        fmt::format_to(
+            out,
+            "{: >{}}}}\n",
+            "", presentation.depth
+        );
+        // *out++ = '}';
         return out;
     }
 public:
@@ -1144,7 +1185,7 @@ public:
                 return format_compact(value, ctx);
             },
             [&](const presentation::pretty & p){
-                return format_pretty(value, ctx);
+                return format_pretty(p, value, ctx);
             },
             [](const auto &){
                 throw std::runtime_error{"invalid presentation"};

@@ -114,8 +114,8 @@ auto main() -> int {
                 .c = 'c'
             }
         };
-    fmt::println("default  : {}", value);
-    fmt::println("compatct : {:c}", value);
-    fmt::println("pretty   : {:p}", value);
-    fmt::println("pretty(2): {:p2}", value);
+    fmt::println("default  : [{}]", value);
+    fmt::println("compact  : [{:c}]", value);
+    fmt::println("pretty   : [{:p}]", value);
+    fmt::println("pretty(2): [{:p2}]", value);
 }
