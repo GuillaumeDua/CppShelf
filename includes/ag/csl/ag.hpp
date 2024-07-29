@@ -1158,7 +1158,7 @@ private:
         }(std::make_index_sequence<size>{});
         fmt::format_to(
             out,
-            "{: >{}}}}",
+            "\n{: >{}}}}",
             "", presentation.depth
         );
         // *out++ = '}';
