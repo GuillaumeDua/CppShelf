@@ -1051,6 +1051,14 @@ namespace csl::ag::io::details {
     }
 }
 
+// REFACTO: indented<T, depth = 0, indent_char = '\t'>
+//  with fmt::formatter
+//  internally use apply
+/*
+template <const std::size_t depth = 0, const char filler = '\t'>
+constexpr inline static auto indentation_v = std::string(depth, filler);
+*/
+
 // TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
 // QUESTION: use string-formatter, with filler + width ?
 template <csl::ag::io::concepts::formattable T, class CharT>
@@ -1058,7 +1066,6 @@ struct fmt::formatter<T, CharT>
 {
     using csl_product = void;
 private:
-    // WIP: p{N}
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
     csl::ag::io::details::presentation::type presentation; // [c:compact, pN:pretty (where N is the depth level)]
 
@@ -1083,6 +1090,7 @@ private:
         *out++ = '}';
         return out;
     }
+    // refacto: format_pretty -> indented<T>
     template <typename FormatContext>
     requires (csl::ag::size_v<T> == 0)
     constexpr auto format_pretty(const csl::ag::io::details::presentation::pretty & presentation, const T & value, FormatContext& ctx) const
@@ -1097,17 +1105,10 @@ private:
     requires (csl::ag::size_v<T> not_eq 0)
     constexpr auto format_pretty(const csl::ag::io::details::presentation::pretty & presentation, const T & value, FormatContext& ctx) const
     {
-        // WIP: indented_formatter<
-        //          depth = 0,
-        //          indent_char = '\t',
-        //          element_iterator_t = element_iterator<
-        //              condition_t = csl::ag::io::type_traits::is_formattable,
-        //              accessor_t = decltype([](const auto & element){ return std::get etc. }) ?
         auto && out = ctx.out();
         constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
         if (size == 0)
             return out;
-        // *out++ = '{';
         fmt::format_to(
             out,
             "{: >{}}{{",
@@ -1144,7 +1145,7 @@ private:
                 // csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
                 // ? fmt::format_to(
                 //     out,
-                //     fmt::runtime("{:p{}}"),
+                //     "{:p{}}",
                 //     csl::ag::get<indexes>(value),
                 //     presentation.depth
                 // )
@@ -1161,7 +1162,6 @@ private:
             "\n{: >{}}}}",
             "", presentation.depth
         );
-        // *out++ = '}';
         return out;
     }
 public:
