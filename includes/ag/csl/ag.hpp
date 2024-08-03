@@ -723,6 +723,8 @@ namespace csl::ag {
 
     // conversion factory. unfold into an either complete or template type T
     // interally performs get<indexes>...
+    // REFACTO: universal template
+    // REFACTO: apply
     template <typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
@@ -855,6 +857,20 @@ namespace csl::ag::concepts {
         concepts::aggregate<std::remove_cvref_t<T>>
     and csl::ag::details::options::detection::std_tuple_interface_v<std::remove_cvref_t<T>>
     ;
+}
+// --- functional API ---
+#include <functional>
+namespace csl::ag {
+
+    template <typename F>
+    constexpr auto apply(F && f, csl::ag::concepts::aggregate auto && from_value) -> decltype(auto)
+    // TODO(Guillaume): noexcept
+    {
+        using type = std::remove_cvref_t<decltype(from_value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            return std::invoke(csl_fwd(f), csl::ag::get<indexes>(csl_fwd(from_value))...);
+        }(std::make_index_sequence<csl::ag::size_v<type>>{});
+    }
 }
 
 // ---------------------
