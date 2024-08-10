@@ -847,6 +847,7 @@ namespace csl::ag::views {
 // --- opt-ins ---
 // TODO(Guillaume): REFACTO, tests ?
 // - ticket: better test coverage
+// - ticket: update documentation
 // TODO(Guillaume): hash, compare, assign?, etc.
 namespace csl::ag::details::options::detection {
     template <typename T, typename = void> struct std_tuple_interface : std::false_type {};
@@ -863,22 +864,30 @@ namespace csl::ag::concepts {
 // --- functional API ---
 #include <functional>
 namespace csl::ag::details {
-    template <typename F, std::size_t ... indexes>
-    constexpr decltype(auto) apply_impl(F && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
+    template <std::size_t ... indexes>
+    constexpr decltype(auto) apply_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
     noexcept(
         noexcept(
             std::invoke(csl_fwd(f), std::get<indexes>(csl_fwd(value))...)
         )
     )
     {
-        using type = std::remove_cvref_t<decltype(value)>;
         return std::invoke(csl_fwd(f), csl::ag::get<indexes>(csl_fwd(value))...);
+    }
+    template <std::size_t ... indexes>
+    constexpr void for_each_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
+    noexcept(
+        noexcept((
+            std::invoke(csl_fwd(f), std::get<indexes>(csl_fwd(value))), ...
+        ))
+    )
+    {
+        ((std::invoke(csl_fwd(f), std::get<indexes>(csl_fwd(value))), ...));
     }
 }
 namespace csl::ag {
 
-    template <typename F>
-    constexpr decltype(auto) apply(F && f, csl::ag::concepts::aggregate auto && value)
+    constexpr decltype(auto) apply(auto && f, csl::ag::concepts::aggregate auto && value)
     noexcept(
         noexcept(
             details::apply_impl(
@@ -890,6 +899,25 @@ namespace csl::ag {
     )
     {
         return details::apply_impl(
+            csl_fwd(f),
+            csl_fwd(value),
+            std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
+        );
+    }
+
+    template <typename F>
+    constexpr void for_each(F && f, csl::ag::concepts::aggregate auto && value)
+    noexcept(
+        noexcept(
+            details::for_each_impl(
+                csl_fwd(f),
+                csl_fwd(value),
+                std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
+            )
+        )
+    )
+    {
+        return details::for_each_impl(
             csl_fwd(f),
             csl_fwd(value),
             std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
