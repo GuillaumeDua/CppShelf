@@ -1096,16 +1096,89 @@ namespace csl::ag::io::concepts {
 # include <variant>
 # include <charconv>
 namespace csl::ag::io::details::presentation {
-    struct compact{};
+    struct compact{
+        template <typename FormatContext>
+        constexpr auto format(const auto & value, FormatContext& ctx) const
+        {
+            auto && out = ctx.out();
+            using T = std::remove_cvref_t<decltype(value)>;
+            constexpr auto size = csl::ag::size_v<T>;
+            if (size == 0)
+                return out;
+            *out++ = '{';
+            // QUESTION: How to make such statement constexpr ? write into buffer -> IILE ?
+            // fmt::format_to(out, "{}", csl::ag::to_tuple_view(value));
+            fmt::format_to(
+                out,
+                FMT_COMPILE("{}"),
+                fmt::join(
+                    csl::ag::to_tuple_view(value),
+                    ", "
+                )
+            ); // NOTE: fmt::join does NOT adds single-quote on chars
+            *out++ = '}';
+            return out;
+        }
+    };
     struct pretty{
         std::size_t depth{ 0 };
         // char filler = '\t'; // requires a runtime format indirection, see https://godbolt.org/z/q3h45zYdE
+
+        template <typename FormatContext>
+        constexpr auto format(const auto & value, FormatContext& ctx) const
+        requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> == 0)
+        {
+            fmt::format_to(
+                ctx.out(),
+                "{: >{}}{{}}",
+                "", depth
+            );
+        }
+        template <typename FormatContext>
+        constexpr auto format(const auto & value, FormatContext& ctx) const
+        requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> not_eq 0)
+        {
+            auto && out = ctx.out();
+            constexpr auto size = csl::ag::size_v<std::remove_cvref_t<decltype(value)>>;
+            if (size == 0)
+                return out;
+            fmt::format_to(
+                out,
+                "{: >{}}{{",
+                "", depth
+            );
+
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+                (
+                    (fmt::format_to(
+                        out,
+                        "\n{: >{}}",
+                        "", depth + 1
+                    ),
+                    // csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
+                    // ? fmt::format_to(
+                    //     out,
+                    //     "{:p{}}",
+                    //     csl::ag::get<indexes>(value),
+                    //     presentation.depth
+                    // )
+                    // : 
+                    fmt::format_to(
+                        out,
+                        "{}",
+                        csl::ag::get<indexes>(value)
+                    )
+                ), ...);
+            }(std::make_index_sequence<size>{});
+            fmt::format_to(
+                out,
+                "\n{: >{}}}}",
+                "", depth
+            );
+            return out;
+        }
     };
     using type = std::variant<compact, pretty>;
-}
-namespace csl::ag::io::details::functional {
-    template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-    template<class... Ts> overload(Ts...) -> overload<Ts...>;
 }
 namespace csl::ag::io::details {
     constexpr inline static auto is_digit(char c) noexcept -> bool {
@@ -1139,101 +1212,8 @@ private:
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
     csl::ag::io::details::presentation::type presentation; // [c:compact, pN:pretty (where N is the depth level)]
 
-    template <typename FormatContext>
-    constexpr auto format_compact(const T & value, FormatContext& ctx) const
-    {
-        auto && out = ctx.out();
-        constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
-        if (size == 0)
-            return out;
-        *out++ = '{';
-        // QUESTION: How to make such statement constexpr ? write into buffer -> IILE ?
-        // fmt::format_to(out, "{}", csl::ag::to_tuple_view(value));
-        fmt::format_to(
-            out,
-            FMT_COMPILE("{}"),
-            fmt::join(
-                csl::ag::to_tuple_view(value),
-                ", "
-            )
-        ); // NOTE: fmt::join does NOT adds single-quote on chars
-        *out++ = '}';
-        return out;
-    }
     // refacto: format_pretty -> indented<T>
-    template <typename FormatContext>
-    requires (csl::ag::size_v<T> == 0)
-    constexpr auto format_pretty(const csl::ag::io::details::presentation::pretty & presentation, const T & value, FormatContext& ctx) const
-    {
-        fmt::format_to(
-            ctx.out(),
-            "{: >{}}{{}}",
-            "", presentation.depth
-        );
-    }
-    template <typename FormatContext>
-    requires (csl::ag::size_v<T> not_eq 0)
-    constexpr auto format_pretty(const csl::ag::io::details::presentation::pretty & presentation, const T & value, FormatContext& ctx) const
-    {
-        auto && out = ctx.out();
-        constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
-        if (size == 0)
-            return out;
-        fmt::format_to(
-            out,
-            "{: >{}}{{",
-            "", presentation.depth
-        );
-        // (csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
-        //         // ? fmt::format_to(
-        //         //     out,
-        //         //     "{: >{}}{:p{}}\n",
-        //         //     "", presentation.depth + 1,
-        //         //     csl::ag::get<indexes>(value),
-        //         //     presentation.depth + 1
-        //         // )
-        //         ? fmt::format_to(
-        //             out,
-        //             "{: >{}}{:p{}}\n",
-        //             "", presentation.depth + 1,
-        //             csl::ag::get<indexes>(value),
-        //             presentation.depth + 1
-        //         )
-        //         : fmt::format_to(
-        //             out,
-        //             "{: >{}}{}\n",
-        //             "", presentation.depth + 1,
-        //             csl::ag::get<indexes>(value)
-        //         ))
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            (
-                (fmt::format_to(
-                    out,
-                    "\n{: >{}}",
-                    "", presentation.depth + 1
-                ),
-                // csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
-                // ? fmt::format_to(
-                //     out,
-                //     "{:p{}}",
-                //     csl::ag::get<indexes>(value),
-                //     presentation.depth
-                // )
-                // : 
-                fmt::format_to(
-                    out,
-                    "{}",
-                    csl::ag::get<indexes>(value)
-                )
-            ), ...);
-        }(std::make_index_sequence<size>{});
-        fmt::format_to(
-            out,
-            "\n{: >{}}}}",
-            "", presentation.depth
-        );
-        return out;
-    }
+    
 public:
 
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
@@ -1277,16 +1257,8 @@ public:
     constexpr auto format(const T & value, FormatContext& ctx) const
     {
         using namespace csl::ag::io::details;
-        return std::visit(csl::ag::io::details::functional::overload{
-            [&](const presentation::compact &){
-                return format_compact(value, ctx);
-            },
-            [&](const presentation::pretty & p){
-                return format_pretty(p, value, ctx);
-            },
-            [](const auto &){
-                throw std::runtime_error{"invalid presentation"};
-            },
+        return std::visit([&](const auto & p){
+            return p.format(value, ctx);
         }, presentation);
     }
 };
