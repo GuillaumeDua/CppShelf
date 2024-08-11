@@ -843,6 +843,8 @@ namespace csl::ag::views {
     using all_t = decltype(std::declval<T>());
 
     // TODO(Guillaume): common_t -> std::tuple<std::common_type<Ts>...>
+
+    // TODO(Guillaume): #245: flatten_view
 }
 // --- opt-ins ---
 // TODO(Guillaume): REFACTO, tests ?

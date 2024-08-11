@@ -87,6 +87,9 @@ namespace test::ag::io {
 #include <tuple>
 #include <type_traits>
 
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...) -> overload<Ts...>;
+
 auto main() -> int {
     using namespace test::ag;
     namespace types = test::ag::types::owning;
@@ -105,17 +108,34 @@ auto main() -> int {
 
     // WIP
     const auto value = test::ag::types::owning::nested{
-            .i = 1,
-            .field_1 = {
-                11,
-            },
-            .field_2 = {
-                .i = 12,
-                .c = 'c'
-            }
-        };
+        .i = 1,
+        .field_1 = {
+            11,
+        },
+        .field_2 = {
+            .i = 12,
+            .c = 'c'
+        }
+    };
     fmt::println("default  : [{}]", value);
     fmt::println("compact  : [{:c}]", value);
     fmt::println("pretty   : [\n{:p}\n]", value);
     fmt::println("pretty(2): [\n{:p2}\n]", value);
+
+    // WIP
+    const auto printer = overload{
+        [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
+            fmt::println("{:\t>{}}{{", "", depth);
+            using type = std::remove_cvref_t<decltype(value)>;
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                ((std::invoke(self, self, depth + 1, csl::ag::get<indexes>(value)), ...));
+            }(std::make_index_sequence<csl::ag::size_v<type>>{});
+            fmt::println("{:\t>{}}}}", "", depth);
+        },
+        [](const auto & /* self */, std::size_t depth, const auto & value){
+            fmt::println("{:\t>{}}{}", "", depth, value);
+        }
+    };
+    fmt::println("{:->{}}", "", 20);
+    printer(printer, 0, value);
 }
