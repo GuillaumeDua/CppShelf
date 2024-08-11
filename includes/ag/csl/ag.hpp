@@ -870,21 +870,21 @@ namespace csl::ag::details {
     constexpr decltype(auto) apply_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
     noexcept(
         noexcept(
-            std::invoke(csl_fwd(f), std::get<indexes>(csl_fwd(value))...)
+            std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...)
         )
     )
     {
-        return std::invoke(csl_fwd(f), csl::ag::get<indexes>(csl_fwd(value))...);
+        return std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...);
     }
     template <std::size_t ... indexes>
     constexpr void for_each_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
     noexcept(
         noexcept((
-            std::invoke(csl_fwd(f), std::get<indexes>(csl_fwd(value))), ...
+            std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...
         ))
     )
     {
-        ((std::invoke(csl_fwd(f), std::get<indexes>(csl_fwd(value))), ...));
+        ((std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...));
     }
 }
 namespace csl::ag {
@@ -1139,42 +1139,15 @@ namespace csl::ag::io::details::presentation {
         requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> not_eq 0)
         {
             auto && out = ctx.out();
-            constexpr auto size = csl::ag::size_v<std::remove_cvref_t<decltype(value)>>;
-            if (size == 0)
-                return out;
-            fmt::format_to(
-                out,
-                "{: >{}}{{",
-                "", depth
-            );
-
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-                (
-                    (fmt::format_to(
-                        out,
-                        "\n{: >{}}",
-                        "", depth + 1
-                    ),
-                    // csl::ag::io::concepts::formattable<csl::ag::element_t<indexes, T>>
-                    // ? fmt::format_to(
-                    //     out,
-                    //     "{:p{}}",
-                    //     csl::ag::get<indexes>(value),
-                    //     presentation.depth
-                    // )
-                    // : 
-                    fmt::format_to(
-                        out,
-                        "{}",
-                        csl::ag::get<indexes>(value)
-                    )
-                ), ...);
-            }(std::make_index_sequence<size>{});
-            fmt::format_to(
-                out,
-                "\n{: >{}}}}",
-                "", depth
-            );
+            fmt::println("{:\t>{}}{{", "", depth);
+            csl::ag::for_each([&out](const auto & member){
+                fmt::format_to(
+                    out,
+                    "{}",
+                    member
+                );
+            }, value);
+            fmt::println("{:\t>{}}}}", "", depth);
             return out;
         }
     };
@@ -1210,9 +1183,8 @@ struct fmt::formatter<T, CharT>
     using csl_product = void;
 private:
     // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
+    // REFACTO: format_pretty -> indented<T>
     csl::ag::io::details::presentation::type presentation; // [c:compact, pN:pretty (where N is the depth level)]
-
-    // refacto: format_pretty -> indented<T>
     
 public:
 
