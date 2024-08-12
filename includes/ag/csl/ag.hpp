@@ -1094,7 +1094,7 @@ namespace csl::ag::io::concepts {
 	;
 }
 # include <variant>
-# include <charconv>
+
 namespace csl::ag::io::details::presentation {
     struct compact{
         template <typename FormatContext>
@@ -1124,30 +1124,31 @@ namespace csl::ag::io::details::presentation {
         std::size_t depth{ 0 };
         // char filler = '\t'; // requires a runtime format indirection, see https://godbolt.org/z/q3h45zYdE
 
-        template <typename FormatContext>
-        constexpr auto format(const auto & value, FormatContext& ctx) const
-        requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> == 0)
-        {
-            fmt::format_to(
-                ctx.out(),
-                "{: >{}}{{}}",
-                "", depth
-            );
-        }
+        // template <typename FormatContext>
+        // constexpr auto format(const auto & value, FormatContext& ctx) const
+        // requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> == 0)
+        // {
+        //     fmt::format_to(
+        //         ctx.out(),
+        //         "{: >{}}{{}}\n",
+        //         "", depth
+        //     );
+        // }
         template <typename FormatContext>
         constexpr auto format(const auto & value, FormatContext& ctx) const
         requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> not_eq 0)
         {
             auto && out = ctx.out();
             fmt::println("{:\t>{}}{{", "", depth);
-            csl::ag::for_each([&out](const auto & member){
+            csl::ag::for_each([&](const auto & member){
                 fmt::format_to(
                     out,
-                    "{}",
-                    member
+                    FMT_COMPILE("{:\t>{}}\n"),
+                    member,
+                    depth + 1
                 );
             }, value);
-            fmt::println("{:\t>{}}}}", "", depth);
+            fmt::println("{:\t>{}}}}\n", "", depth);
             return out;
         }
     };
@@ -1170,6 +1171,10 @@ namespace csl::ag::io::details {
 // REFACTO: indented<T, depth = 0, indent_char = '\t'>
 //  with fmt::formatter
 //  internally use apply
+//  WIP: see POCs:
+//      - full TTPs: https://godbolt.org/z/YsdK5zfWr
+//      - values:    https://godbolt.org/z/Ys8PsqaWv
+//  TODO(Guillaume): as a custom csl::ag::io::join/join_view ?
 /*
 template <const std::size_t depth = 0, const char filler = '\t'>
 constexpr inline static auto indentation_v = std::string(depth, filler);

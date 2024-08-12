@@ -90,6 +90,8 @@ namespace test::ag::io {
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
+#include <fmt/ranges.h>
+
 auto main() -> int {
     using namespace test::ag;
     namespace types = test::ag::types::owning;
@@ -122,7 +124,7 @@ auto main() -> int {
     fmt::println("pretty   : [\n{:p}\n]", value);
     fmt::println("pretty(2): [\n{:p2}\n]", value);
 
-    // WIP
+    // WIP: https://godbolt.org/z/josGY85Pz
     const auto printer = overload{
         [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
             fmt::println("{:\t>{}}{{", "", depth);
@@ -138,4 +140,6 @@ auto main() -> int {
     };
     fmt::println("{:->{}}", "", 20);
     printer(printer, 0, value);
+
+    fmt::print("{}", fmt::join(std::tuple{'a', 42}, ' '));
 }
