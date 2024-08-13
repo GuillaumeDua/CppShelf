@@ -44,7 +44,7 @@ namespace test::ag::io {
     struct piece;
 
     template <typename T>
-    constexpr void check(piece<T>){
+    /*constexpr*/ void check(piece<T>){
         //fmt::print(FMT_COMPILE("{}\n{}\n\n"), piece<T>::value, piece<T>::expected_result);
         assert(fmt::format(FMT_COMPILE("{}"), piece<T>::value) == piece<T>::expected_result); // NOTE: not compile-time for now.
     }
@@ -124,7 +124,7 @@ auto main() -> int {
     fmt::println("pretty   : [\n{:p}\n]", value);
     fmt::println("pretty(2): [\n{:p2}\n]", value);
 
-    // WIP: https://godbolt.org/z/3dzjc11b9
+    // WIP: https://godbolt.org/z/b4qordc8h
     const auto printer = overload{
         [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
             fmt::println("{:\t>{}}{{", "", depth);
@@ -141,5 +141,5 @@ auto main() -> int {
     fmt::println("{:->{}}", "", 20);
     printer(printer, 0, value);
 
-    fmt::print("{}", fmt::join(std::tuple{'a', 42}, ' '));
+    fmt::print("{}", fmt::join(std::tuple{'a', 42}, ", "));
 }

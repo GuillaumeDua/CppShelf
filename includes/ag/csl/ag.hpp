@@ -1143,7 +1143,8 @@ namespace csl::ag::io::details::presentation {
             csl::ag::for_each([&](const auto & member){
                 fmt::format_to(
                     out,
-                    FMT_COMPILE("{:\t>{}}\n"),
+                    // FMT_COMPILE("{:\t>{}}\n"),
+                    "{:\t>{}}\n",
                     member,
                     depth + 1
                 );
