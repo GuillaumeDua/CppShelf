@@ -124,13 +124,16 @@ auto main() -> int {
     fmt::println("pretty   : [\n{:p}\n]", value);
     fmt::println("pretty(2): [\n{:p2}\n]", value);
 
-    // WIP: https://godbolt.org/z/b4qordc8h
+    // WIP: https://godbolt.org/z/49WTxj9hW
     const auto printer = overload{
         [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
             fmt::println("{:\t>{}}{{", "", depth);
             using type = std::remove_cvref_t<decltype(value)>;
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                ((std::invoke(self, self, depth + 1, csl::ag::get<indexes>(value)), ...));
+                ((std::invoke(
+                    self,
+                    self, depth + 1, csl::ag::get<indexes>(value)
+                ), ...));
             }(std::make_index_sequence<csl::ag::size_v<type>>{});
             fmt::println("{:\t>{}}}}", "", depth);
         },
