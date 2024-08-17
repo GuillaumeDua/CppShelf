@@ -1205,26 +1205,25 @@ public:
         }
         else if (it != end and *it == 'p'){
             it++;
+            // NOTE: std::from_chars is not constexpr
             presentation = decltype(presentation){csl::ag::io::details::presentation::pretty{
                 .depth = *it == '}'
                     ? std::size_t{}
                     : csl::ag::io::details::to_digit<decltype(csl::ag::io::details::presentation::pretty::depth)>(*it++)
             }};
-                //[&](){
-                    // NOTE: std::from_chars is not constexpr
-                    // std::size_t result{};
-                    // auto [ptr, error] = std::from_chars(it, end, result);
-
-                    // if (error == std::errc()){
-                    //     it = ptr;
-                    //     return result;
-                    // }
-                    // if (error == std::errc::invalid_argument)
-                    //     throw std::invalid_argument{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (not a number)"};
-                    // if (error == std::errc::result_out_of_range)
-                    //     throw std::out_of_range{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (out of std::size_t range)"};
-                    // throw std::runtime_error{"fmt::formatter<csl::ag::io::concepts::formattable>: unknown error"};
-                // }()
+            //[&](){
+                // std::size_t result{};
+                // auto [ptr, error] = std::from_chars(it, end, result);
+                // if (error == std::errc()){
+                //     it = ptr;
+                //     return result;
+                // }
+                // if (error == std::errc::invalid_argument)
+                //     throw std::invalid_argument{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (not a number)"};
+                // if (error == std::errc::result_out_of_range)
+                //     throw std::out_of_range{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (out of std::size_t range)"};
+                // throw std::runtime_error{"fmt::formatter<csl::ag::io::concepts::formattable>: unknown error"};
+            // }()
         }
         if (it != end and *it != '}')
             throw fmt::format_error{"invalid format"};
