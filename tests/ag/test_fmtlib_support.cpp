@@ -124,7 +124,7 @@ auto main() -> int {
     fmt::println("pretty   : [\n{:p}\n]", value);
     fmt::println("pretty(2): [\n{:p2}\n]", value);
 
-    // WIP: https://godbolt.org/z/ExcPdsTGd
+    // WIP: https://godbolt.org/z/3rYx56zcK
     const auto printer = overload{
         [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
             fmt::println("{:\t>{}}{{", "", depth);
