@@ -197,13 +197,13 @@ list_installed_llvm_versions(){
 }
 
 # --- which versions ---
-llvm_latest_version_available=$(grep -oP '^CURRENT_LLVM_STABLE=\K(\d+)' ${internal_script_path})
+llvm_latest_stable=$(grep -oP '^CURRENT_LLVM_STABLE=\K(\d+)' ${internal_script_path})
 all_llvm_versions_available=$(list_to_install_llvm_versions)
 
 if [ "$arg_versions" = 'all' ]; then
     llvm_versions=$all_llvm_versions_available
 elif [ "$arg_versions" = 'latest-stable' ]; then
-    llvm_versions=$llvm_latest_version_available
+    llvm_versions=$llvm_latest_stable
 elif [ "$arg_versions" = 'latest' ]; then
     llvm_versions=$(echo ${all_llvm_versions_available} | tr " " "\n" | tail -1)
 elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
@@ -283,14 +283,17 @@ for version in "${llvm_versions_to_install[@]}"; do
     # || error "installation of [${version}] (tools) failed"
     # clang and clang-tools
     
+    # Latest stable always has the highest priority
+    update_alternative_priority=$([[ "${version}" = "${llvm_latest_stable}" ]] && echo "100" || echo "${version}")
+
     if [[ ${arg_minimalistic} == 1 ]]; then
         update-alternatives --quiet                                                                                             \
-            --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+            --install /usr/bin/clang clang /usr/bin/clang-${version} ${update_alternative_priority}                             \
             --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
         || error "update-alternatives of [${version}] failed"
     else
         update-alternatives --quiet                                                                                             \
-            --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+            --install /usr/bin/clang clang /usr/bin/clang-${version} ${update_alternative_priority}                             \
             --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
             --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}                \
             --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                  \

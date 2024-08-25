@@ -100,8 +100,6 @@ do
       ;;
     -l | --list )
       arg_list=1
-      arg_silent=1
-      arg_versions='all'
       shift;
       break
       ;;
