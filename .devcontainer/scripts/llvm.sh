@@ -27,7 +27,8 @@ help(){
         [ -l | --list ]         : Only list available versions.                             Boolean -> default is [0]
         [ -v | --versions ]     : Versions to install.                                      String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
             - [all]             : all versions availables                                       Ex: 'all'
-            - [latest]          : only the latest version available                             Ex: 'latest'
+            - [latest]          : only the latest        version available                      Ex: 'latest'
+            - [latest-stable]   : only the latest-stable version available                      Ex: 'latest-stable'
             - [>=(number)]      : all versions greater or equal to <number>.                    Ex: '>=42'
             - [numbers...]      : only listed versions.                                         Ex: '13 25 42' (space-separated)
         [ -s | --silent ]       : Run in silent mod.                                        Boolean -> default is [1]
@@ -114,8 +115,6 @@ do
         ;;
     -l | --list )
         arg_list=1
-        arg_silent=1
-        arg_versions='all'
         shift;
         break
         ;;
@@ -188,9 +187,9 @@ fi
 
 # --- list versions ---
 
-llvm_version_to_install_regex='LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
+llvm_version_to_install_regex='^LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
 list_to_install_llvm_versions(){
-    cat ${internal_script_path} | grep -oP $llvm_version_to_install_regex | uniq | sort -n
+    grep -oP $llvm_version_to_install_regex ${internal_script_path} | uniq | sort -n
 }
 llvm_version_installed_regex='^clang-\K([0-9]{2})'
 list_installed_llvm_versions(){
@@ -198,11 +197,13 @@ list_installed_llvm_versions(){
 }
 
 # --- which versions ---
-
+llvm_latest_version_available=$(grep -oP '^CURRENT_LLVM_STABLE=\K(\d+)' ${internal_script_path})
 all_llvm_versions_available=$(list_to_install_llvm_versions)
 
 if [ "$arg_versions" = 'all' ]; then
     llvm_versions=$all_llvm_versions_available
+elif [ "$arg_versions" = 'latest-stable' ]; then
+    llvm_versions=$llvm_latest_version_available
 elif [ "$arg_versions" = 'latest' ]; then
     llvm_versions=$(echo ${all_llvm_versions_available} | tr " " "\n" | tail -1)
 elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
