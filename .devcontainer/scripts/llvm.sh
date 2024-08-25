@@ -25,7 +25,7 @@ help(){
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
         [ -l | --list ]         : Only list available versions.                             Boolean -> default is [0]
-        [ -v | --versions ]     : Versions to install.                                      String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
+        [ -v | --versions ]     : Versions to install.                                      String: all|latest|latest-stable|>=(number)|(space-separated-numbers...) -> default is [all]
             - [all]             : all versions availables                                       Ex: 'all'
             - [latest]          : only the latest        version available                      Ex: 'latest'
             - [latest-stable]   : only the latest-stable version available                      Ex: 'latest-stable'
