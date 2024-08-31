@@ -10,7 +10,7 @@ set -eu
 
 this_script_name=$(basename "$0")
 
-arg_versions='all'
+arg_versions='latest-stable'
 arg_list=0
 arg_silent=1
 arg_alias=0
@@ -24,21 +24,21 @@ help(){
     echo "
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
-        [ -l | --list ]         : Only list available versions.                             Boolean -> default is [0]
-        [ -v | --versions ]     : Versions to install.                                      String: all|latest|latest-stable|>=(number)|(space-separated-numbers...) -> default is [all]
+        [ -l | --list ]         : Only list available versions, expanding [versions].       Boolean -> default is [0]
+        [ -v | --versions ]     : Versions to install.                                      String: all|latest|latest-stable|>=(number)|(space-separated-numbers...) -> default is [latest-stable]
             - [all]             : all versions availables                                       Ex: 'all'
             - [latest]          : only the latest        version available                      Ex: 'latest'
             - [latest-stable]   : only the latest-stable version available                      Ex: 'latest-stable'
-            - [>=(number)]      : all versions greater or equal to <number>.                    Ex: '>=42'
+            - [>=(number)]      : all versions greater or equal to <number>                     Ex: '>=42'
             - [numbers...]      : only listed versions.                                         Ex: '13 25 42' (space-separated)
         [ -s | --silent ]       : Run in silent mod.                                        Boolean -> default is [1]
         [ -a | --alias]         : Set bash/zsh-rc aliases.                                  Boolean -> default is [0]
         [ -m | --minimalistic]  : only clang/clang++, not tools.                            Boolean -> default is [0]
-        [ -c | --cleanup]       : purge any (pre-)existing llvm/clang package installation. Boolean -> default is [0]
+        [ -c | --cleanup]       : purge any (pre-)existing llvm/clang package installation: Boolean -> default is [0]
         [ -h | --help ]         : Display usage/help
 
     For instance, to only install the two latest versions available, use:
-        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} -l | tail -2)\"
+        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} --list --versions='all' | tail -2)\"
         " 1>&2
     exit 0
 }
@@ -116,7 +116,6 @@ do
     -l | --list )
         arg_list=1
         shift;
-        break
         ;;
     -h | --help)
         help
