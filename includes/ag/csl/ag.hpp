@@ -17,7 +17,7 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ag::details::unevaluated {
-// to use in an unevaluated context only
+// for unevaluated context only
 
     template <typename T>
     consteval auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
@@ -937,11 +937,9 @@ namespace csl::ag {
 //  - csl/ag/features/io/std_format.hpp
 //  - csl/ag/features/io/iostream.hpp -> should internally use std::format or fmt::format, if availble
 
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT)
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
 static_assert(false, "(experimentale) CSL_AG__ENABLE_IOSTREAM_SUPPORT feature is disabled for now");
-
-else if false
 
 // csl::ag::io
 // REFACTO: #134
@@ -1095,148 +1093,165 @@ namespace csl::ag::io::concepts {
 }
 # include <variant>
 
-namespace csl::ag::io::details::presentation {
-    struct compact{
-        template <typename FormatContext>
-        constexpr auto format(const auto & value, FormatContext& ctx) const
-        {
-            auto && out = ctx.out();
-            using T = std::remove_cvref_t<decltype(value)>;
-            constexpr auto size = csl::ag::size_v<T>;
-            if (size == 0)
-                return out;
-            *out++ = '{';
-            // QUESTION: How to make such statement constexpr ? write into buffer -> IILE ?
-            // fmt::format_to(out, "{}", csl::ag::to_tuple_view(value));
-            fmt::format_to(
-                out,
-                FMT_COMPILE("{}"),
-                fmt::join(
-                    csl::ag::to_tuple_view(value),
-                    ", "
-                )
-            ); // NOTE: fmt::join does NOT adds single-quote on chars
-            *out++ = '}';
-            return out;
-        }
+namespace csl::ag::io::presentation {
+    template <typename Char>
+    struct none {
+        fmt::basic_string_view<Char>
+            separator,
+            opening_bracket, closing_bracket,
+            indentation
+        ;
     };
-    struct pretty{
-        std::size_t depth{ 0 };
-        // char filler = '\t'; // requires a runtime format indirection, see https://godbolt.org/z/q3h45zYdE
-
-        // template <typename FormatContext>
-        // constexpr auto format(const auto & value, FormatContext& ctx) const
-        // requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> == 0)
-        // {
-        //     fmt::format_to(
-        //         ctx.out(),
-        //         "{: >{}}{{}}\n",
-        //         "", depth
-        //     );
-        // }
-        template <typename FormatContext>
-        constexpr auto format(const auto & value, FormatContext& ctx) const
-        requires (csl::ag::size_v<std::remove_cvref_t<decltype(value)>> not_eq 0)
-        {
-            auto && out = ctx.out();
-            fmt::println("{:\t>{}}{{", "", depth);
-            csl::ag::for_each([&](const auto & member){
-                fmt::format_to(
-                    out,
-                    // FMT_COMPILE("{:\t>{}}\n"),
-                    "{:\t>{}}\n",
-                    member,
-                    depth + 1
-                );
-            }, value);
-            fmt::println("{:\t>{}}}}\n", "", depth);
-            return out;
-        }
+    template <typename Char>
+    struct compact {
+        fmt::basic_string_view<Char>
+            separator = ", ",
+            opening_bracket = "{",
+            closing_bracket = "}",
+            indentation
+        ;
     };
-    using type = std::variant<compact, pretty>;
-}
-namespace csl::ag::io::details {
-    constexpr inline static auto is_digit(char c) noexcept -> bool {
-        return c >= '0' and c <= '9';
-    }
-    template <std::integral T>
-    requires (not std::is_reference_v<T>)
-    constexpr inline static auto to_digit(char c) -> T {
-        if (not is_digit(c))
-            // throw std::invalid_argument{"to_digit: not a valid digit"};
-            throw std::invalid_argument{fmt::format("to_digit: not a valid digit: [{}]", c)};
-        return static_cast<T>(c - '0'); // NOTE: Poor's man B10 conversion
-    }
-}
+    template <typename Char>
+    struct indented {
 
-// REFACTO: indented<T, depth = 0, indent_char = '\t'>
-//  with fmt::formatter
-//  internally use apply
-//  WIP: see POCs:
-//      - full TTPs: https://godbolt.org/z/YsdK5zfWr
-//      - values:    https://godbolt.org/z/Ys8PsqaWv
-//  TODO(Guillaume): as a custom csl::ag::io::join/join_view ?
-/*
-template <const std::size_t depth = 0, const char filler = '\t'>
-constexpr inline static auto indentation_v = std::string(depth, filler);
-*/
+        [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
+            return std::string(depth * 3, ' ');
+        }
+
+        explicit constexpr indented(std::size_t depth)
+        : indentation(make_indentation(depth + 1))
+        , closing_bracket("\n" + make_indentation(depth) + "}")
+        {}
+
+        // NOLINTBEGIN(*-non-private-member-variables-in-classes)
+        fmt::basic_string_view<Char> separator = ",\n";
+        fmt::basic_string_view<Char> opening_bracket = "{\n";
+        std::basic_string<Char> indentation;
+        std::basic_string<Char> closing_bracket;
+        // NOLINTEND(*-non-private-member-variables-in-classes)
+    };
+
+    template <typename Char>
+    using type = std::variant<compact<Char>, indented<Char>, none<Char>>;
+}
 
 // TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
 // QUESTION: use string-formatter, with filler + width ?
-template <csl::ag::io::concepts::formattable T, class CharT>
-struct fmt::formatter<T, CharT>
+template <csl::ag::io::concepts::formattable T, class Char>
+struct fmt::formatter<T, Char>
 {
     using csl_product = void;
 private:
-    // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
-    // REFACTO: format_pretty -> indented<T>
-    csl::ag::io::details::presentation::type presentation; // [c:compact, pN:pretty (where N is the depth level)]
-    
+    std::tuple<fmt::formatter<std::remove_cvref_t<Ts>>...> formatters; // TODO: type factory/deduce
+
+    csl::ag::io::presentation::type<Char> style = csl::ag::io::presentation::compact<Char>{};
+    std::size_t depth{ 0 }; // product -> other impl, or template-specialization
+
+    #if false // csl::typeinfo enabled
+    // decorations
+    bool typenamed{ false };
+    template <typename T, typename FormatContext>
+    void format_typename(FormatContext & ctx) const {
+        if (not typenamed)
+            return;
+
+        ctx.advance_to(detail::copy<Char>(
+            fmt::string_view{csl::typeinfo::type_name_v<T>},
+            ctx.out())
+        );
+        ctx.advance_to(detail::copy<Char>(fmt::string_view{": "}, ctx.out()));
+    }
+    #endif
+
+    bool indexed{ false };
+    template <std::size_t index, typename FormatContext>
+    void format_index(FormatContext & ctx) const {
+        if (not indexed)
+            return;
+        fmt::format_to(ctx.out(), "[{}] ", index);
+    }
+
+    template <std::size_t index, typename FormatContext>
+    auto format_element(const auto & value, FormatContext & ctx, const auto & style_alternative) const -> decltype(ctx.out()){
+
+        if (index > 0) ctx.advance_to(detail::copy<Char>(style_alternative.separator, ctx.out()));
+        ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.indentation}, ctx.out()));
+
+        format_index<index>(ctx);
+        auto && element = std::get<index>(value);
+        format_typename<decltype(element)>(ctx);
+        return std::get<index>(formatters).format(element, ctx);
+    }
+
 public:
+    // requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx, std::size_t depth) -> decltype(ctx.begin()) {
+        this->depth = depth;
+        return parse(ctx);
+    }
 
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+// public:
 
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
         auto it = ctx.begin();
         auto end = ctx.end();
-        
-        if (it != end and *it == 'c'){
-            it++;
-            presentation = csl::ag::io::details::presentation::compact{};
+
+        // Question: spread only the rest ?
+        //  or use a 's' spread policy ?
+        //  or a maximum depth ?
+        const auto parse_element = [&]<std::size_t index>(){
+
+            using element_t = std::tuple_element_t<index, T>;
+            if constexpr (not csl::ag::concepts::aggregate<std::remove_cvref_t<element_t>>)
+                return;
+            else {
+                auto end1 = std::get<index>(formatters).parse(ctx, depth + 1);
+                // if (end1 not_eq it)
+                //     report_error("invalid format specs for tuple elements");
+            }
+        };
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((parse_element.template operator()<indexes>()), ...);
+        }(std::make_index_sequence<sizeof...(Ts)>{});
+
+        while (it not_eq end and *it not_eq '}')
+        {
+            switch (detail::to_ascii(*it)){
+                // style
+                case 'n': style = csl::ag::io::presentation::none<Char>{}; break;
+                case 'c': style = csl::ag::io::presentation::compact<Char>{}; break;
+                case 'i': style = csl::ag::io::presentation::indented<Char>{depth}; break;
+                case ',': break;
+                // projection
+                case 'I': indexed = true; break;
+                // case 'T': typenamed = true; break; // Q: max-depth ? cvref-qualifiers ?
+                default: report_error("invalid format specifier");
+            }
+            ++it;
         }
-        else if (it != end and *it == 'p'){
-            it++;
-            // NOTE: std::from_chars is not constexpr
-            presentation = decltype(presentation){csl::ag::io::details::presentation::pretty{
-                .depth = *it == '}'
-                    ? std::size_t{}
-                    : csl::ag::io::details::to_digit<decltype(csl::ag::io::details::presentation::pretty::depth)>(*it++)
-            }};
-            //[&](){
-                // std::size_t result{};
-                // auto [ptr, error] = std::from_chars(it, end, result);
-                // if (error == std::errc()){
-                //     it = ptr;
-                //     return result;
-                // }
-                // if (error == std::errc::invalid_argument)
-                //     throw std::invalid_argument{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (not a number)"};
-                // if (error == std::errc::result_out_of_range)
-                //     throw std::out_of_range{"fmt::formatter<csl::ag::io::concepts::formattable>: invalid p indent (out of std::size_t range)"};
-                // throw std::runtime_error{"fmt::formatter<csl::ag::io::concepts::formattable>: unknown error"};
-            // }()
-        }
-        if (it != end and *it != '}')
-            throw fmt::format_error{"invalid format"};
         return it;
     }
 
     template <typename FormatContext>
-    constexpr auto format(const T & value, FormatContext& ctx) const
-    {
-        using namespace csl::ag::io::details;
-        return std::visit([&](const auto & p){
-            return p.format(value, ctx);
-        }, presentation);
+    auto format(const T & value, FormatContext& ctx) const -> decltype(ctx.out()) {
+
+        if (depth == 0)
+            format_typename<decltype(value)>(ctx);
+
+        return std::visit([&](const auto & style_alternative) -> decltype(ctx.out()){
+
+            auto out = ctx.out();
+            ctx.advance_to(detail::copy<Char>(style_alternative.opening_bracket, ctx.out()));
+
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                ((format_element<indexes>(value, ctx, style_alternative)), ...);
+            }(std::make_index_sequence<csl::ag::size_v<T>>{});
+
+            ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.closing_bracket}, ctx.out()));
+            return ctx.out();
+        }, style);
     }
 };
 
