@@ -20,12 +20,12 @@ namespace csl::ag::details::unevaluated {
 // to use in an unevaluated context only
 
     template <typename T>
-    consteval auto declval() noexcept -> std::add_rvalue_reference_t<T>  {
+    consteval auto declval() noexcept -> std::add_rvalue_reference_t<T> {
         // static_assert([](){ return false; }(), "csl::ag::details : declval : for unevaluated context only !");
-        if constexpr (std::is_lvalue_reference_v<T>)
-            return *((std::remove_reference_t<T>*){ nullptr });
-        else
-            return std::move(*((std::remove_reference_t<T>*){ nullptr }));
+	if constexpr (std::is_lvalue_reference_v<T>)
+	    return *((std::remove_reference_t<T> *)(nullptr));
+	else
+	    return std::move(*((std::remove_reference_t<T> *)(nullptr)));
     }
 
     struct ref_evaluator {
