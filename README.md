@@ -43,7 +43,7 @@ A **tuple-like** interface for **aggregates** type.
 
 Project's
 [documentation](https://guillaumedua.github.io/CppShelf/output/ag/),
-[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/4)
+[dashboard](https://github.com/users/GuillaumeDua/projects/2)
 
 ### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
 
@@ -57,24 +57,31 @@ See project's
 
 A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
-Project's [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/2)
+Project's [dashboard](https://github.com/users/GuillaumeDua/projects/3)
 
 ### 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/functional/csl/functional.hpp)
 
 Function & overload traits
 
-See project's [live demo on godbolt.org](https://godbolt.org/z/Gd7fMKK8e)
+See project's
+[live demo on godbolt.org](https://godbolt.org/z/Gd7fMKK8e),
+[dashboard](https://github.com/users/GuillaumeDua/projects/5)
 
 ### 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/typeinfo/csl/typeinfo.hpp)
 
 Compile-time demangler, for types & values.  
 Inconsistent: for educational and debugging purpose only.
 
-See project's [live demo on godbolt.org](https://godbolt.org/z/TsEWf5bGa)
+See project's
+[live demo on godbolt.org](https://godbolt.org/z/TsEWf5bGa),
+[dashboard](https://github.com/users/GuillaumeDua/projects/7)
 
 ### ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ensure/csl/ensure.hpp)
 
 Interface-safety related components, including a configurable **strong-type** implementation.
+
+See project's
+[dashboard](https://github.com/users/GuillaumeDua/projects/4)
 
 ---
 
