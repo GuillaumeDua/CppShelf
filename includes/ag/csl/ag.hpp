@@ -1181,7 +1181,7 @@ private:
         ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.indentation}, ctx.out()));
 
         format_index<index>(ctx);
-        auto && element = std::get<index>(value);
+        auto && element = get<index>(value);
         format_typename<decltype(element)>(ctx);
         return std::get<index>(formatters).format(element, ctx);
     }
@@ -1206,7 +1206,7 @@ public:
         //  or a maximum depth ?
         const auto parse_element = [&]<std::size_t index>(){
 
-            using element_t = std::tuple_element_t<index, T>;
+            using element_t = csl::ag::element_t<index, T>;
             if constexpr (not csl::ag::concepts::aggregate<std::remove_cvref_t<element_t>>)
                 return;
             else {
