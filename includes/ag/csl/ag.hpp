@@ -868,21 +868,13 @@ namespace csl::ag::concepts {
 namespace csl::ag::details {
     template <std::size_t ... indexes>
     constexpr decltype(auto) apply_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
-    noexcept(
-        noexcept(
-            std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...)
-        )
-    )
+    noexcept(noexcept(std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...)))
     {
         return std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...);
     }
     template <std::size_t ... indexes>
     constexpr void for_each_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
-    noexcept(
-        noexcept((
-            std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...
-        ))
-    )
+    noexcept(noexcept((std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...)))
     {
         ((std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...));
     }
@@ -1137,12 +1129,23 @@ namespace csl::ag::io::presentation {
 
 // TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
 // QUESTION: use string-formatter, with filler + width ?
+// QUESTION: unqualified get (possibly as an opt-in/parse-parameter ? -> supports std::tuple, std::array, etc. ?
 template <csl::ag::io::concepts::formattable T, class Char>
 struct fmt::formatter<T, Char>
 {
     using csl_product = void;
 private:
-    std::tuple<fmt::formatter<std::remove_cvref_t<Ts>>...> formatters; // TODO: type factory/deduce
+
+    static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
+        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::tuple<
+                fmt::formatter<
+                    csl::ag::element_t<indexes, T>
+                >...
+            >{};
+        }(std::make_index_sequence<csl::ag::size_v<T>>{});
+    }
+    std::remove_cvref_t<decltype(deduce_formatters_type())> formatters{};
 
     csl::ag::io::presentation::type<Char> style = csl::ag::io::presentation::compact<Char>{};
     std::size_t depth{ 0 }; // product -> other impl, or template-specialization
@@ -1214,7 +1217,7 @@ public:
         };
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((parse_element.template operator()<indexes>()), ...);
-        }(std::make_index_sequence<sizeof...(Ts)>{});
+        }(std::make_index_sequence<csl::ag::size_v<T>>{});
 
         while (it not_eq end and *it not_eq '}')
         {
