@@ -1106,8 +1106,11 @@ namespace csl::ag::io::presentation {
     template <typename Char>
     struct indented {
 
+        // BUG: not a constant expression using GCC-14.2 and Clang-18.1 (but works with Clang-trunk), see https://godbolt.org/z/ehcjen6xh
+        // WIP: integrate quick-fix https://godbolt.org/z/EbhYrcGaW
         [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
-            return std::string(depth * 3, ' ');
+            return fmt::format(": <3", "");
+            // return std::string(depth * 3, ' ');
         }
 
         explicit constexpr indented(std::size_t depth)
@@ -1181,8 +1184,10 @@ private:
         ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.indentation}, ctx.out()));
 
         format_index<index>(ctx);
-        auto && element = get<index>(value);
+        auto && element = csl::ag::get<index>(value); // Question: wider API with unqualified get ?
+        #if false
         format_typename<decltype(element)>(ctx);
+        #endif
         return std::get<index>(formatters).format(element, ctx);
     }
 
@@ -1240,8 +1245,10 @@ public:
     template <typename FormatContext>
     auto format(const T & value, FormatContext& ctx) const -> decltype(ctx.out()) {
 
+        #if false
         if (depth == 0)
             format_typename<decltype(value)>(ctx);
+        #endif
 
         return std::visit([&](const auto & style_alternative) -> decltype(ctx.out()){
 

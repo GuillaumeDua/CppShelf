@@ -121,9 +121,7 @@ auto main() -> int {
     };
     fmt::println("default  : [{}]", value);
     fmt::println("compact  : [{:c}]", value);
-    // Issue: not a constant expression using GCC 14.2, see https://godbolt.org/z/ehcjen6xh
     fmt::println("pretty   : [\n{:i}\n]", value);
-    fmt::println("pretty(2): [\n{:i}\n]", value);
 
     // WIP: https://godbolt.org/z/daTarhY34
     const auto printer = overload{
