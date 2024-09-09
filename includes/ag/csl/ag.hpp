@@ -1083,14 +1083,35 @@ namespace csl::ag::io::concepts {
         // QUESTION: and not is_std_tuple ?
 	;
 }
-# include <variant>
+#include <array>
+namespace csl::ag::details {
+    constexpr inline static auto buffer_length = std::size_t{100}; // TECH-DEBT: configuration parameter
+    
+    template <auto filler>
+    constexpr inline static auto filled_std_array_v = [](){
+        std::array<std::remove_cvref_t<decltype(filler)>, buffer_length> value;
+        std::fill(std::begin(value), std::end(value), filler); // REFACTO: C++26: std::ranges::fill
+        return value;
+    }();
 
+    template <auto filler>
+    constexpr inline static auto make_filled_basic_string_view(std::size_t length)
+    -> std::basic_string_view<std::remove_cvref_t<decltype(filler)>>
+    {
+        if (length > buffer_length)
+            throw std::invalid_argument{"csl::ag::details: out of bound buffer"};
+        return std::string_view(filled_std_array_v<filler>.data(), length);
+    }
+}
+
+# include <variant>
 namespace csl::ag::io::presentation {
     template <typename Char>
     struct none {
         fmt::basic_string_view<Char>
             separator,
-            opening_bracket, closing_bracket,
+            opening_bracket,
+            closing_bracket,
             indentation
         ;
     };
@@ -1106,16 +1127,19 @@ namespace csl::ag::io::presentation {
     template <typename Char>
     struct indented {
 
-        // BUG: not a constant expression using GCC-14.2 and Clang-18.1 (but works with Clang-trunk), see https://godbolt.org/z/ehcjen6xh
-        // WIP: integrate quick-fix https://godbolt.org/z/EbhYrcGaW
-        [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
-            return fmt::format(": <3", "");
-            // return std::string(depth * 3, ' ');
-        }
+        // BUG: constexpr string: not a constant expression using GCC-14.2 and Clang-18.1
+        //      (but works with Clang-trunk), see https://godbolt.org/z/ehcjen6xh
+        // [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
+        //     return std::string(depth * 3, ' ');
+        // }
+        // Poor's man alternative: https://godbolt.org/z/aGq6qGaK9
+        // or https://godbolt.org/z/hqY7MMEK8
 
         explicit constexpr indented(std::size_t depth)
-        : indentation(make_indentation(depth + 1))
-        , closing_bracket("\n" + make_indentation(depth) + "}")
+        : indentation{make_filled_basic_string_view<Char{' '}>((depth + 1) * 3)}
+        , closing_bracket{
+            "\n" + make_filled_basic_string_view<Char{' '}>(depth * 3) + "}"
+        }
         {}
 
         // NOLINTBEGIN(*-non-private-member-variables-in-classes)
@@ -1139,7 +1163,7 @@ struct fmt::formatter<T, Char>
     using csl_product = void;
 private:
 
-    static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
+    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
         return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::tuple<
                 fmt::formatter<
@@ -1153,21 +1177,23 @@ private:
     csl::ag::io::presentation::type<Char> style = csl::ag::io::presentation::compact<Char>{};
     std::size_t depth{ 0 }; // product -> other impl, or template-specialization
 
-    #if false // csl::typeinfo enabled
     // decorations
     bool typenamed{ false };
-    template <typename T, typename FormatContext>
+    template <typename FormatContext>
     void format_typename(FormatContext & ctx) const {
+        
         if (not typenamed)
             return;
 
+        #if false // csl::typeinfo enabled
         ctx.advance_to(detail::copy<Char>(
             fmt::string_view{csl::typeinfo::type_name_v<T>},
             ctx.out())
         );
         ctx.advance_to(detail::copy<Char>(fmt::string_view{": "}, ctx.out()));
+        #endif
     }
-    #endif
+    
 
     bool indexed{ false };
     template <std::size_t index, typename FormatContext>
@@ -1184,15 +1210,13 @@ private:
         ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.indentation}, ctx.out()));
 
         format_index<index>(ctx);
-        auto && element = csl::ag::get<index>(value); // Question: wider API with unqualified get ?
-        #if false
+        auto && element = csl::ag::get<index>(value);
         format_typename<decltype(element)>(ctx);
-        #endif
         return std::get<index>(formatters).format(element, ctx);
     }
 
 public:
-    // requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
+    // private - requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx, std::size_t depth) -> decltype(ctx.begin()) {
         this->depth = depth;
@@ -1245,10 +1269,8 @@ public:
     template <typename FormatContext>
     auto format(const T & value, FormatContext& ctx) const -> decltype(ctx.out()) {
 
-        #if false
         if (depth == 0)
             format_typename<decltype(value)>(ctx);
-        #endif
 
         return std::visit([&](const auto & style_alternative) -> decltype(ctx.out()){
 
