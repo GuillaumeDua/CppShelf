@@ -1134,6 +1134,7 @@ namespace csl::ag::io::presentation {
         // }
         // Poor's man alternative: https://godbolt.org/z/aGq6qGaK9
         // or https://godbolt.org/z/hqY7MMEK8
+        // WIP: requires type erasure, user-defined string-likes ... https://godbolt.org/z/7WEjsqWcW
 
         explicit constexpr indented(std::size_t depth)
         : indentation{make_filled_basic_string_view<Char{' '}>((depth + 1) * 3)}
