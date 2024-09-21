@@ -1136,6 +1136,7 @@ namespace csl::ag::io::presentation {
         // or https://godbolt.org/z/hqY7MMEK8
         // WIP: requires type erasure, user-defined string-likes ... https://godbolt.org/z/vK9KaYYvG
         //  WTF simple solution: https://godbolt.org/z/8W6Ybn6h4 ???
+        //  Root-cause for breaking consteval in GCC-14.2: https://godbolt.org/z/bae9jvjb4
 
         explicit constexpr indented(std::size_t depth)
         : indentation{make_filled_basic_string_view<Char{' '}>((depth + 1) * 3)}
