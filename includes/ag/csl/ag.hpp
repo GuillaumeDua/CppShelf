@@ -1083,82 +1083,54 @@ namespace csl::ag::io::concepts {
         // QUESTION: and not is_std_tuple ?
 	;
 }
-#include <array>
-namespace csl::ag::details {
-    constexpr inline static auto buffer_length = std::size_t{100}; // TECH-DEBT: configuration parameter
-    
-    template <auto filler>
-    constexpr inline static auto filled_std_array_v = [](){
-        std::array<std::remove_cvref_t<decltype(filler)>, buffer_length> value;
-        std::fill(std::begin(value), std::end(value), filler); // REFACTO: C++26: std::ranges::fill
-        return value;
-    }();
 
-    template <auto filler>
-    constexpr inline static auto make_filled_basic_string_view(std::size_t length)
-    -> std::basic_string_view<std::remove_cvref_t<decltype(filler)>>
-    {
-        if (length > buffer_length)
-            throw std::invalid_argument{"csl::ag::details: out of bound buffer"};
-        return std::string_view(filled_std_array_v<filler>.data(), length);
-    }
-}
+// DESIGN: Limitations
+//  - constexpr string: not a constant expression using GCC-14.2 and Clang-18.1
+//      (but works with Clang-19), see https://godbolt.org/z/ehcjen6xh
+//      Yet, should be supported since GCC-12, Clang-15 -> this problem could be using Clang-18.1 and libstdc++ ?
+//      [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
+//          return std::string(depth * 3, ' ');
+//      }
+//  - constexpr optional, variant: GCC-12, Clang-19
+// Poor's man alternative: https://godbolt.org/z/aGq6qGaK9
+// or https://godbolt.org/z/hqY7MMEK8
+// WIP: requires type erasure, user-defined string-likes ... https://godbolt.org/z/vK9KaYYvG
+//  WTF simple solution: https://godbolt.org/z/8W6Ybn6h4 ???
+//  Root-cause for breaking consteval in GCC-14.2: https://godbolt.org/z/bae9jvjb4
+// Final call: will support only C++20 - GCC >= 12.1, Clang >= 19.0.
+//  MVE: Demo: https://godbolt.org/z/fTd97WqTW
+//  Proof: https://godbolt.org/z/zfczMcsqa
 
-# include <variant>
-namespace csl::ag::io::presentation {
+namespace csl::ag::io {
     template <typename Char>
-    struct none {
+    struct presentation {
+        constexpr static auto make_none() -> presentation {
+            return {};
+        }
+        constexpr static auto make_compact() -> presentation {
+            return {
+                .separator       = ", ",
+                .opening_bracket = "{",
+                .closing_bracket = "}",
+            };
+        }
+        constexpr static inline auto make_indented(std::size_t depth) -> presentation {
+            return {
+                .separator       = ",\n",
+                .opening_bracket = "{\n",
+                .closing_bracket = "\n" + std::string(depth * +3, ' ') + "}", // fmt::format(FMT_COMPILE("\n{: <{}}}}"), "", depth),
+                .indentation     = std::string((depth + 1) * 3, ' ')          // fmt::format(FMT_COMPILE("{: <{}}"), "", depth),
+            };
+        }
+
         fmt::basic_string_view<Char>
             separator,
-            opening_bracket,
+            opening_bracket;
+        std::basic_string<Char>
             closing_bracket,
-            indentation
-        ;
+            indentation;
     };
-    template <typename Char>
-    struct compact {
-        fmt::basic_string_view<Char>
-            separator = ", ",
-            opening_bracket = "{",
-            closing_bracket = "}",
-            indentation
-        ;
-    };
-    template <typename Char>
-    struct indented {
-
-        // BUG: constexpr string: not a constant expression using GCC-14.2 and Clang-18.1
-        //      (but works with Clang-trunk), see https://godbolt.org/z/ehcjen6xh
-        // [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
-        //     return std::string(depth * 3, ' ');
-        // }
-        // Poor's man alternative: https://godbolt.org/z/aGq6qGaK9
-        // or https://godbolt.org/z/hqY7MMEK8
-        // WIP: requires type erasure, user-defined string-likes ... https://godbolt.org/z/vK9KaYYvG
-        //  WTF simple solution: https://godbolt.org/z/8W6Ybn6h4 ???
-        //  Root-cause for breaking consteval in GCC-14.2: https://godbolt.org/z/bae9jvjb4
-        // Final call: will support only C++20 - GCC >= 12.1, Clang >= 19.0.
-        //  MVE: Demo: https://godbolt.org/z/fTd97WqTW
-        //  Proof: https://godbolt.org/z/zfczMcsqa
-
-        explicit constexpr indented(std::size_t depth)
-        : indentation{make_filled_basic_string_view<Char{' '}>((depth + 1) * 3)}
-        , closing_bracket{
-            "\n" + make_filled_basic_string_view<Char{' '}>(depth * 3) + "}"
-        }
-        {}
-
-        // NOLINTBEGIN(*-non-private-member-variables-in-classes)
-        fmt::basic_string_view<Char> separator = ",\n";
-        fmt::basic_string_view<Char> opening_bracket = "{\n";
-        std::basic_string<Char> indentation;
-        std::basic_string<Char> closing_bracket;
-        // NOLINTEND(*-non-private-member-variables-in-classes)
-    };
-
-    template <typename Char>
-    using type = std::variant<compact<Char>, indented<Char>, none<Char>>;
-}
+} // namespace csl::ag::io
 
 // TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
 // QUESTION: use string-formatter, with filler + width ?
@@ -1180,10 +1152,10 @@ private:
     }
     std::remove_cvref_t<decltype(deduce_formatters_type())> formatters{};
 
-    csl::ag::io::presentation::type<Char> style = csl::ag::io::presentation::compact<Char>{};
+    csl::ag::io::presentation<Char> presentation;
     std::size_t depth{ 0 }; // product -> other impl, or template-specialization
 
-    // decorations
+    // decorations: typenamed
     bool typenamed{ false };
     template <typename FormatContext>
     void format_typename(FormatContext & ctx) const {
@@ -1200,7 +1172,7 @@ private:
         #endif
     }
     
-
+    // decorations: indexed
     bool indexed{ false };
     template <std::size_t index, typename FormatContext>
     void format_index(FormatContext & ctx) const {
@@ -1212,14 +1184,16 @@ private:
     template <std::size_t index, typename FormatContext>
     auto format_element(const auto & value, FormatContext & ctx, const auto & style_alternative) const -> decltype(ctx.out()){
 
-        if (index > 0) ctx.advance_to(detail::copy<Char>(style_alternative.separator, ctx.out()));
-        ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.indentation}, ctx.out()));
+        if (index > 0) ctx.advance_to(detail::copy<Char>(presentation.separator, ctx.out()));
+        ctx.advance_to(detail::copy<Char>(fmt::basic_string_view<Char>{presentation.indentation}, ctx.out()));
 
         format_index<index>(ctx);
         auto && element = csl::ag::get<index>(value);
         format_typename<decltype(element)>(ctx);
         return std::get<index>(formatters).format(element, ctx);
     }
+
+    // WIP: integration of https://godbolt.org/z/zfczMcsqa
 
 public:
     // private - requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
