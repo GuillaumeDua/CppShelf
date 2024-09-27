@@ -1195,15 +1195,14 @@ private:
 
     // WIP: integration of https://godbolt.org/z/zfczMcsqa
 
-public:
-    // private - requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
+public: // private - requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx, std::size_t depth) -> decltype(ctx.begin()) {
         this->depth = depth;
         return parse(ctx);
     }
 
-// public:
+public: // NOLINT(*-redundant-access-specifiers)
 
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
@@ -1213,7 +1212,7 @@ public:
         // Question: spread only the rest ?
         //  or use a 's' spread policy ?
         //  or a maximum depth ?
-        const auto parse_element = [&]<std::size_t index>(){
+        const auto parse_element = [&]<std::size_t index>() constexpr {
 
             using element_t = csl::ag::element_t<index, T>;
             if constexpr (not csl::ag::concepts::aggregate<std::remove_cvref_t<element_t>>)
@@ -1228,21 +1227,34 @@ public:
             ((parse_element.template operator()<indexes>()), ...);
         }(std::make_index_sequence<csl::ag::size_v<T>>{});
 
+        char style_token{};
         while (it not_eq end and *it not_eq '}')
         {
-            switch (detail::to_ascii(*it)){
+            switch (const auto token = detail::to_ascii(*it)){
                 // style
-                case 'n': style = csl::ag::io::presentation::none<Char>{}; break;
-                case 'c': style = csl::ag::io::presentation::compact<Char>{}; break;
-                case 'i': style = csl::ag::io::presentation::indented<Char>{depth}; break;
+                case 'n':
+                case 'c':
+                case 'i':
+                    style_token = token; break;
                 case ',': break;
                 // projection
                 case 'I': indexed = true; break;
-                // case 'T': typenamed = true; break; // Q: max-depth ? cvref-qualifiers ?
+                case 'T': typenamed = true; break; // Q: max-depth ? cvref-qualifiers ?
                 default: report_error("invalid format specifier");
             }
             ++it;
         }
+
+        presentation = [style_token, this](){
+            using presentation_type = csl::ag::io::presentation<Char>;
+            switch (style_token){
+                case 'n': return presentation_type::make_none();
+                case 'i': return presentation_type::make_indented(depth);
+                case 'c': [[fallthrough]];
+                default: return presentation_type::make_compact();
+            }
+        }();
+
         return it;
     }
 
