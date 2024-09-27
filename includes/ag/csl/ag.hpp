@@ -1157,15 +1157,15 @@ private:
 
     // decorations: typenamed
     bool typenamed{ false };
-    template <typename FormatContext>
+    template <typename U, typename FormatContext>
     void format_typename(FormatContext & ctx) const {
         
         if (not typenamed)
             return;
 
-        #if false // csl::typeinfo enabled
+        #if false // TODO(Guillaume): csl::typeinfo enabled
         ctx.advance_to(detail::copy<Char>(
-            fmt::string_view{csl::typeinfo::type_name_v<T>},
+            fmt::string_view{csl::typeinfo::type_name_v<U>},
             ctx.out())
         );
         ctx.advance_to(detail::copy<Char>(fmt::string_view{": "}, ctx.out()));

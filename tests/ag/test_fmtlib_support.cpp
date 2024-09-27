@@ -123,6 +123,7 @@ auto main() -> int {
     fmt::println("compact  : [{:c}]", value);
     fmt::println("pretty   : [\n{:i}\n]", value);
 
+    /*
     // WIP: https://godbolt.org/z/daTarhY34
     const auto printer = overload{
         [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
@@ -136,7 +137,7 @@ auto main() -> int {
             }(std::make_index_sequence<csl::ag::size_v<type>>{});
             fmt::println("{:\t>{}}}}", "", depth);
         },
-        [](const auto & /* self */, std::size_t depth, const auto & value){
+        [](const auto &, std::size_t depth, const auto & value){
             fmt::println("{:\t>{}}{}", "", depth, value);
         }
     };
@@ -144,4 +145,5 @@ auto main() -> int {
     printer(printer, 0, value);
 
     fmt::print("{}", fmt::join(std::tuple{'a', 42}, ", "));
+    */
 }
