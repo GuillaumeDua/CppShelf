@@ -1264,18 +1264,15 @@ public: // NOLINT(*-redundant-access-specifiers)
         if (depth == 0)
             format_typename<decltype(value)>(ctx);
 
-        return std::visit([&](const auto & style_alternative) -> decltype(ctx.out()){
+        auto out = ctx.out();
+        ctx.advance_to(detail::copy<Char>(presentation.opening_bracket, ctx.out()));
 
-            auto out = ctx.out();
-            ctx.advance_to(detail::copy<Char>(style_alternative.opening_bracket, ctx.out()));
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((format_element<indexes>(value, ctx, presentation)), ...);
+        }(std::make_index_sequence<csl::ag::size_v<T>>{});
 
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                ((format_element<indexes>(value, ctx, style_alternative)), ...);
-            }(std::make_index_sequence<csl::ag::size_v<T>>{});
-
-            ctx.advance_to(detail::copy<Char>(fmt::string_view{style_alternative.closing_bracket}, ctx.out()));
-            return ctx.out();
-        }, style);
+        ctx.advance_to(detail::copy<Char>(fmt::string_view{presentation.closing_bracket}, ctx.out()));
+        return ctx.out();
     }
 };
 
