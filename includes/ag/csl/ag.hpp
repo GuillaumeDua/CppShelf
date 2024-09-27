@@ -1215,7 +1215,7 @@ public: // NOLINT(*-redundant-access-specifiers)
         const auto parse_element = [&]<std::size_t index>() constexpr {
 
             using element_t = csl::ag::element_t<index, T>;
-            if constexpr (not csl::ag::concepts::aggregate<std::remove_cvref_t<element_t>>)
+            if constexpr (not csl::ag::io::concepts::formattable<std::remove_cvref_t<element_t>>)
                 return;
             else {
                 auto end1 = std::get<index>(formatters).parse(ctx, depth + 1);
