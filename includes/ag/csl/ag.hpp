@@ -1114,7 +1114,7 @@ namespace csl::ag::io {
                 .closing_bracket = "}",
             };
         }
-        constexpr static inline auto make_indented(std::size_t depth) -> presentation {
+        constexpr static auto make_indented(std::size_t depth) -> presentation {
             return {
                 .separator       = ",\n",
                 .opening_bracket = "{\n",
@@ -1182,7 +1182,7 @@ private:
     }
 
     template <std::size_t index, typename FormatContext>
-    auto format_element(const auto & value, FormatContext & ctx, const auto & style_alternative) const -> decltype(ctx.out()){
+    auto format_element(const auto & value, FormatContext & ctx) const -> decltype(ctx.out()){
 
         if (index > 0) ctx.advance_to(detail::copy<Char>(presentation.separator, ctx.out()));
         ctx.advance_to(detail::copy<Char>(fmt::basic_string_view<Char>{presentation.indentation}, ctx.out()));

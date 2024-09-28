@@ -88,7 +88,7 @@ namespace test::ag::io {
 #include <type_traits>
 
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...) -> overload<Ts...>;
+template<class... Ts> overload (Ts...) -> overload<Ts...>;
 
 #include <fmt/ranges.h>
 
@@ -108,7 +108,6 @@ auto main() -> int {
         ((io::check(io::piece<Ts>{})), ...);
     }(to_test);
 
-    // WIP
     const auto value = test::ag::types::owning::nested{
         .i = 1,
         .field_1 = {
@@ -119,12 +118,15 @@ auto main() -> int {
             .c = 'c'
         }
     };
-    fmt::println("default  : [{}]", value);
-    fmt::println("compact  : [{:c}]", value);
-    fmt::println("pretty   : [\n{:i}\n]", value);
+    fmt::println("default    : [{}]", value);
+    fmt::println("compact    : [{:c}]", value);
+    // WIP: https://godbolt.org/z/ovv8eoqq8
+    fmt::println("pretty     : [\n{:i}\n]", value);
+    fmt::println("pretty(I)  : [\n{:i,I}\n]", value);
+    fmt::println("pretty(T)  : [\n{:i,T}\n]", value);
+    fmt::println("pretty(IT) : [\n{:i,IT}\n]", value);
 
-    /*
-    // WIP: https://godbolt.org/z/daTarhY34
+
     const auto printer = overload{
         [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
             fmt::println("{:\t>{}}{{", "", depth);
@@ -138,12 +140,12 @@ auto main() -> int {
             fmt::println("{:\t>{}}}}", "", depth);
         },
         [](const auto &, std::size_t depth, const auto & value){
-            fmt::println("{:\t>{}}{}", "", depth, value);
+            fmt::println("{:\t>{}}{},", "", depth, value);
         }
     };
     fmt::println("{:->{}}", "", 20);
     printer(printer, 0, value);
 
-    fmt::print("{}", fmt::join(std::tuple{'a', 42}, ", "));
-    */
+    // fmt::print("{}", fmt::join(std::tuple{'a', 42}, ", "));
+    
 }
