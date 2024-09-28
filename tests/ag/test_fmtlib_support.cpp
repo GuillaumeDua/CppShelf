@@ -17,7 +17,8 @@ namespace test::ag::types::owning {
     };
     struct nested_std_tuplelike{
         bool b;
-        std::tuple<int, char> tu;
+        std::string_view sv;
+        std::tuple<int, char, std::string_view> tu;
         std::array<char, 3> a;
         std::pair<int, int> p;
     };
@@ -27,10 +28,10 @@ namespace test::ag::types::owning {
 
 namespace tests::concepts {
     namespace types = test::ag::types::owning;
-    static_assert(csl::ag::io::concepts::fmt_formatter_is_csl_product<types::simple>);
-    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<int>);
-    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<std::tuple<int>>);
-    static_assert(not csl::ag::io::concepts::fmt_formatter_is_csl_product<std::array<int, 3>>);
+    static_assert(csl::ag::concepts::csl_product<fmt::formatter<types::simple>>);
+    static_assert(not csl::ag::concepts::csl_product<fmt::formatter<int>>);
+    static_assert(not csl::ag::concepts::csl_product<fmt::formatter<std::tuple<int>>>);
+    static_assert(not csl::ag::concepts::csl_product<fmt::formatter<std::array<int, 3>>>);
 }
 
 // WIP: check no clash with user-defined formatters -> complete, partial/generics, etc.
@@ -43,8 +44,9 @@ namespace test::ag::io {
     struct piece;
 
     template <typename T>
-    constexpr void check(piece<T>){
-        assert(fmt::format(FMT_COMPILE("{}"), piece<T>::value) == piece<T>::expected_result); // NOTE: not compile-time for now.
+    /*constexpr*/ void check(piece<T>){
+        //fmt::print(FMT_COMPILE("{}\n{}\n\n"), piece<T>::value, piece<T>::expected_result);
+        assert(fmt::format("{}", piece<T>::value) == piece<T>::expected_result); // NOTE: not compile-time for now.
     }
 
     template <>
@@ -52,6 +54,7 @@ namespace test::ag::io {
         constexpr static inline test::ag::types::owning::simple value{ .i = 42 };
         constexpr static inline std::string_view expected_result = "{42}";
         // TODO(Guillaume): expected_result_compact
+        // TODO(Guillaume): expected_result_default = expected_result_compact
         // TODO(Guillaume): expected_result_pretty
     };
     template <>
@@ -72,16 +75,22 @@ namespace test::ag::io {
     struct piece<test::ag::types::owning::nested_std_tuplelike>{
         constexpr static inline test::ag::types::owning::nested_std_tuplelike value{
             .b = true,
-            .tu = { 2, 'b'},
+            .sv = "hello",
+            .tu = { 2, 'b', "str"},
             .a = {'a', 'b', 'c'},
             .p = { 42, 43 }, // NOLINT
         };
-        constexpr static inline std::string_view expected_result = "{true, (2, 'b'), ['a', 'b', 'c'], (42, 43)}";
+        constexpr static inline std::string_view expected_result = "{true, hello, (2, b, str), [a, b, c], (42, 43)}";
     };
 }
 
 #include <tuple>
 #include <type_traits>
+
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload (Ts...) -> overload<Ts...>;
+
+#include <fmt/ranges.h>
 
 auto main() -> int {
     using namespace test::ag;
@@ -98,4 +107,45 @@ auto main() -> int {
     []<csl::ag::io::concepts::formattable ... Ts>(std::tuple<std::type_identity<Ts>...>){
         ((io::check(io::piece<Ts>{})), ...);
     }(to_test);
+
+    const auto value = test::ag::types::owning::nested{
+        .i = 1,
+        .field_1 = {
+            11,
+        },
+        .field_2 = {
+            .i = 12,
+            .c = 'c'
+        }
+    };
+    fmt::println("default    : [{}]", value);
+    fmt::println("compact    : [{:c}]", value);
+    // WIP: https://godbolt.org/z/ovv8eoqq8
+    fmt::println("pretty     : [\n{:i}\n]", value);
+    fmt::println("pretty(I)  : [\n{:i,I}\n]", value);
+    fmt::println("pretty(T)  : [\n{:i,T}\n]", value);
+    fmt::println("pretty(IT) : [\n{:i,IT}\n]", value);
+
+
+    const auto printer = overload{
+        [](const auto & self, std::size_t depth, const csl::ag::concepts::aggregate auto & value){
+            fmt::println("{:\t>{}}{{", "", depth);
+            using type = std::remove_cvref_t<decltype(value)>;
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                ((std::invoke(
+                    self,
+                    self, depth + 1, csl::ag::get<indexes>(value)
+                ), ...));
+            }(std::make_index_sequence<csl::ag::size_v<type>>{});
+            fmt::println("{:\t>{}}}}", "", depth);
+        },
+        [](const auto &, std::size_t depth, const auto & value){
+            fmt::println("{:\t>{}}{},", "", depth, value);
+        }
+    };
+    fmt::println("{:->{}}", "", 20);
+    printer(printer, 0, value);
+
+    // fmt::print("{}", fmt::join(std::tuple{'a', 42}, ", "));
+    
 }

@@ -17,7 +17,7 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ag::details::unevaluated {
-// to use in an unevaluated context only
+// for unevaluated context only
 
     template <typename T>
     consteval auto declval() noexcept -> std::add_rvalue_reference_t<T> {
@@ -120,7 +120,7 @@ namespace csl::ag::details::mp {
         template <typename ... Ts>
         using type = typename trait<bound_Ts..., Ts...>::type;
         template <typename ... Ts>
-        constexpr static auto value = trait<bound_Ts..., Ts...>::value;
+        constexpr inline static auto value = trait<bound_Ts..., Ts...>::value;
     };
 
     template <class, class>
@@ -137,7 +137,7 @@ namespace csl::ag::details::mp {
         }()
     >{};
     template <class T, class tuple_type>
-    constexpr auto first_index_of_v = first_index_of<T, tuple_type>::value;
+    constexpr inline static auto first_index_of_v = first_index_of<T, tuple_type>::value;
 }
 namespace csl::ag::concepts {
 
@@ -240,7 +240,7 @@ namespace csl::ag::details {
     }
 
 	template <concepts::aggregate T>
-    constexpr std::size_t fields_count = fields_count_impl<
+    constexpr inline static std::size_t fields_count = fields_count_impl<
         T,
         sizeof(T)
         #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
@@ -274,7 +274,7 @@ namespace csl::ag::details {
 #pragma endregion
 
     template <typename owner_type>
-    [[nodiscard]] constexpr concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
+    [[nodiscard]] constexpr inline static concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
         using tuple_t = to_tuple_t<std::remove_cvref_t<owner_type>>;
         
         constexpr auto size = std::tuple_size_v<tuple_t>;
@@ -636,7 +636,12 @@ namespace csl::ag {
     template <csl::ag::concepts::aggregate T>
     struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
-	constexpr auto size_v = size<T>::value;
+	constexpr inline static auto size_v = size<T>::value;
+
+    template <csl::ag::concepts::aggregate T>
+    struct empty: std::bool_constant<(size<T>::value == 0)>{};
+    template <csl::ag::concepts::aggregate T>
+    constexpr inline static auto empty_v = empty<T>::value;
 
     // element
 	template <std::size_t N, concepts::aggregate T>
@@ -678,7 +683,7 @@ namespace csl::ag {
     template <csl::ag::concepts::aggregate T>
     struct tuple_size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
-	constexpr auto tuple_size_v = tuple_size<T>::value;
+	constexpr inline static auto tuple_size_v = tuple_size<T>::value;
 
     // tuple_element
     template <std::size_t N, concepts::aggregate T>
@@ -718,6 +723,8 @@ namespace csl::ag {
 
     // conversion factory. unfold into an either complete or template type T
     // interally performs get<indexes>...
+    // REFACTO: universal template
+    // REFACTO: apply
     template <typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
@@ -763,13 +770,23 @@ namespace csl::ag {
 namespace csl::ag::concepts {
     template <typename T, typename U>
     concept convertible_to = requires{ csl::ag::make<U>(std::declval<T>()); };
+
+    // size-related constraints
+    template <typename T>
+    concept empty = aggregate<T> and csl::ag::empty_v<T>;
+    // template <typename T, std::size_t N>
+    // concept sized_by = aggregate<T> and csl::ag::size_v<T> == N;
+    // template <typename T, std::size_t N>
+    // concept greater_than = aggregate<T> and csl::ag::size_v<T> > N;
+    // template <typename T, std::size_t N>
+    // concept greater_or_eq = aggregate<T> and csl::ag::size_v<T> >= N;
 }
 // --- DSL ---
 namespace csl::ag {
 // ADL-used
     // view: all
     struct all_view_tag{};
-    [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
+    [[nodiscard]] constexpr inline static auto operator|(csl::ag::concepts::aggregate auto && value, const csl::ag::all_view_tag &)
     {
         return csl::ag::to_tuple_view(csl_fwd(value));
     }
@@ -791,16 +808,16 @@ namespace csl::ag {
     struct to_template_type_nttp_ttps_tag{};
 
     template <typename T>
-    constexpr auto to(){ return to_complete_type_tag<T>{}; };
+    constexpr inline static auto to(){ return to_complete_type_tag<T>{}; };
     template <template <typename...> typename T>
-    constexpr auto to(){ return to_template_type_ttps_tag<T>{}; };
+    constexpr inline static auto to(){ return to_template_type_ttps_tag<T>{}; };
     template <template <typename, auto...> typename T> 
-    constexpr auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
+    constexpr inline static auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
     template <template <auto, typename ...> typename T>
-    constexpr auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
+    constexpr inline static auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
 
     template <typename T>
-    [[nodiscard]] constexpr auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
+    [[nodiscard]] constexpr inline static auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
     {
         return csl::ag::make<T>(csl_fwd(value));
     }
@@ -821,18 +838,23 @@ namespace csl::ag {
     }
 }
 namespace csl::ag::views {
-    constexpr static inline auto all = all_view_tag{};
+    constexpr inline static auto all = all_view_tag{};
     template <typename T>
     using all_t = decltype(std::declval<T>());
 
-    // TODO(Guss): common_t -> std::tuple<std::common_type<Ts>...>
+    // TODO(Guillaume): common_t -> std::tuple<std::common_type<Ts>...>
+
+    // TODO(Guillaume): #245: flatten_view
 }
 // --- opt-ins ---
-// TODO(Guss): hash, compare, assign?, etc.
+// TODO(Guillaume): REFACTO, tests ?
+// - ticket: better test coverage
+// - ticket: update documentation
+// TODO(Guillaume): hash, compare, assign?, etc.
 namespace csl::ag::details::options::detection {
     template <typename T, typename = void> struct std_tuple_interface : std::false_type {};
     template <typename T> struct std_tuple_interface<T, typename T::csl_optins::ag::std_tuple_interface> : std::true_type {};
-    template <typename T> constexpr auto std_tuple_interface_v = std_tuple_interface<T>::value;
+    template <typename T> constexpr inline static auto std_tuple_interface_v = std_tuple_interface<T>::value;
 }
 namespace csl::ag::concepts {
     template <typename T>
@@ -841,12 +863,73 @@ namespace csl::ag::concepts {
     and csl::ag::details::options::detection::std_tuple_interface_v<std::remove_cvref_t<T>>
     ;
 }
+// --- functional API ---
+#include <functional>
+namespace csl::ag::details {
+    template <std::size_t ... indexes>
+    constexpr decltype(auto) apply_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
+    noexcept(noexcept(std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...)))
+    {
+        return std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...);
+    }
+    template <std::size_t ... indexes>
+    constexpr void for_each_impl(auto && f, csl::ag::concepts::aggregate auto && value, std::index_sequence<indexes...>)
+    noexcept(noexcept((std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...)))
+    {
+        ((std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))), ...));
+    }
+}
+namespace csl::ag {
+
+    constexpr decltype(auto) apply(auto && f, csl::ag::concepts::aggregate auto && value)
+    noexcept(
+        noexcept(
+            details::apply_impl(
+                csl_fwd(f),
+                csl_fwd(value),
+                std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
+            )
+        )
+    )
+    {
+        return details::apply_impl(
+            csl_fwd(f),
+            csl_fwd(value),
+            std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
+        );
+    }
+
+    template <typename F>
+    constexpr void for_each(F && f, csl::ag::concepts::aggregate auto && value)
+    noexcept(
+        noexcept(
+            details::for_each_impl(
+                csl_fwd(f),
+                csl_fwd(value),
+                std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
+            )
+        )
+    )
+    {
+        return details::for_each_impl(
+            csl_fwd(f),
+            csl_fwd(value),
+            std::make_index_sequence<csl::ag::size_v<std::remove_cvref_t<decltype(value)>>>{}
+        );
+    }
+}
 
 // ---------------------
 //  formatting/printing
 // ---------------------
 
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT)
+// QUESTION(Guss): opt-in -> include as an extra file:
+//  csl/ag/features/io.hpp
+//  - csl/ag/features/io/fmtlib.hpp
+//  - csl/ag/features/io/std_format.hpp
+//  - csl/ag/features/io/iostream.hpp -> should internally use std::format or fmt::format, if availble
+
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
 static_assert(false, "(experimentale) CSL_AG__ENABLE_IOSTREAM_SUPPORT feature is disabled for now");
 
@@ -879,13 +962,13 @@ namespace gcl::io::details {
 #include <limits>
 
 namespace gcl::io {
-    constexpr inline auto indent = details::line{};
+    constexpr inline static auto indent = details::line{};
 
     class indented_ostream {
 
 		// TODO(Guss): as style
 		//	+ break-after-brace
-		constexpr static size_t indent_width = 3;
+		constexpr inline static size_t indent_width = 3;
 		std::ostream & bounded_ostream;
         const std::size_t depth = 0;
 
@@ -997,65 +1080,206 @@ namespace csl::ag::io::concepts {
 		csl::ag::concepts::aggregate<T> and
 		(not std::is_array_v<T>) and
 		(not csl::ag::details::mp::is_std_array<T>::value)
+        // QUESTION: and not is_std_tuple ?
 	;
 }
 
-// QUESTION(Guss): opt-in -> include as an extra file:
-//  csl/ag/features/io.hpp
-//  - csl/ag/features/io/fmtlib.hpp
-//  - csl/ag/features/io/std_format.hpp
-//  - csl/ag/features/io/iostream.hpp
-// QUESTION(Guss): use a custom join instead ?
-template <csl::ag::io::concepts::formattable T, class CharT>
-struct fmt::formatter<T, CharT>
+// DESIGN: Limitations
+//  - constexpr string: not a constant expression using GCC-14.2 and Clang-18.1
+//      (but works with Clang-19), see https://godbolt.org/z/ehcjen6xh
+//      Yet, should be supported since GCC-12, Clang-15 -> this problem could be using Clang-18.1 and libstdc++ ?
+//      [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
+//          return std::string(depth * 3, ' ');
+//      }
+//  - constexpr optional, variant: GCC-12, Clang-19
+// Poor's man alternative: https://godbolt.org/z/aGq6qGaK9
+// or https://godbolt.org/z/hqY7MMEK8
+// WIP: requires type erasure, user-defined string-likes ... https://godbolt.org/z/vK9KaYYvG
+//  WTF simple solution: https://godbolt.org/z/8W6Ybn6h4 ???
+//  Root-cause for breaking consteval in GCC-14.2: https://godbolt.org/z/bae9jvjb4
+// Final call: will support only C++20 - GCC >= 12.1, Clang >= 19.0.
+//  MVE: Demo: https://godbolt.org/z/fTd97WqTW
+//  Proof: https://godbolt.org/z/zfczMcsqa
+
+namespace csl::ag::io {
+    template <typename Char>
+    struct presentation {
+        constexpr static auto make_none() -> presentation {
+            return {};
+        }
+        constexpr static auto make_compact() -> presentation {
+            return {
+                .separator       = ", ",
+                .opening_bracket = "{",
+                .closing_bracket = "}",
+            };
+        }
+        constexpr static auto make_indented(std::size_t depth) -> presentation {
+            return {
+                .separator       = ",\n",
+                .opening_bracket = "{\n",
+                .closing_bracket = "\n" + std::string(depth * +3, ' ') + "}", // fmt::format(FMT_COMPILE("\n{: <{}}}}"), "", depth),
+                .indentation     = std::string((depth + 1) * 3, ' ')          // fmt::format(FMT_COMPILE("{: <{}}"), "", depth),
+            };
+        }
+
+        fmt::basic_string_view<Char>
+            separator,
+            opening_bracket;
+        std::basic_string<Char>
+            closing_bracket,
+            indentation;
+    };
+} // namespace csl::ag::io
+
+// TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
+// QUESTION: use string-formatter, with filler + width ?
+// QUESTION: unqualified get (possibly as an opt-in/parse-parameter ? -> supports std::tuple, std::array, etc. ?
+template <csl::ag::io::concepts::formattable T, class Char>
+struct fmt::formatter<T, Char>
 {
     using csl_product = void;
 private:
-    // WIP: p{N}
-    // WIP: add full presentation, with: `[index](type): value` -> can combine with either compact or pretty
-    char presentation = 'c'; // [c:compact, pN:pretty (where N is the depth level)]
-public:
 
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
+        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::tuple<
+                fmt::formatter<
+                    csl::ag::element_t<indexes, T>
+                >...
+            >{};
+        }(std::make_index_sequence<csl::ag::size_v<T>>{});
+    }
+    std::remove_cvref_t<decltype(deduce_formatters_type())> formatters{};
 
+    csl::ag::io::presentation<Char> presentation;
+    std::size_t depth{ 0 }; // product -> other impl, or template-specialization
+
+    // decorations: typenamed
+    bool typenamed{ false };
+    template <typename U, typename FormatContext>
+    void format_typename(FormatContext & ctx) const {
+        
+        if (not typenamed)
+            return;
+
+        #if false // TODO(Guillaume): csl::typeinfo enabled
+        ctx.advance_to(detail::copy<Char>(
+            fmt::string_view{csl::typeinfo::type_name_v<U>},
+            ctx.out())
+        );
+        ctx.advance_to(detail::copy<Char>(fmt::string_view{": "}, ctx.out()));
+        #endif
+    }
+    
+    // decorations: indexed
+    bool indexed{ false };
+    template <std::size_t index, typename FormatContext>
+    void format_index(FormatContext & ctx) const {
+        if (not indexed)
+            return;
+        fmt::format_to(ctx.out(), "[{}] ", index);
+    }
+
+    template <std::size_t index, typename FormatContext>
+    auto format_element(const auto & value, FormatContext & ctx) const -> decltype(ctx.out()){
+
+        if (index > 0) ctx.advance_to(detail::copy<Char>(presentation.separator, ctx.out()));
+        ctx.advance_to(detail::copy<Char>(fmt::basic_string_view<Char>{presentation.indentation}, ctx.out()));
+
+        format_index<index>(ctx);
+        auto && element = csl::ag::get<index>(value);
+        format_typename<decltype(element)>(ctx);
+        return std::get<index>(formatters).format(element, ctx);
+    }
+
+    // WIP: integration of https://godbolt.org/z/zfczMcsqa
+
+public: // private - requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx, std::size_t depth) -> decltype(ctx.begin()) {
+        this->depth = depth;
+        return parse(ctx);
+    }
+
+public: // NOLINT(*-redundant-access-specifiers)
+
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
         auto it = ctx.begin();
         auto end = ctx.end();
-        if (it != end && (*it == 'c' || *it == 'p'))
-            presentation = *it++;
-        if (it != end && *it != '}')
-            throw fmt::format_error{"invalid format"};
+
+        // Question: spread only the rest ?
+        //  or use a 's' spread policy ?
+        //  or a maximum depth ?
+        const auto parse_element = [&]<std::size_t index>() constexpr {
+
+            using element_t = csl::ag::element_t<index, T>;
+            if constexpr (not csl::ag::io::concepts::formattable<std::remove_cvref_t<element_t>>)
+                return;
+            else {
+                auto end1 = std::get<index>(formatters).parse(ctx, depth + 1);
+                // if (end1 not_eq it)
+                //     report_error("invalid format specs for tuple elements");
+            }
+        };
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((parse_element.template operator()<indexes>()), ...);
+        }(std::make_index_sequence<csl::ag::size_v<T>>{});
+
+        char style_token{};
+        while (it not_eq end and *it not_eq '}')
+        {
+            switch (const auto token = detail::to_ascii(*it)){
+                // style
+                case 'n':
+                case 'c':
+                case 'i':
+                    style_token = token; break;
+                case ',': break;
+                // projection
+                case 'I': indexed = true; break;
+                case 'T': typenamed = true; break; // Q: max-depth ? cvref-qualifiers ?
+                default: report_error("invalid format specifier");
+            }
+            ++it;
+        }
+
+        presentation = [style_token, this](){
+            using presentation_type = csl::ag::io::presentation<Char>;
+            switch (style_token){
+                case 'n': return presentation_type::make_none();
+                case 'i': return presentation_type::make_indented(depth);
+                case 'c': [[fallthrough]];
+                default: return presentation_type::make_compact();
+            }
+        }();
+
         return it;
     }
 
     template <typename FormatContext>
-    constexpr auto format(const T & value, FormatContext& ctx) const
-    {
-        auto && out = ctx.out();
-        constexpr auto size = csl::ag::size_v<std::remove_cvref_t<T>>;
-        if (size == 0)
-            return out;
-        *out++ = '{';
-        // QUESTION: How to make such statement constexpr ?
-        // format_to(out, "{}", csl::ag::to_tuple_view(value));
-        // format_to(out, FMT_COMPILE("{}"), fmt::join(csl::ag::to_tuple_view(value), ", "));
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
-            (
-                fmt::format_to(
-                    out, "{}{}",
-                    csl::ag::get<indexes>(value),
-                    (indexes == (size - 1) ? "" : ", ")
-                )
-            , ...);
-        }(std::make_index_sequence<size>{});
-        *out++ = '}';
-        return out;
+    auto format(const T & value, FormatContext& ctx) const -> decltype(ctx.out()) {
+
+        if (depth == 0)
+            format_typename<decltype(value)>(ctx);
+
+        auto out = ctx.out();
+        ctx.advance_to(detail::copy<Char>(presentation.opening_bracket, ctx.out()));
+
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((format_element<indexes>(value, ctx, presentation)), ...);
+        }(std::make_index_sequence<csl::ag::size_v<T>>{});
+
+        ctx.advance_to(detail::copy<Char>(fmt::string_view{presentation.closing_bracket}, ctx.out()));
+        return ctx.out();
     }
 };
 
-namespace csl::ag::io::concepts {
+namespace csl::ag::concepts {
     template <typename T>
-    concept fmt_formatter_is_csl_product = requires {
-        typename fmt::formatter<T>::csl_product;
+    concept csl_product = requires {
+        typename T::csl_product;
     };
 }
 
