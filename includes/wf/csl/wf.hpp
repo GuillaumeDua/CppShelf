@@ -1325,10 +1325,10 @@ namespace csl::wf::details::invoke_policy::allow_discard {
         using invoke_solver_t = csl::wf::details::invoke_solver<identity>;
 
         constexpr auto operator>>=(csl::wf::concepts::tuple_interface auto && args, auto && f)
-        noexcept(noexcept(invoke_solver_t::template node_invoke(fwd(f), fwd(args))))
-        requires requires{invoke_solver_t::template node_invoke(fwd(f), fwd(args));}
+        noexcept(noexcept(invoke_solver_t::node_invoke(fwd(f), fwd(args))))
+        requires requires{invoke_solver_t::node_invoke(fwd(f), fwd(args));}
         {
-            return invoke_solver_t::template node_invoke(fwd(f), fwd(args));
+            return invoke_solver_t::node_invoke(fwd(f), fwd(args));
         }
     }
 }
@@ -1361,10 +1361,10 @@ namespace csl::wf::details::invoke_policy::nodiscard {
         using invoke_solver_t = csl::wf::details::invoke_solver<identity>;
 
         constexpr auto operator>>=(csl::wf::concepts::tuple_interface auto && args, auto && f)
-        noexcept(noexcept(invoke_solver_t::template node_invoke(fwd(f), fwd(args))))
-        requires requires{invoke_solver_t::template node_invoke(fwd(f), fwd(args));}
+        noexcept(noexcept(invoke_solver_t::node_invoke(fwd(f), fwd(args))))
+        requires requires{invoke_solver_t::node_invoke(fwd(f), fwd(args));}
         {
-            return invoke_solver_t::template node_invoke(fwd(f), fwd(args));
+            return invoke_solver_t::node_invoke(fwd(f), fwd(args));
         }
     }
 }
