@@ -1100,6 +1100,9 @@ namespace csl::ag::io::concepts {
 // Final call: will support only C++20 - GCC >= 12.1, Clang >= 19.0.
 //  MVE: Demo: https://godbolt.org/z/fTd97WqTW
 //  Proof: https://godbolt.org/z/zfczMcsqa
+//
+// - runtime formatting: https://godbolt.org/z/13sx9zv3P
+// - compile-time formatting : https://godbolt.org/z/1dKzYYsx9
 
 namespace csl::ag::io {
     template <typename Char>
@@ -1268,7 +1271,7 @@ public: // NOLINT(*-redundant-access-specifiers)
         ctx.advance_to(detail::copy<Char>(presentation.opening_bracket, ctx.out()));
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((format_element<indexes>(value, ctx, presentation)), ...);
+            ((format_element<indexes>(value, ctx)), ...);
         }(std::make_index_sequence<csl::ag::size_v<T>>{});
 
         ctx.advance_to(detail::copy<Char>(fmt::string_view{presentation.closing_bracket}, ctx.out()));

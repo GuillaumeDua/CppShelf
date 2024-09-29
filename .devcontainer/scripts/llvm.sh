@@ -29,7 +29,7 @@ help(){
             - [all]             : all versions availables                                       Ex: 'all'
             - [latest]          : only the latest version available                             Ex: 'latest'
             - [>=(number)]      : all versions greater or equal to <number>.                    Ex: '>=42'
-            - [numbers...]      : only listed versions.                                         Ex: '13 25 42' (space-separated)
+            - [numbers...]      : only specific versions.                                       Ex: '13 25 42' (space-separated)
         [ -s | --silent ]       : Run in silent mod.                                        Boolean -> default is [1]
         [ -a | --alias]         : Set bash/zsh-rc aliases.                                  Boolean -> default is [0]
         [ -m | --minimalistic]  : only clang/clang++, not tools.                            Boolean -> default is [0]
