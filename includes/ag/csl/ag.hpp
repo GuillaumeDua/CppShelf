@@ -172,7 +172,7 @@ namespace csl::ag::concepts {
     // P2165 - tuple-like
     // Note that this is a good-enough implementation of P2165 to only fit this project's needs
 	template <typename T, std::size_t N>
-    concept is_tuple_element = requires(T t) {
+    concept tuple_element = requires(T t) {
         typename std::tuple_element_t<N, std::remove_const_t<T>>;
         { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
     };
@@ -184,7 +184,7 @@ namespace csl::ag::concepts {
             requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
         }
         and []<std::size_t... I>(std::index_sequence<I...>) {
-            return (is_tuple_element<T, I> && ...);
+            return (tuple_element<T, I> && ...);
         }(std::make_index_sequence<std::tuple_size_v<T>>{})
     ;
     template <typename T>
@@ -274,7 +274,7 @@ namespace csl::ag::details {
 #pragma endregion
 
     template <typename owner_type>
-    [[nodiscard]] constexpr inline static concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
+    [[nodiscard]] constexpr static concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
         using tuple_t = to_tuple_t<std::remove_cvref_t<owner_type>>;
         
         constexpr auto size = std::tuple_size_v<tuple_t>;
