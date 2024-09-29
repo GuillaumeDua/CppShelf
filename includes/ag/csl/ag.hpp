@@ -1101,8 +1101,9 @@ namespace csl::ag::io::concepts {
 //  MVE: Demo: https://godbolt.org/z/fTd97WqTW
 //  Proof: https://godbolt.org/z/zfczMcsqa
 //
-// - runtime formatting: https://godbolt.org/z/13sx9zv3P
-// - compile-time formatting : https://godbolt.org/z/1dKzYYsx9
+// - runtime formatting: https://godbolt.org/z/Gj49bPGez
+// - compile-time formatting : https://godbolt.org/z/PqqeWdxrY
+// - depth as compile-time argument: https://godbolt.org/z/6sP49xhcG
 
 namespace csl::ag::io {
     template <typename Char>
@@ -1274,7 +1275,7 @@ public: // NOLINT(*-redundant-access-specifiers)
             ((format_element<indexes>(value, ctx)), ...);
         }(std::make_index_sequence<csl::ag::size_v<T>>{});
 
-        ctx.advance_to(detail::copy<Char>(fmt::string_view{presentation.closing_bracket}, ctx.out()));
+        ctx.advance_to(detail::copy<Char>(fmt::basic_string_view<Char>{presentation.closing_bracket}, ctx.out()));
         return ctx.out();
     }
 };
