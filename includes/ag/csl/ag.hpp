@@ -1103,7 +1103,7 @@ namespace csl::ag::io::concepts {
 //
 // - runtime formatting: https://godbolt.org/z/Gj49bPGez
 // - compile-time formatting : https://godbolt.org/z/PqqeWdxrY
-// - depth as compile-time argument: https://godbolt.org/z/6sP49xhcG
+// - depth as compile-time argument: https://godbolt.org/z/x8nTKab9o
 
 namespace csl::ag::io {
     template <typename Char>
@@ -1122,8 +1122,8 @@ namespace csl::ag::io {
             return {
                 .separator       = ",\n",
                 .opening_bracket = "{\n",
-                .closing_bracket = "\n" + std::string(depth * +3, ' ') + "}", // fmt::format(FMT_COMPILE("\n{: <{}}}}"), "", depth),
-                .indentation     = std::string((depth + 1) * 3, ' ')          // fmt::format(FMT_COMPILE("{: <{}}"), "", depth),
+                .closing_bracket = "\n" + std::string(depth * 3, ' ') + "}", // fmt::format(FMT_COMPILE("\n{: <{}}}}"), "", depth),
+                .indentation     = std::string((depth + 1) * 3, ' ')         // fmt::format(FMT_COMPILE("{: <{}}"), "", depth),
             };
         }
 
