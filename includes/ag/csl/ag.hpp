@@ -1103,7 +1103,7 @@ namespace csl::ag::io::concepts {
 //
 // - runtime formatting: https://godbolt.org/z/Gj49bPGez
 // - compile-time formatting : https://godbolt.org/z/PqqeWdxrY
-// - depth as compile-time argument: https://godbolt.org/z/x8nTKab9o
+// - depth as compile-time argument: https://godbolt.org/z/YTTdhYP19
 
 namespace csl::ag::io {
     template <typename Char>
