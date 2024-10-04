@@ -1105,6 +1105,8 @@ namespace csl::ag::io::concepts {
 // - compile-time formatting : https://godbolt.org/z/PqqeWdxrY
 // - depth as compile-time argument: https://godbolt.org/z/YTTdhYP19
 //  - spread to member ranges: https://godbolt.org/z/cbr5z4bbG
+// 
+// - typenamed, indexed: https://godbolt.org/z/z5zeqvYon
 
 namespace csl::ag::io {
     template <typename Char>
