@@ -1107,6 +1107,11 @@ namespace csl::ag::io::concepts {
 //  - spread to member ranges: https://godbolt.org/z/cbr5z4bbG
 // 
 // - typenamed, indexed: https://godbolt.org/z/z5zeqvYon
+//
+// Q: produce a MVP with only `{}, {:n}, {:c}` ?
+//  then delegate the others features (indented, indexed, typenamed) to a join_view
+// #57
+// ✅ depth decorator: https://godbolt.org/z/sdG5ccsvj, with universal API
 
 namespace csl::ag::io {
     template <typename Char>
