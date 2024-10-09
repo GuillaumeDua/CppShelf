@@ -655,9 +655,9 @@ namespace csl::ag {
     //  while preserving value-semantic of ref-qualified values
     //  ex:
     //  - struct type{ A v0; B & v1; const C && v2 }
-    //  -       type &  => std::tuple<      A&,  B&, const C&&>;
-    //  - const type &  => std::tuple<const A&,  B&, const C&&>;
-    //  -       type && => std::tuple<      A&&, B&, const C&&>;
+    //  -       type &  => std::tuple<      A&,        B&, const C&&>;
+    //  - const type &  => std::tuple<const A&,  const B&, const C&&>;
+    //  -       type && => std::tuple<      A&&,       B&, const C&&>;
     [[nodiscard]] constexpr auto to_tuple_view(concepts::aggregate auto && value) noexcept {
         using type = std::remove_cvref_t<decltype(value)>;
         return details::generated::to_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
@@ -1112,6 +1112,7 @@ namespace csl::ag::io::concepts {
 //  then delegate the others features (indented, indexed, typenamed) to a join_view
 // #57
 // ✅ depth decorator: https://godbolt.org/z/sdG5ccsvj, with universal API
+//  - with default aggregate formatter: https://godbolt.org/z/GEK98zT5h
 
 namespace csl::ag::io {
     template <typename Char>
