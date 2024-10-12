@@ -1114,6 +1114,7 @@ namespace csl::ag::io::concepts {
 // ✅ depth decorator: https://godbolt.org/z/sdG5ccsvj, with universal API
 //  - with default aggregate formatter: https://godbolt.org/z/GEK98zT5h
 //  - WIP: decorators composition: https://godbolt.org/z/bvx1ra3YE
+//      experiment: https://godbolt.org/z/Y96Go1Wzn
 
 namespace csl::ag::io {
     template <typename Char>
