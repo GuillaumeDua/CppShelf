@@ -919,6 +919,91 @@ namespace csl::ag {
     }
 }
 
+// --- universal API ---
+// homogeneous API for tuple-likes and csl::ag::concepts::aggregates
+namespace csl::tuplelike::concepts {
+    template <typename T>
+    concept non_stl_aggregate = csl::ag::concepts::aggregate<T>
+        and not csl::ag::concepts::tuple_like<T>
+    ;
+}
+namespace csl::tuplelike {
+
+    // size
+    template <typename T>
+    struct size;
+    template <concepts::non_stl_aggregate T>
+    struct size<T> : csl::ag::size<T>{};
+    template <csl::ag::concepts::tuple_like T>
+    struct size<T> : std::tuple_size<T>{};
+    template <typename T>
+    constexpr inline static auto size_v = size<T>::value;
+
+    // element
+    template <std::size_t, typename>
+    struct element;
+    template <std::size_t I, concepts::non_stl_aggregate T>
+    struct element<I, T> : csl::ag::element<I, T>{};
+    template <std::size_t I, csl::ag::concepts::tuple_like T>
+    struct element<I, T> : std::tuple_element<I, T>{};
+    template <std::size_t I, typename T>
+    using element_t = element<I, T>::type;
+
+    // get
+    template <std::size_t index, typename T>
+    requires concepts::non_stl_aggregate<std::remove_cvref_t<T>>
+    constexpr auto get(T && value) -> decltype(auto) {
+        return csl::ag::get<index>(csl_fwd(value));
+    }
+    template <std::size_t index, typename T>
+    requires csl::ag::concepts::tuple_like<std::remove_cvref_t<T>>
+    constexpr auto get(T && value) -> decltype(auto) {
+        return std::get<index>(csl_fwd(value));
+    }
+
+    // algorithms
+    // REFACTO: concept for possibly-qualified-structured_bindable
+    // - for_each
+    template <typename T>
+    requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
+    constexpr auto for_each(T && value, auto && f) -> decltype(auto) {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            ((
+                std::invoke(csl_fwd(f), csl::tuplelike::get<indexes>(csl_fwd(value)))
+            ), ...);
+        }(std::make_index_sequence<csl::tuplelike::size_v<value_type>>{});
+    }
+    // - for_each_enumerated
+    template <typename T>
+    requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
+    constexpr auto for_each_enumerated(T && value, auto && f) -> decltype(auto) {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            ((
+                csl_fwd(f).template operator()<indexes>(
+                    csl::tuplelike::get<indexes>(csl_fwd(value))
+                )
+            ), ...);
+        }(std::make_index_sequence<csl::tuplelike::size_v<value_type>>{});
+    }
+    // for_each_zipped (WIP)
+    template <typename... Ts>
+    constexpr void for_each_zipped(auto&& f, Ts&&... tuple_likes) {
+        constexpr std::size_t min_size = std::min({std::tuple_size_v<std::remove_reference_t<Ts>>...});
+
+        const auto invoke_at_index = [&]<std::size_t index>() constexpr {
+            f(std::get<index>(std::forward<decltype(tuple_likes)>(tuple_likes))...);
+        };
+
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
+            (
+                invoke_at_index.template operator()<indexes>()
+            , ...);
+        }(std::make_index_sequence<min_size>{});
+    }
+}
+
 // ---------------------
 //  formatting/printing
 // ---------------------
