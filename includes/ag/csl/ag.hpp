@@ -1201,6 +1201,10 @@ namespace csl::ag::io::concepts {
 //  - WIP: decorators composition: https://godbolt.org/z/bvx1ra3YE
 //      ✅  working composition: https://godbolt.org/z/fsz39c8ah
 
+// Solution: merge
+//  formatters: https://godbolt.org/z/b5P4vnzGa
+//      and     https://godbolt.org/z/fsz39c8ah
+
 namespace csl::ag::io {
     template <typename Char>
     struct presentation {
