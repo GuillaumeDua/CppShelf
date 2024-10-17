@@ -1169,223 +1169,32 @@ namespace csl::ag::io::concepts {
 	;
 }
 
-// DESIGN: Limitations
-//  - constexpr string: not a constant expression using GCC-14.2 and Clang-18.1
-//      (but works with Clang-19), see https://godbolt.org/z/ehcjen6xh
-//      Yet, should be supported since GCC-12, Clang-15 -> this problem could be using Clang-18.1 and libstdc++ ?
-//      [[nodiscard]] constexpr inline static auto make_indentation(std::size_t depth){
-//          return std::string(depth * 3, ' ');
-//      }
-//  - constexpr optional, variant: GCC-12, Clang-19
-// Poor's man alternative: https://godbolt.org/z/aGq6qGaK9
-// or https://godbolt.org/z/hqY7MMEK8
-// WIP: requires type erasure, user-defined string-likes ... https://godbolt.org/z/vK9KaYYvG
-//  WTF simple solution: https://godbolt.org/z/8W6Ybn6h4 ???
-//  Root-cause for breaking consteval in GCC-14.2: https://godbolt.org/z/bae9jvjb4
-// Final call: will support only C++20 - GCC >= 12.1, Clang >= 19.0.
-//  MVE: Demo: https://godbolt.org/z/fTd97WqTW
-//  Proof: https://godbolt.org/z/zfczMcsqa
-//
-// - runtime formatting: https://godbolt.org/z/Gj49bPGez
-// - compile-time formatting : https://godbolt.org/z/PqqeWdxrY
-// - depth as compile-time argument: https://godbolt.org/z/YTTdhYP19
-//  - spread to member ranges: https://godbolt.org/z/cbr5z4bbG
-// 
-// - typenamed, indexed: https://godbolt.org/z/z5zeqvYon
-//
-// Q: produce a MVP with only `{}, {:n}, {:c}` ?
-//  then delegate the others features (indented, indexed, typenamed) to a join_view
-// #57
-// ✅ depth decorator: https://godbolt.org/z/sdG5ccsvj, with universal API
-//  - with default aggregate formatter: https://godbolt.org/z/GEK98zT5h
-//  - WIP: decorators composition: https://godbolt.org/z/bvx1ra3YE
-//      ✅  working composition: https://godbolt.org/z/fsz39c8ah
-
-// Solution: merge
-//  formatters: https://godbolt.org/z/b5P4vnzGa
+// DESIGN: See #134, #262
+// WIP: Solution: merge
+//  formatters: https://godbolt.org/z/ob1Prz9aq
 //      and     https://godbolt.org/z/fsz39c8ah
 
-namespace csl::ag::io {
-    template <typename Char>
-    struct presentation {
-        constexpr static auto make_none() -> presentation {
-            return {};
-        }
-        constexpr static auto make_compact() -> presentation {
-            return {
-                .separator       = ", ",
-                .opening_bracket = "{",
-                .closing_bracket = "}",
-            };
-        }
-        constexpr static auto make_indented(std::size_t depth) -> presentation {
-            return {
-                .separator       = ",\n",
-                .opening_bracket = "{\n",
-                .closing_bracket = "\n" + std::string(depth * 3, ' ') + "}", // fmt::format(FMT_COMPILE("\n{: <{}}}}"), "", depth),
-                .indentation     = std::string((depth + 1) * 3, ' ')         // fmt::format(FMT_COMPILE("{: <{}}"), "", depth),
-            };
-        }
+// aggregate formatter
+template <csl::ag::concepts::aggregate T, typename Char>
+requires (not fmt::is_range<T, Char>::value)
+class fmt::formatter<T, Char> {
 
-        fmt::basic_string_view<Char>
-            separator,
-            opening_bracket;
-        std::basic_string<Char>
-            closing_bracket,
-            indentation;
-    };
-} // namespace csl::ag::io
+    fmt::formatter<csl::ag::view_t<const T &>> formatter_;
 
-// TODO(Guillaume): extra opt-in tag-dispatch to force such an instanciation, so it does not clash with tuplelikes, etc.
-// QUESTION: use string-formatter, with filler + width ?
-// QUESTION: unqualified get (possibly as an opt-in/parse-parameter ? -> supports std::tuple, std::array, etc. ?
-template <csl::ag::io::concepts::formattable T, class Char>
-struct fmt::formatter<T, Char>
-{
-    using csl_product = void;
-private:
-
-    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
-        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return std::tuple<
-                fmt::formatter<
-                    csl::ag::element_t<indexes, T>
-                >...
-            >{};
-        }(std::make_index_sequence<csl::ag::size_v<T>>{});
-    }
-    std::remove_cvref_t<decltype(deduce_formatters_type())> formatters{};
-
-    csl::ag::io::presentation<Char> presentation;
-    std::size_t depth{ 0 }; // product -> other impl, or template-specialization
-
-    // decorations: typenamed
-    bool typenamed{ false };
-    template <typename U, typename FormatContext>
-    void format_typename(FormatContext & ctx) const {
-        
-        if (not typenamed)
-            return;
-
-        #if false // TODO(Guillaume): csl::typeinfo enabled
-        ctx.advance_to(detail::copy<Char>(
-            fmt::string_view{csl::typeinfo::type_name_v<U>},
-            ctx.out())
-        );
-        ctx.advance_to(detail::copy<Char>(fmt::string_view{": "}, ctx.out()));
-        #endif
-    }
-    
-    // decorations: indexed
-    bool indexed{ false };
-    template <std::size_t index, typename FormatContext>
-    void format_index(FormatContext & ctx) const {
-        if (not indexed)
-            return;
-        fmt::format_to(ctx.out(), "[{}] ", index);
+public:
+    constexpr formatter(){
+        formatter_.set_brackets("{", "}");
     }
 
-    template <std::size_t index, typename FormatContext>
-    auto format_element(const auto & value, FormatContext & ctx) const -> decltype(ctx.out()){
-
-        if (index > 0) ctx.advance_to(detail::copy<Char>(presentation.separator, ctx.out()));
-        ctx.advance_to(detail::copy<Char>(fmt::basic_string_view<Char>{presentation.indentation}, ctx.out()));
-
-        format_index<index>(ctx);
-        auto && element = csl::ag::get<index>(value);
-        format_typename<decltype(element)>(ctx);
-        return std::get<index>(formatters).format(element, ctx);
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        return formatter_.parse(ctx);
     }
-
-    // WIP: integration of https://godbolt.org/z/zfczMcsqa
-
-public: // private - requires P2893 - variadic friends: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2893r2.html
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx, std::size_t depth) -> decltype(ctx.begin()) {
-        this->depth = depth;
-        return parse(ctx);
-    }
-
-public: // NOLINT(*-redundant-access-specifiers)
-
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
-        auto it = ctx.begin();
-        auto end = ctx.end();
-
-        // Question: spread only the rest ?
-        //  or use a 's' spread policy ?
-        //  or a maximum depth ?
-        const auto parse_element = [&]<std::size_t index>() constexpr {
-
-            using element_t = csl::ag::element_t<index, T>;
-            if constexpr (not csl::ag::io::concepts::formattable<std::remove_cvref_t<element_t>>)
-                return;
-            else {
-                auto end1 = std::get<index>(formatters).parse(ctx, depth + 1);
-                // if (end1 not_eq it)
-                //     report_error("invalid format specs for tuple elements");
-            }
-        };
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((parse_element.template operator()<indexes>()), ...);
-        }(std::make_index_sequence<csl::ag::size_v<T>>{});
-
-        char style_token{};
-        while (it not_eq end and *it not_eq '}')
-        {
-            switch (const auto token = detail::to_ascii(*it)){
-                // style
-                case 'n':
-                case 'c':
-                case 'i':
-                    style_token = token; break;
-                case ',': break;
-                // projection
-                case 'I': indexed = true; break;
-                case 'T': typenamed = true; break; // Q: max-depth ? cvref-qualifiers ?
-                default: report_error("invalid format specifier");
-            }
-            ++it;
-        }
-
-        presentation = [style_token, this](){
-            using presentation_type = csl::ag::io::presentation<Char>;
-            switch (style_token){
-                case 'n': return presentation_type::make_none();
-                case 'i': return presentation_type::make_indented(depth);
-                case 'c': [[fallthrough]];
-                default: return presentation_type::make_compact();
-            }
-        }();
-
-        return it;
-    }
-
     template <typename FormatContext>
-    auto format(const T & value, FormatContext& ctx) const -> decltype(ctx.out()) {
-
-        if (depth == 0)
-            format_typename<decltype(value)>(ctx);
-
-        auto out = ctx.out();
-        ctx.advance_to(detail::copy<Char>(presentation.opening_bracket, ctx.out()));
-
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            ((format_element<indexes>(value, ctx)), ...);
-        }(std::make_index_sequence<csl::ag::size_v<T>>{});
-
-        ctx.advance_to(detail::copy<Char>(fmt::basic_string_view<Char>{presentation.closing_bracket}, ctx.out()));
-        return ctx.out();
+    auto format(const T & value, FormatContext& ctx) const {
+        return formatter_.format(csl::ag::to_tuple_view(value), ctx);
     }
 };
 
-namespace csl::ag::concepts {
-    template <typename T>
-    concept csl_product = requires {
-        typename T::csl_product;
-    };
-}
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
@@ -1394,6 +1203,13 @@ namespace csl::ag::concepts {
     static_assert(false, "csl::ag: [CSL_AG_ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing. Did you forget a dependency ?");
 #elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT)
 #endif // CSL_AG__ENABLE_FORMAT_SUPPORT
+
+namespace csl::ag::concepts {
+    template <typename T>
+    concept csl_product = requires {
+        typename T::csl_product;
+    };
+}
 
 // TODO(Guss): for_each(_fields)(aggregate auto &&, visitor F&&)
 //  [ ] std::hash
