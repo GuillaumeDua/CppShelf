@@ -1179,11 +1179,12 @@ template <csl::ag::concepts::aggregate T, typename Char>
 requires (not fmt::is_range<T, Char>::value)
 class fmt::formatter<T, Char> {
 
-    fmt::formatter<csl::ag::view_t<const T &>> formatter_;
+    fmt::formatter<csl::ag::view_t<const T &>, Char> formatter_;
 
 public:
     constexpr formatter(){
         formatter_.set_brackets("{", "}");
+        formatter_.set_separator(", ");
     }
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
@@ -1195,6 +1196,65 @@ public:
     }
 };
 
+namespace csl::ag::io::details::concepts {
+    template <typename T>
+    concept decorator = requires { T::csl_ag_io_decorator; };
+}
+namespace csl::ag::io::details::decorators {
+
+    template <typename T>
+    struct typenamed_view_t {
+        using is_decorator = void;
+    };
+    template <typename T>
+    struct indexed_view_t {
+        using is_decorator = void;
+    };
+    template <typename T, std::size_t I = 0>
+    requires std::same_as<T, std::remove_cvref_t<T>>
+    struct depthen_view_t {
+        using is_decorator = void;
+
+        explicit operator const T&() const { return value; }
+        const T & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
+        constexpr static std::size_t depth = I;
+    };
+    template <typename T, std::size_t I = 0>
+    depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
+}
+namespace csl::ag::io::details {
+    // REFACTO: as CMake/PP arg, or fmt::formatter::parse argument
+    template <typename Char, std::size_t depth>
+    constexpr inline static auto indentation_v = std::basic_string<Char>(depth * 3, ' ');
+}
+
+#include <typeinfo> // TODO: replace with csl::typeinfo
+
+template <
+    typename T,
+    std::size_t depth,
+    typename Char
+>
+class fmt::formatter<
+    csl::ag::io::details::decorators::depthen_view_t<T, depth>,
+    Char
+> {
+    fmt::formatter<T, Char> value_formatter;
+public:
+
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        return value_formatter.parse(ctx);
+    }
+
+    template <typename FormatContext>
+    auto format(const T & value, FormatContext& ctx) const {
+        // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
+        ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to_(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // csl::typeinfo::type_name_v<T>
+        ctx.advance_to_(fmt::detail::copy<Char>(": ", ctx.out()));
+        return value_formatter.format(value, ctx);
+    }
+};
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
