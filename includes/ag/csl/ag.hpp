@@ -1182,6 +1182,9 @@ class fmt::formatter<T, Char> {
     fmt::formatter<csl::ag::view_t<const T &>, Char> formatter_;
 
 public:
+
+    using csl_ag_io_decorator = void;
+
     constexpr formatter(){
         formatter_.set_brackets("{", "}");
         formatter_.set_separator(", ");
@@ -1228,7 +1231,21 @@ namespace csl::ag::io::details {
     constexpr inline static auto indentation_v = std::basic_string<Char>(depth * 3, ' ');
 }
 
-#include <typeinfo> // TODO: replace with csl::typeinfo
+#include <typeinfo> // TODO(Guillaume): replace with csl::typeinfo
+
+// depth-aware formatter - indentation formatting
+namespace csl::ag::io::details {
+    template <csl::ag::concepts::structured_bindable T, std::size_t depth>
+    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
+        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::tuple<
+                fmt::formatter<
+                    decorators::depthen_view_t<csl::tuplelike::element_t<indexes, T>, depth + 1>
+                >...
+            >{};
+        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+    }
+}
 
 template <
     typename T,
@@ -1241,6 +1258,8 @@ class fmt::formatter<
 > {
     fmt::formatter<T, Char> value_formatter;
 public:
+
+    using csl_ag_io_decorator = void;
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
         return value_formatter.parse(ctx);
@@ -1255,6 +1274,8 @@ public:
         return value_formatter.format(value, ctx);
     }
 };
+
+
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
