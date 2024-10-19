@@ -1233,20 +1233,8 @@ namespace csl::ag::io::details {
 
 #include <typeinfo> // TODO(Guillaume): replace with csl::typeinfo
 
-// depth-aware formatter - indentation formatting
-namespace csl::ag::io::details {
-    template <csl::ag::concepts::structured_bindable T, std::size_t depth>
-    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
-        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return std::tuple<
-                fmt::formatter<
-                    decorators::depthen_view_t<csl::tuplelike::element_t<indexes, T>, depth + 1>
-                >...
-            >{};
-        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
-    }
-}
-
+#pragma region // depth-aware formatter - indentation formatting
+// formatter: depthen_view_t (non-structured-bindable T)
 template <
     typename T,
     std::size_t depth,
@@ -1269,13 +1257,83 @@ public:
     auto format(const T & value, FormatContext& ctx) const {
         // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
-        ctx.advance_to_(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // csl::typeinfo::type_name_v<T>
+        ctx.advance_to_(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
         ctx.advance_to_(fmt::detail::copy<Char>(": ", ctx.out()));
         return value_formatter.format(value, ctx);
     }
 };
 
+namespace csl::ag::io::details {
+    template <csl::ag::concepts::structured_bindable T, std::size_t depth>
+    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
+        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::tuple<
+                fmt::formatter<
+                    decorators::depthen_view_t<csl::tuplelike::element_t<indexes, T>, depth + 1>
+                >...
+            >{};
+        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+    }
+}
+// formatter: depthen_view_t (structured-bindable)
+template <csl::ag::concepts::structured_bindable T, std::size_t depth, typename Char>
+class fmt::formatter<
+    csl::ag::io::details::decorators::depthen_view_t<T, depth>,
+    Char
+>{
 
+    using formatters_t = std::remove_cvref_t<decltype(deduce_formatters_type<T, depth>())>;
+    formatters_t formatters;
+
+    // QUESTION: brackets, separator ?
+    // fmt::basic_string_view<Char>
+    //     opening_bracket = "{",
+    //     closing_bracket = "}"
+    // ;
+
+public:
+
+    using csl_ag_io_decorator = void;
+
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        auto it = ctx.begin();
+        csl::tuplelike::for_each(
+            formatters,
+            [&](auto && formatter) constexpr { it = formatter.parse(ctx); }
+        );
+        // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        //     ((it = std::get<indexes>(formatters).parse(ctx)), ...);
+        // }(std::make_index_sequence<csl::ag::size_v<T>>{});
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(const T & value, FormatContext& ctx) const {
+
+        // fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
+        ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to_(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // TODO(Guillaume) csl::typeinfo::type_name_v<T>
+        ctx.advance_to_(fmt::detail::copy<Char>(": {\n", ctx.out()));
+
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((
+                ctx.advance_to(fmt::detail::copy<char>(
+                    fmt::basic_string_view<char>{ (indexes > 0) ? ",\n" : "" }
+                    , ctx.out())
+                ),
+                std::get<indexes>(formatters).format(
+                    csl::tuplelike::get<indexes>(value),
+                    ctx
+                )
+            ), ...);
+        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+
+        ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to_(fmt::detail::copy<Char>("}", ctx.out()));
+        return ctx.out();
+    }
+};
+#pragma endregion
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
