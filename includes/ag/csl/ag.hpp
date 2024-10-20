@@ -176,6 +176,13 @@ namespace csl::ag::concepts {
         typename std::tuple_element_t<N, std::remove_const_t<T>>;
         { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
     };
+    namespace details {
+        // QUICK-FIX: Clang >= 18.1.8 Same mangled name error
+        template <typename T>
+        constexpr static auto valid_tuple_elements_v = []<std::size_t... I>(std::index_sequence<I...>) constexpr {
+            return (true and ... and tuple_element<T, I>);
+        }(std::make_index_sequence<std::tuple_size_v<T>>{});
+    }
     template <typename T>
     concept tuple_like =
         not std::is_reference_v<T>
@@ -183,9 +190,10 @@ namespace csl::ag::concepts {
             typename std::tuple_size<T>::type;
             requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
         }
-        and []<std::size_t... I>(std::index_sequence<I...>) {
-            return (tuple_element<T, I> && ...);
-        }(std::make_index_sequence<std::tuple_size_v<T>>{})
+        and details::valid_tuple_elements_v<T>
+        // and []<std::size_t... I>(std::index_sequence<I...>) constexpr {
+        //     return (tuple_element<T, I> && ...);
+        // }(std::make_index_sequence<std::tuple_size_v<T>>{})
     ;
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
@@ -279,7 +287,7 @@ namespace csl::ag::details {
         
         constexpr auto size = std::tuple_size_v<tuple_t>;
         static_assert(size == sizeof...(values));
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return std::forward_as_tuple(
                 static_cast<mp::field_view_t<owner_type, std::tuple_element_t<indexes, tuple_t>>>(values)...
             );
@@ -1150,9 +1158,12 @@ namespace csl::ag::io {
     static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
 #elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
 
+#pragma message("[csl::ag] CSL_AG__ENABLE_FMTLIB_SUPPORT - enabled")
+
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
 
+// TODO(Guillaume): Cleanup - trim the extra/useless parts
 namespace csl::ag::details::mp {
 	template <typename>
 	struct is_std_array : std::false_type{};
@@ -1183,7 +1194,7 @@ class fmt::formatter<T, Char> {
 
 public:
 
-    using csl_ag_io_decorator = void;
+    using csl_ag_product = void;
 
     constexpr formatter(){
         formatter_.set_brackets("{", "}");
@@ -1207,16 +1218,16 @@ namespace csl::ag::io::details::decorators {
 
     template <typename T>
     struct typenamed_view_t {
-        using is_decorator = void;
+        using csl_ag_io_decorator = void;
     };
     template <typename T>
     struct indexed_view_t {
-        using is_decorator = void;
+        using csl_ag_io_decorator = void;
     };
     template <typename T, std::size_t I = 0>
     requires std::same_as<T, std::remove_cvref_t<T>>
     struct depthen_view_t {
-        using is_decorator = void;
+        using csl_ag_io_decorator = void;
 
         explicit operator const T&() const { return value; }
         const T & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
@@ -1247,7 +1258,7 @@ class fmt::formatter<
     fmt::formatter<T, Char> value_formatter;
 public:
 
-    using csl_ag_io_decorator = void;
+    using csl_ag_product = void;
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
         return value_formatter.parse(ctx);
@@ -1264,12 +1275,13 @@ public:
 };
 
 namespace csl::ag::io::details {
-    template <csl::ag::concepts::structured_bindable T, std::size_t depth>
+    template <csl::ag::concepts::structured_bindable T, std::size_t depth, typename Char>
     [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
         return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::tuple<
                 fmt::formatter<
-                    decorators::depthen_view_t<csl::tuplelike::element_t<indexes, T>, depth + 1>
+                    decorators::depthen_view_t<csl::tuplelike::element_t<indexes, T>, depth + 1>,
+                    Char
                 >...
             >{};
         }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
@@ -1282,7 +1294,7 @@ class fmt::formatter<
     Char
 >{
 
-    using formatters_t = std::remove_cvref_t<decltype(deduce_formatters_type<T, depth>())>;
+    using formatters_t = std::remove_cvref_t<decltype(csl::ag::io::details::deduce_formatters_type<T, depth, Char>())>;
     formatters_t formatters;
 
     // QUESTION: brackets, separator ?
@@ -1293,7 +1305,7 @@ class fmt::formatter<
 
 public:
 
-    using csl_ag_io_decorator = void;
+    using csl_ag_product = void;
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
         auto it = ctx.begin();
@@ -1335,6 +1347,15 @@ public:
 };
 #pragma endregion
 
+namespace csl::ag::io {
+    struct indented_t {};
+    constexpr inline static indented_t indented{};
+    template <csl::ag::concepts::aggregate T>
+    [[nodiscard]] auto operator|(const T & value, indented_t){
+        return details::decorators::depthen_view_t{ .value = value };
+    }
+}
+
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
 // TODO(Guss) Opt-in std::format support
@@ -1345,8 +1366,8 @@ public:
 
 namespace csl::ag::concepts {
     template <typename T>
-    concept csl_product = requires {
-        typename T::csl_product;
+    concept produced = requires {
+        typename T::csl_ag_product;
     };
 }
 
