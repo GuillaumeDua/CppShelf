@@ -39,7 +39,6 @@ namespace tests::concepts {
 
 #include <cassert> // TODO(Guillaume): GoogleTest or Catch2 test-suite -> one test per type
 #include <fmt/core.h>
-#include <fmt/compile.h>
 
 namespace test::ag::io {
     template <typename T>
@@ -89,11 +88,6 @@ namespace test::ag::io {
 #include <tuple>
 #include <type_traits>
 
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload (Ts...) -> overload<Ts...>;
-
-#include <fmt/ranges.h>
-
 auto main() -> int {
     using namespace test::ag;
     namespace types = test::ag::types::owning;
@@ -106,9 +100,9 @@ auto main() -> int {
         // std::type_identity<types::two_fields_inheritance>{},
     };
 
-    []<csl::ag::io::concepts::formattable ... Ts>(std::tuple<std::type_identity<Ts>...>){
-        ((io::check(io::piece<Ts>{})), ...);
-    }(to_test);
+    // []<csl::ag::io::concepts::formattable ... Ts>(std::tuple<std::type_identity<Ts>...>){
+    //     ((io::check(io::piece<Ts>{})), ...);
+    // }(to_test);
 
 
     // WIP
@@ -123,9 +117,13 @@ auto main() -> int {
         }
     };
     static_assert(csl::ag::concepts::aggregate<std::remove_cvref_t<decltype(value)>>);
+    static_assert(csl::ag::concepts::structured_bindable<std::remove_cvref_t<decltype(value)>>);
 
     using namespace csl::ag::io;
-    fmt::println("default    : [{}]", value);
+    fmt::println("default    : [{}]",  test::ag::types::owning::one_field{});
+    fmt::println("indented   : [{}]", test::ag::types::owning::one_field{} | indented);
+
+    // fmt::println("default    : [{}]", value);
     // fmt::println("indented   : [{}]", value | indented);
 
     // fmt::println("compact    : [{:c}]", value);
@@ -134,5 +132,4 @@ auto main() -> int {
     // fmt::println("pretty(I)  : [\n{:i,I}\n]", value);
     // fmt::println("pretty(T)  : [\n{:i,T}\n]", value);
     // fmt::println("pretty(IT) : [\n{:i,IT}\n]", value);
-    
 }

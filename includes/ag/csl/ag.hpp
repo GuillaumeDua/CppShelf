@@ -763,9 +763,9 @@ namespace csl::ag {
     }
 
     // TODO(Guss)
-    // conversion factory. unfold into an either complete or template type T
+    // transformation/conversion factory. unfold into an either complete or template type T
     // interally performs get<Ts>... (requires unique<Ts...>)
-    // motivation: struct { int; string } => struct { string; int }
+    // motivation: struct { int; string } => struct { string; int } with to_string/from_chars
     //
     // use type-qualifier/decorator orderer/unordered ?
     // ex:
@@ -1150,35 +1150,16 @@ namespace csl::ag::io {
 }
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-// Opt-in fmt support
-//	wip : https://godbolt.org/z/Enj5nTzj6
-//  wip (presentation) : https://godbolt.org/z/qfTMoT7fo
-//		see https://github.com/GuillaumeDua/CppShelf/issues/57
+// Opt-in: fmt support
+// TODO(Guillaume): Cleanup - trim the extra/useless parts
 #if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and not __has_include(<fmt/format.h>)
     static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
-#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
+#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
 
 #pragma message("[csl::ag] CSL_AG__ENABLE_FMTLIB_SUPPORT - enabled")
 
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
-
-// TODO(Guillaume): Cleanup - trim the extra/useless parts
-namespace csl::ag::details::mp {
-	template <typename>
-	struct is_std_array : std::false_type{};
-	template <typename T, std::size_t N>
-	struct is_std_array<std::array<T, N>> : std::true_type{};
-}
-namespace csl::ag::io::concepts {
-	template <typename T>
-	concept formattable = 
-		csl::ag::concepts::aggregate<T> and
-		(not std::is_array_v<T>) and
-		(not csl::ag::details::mp::is_std_array<T>::value)
-        // QUESTION: and not is_std_tuple ?
-	;
-}
 
 // DESIGN: See #134, #262
 // WIP: Solution: merge
@@ -1229,7 +1210,7 @@ namespace csl::ag::io::details::decorators {
     struct depthen_view_t {
         using csl_ag_io_decorator = void;
 
-        explicit operator const T&() const { return value; }
+        /*explicit*/ operator const T&() const { return value; }
         const T & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
         constexpr static std::size_t depth = I;
     };
@@ -1287,8 +1268,13 @@ namespace csl::ag::io::details {
         }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
     }
 }
+
 // formatter: depthen_view_t (structured-bindable)
-template <csl::ag::concepts::structured_bindable T, std::size_t depth, typename Char>
+template <
+    csl::ag::concepts::structured_bindable T,
+    std::size_t depth,
+    typename Char
+>
 class fmt::formatter<
     csl::ag::io::details::decorators::depthen_view_t<T, depth>,
     Char
@@ -1323,9 +1309,9 @@ public:
     auto format(const T & value, FormatContext& ctx) const {
 
         // fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
-        ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
-        ctx.advance_to_(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // TODO(Guillaume) csl::typeinfo::type_name_v<T>
-        ctx.advance_to_(fmt::detail::copy<Char>(": {\n", ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // TODO(Guillaume) csl::typeinfo::type_name_v<T>
+        ctx.advance_to(fmt::detail::copy<Char>(": {\n", ctx.out()));
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
@@ -1361,7 +1347,7 @@ namespace csl::ag::io {
 // TODO(Guss) Opt-in std::format support
 #if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and not __has_include(<format>)
     static_assert(false, "csl::ag: [CSL_AG_ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing. Did you forget a dependency ?");
-#elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT)
+#elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
 #endif // CSL_AG__ENABLE_FORMAT_SUPPORT
 
 namespace csl::ag::concepts {
