@@ -1210,7 +1210,7 @@ namespace csl::ag::io::details::decorators {
     struct depthen_view_t {
         using csl_ag_io_decorator = void;
 
-        /*explicit*/ operator const T&() const { return value; }
+        /*explicit*/ operator const T&() const { return value; } // NOLINT(*-explicit-constructor)
         const T & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
         constexpr static std::size_t depth = I;
     };
@@ -1218,9 +1218,36 @@ namespace csl::ag::io::details::decorators {
     depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
 }
 namespace csl::ag::io::details {
+
+    template <typename Char, Char... C>
+    class string_literal {
+        static constexpr Char value[sizeof...(C)] = {C...}; // NOLINT(*-c-arrays)
+    public:
+        constexpr operator std::basic_string_view<Char>() const // NOLINT(*-explicit-constructor)
+        {
+            return {value, sizeof...(C)};
+        }
+    };
+    template <typename Char>
+    struct string_literal<Char> {
+        constexpr operator std::basic_string_view<Char>() const // NOLINT(*-explicit-constructor)
+        {
+            return {};
+        }
+    };
+
+    template <typename Char, std::size_t size>
+    struct make_indentation {
+        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return string_literal<Char, ((void)indexes, ' ')...>{};
+        }(std::make_index_sequence<size>{});
+    };
+    template <typename Char, std::size_t size>
+    constexpr static inline auto make_indentation_v = make_indentation<Char, size>::value;
+
     // REFACTO: as CMake/PP arg, or fmt::formatter::parse argument
     template <typename Char, std::size_t depth>
-    constexpr inline static auto indentation_v = std::basic_string<Char>(depth * 3, ' ');
+    constexpr inline static auto indentation_v = make_indentation_v<Char, depth * 3>;
 }
 
 #include <typeinfo> // TODO(Guillaume): replace with csl::typeinfo
@@ -1245,12 +1272,13 @@ public:
         return value_formatter.parse(ctx);
     }
 
+    // QUESTION: depthen_view_t instead of T ?
     template <typename FormatContext>
     auto format(const T & value, FormatContext& ctx) const {
         // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
-        ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
-        ctx.advance_to_(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
-        ctx.advance_to_(fmt::detail::copy<Char>(": ", ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         return value_formatter.format(value, ctx);
     }
 };
@@ -1310,8 +1338,8 @@ public:
 
         // fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(typeid(T).name(), ctx.out())); // TODO(Guillaume) csl::typeinfo::type_name_v<T>
-        ctx.advance_to(fmt::detail::copy<Char>(": {\n", ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
