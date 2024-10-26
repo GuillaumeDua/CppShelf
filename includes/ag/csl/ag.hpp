@@ -1217,23 +1217,26 @@ namespace csl::ag::io::details::decorators {
     template <typename T, std::size_t I = 0>
     depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
 }
+namespace csl::ag::io::details::concepts {
+    template <typename T, typename Char>
+    concept string_view_of =
+        std::same_as<T, std::basic_string_view<Char>>
+    or  std::same_as<T, fmt::basic_string_view<Char>>
+    ;
+}
 namespace csl::ag::io::details {
 
     template <typename Char, Char... C>
     class string_literal {
         static constexpr Char value[sizeof...(C)] = {C...}; // NOLINT(*-c-arrays)
     public:
-        constexpr operator std::basic_string_view<Char>() const // NOLINT(*-explicit-constructor)
-        {
-            return {value, sizeof...(C)};
-        }
+        template <concepts::string_view_of<Char> T>
+        constexpr operator T() const { return {value, sizeof...(C)}; } // NOLINT(*-explicit-constructor)
     };
     template <typename Char>
     struct string_literal<Char> {
-        constexpr operator std::basic_string_view<Char>() const // NOLINT(*-explicit-constructor)
-        {
-            return {};
-        }
+        template <concepts::string_view_of<Char> T>
+        constexpr operator T() const { return {}; }// NOLINT(*-explicit-constructor)
     };
 
     template <typename Char, std::size_t size>
@@ -1276,7 +1279,7 @@ public:
     template <typename FormatContext>
     auto format(const T & value, FormatContext& ctx) const {
         // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
-        ctx.advance_to(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         return value_formatter.format(value, ctx);
@@ -1337,7 +1340,7 @@ public:
     auto format(const T & value, FormatContext& ctx) const {
 
         // fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
-        ctx.advance_to(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
 
@@ -1354,8 +1357,8 @@ public:
             ), ...);
         }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
 
-        ctx.advance_to_(fmt::detail::copy<Char>(csl::ag::io::details::indentation_v<Char, depth>, ctx.out()));
-        ctx.advance_to_(fmt::detail::copy<Char>("}", ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{"}"}, ctx.out()));
         return ctx.out();
     }
 };
