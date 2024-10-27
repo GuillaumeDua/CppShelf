@@ -1191,6 +1191,7 @@ public:
     }
 };
 
+// decorators
 namespace csl::ag::io::details::concepts {
     template <typename T>
     concept decorator = requires { T::csl_ag_io_decorator; };
@@ -1217,6 +1218,8 @@ namespace csl::ag::io::details::decorators {
     template <typename T, std::size_t I = 0>
     depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
 }
+
+// string literals
 namespace csl::ag::io::details::concepts {
     template <typename T, typename Char>
     concept string_view_of =
@@ -1228,7 +1231,7 @@ namespace csl::ag::io::details {
 
     template <typename Char, Char... C>
     class string_literal {
-        static constexpr Char value[sizeof...(C)] = {C...}; // NOLINT(*-c-arrays)
+        static constexpr Char value[sizeof...(C)] = { C... }; // NOLINT(*-c-arrays)
     public:
         template <concepts::string_view_of<Char> T>
         constexpr operator T() const { return {value, sizeof...(C)}; } // NOLINT(*-explicit-constructor)
@@ -1253,7 +1256,7 @@ namespace csl::ag::io::details {
     constexpr inline static auto indentation_v = make_indentation_v<Char, depth * 3>;
 }
 
-#include <typeinfo> // TODO(Guillaume): replace with csl::typeinfo
+#include <typeinfo> // TODO(Guillaume): replace with csl::typeinfo -> as a strategy (policy) or opt-in
 
 #pragma region // depth-aware formatter - indentation formatting
 // formatter: depthen_view_t (non-structured-bindable T)
@@ -1272,7 +1275,10 @@ public:
     using csl_ag_product = void;
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
-        return value_formatter.parse(ctx);
+        // return value_formatter.parse(ctx);
+        auto it = ctx.begin();
+        detail::parse_empty_specs<Char>{ctx}(value_formatter);
+        return it;
     }
 
     // QUESTION: depthen_view_t instead of T ?
@@ -1325,11 +1331,13 @@ public:
     using csl_ag_product = void;
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
+
         auto it = ctx.begin();
         csl::tuplelike::for_each(
             formatters,
             [&](auto && formatter) constexpr { it = formatter.parse(ctx); }
         );
+        // equivalent to:
         // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
         //     ((it = std::get<indexes>(formatters).parse(ctx)), ...);
         // }(std::make_index_sequence<csl::ag::size_v<T>>{});

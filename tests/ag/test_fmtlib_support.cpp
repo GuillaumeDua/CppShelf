@@ -99,6 +99,16 @@ namespace test::ag::io {
 #include <tuple>
 #include <type_traits>
 
+/*
+    What to test ?
+
+    - dispatched to the right underlying formatter (ex: char -> ['\x00'] vs. [], ranges -> [{a,b,c}] vs. [a,b,c], etc.)
+
+    - default formatter
+    - default formatter with :n parse
+    - indented
+*/
+
 auto main() -> int {
     using namespace test::ag;
     namespace types = test::ag::types::owning;
@@ -130,7 +140,16 @@ auto main() -> int {
     static_assert(csl::ag::concepts::aggregate<std::remove_cvref_t<decltype(value)>>);
     static_assert(csl::ag::concepts::structured_bindable<std::remove_cvref_t<decltype(value)>>);
 
+    fmt::println("{}, {}", char{}, 'a');
+    fmt::println("{}, {}", std::tuple{char{}}, std::tuple{ 'a'});
+    fmt::println("{}, {}", std::vector{char{}}, std::vector{'a'});
+
     using namespace csl::ag::io;
+    fmt::println(
+        "Chars: {}, {}",
+        csl::ag::io::details::decorators::depthen_view_t{char{}},
+        csl::ag::io::details::decorators::depthen_view_t{'a'}
+    );
     fmt::println("default    : [{}]",  test::ag::types::owning::two_fields{});
     fmt::println("indented   : [{}]", test::ag::types::owning::two_fields{} | indented);
 
