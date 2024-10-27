@@ -1339,10 +1339,10 @@ public:
     template <typename FormatContext>
     auto format(const T & value, FormatContext& ctx) const {
 
-        // fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
+        // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": {\n"}, ctx.out()));
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
@@ -1357,6 +1357,8 @@ public:
             ), ...);
         }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
 
+        // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("\n{: ^{}}}}"), "", depth * 3);
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{"\n"}, ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{"}"}, ctx.out()));
         return ctx.out();
