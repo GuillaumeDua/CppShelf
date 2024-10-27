@@ -24,13 +24,24 @@ namespace test::ag::types::owning {
         std::pair<int, int> p;
     };
 
-    // struct two_fields_inheritance : two_fields { }; // decomposes into 2 elements, but only 1 name was provided
+    // BUG: struct two_fields_inheritance : two_fields { }; // decomposes into 2 elements, but only 1 name was provided
 }
 
 namespace tests::concepts {
     namespace types = test::ag::types::owning;
+
     static_assert(csl::ag::concepts::produced<fmt::formatter<types::one_field>>);
+    static_assert(csl::ag::concepts::produced<fmt::formatter<types::two_fields>>);
+    static_assert(csl::ag::concepts::produced<fmt::formatter<types::nested>>);
+    static_assert(csl::ag::concepts::produced<fmt::formatter<types::nested_std_tuplelike>>);
+
+    // not impacting <fmt/format.h>
     static_assert(not csl::ag::concepts::produced<fmt::formatter<int>>);
+    // not impacting <fmt/ranges.h>
+    static_assert(not csl::ag::concepts::produced<fmt::formatter<std::string>>);
+    static_assert(not csl::ag::concepts::produced<fmt::formatter<std::vector<int>>>);
+    static_assert(not csl::ag::concepts::produced<fmt::formatter<std::vector<types::one_field>>>);
+    // not impacting <fmt/ranges.h> - tuplelikes
     static_assert(not csl::ag::concepts::produced<fmt::formatter<std::tuple<int>>>);
     static_assert(not csl::ag::concepts::produced<fmt::formatter<std::array<int, 3>>>);
 }
@@ -120,8 +131,8 @@ auto main() -> int {
     static_assert(csl::ag::concepts::structured_bindable<std::remove_cvref_t<decltype(value)>>);
 
     using namespace csl::ag::io;
-    fmt::println("default    : [{}]",  test::ag::types::owning::one_field{});
-    fmt::println("indented   : [{}]", test::ag::types::owning::one_field{} | indented);
+    fmt::println("default    : [{}]",  test::ag::types::owning::two_fields{});
+    fmt::println("indented   : [{}]", test::ag::types::owning::two_fields{} | indented);
 
     // fmt::println("default    : [{}]", value);
     // fmt::println("indented   : [{}]", value | indented);
