@@ -1256,7 +1256,25 @@ namespace csl::ag::io::details {
     constexpr inline static auto indentation_v = make_indentation_v<Char, depth * 3>;
 }
 
-#include <typeinfo> // TODO(Guillaume): replace with csl::typeinfo -> as a strategy (policy) or opt-in
+#pragma region typeinfo
+
+#if defined(CSL_AG__ENABLE_CSL_TYPEINFO) and CSL_AG__ENABLE_CSL_TYPEINFO
+# if not __has_include(<csl/typeinfo.hpp>)
+#  error "CSL_AG__ENABLE_CSL_TYPEINFO is ON, but <csl/typeinfo.hpp> is missing"
+namespace csl::ag::io::details {
+    template <typename T>
+    constexpr inline static std::string_view type_name_v = csl::typeinfo::type_name_v<T>;
+}
+# endif
+#else
+# include <typeinfo>
+namespace csl::ag::io::details {
+    template <typename T>
+    const inline static std::string_view type_name_v = typeid(T).name();
+}
+#endif
+
+#pragma endregion
 
 #pragma region // depth-aware formatter - indentation formatting
 // formatter: depthen_view_t (non-structured-bindable T)
@@ -1281,12 +1299,12 @@ public:
         return it;
     }
 
-    // QUESTION: depthen_view_t instead of T ?
+    // QUESTION: depthen_view_t instead of T ? (remove implicit cast)
     template <typename FormatContext>
     auto format(const T & value, FormatContext& ctx) const {
         // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         return value_formatter.format(value, ctx);
     }
@@ -1332,6 +1350,8 @@ public:
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
 
+        // TODO(Guillaume): {:n} -> set brackets to ""sv
+
         auto it = ctx.begin();
         csl::tuplelike::for_each(
             formatters,
@@ -1349,7 +1369,7 @@ public:
 
         // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{typeid(T).name()}, ctx.out())); // TODO(Guillaume): csl::typeinfo::type_name_v<T>
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": {\n"}, ctx.out()));
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){

@@ -49,7 +49,6 @@ namespace tests::concepts {
 // WIP: check possible clash with user-defined formatters -> complete, partial/generics, etc.
 
 #include <cassert> // TODO(Guillaume): GoogleTest or Catch2 test-suite -> one test per type
-#include <fmt/core.h>
 
 namespace test::ag::io {
     template <typename T>
@@ -99,7 +98,7 @@ namespace test::ag::io {
 #include <tuple>
 #include <type_traits>
 
-/*
+/*  // WIP
     What to test ?
 
     - dispatched to the right underlying formatter (ex: char -> ['\x00'] vs. [], ranges -> [{a,b,c}] vs. [a,b,c], etc.)
@@ -141,7 +140,8 @@ auto main() -> int {
     static_assert(csl::ag::concepts::structured_bindable<std::remove_cvref_t<decltype(value)>>);
 
     fmt::println("{}, {}", char{}, 'a');
-    fmt::println("{}, {}", std::tuple{char{}}, std::tuple{ 'a'});
+    fmt::println("{}, {}", std::tuple{char{}}, std::tuple{ 'a' });
+    fmt::println("{:n}, {:n}", std::tuple{char{}}, std::tuple{ 'a' });
     fmt::println("{}, {}", std::vector{char{}}, std::vector{'a'});
 
     using namespace csl::ag::io;
