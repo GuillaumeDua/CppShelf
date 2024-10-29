@@ -1166,6 +1166,12 @@ namespace csl::ag::io {
 //  formatters: https://godbolt.org/z/ob1Prz9aq
 //      and     https://godbolt.org/z/fsz39c8ah
 
+namespace csl::ag::io::details {
+    template <typename Char> constexpr inline static fmt::basic_string_view<Char> opening_bracket_v = "{";
+    template <typename Char> constexpr inline static fmt::basic_string_view<Char> closing_bracket_v = "}";
+    template <typename Char> constexpr inline static fmt::basic_string_view<Char> separator_v = ", ";
+}
+
 // aggregate formatter
 template <csl::ag::concepts::aggregate T, typename Char>
 requires (not fmt::is_range<T, Char>::value)
@@ -1178,8 +1184,14 @@ public:
     using csl_ag_product = void;
 
     constexpr formatter(){
-        formatter_.set_brackets("{", "}");
-        formatter_.set_separator(", ");
+        namespace style = csl::ag::io::details;
+        formatter_.set_brackets(
+            style::opening_bracket_v<Char>,
+            style::closing_bracket_v<Char>
+        );
+        formatter_.set_separator(
+            style::separator_v<Char>
+        );
     }
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
@@ -1338,11 +1350,11 @@ class fmt::formatter<
     using formatters_t = std::remove_cvref_t<decltype(csl::ag::io::details::deduce_formatters_type<T, depth, Char>())>;
     formatters_t formatters;
 
-    // QUESTION: brackets, separator ?
-    // fmt::basic_string_view<Char>
-    //     opening_bracket = "{",
-    //     closing_bracket = "}"
-    // ;
+    fmt::basic_string_view<Char>
+        opening_bracket = csl::ag::io::details::opening_bracket_v<Char>,
+        closing_bracket = csl::ag::io::details::closing_bracket_v<Char>,
+        separator       = ",\n"
+    ;
 
 public:
 
@@ -1350,17 +1362,35 @@ public:
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
 
-        // TODO(Guillaume): {:n} -> set brackets to ""sv
-
         auto it = ctx.begin();
+        auto end = ctx.end();
+
+        if (it != end) {
+            if (detail::to_ascii(*it) == 'n') {
+                opening_bracket = {};
+                closing_bracket = {};
+                separator = "\n";
+                ++it;
+            }
+            if (it != end && *it != '}') {
+                if (*it != ':') report_error("invalid format specifier");
+                ++it;
+            }
+            ctx.advance_to(it);
+        }
+
+        // WIP: propagate {:n}
         csl::tuplelike::for_each(
             formatters,
-            [&](auto && formatter) constexpr { it = formatter.parse(ctx); }
+            [&](auto && formatter) constexpr {
+                it = formatter.parse(ctx);
+            }
         );
         // equivalent to:
         // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
         //     ((it = std::get<indexes>(formatters).parse(ctx)), ...);
         // }(std::make_index_sequence<csl::ag::size_v<T>>{});
+        ctx.advance_to(it);
         return it;
     }
 
@@ -1370,12 +1400,14 @@ public:
         // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": {\n"}, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(opening_bracket, ctx.out()));
+        *ctx.out()++ = '\n';
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
                 ctx.advance_to(fmt::detail::copy<char>(
-                    fmt::basic_string_view<char>{ (indexes > 0) ? ",\n" : "" }
+                    fmt::basic_string_view<char>{ (indexes > 0) ? separator : "" }
                     , ctx.out())
                 ),
                 std::get<indexes>(formatters).format(
@@ -1386,9 +1418,9 @@ public:
         }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
 
         // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("\n{: ^{}}}}"), "", depth * 3);
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{"\n"}, ctx.out()));
+        *ctx.out()++ = '\n';
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{"}"}, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(closing_bracket, ctx.out()));
         return ctx.out();
     }
 };

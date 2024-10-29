@@ -141,7 +141,7 @@ auto main() -> int {
 
     fmt::println("{}, {}", char{}, 'a');
     fmt::println("{}, {}", std::tuple{char{}}, std::tuple{ 'a' });
-    fmt::println("{:n}, {:n}", std::tuple{char{}}, std::tuple{ 'a' });
+    fmt::println("{:n}, {:n}", std::tuple{char{}, 42 }, std::tuple{ 'a', 42 });
     fmt::println("{}, {}", std::vector{char{}}, std::vector{'a'});
 
     using namespace csl::ag::io;
@@ -152,6 +152,8 @@ auto main() -> int {
     );
     fmt::println("default    : [{}]",  test::ag::types::owning::two_fields{});
     fmt::println("indented   : [{}]", test::ag::types::owning::two_fields{} | indented);
+    fmt::println("default    : [{:n}]",  test::ag::types::owning::two_fields{});
+    fmt::println("indented   : [{:n}]", test::ag::types::owning::two_fields{} | indented);
 
     // fmt::println("default    : [{}]", value);
     // fmt::println("indented   : [{}]", value | indented);
