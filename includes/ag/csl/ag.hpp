@@ -1166,6 +1166,17 @@ namespace csl::ag::io {
 //  formatters: https://godbolt.org/z/ob1Prz9aq
 //      and     https://godbolt.org/z/fsz39c8ah
 
+namespace csl::ag::io::type_traits {
+    template <typename T>
+    struct formatter_value_type;
+    template <typename T, typename Char>
+    struct formatter_value_type<fmt::formatter<T, Char>> : std::type_identity<T>{};
+    template <typename T>
+    using formatter_value_type_t = formatter_value_type<T>::type;
+}
+
+// TODO(Guillaume) per-style struct, default is set using a PP (possibly, cmake-provided variable)
+//  Might add an indent value project (like, -1 for instance)
 namespace csl::ag::io::details {
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> opening_bracket_v = "{";
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> closing_bracket_v = "}";
@@ -1342,6 +1353,7 @@ template <
     std::size_t depth,
     typename Char
 >
+// TODO(Guillaume) each elements requires fmt::is_formattable / fmt::has_formatter<T, fmt::format_context>::value
 class fmt::formatter<
     csl::ag::io::details::decorators::depthen_view_t<T, depth>,
     Char
@@ -1362,8 +1374,34 @@ public:
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
 
+        auto begin = ctx.begin();
         auto it = ctx.begin();
         auto end = ctx.end();
+
+        auto parse_empty_specs = detail::parse_empty_specs<Char>{ctx};
+
+        // WIP: propagate {:n}
+        /*
+        csl::tuplelike::for_each(
+            formatters,
+            [&](auto && formatter) constexpr {
+                using formatter_type = std::remove_cvref_t<decltype(formatter)>;
+                using formatter_value_type = csl::ag::io::type_traits::formatter_value_type_t<formatter_type>;
+                if constexpr (
+                    fmt::is_range<formatter_value_type, Char>::value
+                //or  csl::ag::concepts::structured_bindable<formatter_value_type>
+                ){
+                    static_assert([]() constexpr { return false; }());
+                    auto it_1 = formatter.parse(ctx);
+                    if (it != it_1)
+                        report_error("incompatible format specs for structured_bindable elements");
+                }
+                else {
+                 std::invoke(parse_empty_specs, formatter);
+                }
+            }
+        );
+        */
 
         if (it != end) {
             if (detail::to_ascii(*it) == 'n') {
@@ -1372,14 +1410,13 @@ public:
                 separator = "\n";
                 ++it;
             }
-            if (it != end && *it != '}') {
-                if (*it != ':') report_error("invalid format specifier");
+            if (it not_eq end && *it not_eq '}') {
+                if (*it not_eq ':') report_error("invalid format specifier");
                 ++it;
             }
             ctx.advance_to(it);
         }
 
-        // WIP: propagate {:n}
         csl::tuplelike::for_each(
             formatters,
             [&](auto && formatter) constexpr {
