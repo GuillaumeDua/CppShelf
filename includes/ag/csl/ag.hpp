@@ -1381,6 +1381,8 @@ public:
         auto parse_empty_specs = fmt::detail::parse_empty_specs<Char>{ctx};
 
         // WIP: propagate {:n}
+        // MVE: https://godbolt.org/z/4c375Y7vP
+        // Solution: https://godbolt.org/z/MYoPnoKcj
         /*
         csl::tuplelike::for_each(
             formatters,
