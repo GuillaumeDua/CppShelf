@@ -1378,7 +1378,7 @@ public:
         auto it = ctx.begin();
         auto end = ctx.end();
 
-        auto parse_empty_specs = detail::parse_empty_specs<Char>{ctx};
+        auto parse_empty_specs = fmt::detail::parse_empty_specs<Char>{ctx};
 
         // WIP: propagate {:n}
         /*
@@ -1404,14 +1404,14 @@ public:
         */
 
         if (it != end) {
-            if (detail::to_ascii(*it) == 'n') {
+            if (fmt::detail::to_ascii(*it) == 'n') {
                 opening_bracket = {};
                 closing_bracket = {};
                 separator = "\n";
                 ++it;
             }
             if (it not_eq end && *it not_eq '}') {
-                if (*it not_eq ':') report_error("invalid format specifier");
+                if (*it not_eq ':') fmt::report_error("invalid format specifier");
                 ++it;
             }
             ctx.advance_to(it);
