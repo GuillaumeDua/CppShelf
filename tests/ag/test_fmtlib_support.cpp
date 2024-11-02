@@ -151,17 +151,19 @@ auto main() -> int {
         csl::ag::io::details::decorators::depthen_view_t{'a'}
     );
 
-    fmt::println("\ntwo_fields:");
-    fmt::println("default      : [{}]",   test::ag::types::owning::two_fields{});
-    fmt::println("indented     : [{}]",   test::ag::types::owning::two_fields{} | indented);
-    fmt::println("default  (n) : [{:n}]", test::ag::types::owning::two_fields{});
-    fmt::println("indented (n) : [{:n}]", test::ag::types::owning::two_fields{} | indented);
+    fmt::println(fmt::runtime("indented (n) : [{:n}]"), test::ag::types::owning::two_fields{} | indented);
+    
+    // fmt::println("\ntwo_fields:");
+    // fmt::println("default      : [{}]",   test::ag::types::owning::two_fields{});
+    // fmt::println("indented     : [{}]",   test::ag::types::owning::two_fields{} | indented);
+    // fmt::println("default  (n) : [{:n}]", test::ag::types::owning::two_fields{});
+    // fmt::println("indented (n) : [{:n}]", test::ag::types::owning::two_fields{} | indented);
 
-    fmt::println("\nnested_std_tuplelike:");
-    fmt::println("default      : [{}]",   test::ag::types::owning::nested_std_tuplelike{});
-    fmt::println("indented     : [{}]",   test::ag::types::owning::nested_std_tuplelike{} | indented);
-    fmt::println("default  (n) : [{:n}]", test::ag::types::owning::nested_std_tuplelike{});
-    fmt::println("indented (n) : [{:n}]", test::ag::types::owning::nested_std_tuplelike{} | indented);
+    // fmt::println("\nnested_std_tuplelike:");
+    // fmt::println("default      : [{}]",   test::ag::types::owning::nested_std_tuplelike{});
+    // fmt::println("indented     : [{}]",   test::ag::types::owning::nested_std_tuplelike{} | indented);
+    // fmt::println("default  (n) : [{:n}]", test::ag::types::owning::nested_std_tuplelike{});
+    // fmt::println("indented (n) : [{:n}]", test::ag::types::owning::nested_std_tuplelike{} | indented);
     
 
     // fmt::println("default    : [{}]", value);

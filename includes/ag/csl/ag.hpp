@@ -1347,6 +1347,13 @@ namespace csl::ag::io::details {
     }
 }
 
+namespace csl::ag::io::type_traits {
+    template <typename T, std::size_t depth, typename Char>
+    struct formatter_value_type<
+        fmt::formatter<csl::ag::io::details::decorators::depthen_view_t<T, depth>, Char>
+    > : std::type_identity<T>{};
+}
+
 // formatter: depthen_view_t (structured-bindable)
 template <
     csl::ag::concepts::structured_bindable T,
@@ -1354,11 +1361,11 @@ template <
     typename Char
 >
 // TODO(Guillaume) each elements requires fmt::is_formattable / fmt::has_formatter<T, fmt::format_context>::value
+// TODO(Guillaume) T is not a decorators::depthen_view instead -> static_assert/fail-fast/strong-error
 class fmt::formatter<
     csl::ag::io::details::decorators::depthen_view_t<T, depth>,
     Char
 >{
-
     using formatters_t = std::remove_cvref_t<decltype(csl::ag::io::details::deduce_formatters_type<T, depth, Char>())>;
     formatters_t formatters;
 
@@ -1382,8 +1389,7 @@ public:
 
         // WIP: propagate {:n}
         // MVE: https://godbolt.org/z/4c375Y7vP
-        // Solution: https://godbolt.org/z/MYoPnoKcj
-        /*
+        // Solution: https://godbolt.org/z/P5ba8ejd9
         csl::tuplelike::for_each(
             formatters,
             [&](auto && formatter) constexpr {
@@ -1391,44 +1397,29 @@ public:
                 using formatter_value_type = csl::ag::io::type_traits::formatter_value_type_t<formatter_type>;
                 if constexpr (
                     fmt::is_range<formatter_value_type, Char>::value
-                //or  csl::ag::concepts::structured_bindable<formatter_value_type>
+                or  csl::ag::concepts::structured_bindable<formatter_value_type>
                 ){
-                    static_assert([]() constexpr { return false; }());
-                    auto it_1 = formatter.parse(ctx);
-                    if (it != it_1)
-                        report_error("incompatible format specs for structured_bindable elements");
+                    fmt::println("[{}] spreading format ...", typeid(formatter_value_type).name());
+                    auto ctx_copy = (ctx);
+                    formatter.parse(ctx_copy); // if not_eq end fmt::parse_error ?
                 }
                 else {
-                 std::invoke(parse_empty_specs, formatter);
+                    fmt::println("[{}] parse empty specs ...", typeid(formatter_value_type).name());
+                    std::invoke(parse_empty_specs, formatter);
                 }
             }
         );
-        */
 
-        if (it != end) {
-            if (fmt::detail::to_ascii(*it) == 'n') {
-                opening_bracket = {};
-                closing_bracket = {};
-                separator = "\n";
-                ++it;
-            }
-            if (it not_eq end && *it not_eq '}') {
-                if (*it not_eq ':') fmt::report_error("invalid format specifier");
-                ++it;
-            }
-            ctx.advance_to(it);
+        if (it not_eq end and fmt::detail::to_ascii(*it) == 'n') {
+            ++it;
+            opening_bracket = {};
+            closing_bracket = {};
+            separator = "\n";
         }
-
-        csl::tuplelike::for_each(
-            formatters,
-            [&](auto && formatter) constexpr {
-                it = formatter.parse(ctx);
-            }
-        );
-        // equivalent to:
-        // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        //     ((it = std::get<indexes>(formatters).parse(ctx)), ...);
-        // }(std::make_index_sequence<csl::ag::size_v<T>>{});
+        if (it not_eq end && *it not_eq '}') {
+            if (*it not_eq ':') fmt::report_error("invalid format specifier");
+            ++it;
+        }
         ctx.advance_to(it);
         return it;
     }
