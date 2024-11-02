@@ -1381,15 +1381,7 @@ public:
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
 
-        auto begin = ctx.begin();
-        auto it = ctx.begin();
-        auto end = ctx.end();
-
-        auto parse_empty_specs = fmt::detail::parse_empty_specs<Char>{ctx};
-
-        // WIP: propagate {:n}
-        // MVE: https://godbolt.org/z/4c375Y7vP
-        // Solution: https://godbolt.org/z/P5ba8ejd9
+        // propagate range/tuple-like formats - {:n}
         csl::tuplelike::for_each(
             formatters,
             [&](auto && formatter) constexpr {
@@ -1399,17 +1391,20 @@ public:
                     fmt::is_range<formatter_value_type, Char>::value
                 or  csl::ag::concepts::structured_bindable<formatter_value_type>
                 ){
-                    fmt::println("[{}] spreading format ...", typeid(formatter_value_type).name());
-                    auto ctx_copy = (ctx);
-                    formatter.parse(ctx_copy); // if not_eq end fmt::parse_error ?
+                    auto ctx_copy_lvalue = (ctx);
+                    formatter.parse(ctx_copy_lvalue); // if not_eq end fmt::parse_error ?
                 }
                 else {
-                    fmt::println("[{}] parse empty specs ...", typeid(formatter_value_type).name());
-                    std::invoke(parse_empty_specs, formatter);
+                    // auto parse_empty_specs = fmt::detail::parse_empty_specs<Char>{ctx};
+                    auto empty_context = fmt::format_parse_context({});
+                    formatter.parse(empty_context);
                 }
+                fmt::println("[{}] done.", typeid(formatter_value_type).name());
             }
         );
 
+        auto it = ctx.begin();
+        auto end = ctx.end();
         if (it not_eq end and fmt::detail::to_ascii(*it) == 'n') {
             ++it;
             opening_bracket = {};
