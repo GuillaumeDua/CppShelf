@@ -1399,7 +1399,6 @@ public:
                     auto empty_context = fmt::format_parse_context({});
                     formatter.parse(empty_context);
                 }
-                fmt::println("[{}] done.", typeid(formatter_value_type).name());
             }
         );
 
