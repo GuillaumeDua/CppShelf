@@ -84,20 +84,26 @@ Interface-safety related components, including a configurable **strong-type** im
 
 | Library       | C++17 | C++20 | C++23 |
 | ------------- | :---: | :---: | :---- |
-| 📦 ag         | ❌   | ✅   | -     |
+| 📦 ag         | ❌   | ✅   | ✅    |
 | 🌊 wf         | ❌   | ✅   | *planned*<br>[P1985 - Universal template parameters](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p1985r1.pdf)<br>[P0847 - Deducing this](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0847r5.html) |
 | 🧙‍♂️ mp         | ❌   | ✅   | -     |
-| 🔬 functional | ❌   | ✅   | -     |
-| 🔎 typeinfo   | ❌   | ✅   | -     |
-| ☔ ensure     | ✅   | ✅   | -     |
+| 🔬 functional | ❌   | ✅   | ✅    |
+| 🔎 typeinfo   | ❌   | ✅   | ✅    |
+| ☔ ensure     | ✅   | ✅   | ✅    |
+
+> 💡 Note that implementation details might changes from a version to another,  
+> and in some cases, the source file itself.
+>
+> For instance, we currently have:
+> `<csl/ensure.hpp>` which either includes `<csl/cxx_17/ensure.hpp>`, or `<csl/cxx_20/ensure.hpp>` when C++20 or greater is available.
 
 ### About C++17 support
 
-💡 Backward compatibility with **C++17** requires additional effort and IS NOT a priority for now, beside specific requests.  
+💡 Backward compatibility with **C++17** requires additional effort and **IS NOT a priority** for now, beside specific requests.  
 
 ### About C++23 support
 
-⚠️ Implementations details might change when **C++23** is [fully supported by compiliers](https://en.cppreference.com/w/cpp/compiler_support).  
+⚠️ Implementations details might change once specific **C++23** [features are supported](https://en.cppreference.com/w/cpp/compiler_support) by targeted compilers.  
 👉 See opened issue [tagged with C++23](https://github.com/GuillaumeDua/CppShelf/issues?q=is%3Aissue+is%3Aopen+label%3AC%2B%2B23).
 
 ## Supported compilers
@@ -174,6 +180,39 @@ void func(){
     using meters = csl::ensure::strong_type<int, struct meter_tag>;
     fmt::print(meters{ 42 });
 }
+```
+
+### In [Compiler Explorer](https://godbolt.org/)
+
+See [demonstration here](https://godbolt.org/z/4aGfEbf8d).
+
+```cpp
+#include <iostream>
+
+#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/typeinfo/csl/typeinfo.hpp>
+#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp>
+
+struct some_model {
+    char c = 'A';
+    int i = 42;
+};
+
+auto main() -> int {
+    std::cout
+        << csl::typeinfo::type_name_v<
+            csl::ag::element_t<0, some_model> // "char"
+           >
+    ;
+    return csl::ag::get<1>(some_model{}); // 42
+}
+```
+
+Possible output:
+
+```
+Program returned: 42
+Program stdout
+char
 ```
 
 ---
