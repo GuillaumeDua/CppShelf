@@ -1158,6 +1158,7 @@ namespace csl::ag::io {
 
 #pragma message("[csl::ag] CSL_AG__ENABLE_FMTLIB_SUPPORT - enabled")
 
+// # define FMT_TUPLE_JOIN_SPECIFIERS 1 // experimentale
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
 
@@ -1183,11 +1184,16 @@ namespace csl::ag::io::details {
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> separator_v = ", ";
 }
 
+// WIP: don't just wrap on fmt::formatter<tuplelike>,
+// but spread parse context: at least 'n' to other aggregates/ranges/tuplelikes
+// REFACTO with formatter<depth-aware-view>
+
 // aggregate formatter
 template <csl::ag::concepts::aggregate T, typename Char>
 requires (not fmt::is_range<T, Char>::value)
 class fmt::formatter<T, Char> {
 
+    static_assert(fmt::is_tuple_formattable<csl::ag::view_t<const T &>, Char>::value, "csl::ag: aggregate-as-tuple-view is not formattable");
     fmt::formatter<csl::ag::view_t<const T &>, Char> formatter_;
 
 public:
@@ -1206,6 +1212,8 @@ public:
     }
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
+        // warning: spreading the parse_context to underlying aggregates/tuples/ranges depends on FMT_TUPLE_JOIN_SPECIFIERS,
+        // which is experimentale
         return formatter_.parse(ctx);
     }
     template <typename FormatContext>

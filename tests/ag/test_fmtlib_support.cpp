@@ -48,54 +48,6 @@ namespace tests::concepts {
 
 // WIP: check possible clash with user-defined formatters -> complete, partial/generics, etc.
 
-#include <cassert> // TODO(Guillaume): GoogleTest or Catch2 test-suite -> one test per type
-
-namespace tests::ag::io {
-    template <typename T>
-    struct piece;
-
-    template <>
-    struct piece<tests::ag::types::one_field>{
-        constexpr static tests::ag::types::one_field value{ .i = 42 };
-        constexpr static std::string_view default_formatter_expected_result = "{42}";
-        constexpr static std::string_view default_formatter_n_expected_result = "{42}";
-        // TODO(Guillaume): expected_result_compact
-        // TODO(Guillaume): expected_result_default = expected_result_compact
-        // TODO(Guillaume): expected_result_pretty
-    };
-    template <>
-    struct piece<tests::ag::types::two_fields>{
-        constexpr static tests::ag::types::two_fields value{ .i = 42, .c = 'A' };
-        constexpr static std::string_view default_formatter_expected_result = "{42, A}";
-        constexpr static std::string_view default_formatter_n_expected_result = "{42, A}";
-    };
-    template <>
-    struct piece<tests::ag::types::nested>{
-        constexpr static tests::ag::types::nested value{
-            .i = 1,
-            .field_1 = { .i = 12 },
-            .field_2 = { .i = 123, .c = 'A'}
-        };
-        constexpr static std::string_view default_formatter_expected_result = "{1, {12}, {123, A}}";
-        constexpr static std::string_view default_formatter_n_expected_result = "{1, {12}, {123, A}}";
-    };
-    template <>
-    struct piece<tests::ag::types::nested_std_tuplelike>{
-        constexpr static tests::ag::types::nested_std_tuplelike value{
-            .b = true,
-            .sv = "hello",
-            .tu = { 2, 'b', "str"},
-            .a = {'a', 'b', 'c'},
-            .p = { 42, 43 }, // NOLINT
-        };
-        constexpr static std::string_view default_formatter_expected_result = "{true, hello, (2, b, str), [a, b, c], (42, 43)}";
-        constexpr static std::string_view default_formatter_n_expected_result = "{true, hello, (2, b, str), [a, b, c], (42, 43)}";
-    };
-}
-
-#include <tuple>
-#include <type_traits>
-
 /*  // WIP
     What to test ?
 
@@ -123,14 +75,14 @@ template <>
 struct csl_test_ag_FmtFormatAggregate<tests::ag::types::one_field> : public testing::Test {
     constexpr static tests::ag::types::one_field value{ .i = 42 };
     constexpr static std::string_view default_formatter_expected_result = "{42}";
-    constexpr static std::string_view default_formatter_n_expected_result = "{42}";
+    constexpr static std::string_view default_formatter_n_expected_result = "42";
 };
 
 template <>
 struct csl_test_ag_FmtFormatAggregate<tests::ag::types::two_fields> : public testing::Test {
     constexpr static tests::ag::types::two_fields value{ .i = 42, .c = 'A' };
-    constexpr static std::string_view default_formatter_expected_result = "{42, A}";
-    constexpr static std::string_view default_formatter_n_expected_result = "{42, A}";
+    constexpr static std::string_view default_formatter_expected_result = "{42, 'A'}";
+    constexpr static std::string_view default_formatter_n_expected_result = "42'A'";
 };
 template <>
 struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested> : public testing::Test {
@@ -139,8 +91,8 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested> : public testing
         .field_1 = { .i = 12 },
         .field_2 = { .i = 123, .c = 'A'}
     };
-    constexpr static std::string_view default_formatter_expected_result = "{1, {12}, {123, A}}";
-    constexpr static std::string_view default_formatter_n_expected_result = "{1, {12}, {123, A}}";
+    constexpr static std::string_view default_formatter_expected_result = "{1, {12}, {123, 'A'}}";
+    constexpr static std::string_view default_formatter_n_expected_result = "1, 12, 123, A";
 };
 template <>
 struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested_std_tuplelike> : public testing::Test {
@@ -151,8 +103,8 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested_std_tuplelike> : 
         .a = {'a', 'b', 'c'},
         .p = { 42, 43 }, // NOLINT
     };
-    constexpr static std::string_view default_formatter_expected_result = "{true, hello, (2, b, str), [a, b, c], (42, 43)}";
-    constexpr static std::string_view default_formatter_n_expected_result = "{true, hello, (2, b, str), [a, b, c], (42, 43)}";
+    constexpr static std::string_view default_formatter_expected_result = R"({true, hello, (2, 'b', "str"), ['a', 'b', 'c'], (42, 43)})";
+    constexpr static std::string_view default_formatter_n_expected_result = R"(true"hello"(2, 'b', "str")['a', 'b', 'c'](42, 43))";
 };
 #pragma endregion
 
