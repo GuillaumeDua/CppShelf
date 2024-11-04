@@ -1158,6 +1158,8 @@ namespace csl::ag::io {
 
 #pragma message("[csl::ag] CSL_AG__ENABLE_FMTLIB_SUPPORT - enabled")
 
+// NOTE: fmt >= 11 for :n tuple format
+//  yet, does not spread to nested values: https://godbolt.org/z/8c6n9Ye63
 // # define FMT_TUPLE_JOIN_SPECIFIERS 1 // experimentale
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
