@@ -1,4 +1,7 @@
 # --- Options ---
+cmake_policy(SET CMP0127 NEW)
+include(CMakeDependentOption)
+
 # CSL_AG__VERBOSE_BUILD
 option(CSL_AG__VERBOSE_BUILD "[${CMAKE_PROJECT_NAME}] csl::${component_name}: verbose build (might use additional useful build messages)" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__VERBOSE_BUILD set to [${CSL_AG__VERBOSE_BUILD}]")
@@ -61,6 +64,14 @@ if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
             message(ERROR "[${CMAKE_PROJECT_NAME}] csl::${component_name}: unexpected ill-formed fmt library")
         endif()
 endif()
+
+# CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT
+cmake_dependent_option(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable csl::typeinfo support"
+    ON
+    "EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/includes/typeinfo/csl/typeinfo.hpp"
+    OFF
+)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT set to [${CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT}]")
 
 # --- code generation ---
 
