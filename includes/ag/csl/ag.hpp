@@ -1186,8 +1186,9 @@ namespace csl::ag::io::details {
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> separator_v = ", ";
 }
 
-// WIP: don't just wrap on fmt::formatter<tuplelike>,
-// but spread parse context: at least 'n' to other aggregates/ranges/tuplelikes
+// TODO(Guillaume): {:n} support
+//  don't just wrap on fmt::formatter<tuplelike>,
+//  but spread parse context: at least 'n' to other aggregates/ranges/tuplelikes
 // REFACTO with formatter<depth-aware-view>
 
 // aggregate formatter
@@ -1214,7 +1215,7 @@ public:
     }
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
-        // warning: spreading the parse_context to underlying aggregates/tuples/ranges depends on FMT_TUPLE_JOIN_SPECIFIERS,
+        // WARNING: spreading the parse_context to underlying aggregates/tuples/ranges depends on FMT_TUPLE_JOIN_SPECIFIERS,
         // which is experimentale
         return formatter_.parse(ctx);
     }
@@ -1291,9 +1292,9 @@ namespace csl::ag::io::details {
 
 #pragma region typeinfo
 
-#if defined(CSL_AG__ENABLE_CSL_TYPEINFO) and CSL_AG__ENABLE_CSL_TYPEINFO
+#if defined(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT) and CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT
 # if not __has_include(<csl/typeinfo.hpp>)
-#  error "CSL_AG__ENABLE_CSL_TYPEINFO is ON, but <csl/typeinfo.hpp> is missing"
+#  error "CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT is ON, but <csl/typeinfo.hpp> is missing"
 namespace csl::ag::io::details {
     template <typename T>
     constexpr inline static std::string_view type_name_v = csl::typeinfo::type_name_v<T>;
