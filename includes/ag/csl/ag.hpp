@@ -1024,7 +1024,7 @@ namespace csl::tuplelike {
 
 #if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-static_assert(false, "(experimentale) CSL_AG__ENABLE_IOSTREAM_SUPPORT feature is disabled for now");
+static_assert(false, "(experimentale) [CSL_AG__ENABLE_IOSTREAM_SUPPORT] set to [true], but the feature is disabled by developers for now");
 
 // csl::ag::io
 // REFACTO: #134
@@ -1338,7 +1338,7 @@ public:
     auto format(const T & value, FormatContext& ctx) const {
         // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         return value_formatter.format(value, ctx);
     }
@@ -1434,7 +1434,7 @@ public:
 
         // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out()));
+        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
         ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(opening_bracket, ctx.out()));
         *ctx.out()++ = '\n';
