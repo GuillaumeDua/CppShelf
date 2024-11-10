@@ -76,7 +76,10 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::one_field> : public test
     constexpr static tests::ag::types::one_field value{ .i = 42 };
     constexpr static std::string_view default_formatter_expected_result = "{42}";
     constexpr static std::string_view default_formatter_n_expected_result = "42";
-    constexpr static std::string_view indented_formatter_expected_result = "42";
+    constexpr static std::string_view indented_formatter_expected_result =
+R"({
+   42
+})";
 };
 
 template <>

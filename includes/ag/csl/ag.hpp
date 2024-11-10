@@ -1276,10 +1276,16 @@ namespace csl::ag::io::details {
         constexpr operator T() const { return {}; }// NOLINT(*-explicit-constructor)
     };
 
+    namespace configuration::indentation {
+        template <typename Char>
+        constexpr inline static auto char_v = ' ';
+        constexpr inline static auto width_v = 3;
+    }
+
     template <typename Char, std::size_t size>
     struct make_indentation {
         constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return string_literal<Char, ((void)indexes, ' ')...>{};
+            return string_literal<Char, ((void)indexes, configuration::indentation::char_v<Char>)...>{};
         }(std::make_index_sequence<size>{});
     };
     template <typename Char, std::size_t size>
@@ -1287,21 +1293,24 @@ namespace csl::ag::io::details {
 
     // REFACTO: as CMake/PP arg, or fmt::formatter::parse argument
     template <typename Char, std::size_t depth>
-    constexpr inline static auto indentation_v = make_indentation_v<Char, depth * 3>;
+    constexpr inline static auto indentation_v = make_indentation_v<Char, depth * configuration::indentation::width_v>;
 }
 
 #pragma region typeinfo
 
+// opt-in csl::typeinfo integration
 #if defined(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT) and CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT
-# if not __has_include(<csl/typeinfo.hpp>)
-#  error "CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT is ON, but <csl/typeinfo.hpp> is missing"
+#    if not __has_include(<csl/typeinfo.hpp>)
+#        error "CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT is ON, but <csl/typeinfo.hpp> is missing"
+#    else
+#        include <csl/typeinfo.hpp>
 namespace csl::ag::io::details {
     template <typename T>
     constexpr inline static std::string_view type_name_v = csl::typeinfo::type_name_v<T>;
 }
-# endif
+#    endif
 #else
-# include <typeinfo>
+#    include <typeinfo>
 namespace csl::ag::io::details {
     template <typename T>
     const inline static std::string_view type_name_v = typeid(T).name();
@@ -1338,8 +1347,8 @@ public:
     auto format(const T & value, FormatContext& ctx) const {
         // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
+        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
+        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         return value_formatter.format(value, ctx);
     }
 };
@@ -1434,8 +1443,8 @@ public:
 
         // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
         ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
-        ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
+        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
+        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
         ctx.advance_to(fmt::detail::copy<Char>(opening_bracket, ctx.out()));
         *ctx.out()++ = '\n';
 
