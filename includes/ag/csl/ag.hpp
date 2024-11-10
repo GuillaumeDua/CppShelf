@@ -995,7 +995,7 @@ namespace csl::tuplelike {
             ), ...);
         }(std::make_index_sequence<csl::tuplelike::size_v<value_type>>{});
     }
-    // for_each_zipped (WIP)
+    // WIP - for_each_zipped
     template <typename... Ts>
     constexpr void for_each_zipped(auto&& f, Ts&&... tuple_likes) {
         constexpr std::size_t min_size = std::min({std::tuple_size_v<std::remove_reference_t<Ts>>...});
@@ -1171,12 +1171,30 @@ namespace csl::ag::io {
 //      and     https://godbolt.org/z/fsz39c8ah
 
 namespace csl::ag::io::type_traits {
+
+    // formatter_value_type
     template <typename T>
     struct formatter_value_type;
     template <typename T, typename Char>
     struct formatter_value_type<fmt::formatter<T, Char>> : std::type_identity<T>{};
     template <typename T>
     using formatter_value_type_t = formatter_value_type<T>::type;
+
+    // formatter_char_type
+    template <typename T>
+    struct formatter_char_type;
+    template <typename T, typename Char>
+    struct formatter_char_type<fmt::formatter<T, Char>> : std::type_identity<Char>{};
+    template <typename T>
+    using formatter_char_type_t = formatter_char_type<T>::type;
+
+    // is_formatter
+    template <typename T>
+    struct is_formatter : std::false_type{};
+    template <typename T, typename Char>
+    struct is_formatter<fmt::formatter<T, Char>> : std::true_type{};
+    template <typename T>
+    constexpr inline static auto is_formatter_v = is_formatter<T>::value;
 }
 
 // string literals
@@ -1186,6 +1204,17 @@ namespace csl::ag::io::details::concepts {
         std::same_as<T, std::basic_string_view<Char>>
     or  std::same_as<T, fmt::basic_string_view<Char>>
     ;
+
+    template <typename T>
+    concept formatter = type_traits::is_formatter_v<T>;
+
+    template <typename T>
+    concept rangelike_formatter = formatter<T>
+    and requires (const T & value){
+        { value.separator_       } -> string_view_of<type_traits::formatter_char_type_t<T>>;
+        { value.opening_bracket_ } -> string_view_of<type_traits::formatter_char_type_t<T>>;
+        { value.closing_bracket_ } -> string_view_of<type_traits::formatter_char_type_t<T>>;
+    };
 }
 
 // TODO(Guillaume) per-style struct, default is set using a PP (possibly, cmake-provided variable)
@@ -1210,6 +1239,7 @@ namespace csl::ag::io::details::configuration::style {
     }
 
     // WIP: keep opening brace of given formatter, if any
+    //  but it's private -> either access with an accessor, or set it with append
 }
 namespace csl::ag::io::details {
 
@@ -1251,8 +1281,11 @@ template <csl::ag::concepts::aggregate T, typename Char>
 requires (not fmt::is_range<T, Char>::value)
 class fmt::formatter<T, Char> {
 
-    static_assert(fmt::is_tuple_formattable<csl::ag::view_t<const T &>, Char>::value, "csl::ag: aggregate-as-tuple-view is not formattable");
-    fmt::formatter<csl::ag::view_t<const T &>, Char> formatter_;
+    using csl_view_t = csl::ag::view_t<const T &>;
+    using formatter_t = fmt::formatter<csl_view_t, Char>;
+    static_assert(fmt::is_tuple_formattable<csl_view_t, Char>::value, "csl::ag: aggregate-as-tuple-view is not formattable");
+    formatter_t formatter_;
+    static_assert(csl::ag::io::details::concepts::rangelike_formatter<formatter_t>);
 
 public:
 
