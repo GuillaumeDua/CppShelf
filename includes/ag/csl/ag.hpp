@@ -1160,7 +1160,8 @@ namespace csl::ag::io {
 
 // NOTE: fmt >= 11 for :n tuple format
 //  yet, does not spread to nested values: https://godbolt.org/z/8c6n9Ye63
-// # define FMT_TUPLE_JOIN_SPECIFIERS 1 // experimentale
+//  # define FMT_TUPLE_JOIN_SPECIFIERS 1 // experimentale
+//  QUESTION: should add a `:s` spread parse argument, to either enable or disable the spread of the indentation ?
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
 
@@ -1178,13 +1179,67 @@ namespace csl::ag::io::type_traits {
     using formatter_value_type_t = formatter_value_type<T>::type;
 }
 
+// string literals
+namespace csl::ag::io::details::concepts {
+    template <typename T, typename Char>
+    concept string_view_of =
+        std::same_as<T, std::basic_string_view<Char>>
+    or  std::same_as<T, fmt::basic_string_view<Char>>
+    ;
+}
+
 // TODO(Guillaume) per-style struct, default is set using a PP (possibly, cmake-provided variable)
 //  Might add an indent value project (like, -1 for instance)
-namespace csl::ag::io::details {
+//  ex: clang-format brace-wrapping, AlignAfterOpenBracket, etc. https://clang.llvm.org/docs/ClangFormatStyleOptions.html#bracewrapping
+//  For now, we emulates the following style:
+//      AlignAfterOpenBracket: BlockIndent # AlwaysBreak
+//      BraceWrapping*: Never/false
+//      BracedInitializerIndentWidth: 4
+//      UseTab: Never
+//      IndentWidth: 4
+//      TabWidth: 4
+namespace csl::ag::io::details::configuration::style {
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> opening_bracket_v = "{";
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> closing_bracket_v = "}";
     template <typename Char> constexpr inline static fmt::basic_string_view<Char> separator_v = ", ";
+
+    namespace indentation {
+        template <typename Char>
+        constexpr inline static auto char_v = ' ';
+        constexpr inline static auto width_v = 4;
+    }
+
+    // WIP: keep opening brace of given formatter, if any
 }
+namespace csl::ag::io::details {
+
+    template <typename Char, Char... C>
+    class string_literal {
+        static constexpr Char value[sizeof...(C)] = { C... }; // NOLINT(*-c-arrays)
+    public:
+        template <concepts::string_view_of<Char> T>
+        constexpr operator T() const { return {value, sizeof...(C)}; } // NOLINT(*-explicit-constructor)
+    };
+    template <typename Char>
+    struct string_literal<Char> {
+        template <concepts::string_view_of<Char> T>
+        constexpr operator T() const { return {}; }// NOLINT(*-explicit-constructor)
+    };
+
+    template <typename Char, std::size_t size>
+    struct make_indentation {
+        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return string_literal<Char, ((void)indexes, configuration::style::indentation::char_v<Char>)...>{};
+        }(std::make_index_sequence<size>{});
+    };
+    template <typename Char, std::size_t size>
+    constexpr static inline auto make_indentation_v = make_indentation<Char, size>::value;
+
+    // REFACTO: as CMake/PP arg, or fmt::formatter::parse argument
+    template <typename Char, std::size_t depth>
+    constexpr inline static auto indentation_v = make_indentation_v<Char, depth * configuration::style::indentation::width_v>;
+}
+
 
 // TODO(Guillaume): {:n} support
 //  don't just wrap on fmt::formatter<tuplelike>,
@@ -1204,7 +1259,7 @@ public:
     using csl_ag_product = void;
 
     constexpr formatter(){
-        namespace style = csl::ag::io::details;
+        namespace style = csl::ag::io::details::configuration::style;
         formatter_.set_brackets(
             style::opening_bracket_v<Char>,
             style::closing_bracket_v<Char>
@@ -1251,49 +1306,6 @@ namespace csl::ag::io::details::decorators {
     };
     template <typename T, std::size_t I = 0>
     depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
-}
-
-// string literals
-namespace csl::ag::io::details::concepts {
-    template <typename T, typename Char>
-    concept string_view_of =
-        std::same_as<T, std::basic_string_view<Char>>
-    or  std::same_as<T, fmt::basic_string_view<Char>>
-    ;
-}
-namespace csl::ag::io::details {
-
-    template <typename Char, Char... C>
-    class string_literal {
-        static constexpr Char value[sizeof...(C)] = { C... }; // NOLINT(*-c-arrays)
-    public:
-        template <concepts::string_view_of<Char> T>
-        constexpr operator T() const { return {value, sizeof...(C)}; } // NOLINT(*-explicit-constructor)
-    };
-    template <typename Char>
-    struct string_literal<Char> {
-        template <concepts::string_view_of<Char> T>
-        constexpr operator T() const { return {}; }// NOLINT(*-explicit-constructor)
-    };
-
-    namespace configuration::indentation {
-        template <typename Char>
-        constexpr inline static auto char_v = ' ';
-        constexpr inline static auto width_v = 3;
-    }
-
-    template <typename Char, std::size_t size>
-    struct make_indentation {
-        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return string_literal<Char, ((void)indexes, configuration::indentation::char_v<Char>)...>{};
-        }(std::make_index_sequence<size>{});
-    };
-    template <typename Char, std::size_t size>
-    constexpr static inline auto make_indentation_v = make_indentation<Char, size>::value;
-
-    // REFACTO: as CMake/PP arg, or fmt::formatter::parse argument
-    template <typename Char, std::size_t depth>
-    constexpr inline static auto indentation_v = make_indentation_v<Char, depth * configuration::indentation::width_v>;
 }
 
 #pragma region typeinfo
@@ -1390,8 +1402,8 @@ class fmt::formatter<
     formatters_t formatters;
 
     fmt::basic_string_view<Char>
-        opening_bracket = csl::ag::io::details::opening_bracket_v<Char>,
-        closing_bracket = csl::ag::io::details::closing_bracket_v<Char>,
+        opening_bracket = csl::ag::io::details::configuration::style::opening_bracket_v<Char>,
+        closing_bracket = csl::ag::io::details::configuration::style::closing_bracket_v<Char>,
         separator       = ",\n"
     ;
 

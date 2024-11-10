@@ -78,7 +78,7 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::one_field> : public test
     constexpr static std::string_view default_formatter_n_expected_result = "42";
     constexpr static std::string_view indented_formatter_expected_result =
 R"({
-   42
+    42
 })";
 };
 
@@ -87,7 +87,11 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::two_fields> : public tes
     constexpr static tests::ag::types::two_fields value{ .i = 42, .c = 'A' };
     constexpr static std::string_view default_formatter_expected_result = "{42, 'A'}";
     constexpr static std::string_view default_formatter_n_expected_result = "42'A'";
-    constexpr static std::string_view indented_formatter_expected_result = "{42, 'A'}";
+    constexpr static std::string_view indented_formatter_expected_result =
+R"({
+    42,
+    'A'
+})";
 };
 template <>
 struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested> : public testing::Test {
@@ -98,7 +102,17 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested> : public testing
     };
     constexpr static std::string_view default_formatter_expected_result = "{1, {12}, {123, 'A'}}";
     constexpr static std::string_view default_formatter_n_expected_result = "1{12}{123, 'A'}";
-    constexpr static std::string_view indented_formatter_expected_result = "{42, 'A'}";
+    constexpr static std::string_view indented_formatter_expected_result =
+R"({
+    1,
+    {
+        12
+    },
+    {
+        123,
+        'A'
+    }
+})";
 };
 template <>
 struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested_std_tuplelike> : public testing::Test {
@@ -111,7 +125,25 @@ struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested_std_tuplelike> : 
     };
     constexpr static std::string_view default_formatter_expected_result = R"({true, "hello", (2, 'b', "str"), ['a', 'b', 'c'], (42, 43)})";
     constexpr static std::string_view default_formatter_n_expected_result = R"(true"hello"(2, 'b', "str")['a', 'b', 'c'](42, 43))";
-    constexpr static std::string_view indented_formatter_expected_result = "{42, 'A'}";
+    constexpr static std::string_view indented_formatter_expected_result =
+R"({
+    true,
+    "hello",
+    (
+        2,
+        'b',
+        "str"
+    ),
+    [
+        'a',
+        'b',
+        'c'
+    ],
+    (
+        42,
+        43
+    )
+})";
 };
 #pragma endregion
 
