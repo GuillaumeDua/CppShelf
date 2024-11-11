@@ -1274,7 +1274,7 @@ namespace csl::ag::io::details {
     template <typename T, typename Char>
     requires fmt::is_range<T, Char>::value
     struct brackets<T, Char> {
-        fmt::basic_string_view<Char>
+        constexpr static fmt::basic_string_view<Char>
             opening_bracket = "[",
             closing_bracket = "]"
         ;
@@ -1282,7 +1282,7 @@ namespace csl::ag::io::details {
     template <typename T, typename Char>
     requires fmt::is_tuple_like<T>::value
     struct brackets<T, Char> {
-        fmt::basic_string_view<Char>
+        constexpr static fmt::basic_string_view<Char>
             opening_bracket = "(",
             closing_bracket = ")"
         ;
@@ -1290,7 +1290,7 @@ namespace csl::ag::io::details {
     template <csl::ag::concepts::aggregate T, typename Char>
     requires (not fmt::is_range<T, Char>::value)
     struct brackets<T, Char> {
-        fmt::basic_string_view<Char>
+        constexpr static fmt::basic_string_view<Char>
             opening_bracket = configuration::style::opening_bracket_v<Char>,
             closing_bracket = configuration::style::closing_bracket_v<Char>
         ;
@@ -1476,9 +1476,10 @@ class fmt::formatter<
     using formatters_t = std::remove_cvref_t<decltype(csl::ag::io::details::deduce_formatters_type<T, depth, Char>())>;
     formatters_t formatters;
 
+    using brackets_t = csl::ag::io::details::brackets<T, Char>;
     fmt::basic_string_view<Char>
-        opening_bracket = csl::ag::io::details::configuration::style::opening_bracket_v<Char>,
-        closing_bracket = csl::ag::io::details::configuration::style::closing_bracket_v<Char>,
+        opening_bracket = brackets_t::opening_bracket,
+        closing_bracket = brackets_t::closing_bracket,
         separator       = csl::ag::io::details::configuration::style::separator_v<Char>
     ;
 
