@@ -1161,7 +1161,9 @@ namespace csl::ag::io {
 // NOTE: fmt >= 11 for :n tuple format
 //  yet, does not spread to nested values: https://godbolt.org/z/8c6n9Ye63
 //  # define FMT_TUPLE_JOIN_SPECIFIERS 1 // experimentale
-//  QUESTION: should add a `:s` spread parse argument, to either enable or disable the spread of the indentation ?
+//  QUESTION:   should add a `:s` spread parse argument, to either enable or disable the spread of the indentation ?
+//              or use some `fmt::join`-like function, which is the idiomatic way to spread parse ?
+
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
 
@@ -1207,14 +1209,6 @@ namespace csl::ag::io::details::concepts {
 
     template <typename T>
     concept formatter = type_traits::is_formatter_v<T>;
-
-    template <typename T>
-    concept rangelike_formatter = formatter<T>
-    and requires (const T & value){
-        { value.separator_       } -> string_view_of<type_traits::formatter_char_type_t<T>>;
-        { value.opening_bracket_ } -> string_view_of<type_traits::formatter_char_type_t<T>>;
-        { value.closing_bracket_ } -> string_view_of<type_traits::formatter_char_type_t<T>>;
-    };
 }
 
 // TODO(Guillaume) per-style struct, default is set using a PP (possibly, cmake-provided variable)
@@ -1237,10 +1231,37 @@ namespace csl::ag::io::details::configuration::style {
         constexpr inline static auto char_v = ' ';
         constexpr inline static auto width_v = 4;
     }
-
-    // WIP: keep opening brace of given formatter, if any
-    //  but it's private -> either access with an accessor, or set it with append
 }
+namespace csl::ag::io::details {
+    template <typename T, typename Char>
+    struct brackets;
+
+    template <typename T, typename Char>
+    requires fmt::is_range<T, Char>::value
+    struct brackets<T, Char> {
+        fmt::basic_string_view<Char>
+            opening_bracket = "[",
+            closing_bracket = "]"
+        ;
+    };
+    template <typename T, typename Char>
+    requires fmt::is_tuple_like<T>::value
+    struct brackets<T, Char> {
+        fmt::basic_string_view<Char>
+            opening_bracket = "(",
+            closing_bracket = ")"
+        ;
+    };
+    template <csl::ag::concepts::aggregate T, typename Char>
+    requires (not fmt::is_range<T, Char>::value)
+    struct brackets<T, Char> {
+        fmt::basic_string_view<Char>
+            opening_bracket = configuration::style::opening_bracket_v<Char>,
+            closing_bracket = configuration::style::closing_bracket_v<Char>
+        ;
+    };
+}
+
 namespace csl::ag::io::details {
 
     template <typename Char, Char... C>
@@ -1285,7 +1306,6 @@ class fmt::formatter<T, Char> {
     using formatter_t = fmt::formatter<csl_view_t, Char>;
     static_assert(fmt::is_tuple_formattable<csl_view_t, Char>::value, "csl::ag: aggregate-as-tuple-view is not formattable");
     formatter_t formatter_;
-    static_assert(csl::ag::io::details::concepts::rangelike_formatter<formatter_t>);
 
 public:
 
