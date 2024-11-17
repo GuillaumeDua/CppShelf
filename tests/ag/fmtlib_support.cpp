@@ -31,24 +31,14 @@ namespace tests::concepts::produced {
     static_assert(not csl::ag::concepts::produced<fmt::formatter<std::array<int, 3>>>);
 }
 
-
-/*  // WIP
-    What to test ?
-
-    - dispatched to the right underlying formatter (ex: char -> ['\x00'] vs. [], ranges -> [{a,b,c}] vs. [a,b,c], etc.)
-
-    - default formatter
-    - default formatter with :n parse
-    - indented
-*/
-
 #include <gtest/gtest.h>
 
 using test_models = ::testing::Types<
     types::field_1,
     types::field_2,
     types::field_3_nested,
-    types::field_3_nested_tuplelike
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range
 >;
 TYPED_TEST_SUITE(csl_test_ag_FmtFormatAggregate, test_models);
 
@@ -125,6 +115,37 @@ R"({
     )
 })";
 };
+template <>
+struct csl_test_ag_FmtFormatAggregate<types::field_4_nested_range> : public testing::Test {
+    constexpr static types::field_4_nested_range value{
+        .sv = "hello",
+        .a_c = { 'a', 'b', 'c' },
+        .a_i = { 42, 43, 44 },
+        .a_sv = { "a", "b", "c" },
+    };
+    constexpr static std::string_view default_formatter_expected_result = R"({"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]})";
+    constexpr static std::string_view default_formatter_n_expected_result = R"("hello"['a', 'b', 'c'][42, 43, 44]["a", "b", "c"])";
+    constexpr static std::string_view indented_formatter_expected_result =
+R"({
+    "hello",
+    [
+        'a',
+        'b',
+        'c'
+    ],
+    [
+        42,
+        43,
+        44
+    ],
+    [
+        "a",
+        "b",
+        "c"
+    ]
+})";
+};
+
 #pragma endregion
 
 TYPED_TEST(csl_test_ag_FmtFormatAggregate, DefaultFormatter) {
@@ -155,16 +176,6 @@ TYPED_TEST(csl_test_ag_FmtFormatAggregate, IndentedFormatter) {
 
 
 auto main(int argc, char *argv[]) -> int {
-
-    namespace types = types;
-
-    constexpr auto values = std::tuple{
-        std::type_identity<types::field_1>{},
-        std::type_identity<types::field_2>{},
-        std::type_identity<types::field_3_nested>{},
-        std::type_identity<types::field_3_nested_tuplelike>{},
-        // std::type_identity<types::field_2_inheritance>{},
-    };
 
     // WIP
     const auto value = types::field_3_nested{

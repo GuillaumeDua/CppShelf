@@ -39,12 +39,13 @@ namespace test::ag::types {
     };
     struct field_4_nested_range {
         std::string_view sv;
-        std::vector<int> v;
-        std::array<char, 3> a;
+        std::array<char, 3> a_c;
+        std::array<int, 3> a_i;
+        std::array<std::string_view, 3> a_sv;
+        // other cx range types ...
     };
     struct field_5_nested_tuplelike_and_range {
         std::string_view sv;
-        std::vector<int> v;
         std::tuple<int, char, std::string_view> tu;
         std::array<char, 3> a;
         std::pair<int, int> p;
