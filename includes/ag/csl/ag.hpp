@@ -222,7 +222,7 @@ namespace csl::ag::details {
 
         if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
             return indice;
-        else if constexpr (not concepts::aggregate_constructible_from_n_values<T, indice / 2 + 1>)
+        else if constexpr (not concepts::aggregate_constructible_from_n_values<T, (indice / 2) + 1>)
             return fields_count_impl<T, indice / 2>();
         else
             return fields_count_impl<T, indice - 1>();
@@ -1374,13 +1374,33 @@ namespace csl::ag::io::details::decorators {
     requires std::same_as<T, std::remove_cvref_t<T>>
     struct depthen_view_t {
         using csl_ag_io_decorator = void;
+        using value_type = T;
 
-        /*explicit*/ operator const T&() const { return value; } // NOLINT(*-explicit-constructor)
-        const T & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
+        /*explicit*/ operator const value_type&() const { return value; } // NOLINT(*-explicit-constructor)
+        const value_type & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
         constexpr static std::size_t depth = I;
     };
     template <typename T, std::size_t I = 0>
     depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
+}
+
+// fmt_formattable (used upstream: not formatter detection)
+namespace csl::ag::io::details::type_traits {
+    template <typename T, typename Char>
+    struct is_fmt_formattable : fmt::is_formattable<T, Char>{};
+    template <csl::ag::concepts::structured_bindable T, typename Char>
+    struct is_fmt_formattable<T, Char> {
+        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and fmt::is_formattable<csl::tuplelike::element_t<indexes, T>>::value);
+        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+    };
+    template <typename T, typename Char>
+    constexpr inline static auto is_fmt_formattable_v = is_fmt_formattable<T, Char>::value;
+}
+namespace csl::ag::io::details::concepts {
+
+    template <typename T, typename Char>
+    concept fmt_formattable = type_traits::is_fmt_formattable_v<T, Char>;
 }
 
 #pragma region typeinfo
@@ -1467,8 +1487,8 @@ template <
     std::size_t depth,
     typename Char
 >
-// TODO(Guillaume) each elements requires fmt::is_formattable / fmt::has_formatter<T, fmt::format_context>::value
-// TODO(Guillaume) T is not a decorators::depthen_view instead -> static_assert/fail-fast/strong-error
+requires (not csl::ag::io::details::concepts::decorator<T>)
+and csl::ag::io::details::concepts::fmt_formattable<T, Char>
 class fmt::formatter<
     csl::ag::io::details::decorators::depthen_view_t<T, depth>,
     Char

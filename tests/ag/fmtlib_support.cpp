@@ -20,6 +20,8 @@ namespace tests::concepts::produced {
     static_assert(csl::ag::concepts::produced<fmt::formatter<types::field_2>>);
     static_assert(csl::ag::concepts::produced<fmt::formatter<types::field_3_nested>>);
     static_assert(csl::ag::concepts::produced<fmt::formatter<types::field_3_nested_tuplelike>>);
+    static_assert(csl::ag::concepts::produced<fmt::formatter<types::field_4_nested_range>>);
+    static_assert(csl::ag::concepts::produced<fmt::formatter<types::field_everything>>);
 
     // not impacting <fmt/format.h>
     static_assert(not csl::ag::concepts::produced<fmt::formatter<int>>);
@@ -30,6 +32,25 @@ namespace tests::concepts::produced {
     // not impacting <fmt/ranges.h> - tuplelikes
     static_assert(not csl::ag::concepts::produced<fmt::formatter<std::tuple<int>>>);
     static_assert(not csl::ag::concepts::produced<fmt::formatter<std::array<int, 3>>>);
+}
+
+namespace tests::concepts::fmt_formattable {
+
+    namespace concepts = csl::ag::io::details::concepts;
+
+    static_assert(concepts::fmt_formattable<types::field_1, char>);
+    static_assert(concepts::fmt_formattable<types::field_2, char>);
+    static_assert(concepts::fmt_formattable<types::field_3_nested, char>);
+    static_assert(concepts::fmt_formattable<types::field_3_nested_tuplelike, char>);
+    static_assert(concepts::fmt_formattable<types::field_4_nested_range, char>);
+    static_assert(concepts::fmt_formattable<types::field_everything, char>);
+
+    static_assert(concepts::fmt_formattable<int, char>);
+    static_assert(concepts::fmt_formattable<std::string, char>);
+    static_assert(concepts::fmt_formattable<std::vector<int>, char>);
+    static_assert(concepts::fmt_formattable<std::vector<types::field_1>, char>);
+    static_assert(concepts::fmt_formattable<std::tuple<int>, char>);
+    static_assert(concepts::fmt_formattable<std::array<int, 3>, char>);
 }
 
 #include <gtest/gtest.h>
@@ -239,52 +260,18 @@ TYPED_TEST(csl_test_ag_FmtFormatAggregate, IndentedFormatter) {
 
 auto main(int argc, char *argv[]) -> int {
 
-    // WIP
-    const auto value = types::field_3_nested{
-        .i = 1,
-        .f1 = {
-            11,
-        },
-        .f2 = {
-            .i = 12,
-            .c = 'c'
-        }
-    };
-    static_assert(csl::ag::concepts::aggregate<std::remove_cvref_t<decltype(value)>>);
-    static_assert(csl::ag::concepts::structured_bindable<std::remove_cvref_t<decltype(value)>>);
-
-    fmt::println("{}, {}", char{}, 'a');
-    fmt::println("{}, {}", std::tuple{char{}}, std::tuple{ 'a' });
-    fmt::println("{:n}, {:n}", std::tuple{char{}, 42 }, std::tuple{ 'a', 42 });
-    fmt::println("{}, {}", std::vector{char{}}, std::vector{'a'});
-
-    using namespace csl::ag::io;
-    fmt::println(
-        "Chars: {}, {}",
-        csl::ag::io::details::decorators::depthen_view_t{char{}},
-        csl::ag::io::details::decorators::depthen_view_t{'a'}
-    );
-
-    // fmt::println(fmt::runtime("indented (n) : [{:n}]"), types::field_2{} | indented);
-    
-    // fmt::println("\nfield_2:");
-    // fmt::println("default      : [{}]",   types::field_2{});
-    // fmt::println("indented     : [{}]",   types::field_2{} | indented);
-    // fmt::println("default  (n) : [{:n}]", types::field_2{});
-    // fmt::println("indented (n) : [{:n}]", types::field_2{} | indented);
-
-    // fmt::println("\nfield_3_nested_tuplelike:");
-    // fmt::println("default      : [{}]",   types::field_3_nested_tuplelike{});
-    // fmt::println("indented     : [{}]",   types::field_3_nested_tuplelike{} | indented);
-    // fmt::println("default  (n) : [{:n}]", types::field_3_nested_tuplelike{});
-    // fmt::println("indented (n) : [{:n}]", types::field_3_nested_tuplelike{} | indented);
-    
-
-    // fmt::println("default    : [{}]", value);
-    // fmt::println("indented   : [{}]", value | indented);
-
+    // WIP: https://godbolt.org/z/ovv8eoqq8
+    // const auto value = types::field_3_nested{
+    //     .i = 1,
+    //     .f1 = {
+    //         11,
+    //     },
+    //     .f2 = {
+    //         .i = 12,
+    //         .c = 'c'
+    //     }
+    // };
     // fmt::println("compact    : [{:c}]", value);
-    // // WIP: https://godbolt.org/z/ovv8eoqq8
     // fmt::println("pretty     : [\n{:i}\n]", value);
     // fmt::println("pretty(I)  : [\n{:i,I}\n]", value);
     // fmt::println("pretty(T)  : [\n{:i,T}\n]", value);
