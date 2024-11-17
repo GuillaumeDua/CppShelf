@@ -10,7 +10,7 @@ set -eu
 
 this_script_name=$(basename "$0")
 
-arg_versions='all'
+arg_versions='latest-stable'
 arg_list=0
 arg_silent=1
 arg_alias=0
@@ -20,18 +20,19 @@ help(){
     echo "
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
-        [ -l | --list ]     : Only list available versions. Boolean -> default is [0]
-        [ -v | --versions ] : Versions to install.          String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
-            - [all]        : all versions availables
-            - [latest]     : only the latest version available
-            - [>=(number)] : all versions greater or equal to <number>. Ex: '>=42'
-            - [numbers...] : only listed versions. Ex: '13 25 42' (space-separated)
-        [ -s | --silent ]   : Run in silent mod.            Boolean -> default is [1]
-        [ -a | --alias]     : Set bash/zsh-rc aliases.      Boolean -> default is [0]
-        [ -h | --help ]     : Display usage/help
+        [ -l | --list ]         : Only list available versions, expanding [versions].   Boolean -> default is [0]
+        [ -v | --versions ]     : Versions to install.                                  String: all|latest|latest-stable|>=(number)|(space-separated-numbers...) -> default is [latest-stable]
+            - [all]             : all versions availables                                   Ex: 'all'
+            - [latest]          : only the latest        version available                  Ex: 'latest'
+            - [latest-stable]   : only the latest-stable version available                  Ex: 'latest-stable'
+            - [>=(number)]      : all versions greater or equal to <number>.                Ex: '>=42'
+            - [numbers...]      : only listed versions.                                     Ex: '13 25 42' (space-separated)
+        [ -s | --silent ]       : Run in silent mod.                                    Boolean -> default is [1]
+        [ -a | --alias]         : Set bash/zsh-rc aliases.                              Boolean -> default is [0]
+        [ -h | --help ]         : Display usage/help
 
     For instance, to only install the two latest versions available, use:
-        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} -l | tail -2)\"
+        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} --list --versions='all' | tail -2)\"
         " 1>&2
     exit 0
 }
@@ -100,10 +101,7 @@ do
       ;;
     -l | --list )
       arg_list=1
-      arg_silent=1
-      arg_versions='all'
       shift;
-      break
       ;;
     -h | --help)
       help
@@ -158,7 +156,7 @@ list_installed_gcc_versions(){
 all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP $gcc_version_regex | sort -n | uniq)
 if [ "$arg_versions" = 'all' ]; then
     gcc_versions=$all_gcc_versions_available
-elif [ "$arg_versions" = 'latest' ]; then
+elif [ "$arg_versions" = 'latest' ] || [ "$arg_versions" = 'latest-stable' ]; then
     gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
 elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
     from_version=$(echo "${arg_versions}" | grep -oP '^>=\K([0-9])+$')

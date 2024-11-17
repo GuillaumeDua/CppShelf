@@ -10,7 +10,7 @@ set -eu
 
 this_script_name=$(basename "$0")
 
-arg_versions='all'
+arg_versions='latest-stable'
 arg_list=0
 arg_silent=1
 arg_alias=0
@@ -24,20 +24,21 @@ help(){
     echo "
     Boolean values: y|yes|1|true or n|no|0|false (case insensitive)
 
-        [ -l | --list ]         : Only list available versions.                             Boolean -> default is [0]
-        [ -v | --versions ]     : Versions to install.                                      String: all|latest|>=(number)|(space-separated-numbers...) -> default is [all]
+        [ -l | --list ]         : Only list available versions, expanding [versions].       Boolean -> default is [0]
+        [ -v | --versions ]     : Versions to install.                                      String: all|latest|latest-stable|>=(number)|(space-separated-numbers...) -> default is [latest-stable]
             - [all]             : all versions availables                                       Ex: 'all'
-            - [latest]          : only the latest version available                             Ex: 'latest'
-            - [>=(number)]      : all versions greater or equal to <number>.                    Ex: '>=42'
-            - [numbers...]      : only specific versions.                                       Ex: '13 25 42' (space-separated)
+            - [latest]          : only the latest        version available                      Ex: 'latest'
+            - [latest-stable]   : only the latest-stable version available                      Ex: 'latest-stable'
+            - [>=(number)]      : all versions greater or equal to <number>                     Ex: '>=42'
+            - [numbers...]      : only listed versions.                                         Ex: '13 25 42' (space-separated)
         [ -s | --silent ]       : Run in silent mod.                                        Boolean -> default is [1]
         [ -a | --alias]         : Set bash/zsh-rc aliases.                                  Boolean -> default is [0]
         [ -m | --minimalistic]  : only clang/clang++, not tools.                            Boolean -> default is [0]
-        [ -c | --cleanup]       : purge any (pre-)existing llvm/clang package installation. Boolean -> default is [0]
+        [ -c | --cleanup]       : purge any (pre-)existing llvm/clang package installation: Boolean -> default is [0]
         [ -h | --help ]         : Display usage/help
 
     For instance, to only install the two latest versions available, use:
-        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} -l | tail -2)\"
+        sudo ./${this_script_name} --versions=\"\$(sudo ./${this_script_name} --list --versions='all' | tail -2)\"
         " 1>&2
     exit 0
 }
@@ -114,10 +115,7 @@ do
         ;;
     -l | --list )
         arg_list=1
-        arg_silent=1
-        arg_versions='all'
         shift;
-        break
         ;;
     -h | --help)
         help
@@ -188,9 +186,9 @@ fi
 
 # --- list versions ---
 
-llvm_version_to_install_regex='LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
+llvm_version_to_install_regex='^LLVM_VERSION_PATTERNS\[(\d+)\]=\"\-\K(\d+)'
 list_to_install_llvm_versions(){
-    cat ${internal_script_path} | grep -oP $llvm_version_to_install_regex | uniq | sort -n
+    grep -oP $llvm_version_to_install_regex ${internal_script_path} | uniq | sort -n
 }
 llvm_version_installed_regex='^clang-\K([0-9]{2})'
 list_installed_llvm_versions(){
@@ -198,11 +196,13 @@ list_installed_llvm_versions(){
 }
 
 # --- which versions ---
-
+llvm_latest_stable=$(grep -oP '^CURRENT_LLVM_STABLE=\K(\d+)' ${internal_script_path})
 all_llvm_versions_available=$(list_to_install_llvm_versions)
 
 if [ "$arg_versions" = 'all' ]; then
     llvm_versions=$all_llvm_versions_available
+elif [ "$arg_versions" = 'latest-stable' ]; then
+    llvm_versions=$llvm_latest_stable
 elif [ "$arg_versions" = 'latest' ]; then
     llvm_versions=$(echo ${all_llvm_versions_available} | tr " " "\n" | tail -1)
 elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
@@ -282,14 +282,17 @@ for version in "${llvm_versions_to_install[@]}"; do
     # || error "installation of [${version}] (tools) failed"
     # clang and clang-tools
     
+    # Latest stable always has the highest priority
+    update_alternative_priority=$([[ "${version}" = "${llvm_latest_stable}" ]] && echo "100" || echo "${version}")
+
     if [[ ${arg_minimalistic} == 1 ]]; then
         update-alternatives --quiet                                                                                             \
-            --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+            --install /usr/bin/clang clang /usr/bin/clang-${version} ${update_alternative_priority}                             \
             --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
         || error "update-alternatives of [${version}] failed"
     else
         update-alternatives --quiet                                                                                             \
-            --install /usr/bin/clang clang /usr/bin/clang-${version} ${version}                                                 \
+            --install /usr/bin/clang clang /usr/bin/clang-${version} ${update_alternative_priority}                             \
             --slave /usr/bin/clang++                  clang++                   /usr/bin/clang++-${version}                     \
             --slave /usr/bin/clang-format             clang-format              /usr/bin/clang-format-${version}                \
             --slave /usr/bin/clang-tidy               clang-tidy                /usr/bin/clang-tidy-${version}                  \
