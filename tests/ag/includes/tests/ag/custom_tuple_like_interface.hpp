@@ -1,13 +1,7 @@
 #pragma once
 
-#include "tests/types.hpp"
+#include <tests/types.hpp>
 #include <csl/ag.hpp>
-#include <memory>
-#include <type_traits>
-
-namespace test::ag::custom_tuple_like_interface {
-    namespace userland = test::ag::types::custom_get;
-}
 
 namespace test::ag::custom_tuple_like_interface::details {
 
@@ -35,14 +29,14 @@ namespace test::ag::custom_tuple_like_interface {
     };
 
     constexpr static void test(){
-        using namespace userland;
+        namespace userland = test::ag::types::custom_get;
         ensure_unqualified_get<
-            test_case<A, 'A'>,
-            test_case<B, 'B'>,
-            test_case<C, 'C'>,
-            test_case<D, 'D'>,
-            test_case<E, 'E'>,
-            test_case<F, 'F'>
+            test_case<userland::A, 'A'>,
+            test_case<userland::B, 'B'>,
+            test_case<userland::C, 'C'>,
+            test_case<userland::D, 'D'>,
+            test_case<userland::E, 'E'>,
+            test_case<userland::F, 'F'>
         >();
     }
 }
