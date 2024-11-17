@@ -51,6 +51,7 @@ namespace test::ag::types {
         std::pair<int, int> p;
     };
     struct field_everything {
+        bool b{};
         field_3_nested f1{};
         field_3_nested_tuplelike f2{};
         field_4_nested_range f3{};

@@ -9,6 +9,7 @@
 
 #include <tests/types.hpp>
 
+// TODO: test if bitfield support is ON
 // WIP: check possible clash with user-defined formatters -> complete, partial/generics, etc.
 
 namespace types = test::ag::types;
@@ -38,7 +39,8 @@ using test_models = ::testing::Types<
     types::field_2,
     types::field_3_nested,
     types::field_3_nested_tuplelike,
-    types::field_4_nested_range
+    types::field_4_nested_range,
+    types::field_everything
 >;
 TYPED_TEST_SUITE(csl_test_ag_FmtFormatAggregate, test_models);
 
@@ -58,12 +60,12 @@ R"({
 
 template <>
 struct csl_test_ag_FmtFormatAggregate<types::field_2> : public testing::Test {
-    constexpr static types::field_2 value{ .i = 42, .c = 'A' };
-    constexpr static std::string_view default_formatter_expected_result = "{42, 'A'}";
-    constexpr static std::string_view default_formatter_n_expected_result = "42'A'";
+    constexpr static types::field_2 value{ .i = 123, .c = 'A' };
+    constexpr static std::string_view default_formatter_expected_result = "{123, 'A'}";
+    constexpr static std::string_view default_formatter_n_expected_result = "123'A'";
     constexpr static std::string_view indented_formatter_expected_result =
 R"({
-    42,
+    123,
     'A'
 })";
 };
@@ -71,16 +73,16 @@ template <>
 struct csl_test_ag_FmtFormatAggregate<types::field_3_nested> : public testing::Test {
     constexpr static types::field_3_nested value{
         .i = 1,
-        .f1 = { .i = 12 },
-        .f2 = { .i = 123, .c = 'A'}
+        .f1 = csl_test_ag_FmtFormatAggregate<types::field_1>::value,
+        .f2 = csl_test_ag_FmtFormatAggregate<types::field_2>::value
     };
-    constexpr static std::string_view default_formatter_expected_result = "{1, {12}, {123, 'A'}}";
-    constexpr static std::string_view default_formatter_n_expected_result = "1{12}{123, 'A'}";
+    constexpr static std::string_view default_formatter_expected_result = "{1, {42}, {123, 'A'}}";
+    constexpr static std::string_view default_formatter_n_expected_result = "1{42}{123, 'A'}";
     constexpr static std::string_view indented_formatter_expected_result =
 R"({
     1,
     {
-        12
+        42
     },
     {
         123,
@@ -143,6 +145,66 @@ R"({
         "b",
         "c"
     ]
+})";
+};
+template <>
+struct csl_test_ag_FmtFormatAggregate<types::field_everything> : public testing::Test {
+
+    constexpr static types::field_everything value{
+        .b = true,
+        .f1 = csl_test_ag_FmtFormatAggregate<types::field_3_nested>::value,
+        .f2 = csl_test_ag_FmtFormatAggregate<types::field_3_nested_tuplelike>::value,
+        .f3 = csl_test_ag_FmtFormatAggregate<types::field_4_nested_range>::value,
+    };
+    constexpr static std::string_view default_formatter_expected_result = R"({true, {1, {42}, {123, 'A'}}, {(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)}, {"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]}})";
+    constexpr static std::string_view default_formatter_n_expected_result = R"(true{1, {42}, {123, 'A'}}{(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)}{"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]})";
+    constexpr static std::string_view indented_formatter_expected_result =
+R"({
+    true,
+    {
+        1,
+        {
+            42
+        },
+        {
+            123,
+            'A'
+        }
+    },
+    {
+        (
+            2,
+            'b',
+            "str"
+        ),
+        [
+            'a',
+            'b',
+            'c'
+        ],
+        (
+            42,
+            43
+        )
+    },
+    {
+        "hello",
+        [
+            'a',
+            'b',
+            'c'
+        ],
+        [
+            42,
+            43,
+            44
+        ],
+        [
+            "a",
+            "b",
+            "c"
+        ]
+    }
 })";
 };
 
