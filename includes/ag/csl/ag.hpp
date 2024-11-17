@@ -1320,11 +1320,11 @@ namespace csl::ag::io::details {
 // aggregate formatter
 template <csl::ag::concepts::aggregate T, typename Char>
 requires (not fmt::is_range<T, Char>::value)
+and fmt::is_tuple_formattable<csl::ag::view_t<const T &>, Char>::value
 class fmt::formatter<T, Char> {
 
     using csl_view_t = csl::ag::view_t<const T &>;
     using formatter_t = fmt::formatter<csl_view_t, Char>;
-    static_assert(fmt::is_tuple_formattable<csl_view_t, Char>::value, "csl::ag: aggregate-as-tuple-view is not formattable");
     formatter_t formatter_;
 
 public:
