@@ -7,8 +7,11 @@
 # error "[Test] csl::ag : expect CSL_AG__ENABLE_FMTLIB_SUPPORT=ON"
 #endif
 
-namespace tests::ag::types {
-    // TODO(Guillaume): handle empty ?
+// WIP: check possible clash with user-defined formatters -> complete, partial/generics, etc.
+// TODO(Guillaume): handle empty ?
+
+namespace tests::types {
+    
     struct one_field{ int i; };
     struct two_fields{ int i; char c; };
     struct nested {
@@ -27,8 +30,7 @@ namespace tests::ag::types {
     // BUG: struct two_fields_inheritance : two_fields { }; // decomposes into 2 elements, but only 1 name was provided
 }
 
-namespace tests::concepts {
-    namespace types = tests::ag::types;
+namespace tests::concepts::produced {
 
     static_assert(csl::ag::concepts::produced<fmt::formatter<types::one_field>>);
     static_assert(csl::ag::concepts::produced<fmt::formatter<types::two_fields>>);
@@ -46,7 +48,6 @@ namespace tests::concepts {
     static_assert(not csl::ag::concepts::produced<fmt::formatter<std::array<int, 3>>>);
 }
 
-// WIP: check possible clash with user-defined formatters -> complete, partial/generics, etc.
 
 /*  // WIP
     What to test ?
@@ -61,10 +62,10 @@ namespace tests::concepts {
 #include <gtest/gtest.h>
 
 using test_models = ::testing::Types<
-    tests::ag::types::one_field,
-    tests::ag::types::two_fields,
-    tests::ag::types::nested,
-    tests::ag::types::nested_std_tuplelike
+    tests::types::one_field,
+    tests::types::two_fields,
+    tests::types::nested,
+    tests::types::nested_std_tuplelike
 >;
 TYPED_TEST_SUITE(csl_test_ag_FmtFormatAggregate, test_models);
 
@@ -72,8 +73,8 @@ template <typename T>
 struct csl_test_ag_FmtFormatAggregate : public testing::Test {};
 #pragma region csl_test_ag_FmtFormatAggregate specializations
 template <>
-struct csl_test_ag_FmtFormatAggregate<tests::ag::types::one_field> : public testing::Test {
-    constexpr static tests::ag::types::one_field value{ .i = 42 };
+struct csl_test_ag_FmtFormatAggregate<tests::types::one_field> : public testing::Test {
+    constexpr static tests::types::one_field value{ .i = 42 };
     constexpr static std::string_view default_formatter_expected_result = "{42}";
     constexpr static std::string_view default_formatter_n_expected_result = "42";
     constexpr static std::string_view indented_formatter_expected_result =
@@ -83,8 +84,8 @@ R"({
 };
 
 template <>
-struct csl_test_ag_FmtFormatAggregate<tests::ag::types::two_fields> : public testing::Test {
-    constexpr static tests::ag::types::two_fields value{ .i = 42, .c = 'A' };
+struct csl_test_ag_FmtFormatAggregate<tests::types::two_fields> : public testing::Test {
+    constexpr static tests::types::two_fields value{ .i = 42, .c = 'A' };
     constexpr static std::string_view default_formatter_expected_result = "{42, 'A'}";
     constexpr static std::string_view default_formatter_n_expected_result = "42'A'";
     constexpr static std::string_view indented_formatter_expected_result =
@@ -94,8 +95,8 @@ R"({
 })";
 };
 template <>
-struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested> : public testing::Test {
-    constexpr static tests::ag::types::nested value{
+struct csl_test_ag_FmtFormatAggregate<tests::types::nested> : public testing::Test {
+    constexpr static tests::types::nested value{
         .i = 1,
         .field_1 = { .i = 12 },
         .field_2 = { .i = 123, .c = 'A'}
@@ -115,8 +116,8 @@ R"({
 })";
 };
 template <>
-struct csl_test_ag_FmtFormatAggregate<tests::ag::types::nested_std_tuplelike> : public testing::Test {
-    constexpr static tests::ag::types::nested_std_tuplelike value{
+struct csl_test_ag_FmtFormatAggregate<tests::types::nested_std_tuplelike> : public testing::Test {
+    constexpr static tests::types::nested_std_tuplelike value{
         .b = true,
         .sv = "hello",
         .tu = { 2, 'b', "str"},
@@ -175,8 +176,8 @@ TYPED_TEST(csl_test_ag_FmtFormatAggregate, IndentedFormatter) {
 
 
 auto main(int argc, char *argv[]) -> int {
-    using namespace tests::ag;
-    namespace types = tests::ag::types;
+
+    namespace types = tests::types;
 
     constexpr auto values = std::tuple{
         std::type_identity<types::one_field>{},
@@ -187,7 +188,7 @@ auto main(int argc, char *argv[]) -> int {
     };
 
     // WIP
-    const auto value = tests::ag::types::nested{
+    const auto value = tests::types::nested{
         .i = 1,
         .field_1 = {
             11,
@@ -212,19 +213,19 @@ auto main(int argc, char *argv[]) -> int {
         csl::ag::io::details::decorators::depthen_view_t{'a'}
     );
 
-    // fmt::println(fmt::runtime("indented (n) : [{:n}]"), tests::ag::types::two_fields{} | indented);
+    // fmt::println(fmt::runtime("indented (n) : [{:n}]"), tests::types::two_fields{} | indented);
     
     // fmt::println("\ntwo_fields:");
-    // fmt::println("default      : [{}]",   tests::ag::types::two_fields{});
-    // fmt::println("indented     : [{}]",   tests::ag::types::two_fields{} | indented);
-    // fmt::println("default  (n) : [{:n}]", tests::ag::types::two_fields{});
-    // fmt::println("indented (n) : [{:n}]", tests::ag::types::two_fields{} | indented);
+    // fmt::println("default      : [{}]",   tests::types::two_fields{});
+    // fmt::println("indented     : [{}]",   tests::types::two_fields{} | indented);
+    // fmt::println("default  (n) : [{:n}]", tests::types::two_fields{});
+    // fmt::println("indented (n) : [{:n}]", tests::types::two_fields{} | indented);
 
     // fmt::println("\nnested_std_tuplelike:");
-    // fmt::println("default      : [{}]",   tests::ag::types::nested_std_tuplelike{});
-    // fmt::println("indented     : [{}]",   tests::ag::types::nested_std_tuplelike{} | indented);
-    // fmt::println("default  (n) : [{:n}]", tests::ag::types::nested_std_tuplelike{});
-    // fmt::println("indented (n) : [{:n}]", tests::ag::types::nested_std_tuplelike{} | indented);
+    // fmt::println("default      : [{}]",   tests::types::nested_std_tuplelike{});
+    // fmt::println("indented     : [{}]",   tests::types::nested_std_tuplelike{} | indented);
+    // fmt::println("default  (n) : [{:n}]", tests::types::nested_std_tuplelike{});
+    // fmt::println("indented (n) : [{:n}]", tests::types::nested_std_tuplelike{} | indented);
     
 
     // fmt::println("default    : [{}]", value);
