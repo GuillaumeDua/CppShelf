@@ -3,29 +3,30 @@ name: cmake-Ubuntu-clang
 on: [push, pull_request]
 
 jobs:
-  cmake-Ubuntu-clang_build_test:
-
-    runs-on: ubuntu-24.04 # ubuntu-latest
-
+  build:
+    runs-on: ubuntu-latest
     strategy:
-        matrix:
-            COMPILER:
-            - {
-                c: clang,
-                cpp: clang++,
-                versions: [17, 18, 19],
-                stl: [-std=libstdc++, -std=libc++ -lc++abi]
-            }
-            - {
-                c: gcc,
-                cpp: g++,
-                versions: [13, 14],
-                stl: []
-            }
-
+      matrix:
+        BUILD_TYPE: [Debug, Release]
+        COMPILER: [gcc, clang]  # This allows you to dynamically choose GCC or Clang
+        CLANG_COMPILER_VERSIONS: [17, 18, 19]
+        GCC_COMPILER_VERSIONS: [13, 14]
+        STL_IMPLEMENTATION: [libstdc++, libc++ -lc++abi]
 
     steps:
-        - name: wip
-          run : |
-            echo "${{ matrix.COMPILER.cpp }}-${{ matrix.COMPILER.version }}, [${{ matrix.COMPILER.stl }}]"
+      - name: Set up matrix values
+        run: |
+          echo "Build Type: ${{ matrix.BUILD_TYPE }}"
+          echo "Compiler: ${{ matrix.COMPILER }}"
+
+          # Handle GCC specifics
+          if [[ "${{ matrix.COMPILER }}" == "gcc" ]]; then
+            echo "Using GCC version: ${{ matrix.GCC_COMPILER_VERSIONS }}"
+          fi
+
+          # Handle Clang specifics
+          if [[ "${{ matrix.COMPILER }}" == "clang" ]]; then
+            echo "Using Clang version: ${{ matrix.CLANG_COMPILER_VERSIONS }}"
+            echo "Using STL Implementation: ${{ matrix.STL_IMPLEMENTATION }}"
+          fi
 
