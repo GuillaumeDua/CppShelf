@@ -1,7 +1,7 @@
 #pragma once
 
 #include <csl/ag.hpp>
-#include "tests/types.hpp"
+#include <tests/types.hpp>
 
 namespace test::ag::get_ {
 
@@ -60,11 +60,11 @@ namespace test::ag::get_ {
     }
 
     constexpr auto _ = ensure_symetric_get_types_with_cvref_matrix<
-        test::ag::types::aggregate_1,
-        test::ag::types::aggregate_2,
-        test::ag::types::aggregate_ref_1,
-        test::ag::types::aggregate_ref_2,
-        test::ag::types::aggregate_ref_3,
+        test::ag::types::field_1,
+        test::ag::types::field_2,
+        test::ag::types::field_ref_1,
+        test::ag::types::field_ref_2,
+        test::ag::types::field_ref_3,
         test::ag::types::aggregate_all_cvref<int>
     >();
 }

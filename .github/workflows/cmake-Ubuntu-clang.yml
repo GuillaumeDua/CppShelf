@@ -10,7 +10,7 @@ jobs:
     strategy:
         matrix:
             CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
-            CLANG_COMPILER_VERSIONS: [17, 18]
+            CLANG_COMPILER_VERSIONS: [17, 18, 19]
             BUILD_TYPE: [Debug, Release]
             STL_IMPLEMENTATION: [libstdc++, libc++ -lc++abi]
 

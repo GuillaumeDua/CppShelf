@@ -74,6 +74,7 @@
         "QUICK-FIX",
         "QUESTION",
         "NOTE",
+        "DESIGN",
         "TECH-DEBT"
     ],
     "todo-tree.highlights.useColourScheme": true,
@@ -117,12 +118,6 @@
             "background": "#e0af68",
             "foreground": "#1a1b26"
         },
-        "TECH-DEBT": {
-            "icon": "graph",
-            "iconColour": "#e94242",
-            "background": "#e94242",
-            "foreground": "#1a1b26"
-        },
         "QUESTION": {
             "icon": "question",
             "iconColour": "#bb9af7",
@@ -133,6 +128,17 @@
             "icon": "note",
             "iconColour": "#2ac3de",
             "background": "#2ac3de",
-        }
+        },
+        "DESIGN": {
+            "icon": "note",
+            "iconColour": "#6f3780",
+            "background": "#6f3780",
+        },
+        "TECH-DEBT": {
+            "icon": "graph",
+            "iconColour": "#e94242",
+            "background": "#e94242",
+            "foreground": "#1a1b26"
+        },
     },
 }

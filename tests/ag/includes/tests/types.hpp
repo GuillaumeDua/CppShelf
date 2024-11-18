@@ -1,6 +1,9 @@
 #pragma once
 
 #include <tuple>
+#include <string_view>
+#include <array>
+#include <vector>
 
 namespace test::ag::types {
     template <typename T>
@@ -16,13 +19,46 @@ namespace test::ag::types {
         using expected_to_tuple_t = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
     };
 
-    using aggregate_1 = struct { int i; };
-    using aggregate_2 = struct { int i; char c; };
+    using field_1 = struct { int i; };
+    using field_2 = struct { int i; char c; };
     // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
-    using aggregate_ref_1 = struct { int & i; };
-    using aggregate_ref_2 = struct { int & i; char && c; };
-    using aggregate_ref_3 = struct { int & i; char && c; char & cc; };
+    using field_ref_1 = struct { int & i; };
+    using field_ref_2 = struct { int & i; char && c; };
+    using field_ref_3 = struct { int & i; char && c; char & cc; };
     // NOLINTEND(*-avoid-const-or-ref-data-members)
+
+    struct field_3_nested {
+        int i;
+        field_1 f1;
+        field_2 f2;
+    };
+    struct field_3_nested_tuplelike {
+        std::tuple<int, char, std::string_view> tu;
+        std::array<char, 3> a;
+        std::pair<int, int> p;
+    };
+    struct field_4_nested_range {
+        std::string_view sv;
+        std::array<char, 3> a_c;
+        std::array<int, 3> a_i;
+        std::array<std::string_view, 3> a_sv;
+        // other cx range types ...
+    };
+    struct field_5_nested_tuplelike_and_range {
+        std::string_view sv;
+        std::tuple<int, char, std::string_view> tu;
+        std::array<char, 3> a;
+        std::pair<int, int> p;
+    };
+    struct field_everything {
+        bool b{};
+        field_3_nested f1{};
+        field_3_nested_tuplelike f2{};
+        field_4_nested_range f3{};
+    };
+
+    // BUG: struct two_fields_inheritance : two_fields { }; // decomposes into 2 elements, but only 1 name was provided
+    // TODO(Guillaume): handle empty ?
 }
 
 namespace test::ag::types::custom_get {

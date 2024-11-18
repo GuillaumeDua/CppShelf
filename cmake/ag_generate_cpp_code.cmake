@@ -69,7 +69,7 @@ function(ag_generate_cpp_code)
         file(APPEND
             ${csl_ag__cmake_generated_code__filepath}
             "template <std::size_t N> requires (N == ${ID}) // NOLINT\n \
-    [[nodiscard]] constexpr auto to_tuple_view_impl(concepts\:\:aggregate auto && value) noexcept {
+    [[nodiscard]] constexpr static auto to_tuple_view_impl(concepts\:\:aggregate auto && value) noexcept {
     \tauto && [ ${identities} ] = value;
     \treturn make_tuple_view<decltype(value)>( ${identities_fwd} );
     }\n"
