@@ -1,0 +1,31 @@
+name: cmake-Ubuntu-clang
+
+on: [push, pull_request]
+
+jobs:
+  cmake-Ubuntu-clang_build_test:
+
+    runs-on: ubuntu-24.04 # ubuntu-latest
+
+    strategy:
+        matrix:
+            COMPILER:
+            - {
+                c: clang,
+                cpp: clang++,
+                versions: [17, 18, 19],
+                stl: [-std=libstdc++, -std=libc++ -lc++abi]
+            }
+            - {
+                c: gcc,
+                cpp: g++,
+                versions: [13, 14],
+                stl: []
+            }
+
+
+    steps:
+        - name: wip
+          run : |
+            echo "${{ matrix.COMPILER.cpp }}-${{ matrix.COMPILER.version }}, [${{ matrix.COMPILER.stl }}]"
+
