@@ -2,6 +2,11 @@ name: cmake-Ubuntu-clang
 
 on: [push, pull_request]
 
+# WIP:
+#    generic build_and_test subaction which takes: component, build_type, compiler, cxx_flags
+# one job for clang -> dedicated matrix
+# one job for gcc   -> dedicated matrix
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,6 +17,10 @@ jobs:
         CLANG_COMPILER_VERSIONS: [17, 18, 19]
         GCC_COMPILER_VERSIONS: [13, 14]
         STL_IMPLEMENTATION: [libstdc++, libc++ -lc++abi]
+
+
+    # GCC:   4  entries
+    # clang: 12 entries
 
     steps:
       - name: Set up matrix values
