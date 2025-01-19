@@ -4,43 +4,10 @@
 
 // parts
 #include <tests/mp/tuple.hpp>
+#include <tests/mp/sequence.hpp>
 // #include <tests/mp/flat.hpp>
 
-// tuples: details
-namespace test::tuples::concepts::deductible {
-    using without_duplicates = csl::mp::tuple<int, char, bool>;
-    using with_duplicates = csl::mp::tuple<int, char, int>;
-
-    // can_deduce_by_type
-    static_assert(csl::mp::details::concepts::can_deduce_by_type<without_duplicates, int>);
-    static_assert(not csl::mp::details::concepts::can_deduce_by_type<with_duplicates, int>);
-
-    // can_deduce_by_index
-    static_assert(csl::mp::details::concepts::can_deduce_by_index<without_duplicates, 0>);
-    static_assert(csl::mp::details::concepts::can_deduce_by_index<with_duplicates, 0>);
-}
-
-
-// sequences
-namespace test::reverse_integer_sequence {
-    
-    using namespace csl::mp::seq;
-
-    using seq_type = std::make_index_sequence<5>;                           // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-    using reversed_seq_type = csl::mp::seq::make_reverse_index_sequence<5>; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-    static_assert(std::same_as<
-        reversed_seq_type,
-        std::index_sequence<4,3,2,1,0>
-    >);
-    static_assert(std::same_as<
-        reverse_sequence<reversed_seq_type>,
-        std::index_sequence<0,1,2,3,4>
-    >);
-    static_assert(std::same_as<
-        reversed_seq_type,
-        reverse_sequence<std::index_sequence<0,1,2,3,4>>
-    >);
-}
+// pack: legacy algos to refactor/move
 #if false
 namespace test::index_of {
 
