@@ -1,7 +1,20 @@
 #pragma once
-
 #include <csl/mp.hpp>
 #include <cstdint>
+
+// tuples: details::concepts
+namespace test::tuples::concepts::deductible {
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    // can_deduce_by_type
+    static_assert(csl::mp::details::concepts::can_deduce_by_type<without_duplicates, int>);
+    static_assert(not csl::mp::details::concepts::can_deduce_by_type<with_duplicates, int>);
+
+    // can_deduce_by_index
+    static_assert(csl::mp::details::concepts::can_deduce_by_index<without_duplicates, 0>);
+    static_assert(csl::mp::details::concepts::can_deduce_by_index<with_duplicates, 0>);
+}
 
 
 // tuples: API
