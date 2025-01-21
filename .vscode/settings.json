@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.md": "markdown",
         "array": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
@@ -50,7 +51,11 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "cstring": "cpp",
+        "charconv": "cpp",
+        "text_encoding": "cpp",
+        "__verbose_abort": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "debug.terminal.clearBeforeReusing": true,

@@ -26,18 +26,39 @@
 
 // sequences
 #include <array>
-namespace csl::mp::seq {
-    // reverse_integer_sequence
+namespace csl::mp::seq::details {
+
+    // tuplelike storage
     template <typename T>
-    struct reverse_integer_sequence_impl;
+    struct storage;
     template <typename T, T ... values>
-    struct reverse_integer_sequence_impl<std::integer_sequence<T, values...>> : std::type_identity<
-        std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
-    >{};
+    struct storage<std::integer_sequence<T, values...>>{
+        constexpr static inline auto value = std::array<T, sizeof...(values)>{ values... };
+    };
     template <typename T>
-    using reverse_sequence = typename reverse_integer_sequence_impl<T>::type;
+    constexpr static inline auto storage_v = storage<T>::value;
+
+    // reverse
+    template <typename T>
+    struct reverse_impl;
+    template <typename T, T ... values>
+    struct reverse_impl<std::integer_sequence<T, values...>> : std::type_identity<
+        std::integer_sequence<
+            T,
+            []<std::size_t ... indexes>(){
+                return std::get<(sizeof...(values) - 1)>(std::array{ values... })...
+            }(std::make_index_sequence<sizeof...(values)>)
+        >
+        // std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    >{};
+}
+namespace csl::mp::seq {
+
+    // reverse
+    template <typename T>
+    using reverse = typename details::reverse_impl<T>::type;
     template <std::size_t I>
-    using make_reverse_index_sequence = reverse_sequence<std::make_index_sequence<I>>;
+    using make_reverse_index_sequence = reverse<std::make_index_sequence<I>>;
 
     // type_of<values...>
     template <auto value, auto ... values>
@@ -49,23 +70,24 @@ namespace csl::mp::seq {
     // type_at<index, (integer_seq|values...)>
     //  TODO(Guss) : universal template parameters : (values...|std::integer_seq)
     //  TODO(Guss) : use csl::mp::tuple instead
-    template <std::size_t index, auto ... values>
-    struct value_at : std::integral_constant<
-        decltype(std::get<index>(std::declval<std::tuple<decltype(values)...>>(values...))),
-        std::get<index>(std::tuple<decltype(values)...>{values...})
-    >{};
 
-    // get<index, values...>()
-    template <std::size_t index, auto ... values>
-    requires requires { type_of_t<values...>{}; }
-    constexpr decltype(auto) get() noexcept {
-        constexpr auto storage = std::array<type_of_t<values...>, sizeof...(values)>{values...};
-        return std::get<index>(storage);
-    }
+    // at<index>
+    template <std::size_t, typename>
+    struct at;
+    template <std::size_t index, typename T, T ... values>
+    struct at<index, std::integer_sequence<T, values...>> : std::integral_constant<
+        T,
+        std::get<index>(
+            details::storage_v<std::integer_sequence<T, values...>>
+        )
+    >{};
+    
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
-        return get<index, values...>; // TODO(Guillaume) : impl, test
+        return std::get<index>(
+            details::storage_v<std::integer_sequence<T, values...>>
+        );
     }
 }
 
@@ -1011,7 +1033,7 @@ namespace csl::mp {
     class reverse<pack_type<Ts...>> {
         constexpr static auto impl() {
             return [](){
-                // todo : reverse_sequence, type_at
+                // todo : reverse, type_at
             }();
         }
     };
