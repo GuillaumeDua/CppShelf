@@ -26,6 +26,12 @@
 
 // sequences
 #include <array>
+namespace csl::mp::seq {
+    // is_sequence
+}
+namespace csl::mp::seq::concepts {
+    // sequence
+}
 namespace csl::mp::seq::details {
 
     // tuplelike storage
@@ -67,10 +73,6 @@ namespace csl::mp::seq {
     template <auto ... values>
     using type_of_t = typename type_of<values...>::value;
 
-    // type_at<index, (integer_seq|values...)>
-    //  TODO(Guss) : universal template parameters : (values...|std::integer_seq)
-    //  TODO(Guss) : use csl::mp::tuple instead
-
     // at<index>
     template <std::size_t, typename>
     struct at;
@@ -81,13 +83,13 @@ namespace csl::mp::seq {
             details::storage_v<std::integer_sequence<T, values...>>
         )
     >{};
+    template <std::size_t index, typename T>
+    constexpr static inline auto at_v = at<index, T>::value;
     
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
-        return std::get<index>(
-            details::storage_v<std::integer_sequence<T, values...>>
-        );
+        return at_v<index, std::integer_sequence<T, values...>>;
     }
 }
 
