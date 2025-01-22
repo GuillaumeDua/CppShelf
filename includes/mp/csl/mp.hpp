@@ -28,6 +28,12 @@
 #include <array>
 namespace csl::mp::seq {
     // is_sequence
+    template <typename T>
+    struct is_sequence : std::false_type{};
+    template <typename T, T ... values>
+    struct is_sequence<std::integer_sequence<T, values...>> : std::true_type{};
+    template <typename T>
+    constexpr static inline auto is_sequence_v = is_sequence<T>::value;
 }
 namespace csl::mp::seq::concepts {
     // sequence
