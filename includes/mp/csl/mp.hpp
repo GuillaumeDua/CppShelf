@@ -26,7 +26,7 @@
 
 // sequences
 #include <array>
-namespace csl::mp::seq {
+namespace csl::mp::seq::type_traits {
     // is_sequence
     template <typename T>
     struct is_sequence : std::false_type{};
@@ -36,7 +36,8 @@ namespace csl::mp::seq {
     constexpr static inline auto is_sequence_v = is_sequence<T>::value;
 }
 namespace csl::mp::seq::concepts {
-    // sequence
+    template <typename T>
+    concept sequence = type_traits::is_sequence_v<T>;
 }
 namespace csl::mp::seq::details {
 
