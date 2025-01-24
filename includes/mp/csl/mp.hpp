@@ -56,13 +56,15 @@ namespace csl::mp::seq::details {
     struct reverse_impl;
     template <typename T, T ... values>
     struct reverse_impl<std::integer_sequence<T, values...>> : std::type_identity<
-        std::integer_sequence<
-            T,
-            []<std::size_t ... indexes>(){
-                return std::get<(sizeof...(values) - 1)>(std::array{ values... })...
-            }(std::make_index_sequence<sizeof...(values)>)
-        >
-        // std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+        decltype(
+            []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return std::integer_sequence<
+                    T,
+                    std::get<(sizeof...(values) - 1 - indexes)>(std::array{ values... })...
+                >{};
+            }(std::make_index_sequence<sizeof...(values)>{})
+        )
+        // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
     >{};
 }
 namespace csl::mp::seq {
