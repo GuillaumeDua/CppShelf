@@ -44,22 +44,20 @@ namespace csl::mp::seq::concepts {
 }
 namespace csl::mp::seq {
 
-    
+    // to_tuplelike
+    template <typename T>
+    struct to_tuplelike;
+    template <typename T, T ... values>
+    struct to_tuplelike<std::integer_sequence<T, values...>>{
+        using type = std::array<T, sizeof...(values)>;
+        constexpr static inline auto value = type{ values... };
+    };
+    template <typename T>
+    constexpr static inline auto to_tuplelike_t = to_tuplelike<T>::type;
+    template <typename T>
+    constexpr static inline auto to_tuplelike_v = to_tuplelike<T>::value;
 
-
-    namespace details {
-        // tuplelike storage
-        template <typename T>
-        struct as_tuplike;
-        template <typename T, T ... values>
-        struct as_tuplike<std::integer_sequence<T, values...>>{
-            constexpr static inline auto value = std::array<T, sizeof...(values)>{ values... };
-        };
-        template <typename T>
-        constexpr static inline auto as_tuplike_v = as_tuplike<T>::value;
-    }
-
-    // size | pref. seq::size
+    // size | pref. seq::size()
     template <typename T>
     struct size;
     template <typename T, T ... values>
@@ -74,7 +72,7 @@ namespace csl::mp::seq {
     struct at<index, std::integer_sequence<T, values...>> : std::integral_constant<
         T,
         std::get<index>(
-            details::as_tuplike_v<std::integer_sequence<T, values...>>
+            to_tuplelike_v<std::integer_sequence<T, values...>>
         )
     >{};
     template <std::size_t index, typename T>
