@@ -27,6 +27,9 @@
 //  seq types    : sequences definitions
 //  tuple
 //  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
+//
+// [WIP] range-like API for sequence, tuple
+//  std::make_index_sequence<4> | reverse | drop(1) | take(2) => std::integer_sequence<std::size_t, 3, 2>
 
 // sequences
 #include <array>
@@ -43,48 +46,30 @@ namespace csl::mp::seq::concepts {
     template <typename T>
     concept sequence = type_traits::is_sequence_v<T>;
 }
-namespace csl::mp::seq::details {
-
-    // tuplelike storage
-    template <typename T>
-    struct storage;
-    template <typename T, T ... values>
-    struct storage<std::integer_sequence<T, values...>>{
-        constexpr static inline auto value = std::array<T, sizeof...(values)>{ values... };
-    };
-    template <typename T>
-    constexpr static inline auto storage_v = storage<T>::value;
-
-    // reverse
-    template <typename T>
-    struct reverse_impl;
-    template <typename T, T ... values>
-    struct reverse_impl<std::integer_sequence<T, values...>> : std::type_identity<
-        decltype(
-            []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return std::integer_sequence<
-                    T,
-                    std::get<(sizeof...(values) - 1 - indexes)>(std::array{ values... })...
-                >{};
-            }(std::make_index_sequence<sizeof...(values)>{})
-        )
-        // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
-    >{};
-}
 namespace csl::mp::seq {
 
-    // reverse
-    template <typename T>
-    using reverse = typename details::reverse_impl<T>::type;
-    template <std::size_t I>
-    using make_reverse_index_sequence = reverse<std::make_index_sequence<I>>;
+    
 
-    // type_of<values...>
-    template <auto value, auto ... values>
-    requires (std::is_same_v<decltype(value), decltype(values)> and ...)
-    struct type_of : std::type_identity<decltype(value)>{};
-    template <auto ... values>
-    using type_of_t = typename type_of<values...>::value;
+
+    namespace details {
+        // tuplelike storage
+        template <typename T>
+        struct as_tuplike;
+        template <typename T, T ... values>
+        struct as_tuplike<std::integer_sequence<T, values...>>{
+            constexpr static inline auto value = std::array<T, sizeof...(values)>{ values... };
+        };
+        template <typename T>
+        constexpr static inline auto as_tuplike_v = as_tuplike<T>::value;
+    }
+
+    // size | pref. seq::size
+    template <typename T>
+    struct size;
+    template <typename T, T ... values>
+    struct size<std::integer_sequence<T, values...>>
+    : std::integral_constant<std::size_t, sizeof...(values)>
+    {};
 
     // at<index>
     template <std::size_t, typename>
@@ -93,11 +78,51 @@ namespace csl::mp::seq {
     struct at<index, std::integer_sequence<T, values...>> : std::integral_constant<
         T,
         std::get<index>(
-            details::storage_v<std::integer_sequence<T, values...>>
+            details::as_tuplike_v<std::integer_sequence<T, values...>>
         )
     >{};
     template <std::size_t index, typename T>
     constexpr static inline auto at_v = at<index, T>::value;
+
+    // reverse
+    template <typename T>
+    struct reverse;
+    template <concepts::sequence T>
+    struct reverse<T> : std::type_identity<
+        decltype(
+            []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return std::integer_sequence<
+                    typename T::value_type,
+                    at_v<T::size() - 1 - indexes, T>...
+                >{};
+            }(std::make_index_sequence<T::size()>{})
+        )
+        // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    >{};
+    // template <typename T, T ... values>
+    // struct reverse<std::integer_sequence<T, values...>> : std::type_identity<
+    //     decltype(
+    //         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //             constexpr auto storage = std::array{ values... };
+    //             return std::integer_sequence<
+    //                 T,
+    //                 std::get<(sizeof...(values) - 1 - indexes)>(storage)...
+    //             >{};
+    //         }(std::make_index_sequence<sizeof...(values)>{})
+    //     )
+    //     // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    // >{};
+    template <typename T>
+    using reverse_t = reverse<T>::type;
+    template <std::size_t I>
+    using make_reverse_index_sequence = reverse_t<std::make_index_sequence<I>>;
+
+    // type_of<values...>
+    template <auto value, auto ... values>
+    requires (std::is_same_v<decltype(value), decltype(values)> and ...)
+    struct type_of : std::type_identity<decltype(value)>{};
+    template <auto ... values>
+    using type_of_t = typename type_of<values...>::value;
     
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>

@@ -223,6 +223,7 @@
         "cstring": "cpp",
         "charconv": "cpp",
         "text_encoding": "cpp",
-        "__verbose_abort": "cpp"
+        "__verbose_abort": "cpp",
+        "span": "cpp"
     },
 }
