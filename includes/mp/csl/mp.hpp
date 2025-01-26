@@ -8,6 +8,7 @@
 //  if a given tuple instanciation is not valid, less performant algorithms may be selected
 
 #include <bits/utility.h>
+#include <compare>
 #include <type_traits>
 #include <concepts>
 // todo : remove dependency on std::tuple and std::integer_sequence
@@ -253,7 +254,7 @@ namespace csl::mp {
         {}
 
         // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
-        constexpr auto operator<=>(const tuple &) const = default;
+        // constexpr auto operator<=>(const tuple & other) const = default; // implicitly deleted
 
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
         template <std::size_t index>
@@ -294,6 +295,19 @@ namespace csl::mp {
     template <typename ... Ts>
     tuple(Ts && ...) -> tuple<std::remove_cvref_t<Ts>...>;
 
+    // compare
+    template <typename ... Ts, typename ... Us>
+    requires (sizeof...(Ts) == sizeof...(Us))
+         and (true and ... and std::three_way_comparable_with<Ts, Us>)
+    constexpr inline static auto operator<=>(
+        const tuple<Ts...> & lhs,
+        const tuple<Us...> & rhs
+    ){
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return ((get<indexes>(lhs) <=> get<indexes>(rhs)) <=> ...);
+        }(std::make_index_sequence<sizeof...(Ts)>{});
+    }
+
     // is_tuple
     template <typename>
     struct is_tuple : std::false_type{};
@@ -303,7 +317,7 @@ namespace csl::mp {
     constexpr bool is_tuple_v = is_tuple<T>::value;
 
     namespace concepts {
-        template <typename T> concept Tuple = is_tuple_v<std::remove_cvref_t<T>>;
+        template <typename T> concept tuple = is_tuple_v<std::remove_cvref_t<T>>;
     }
 }
 namespace csl::mp::details::concepts {
@@ -331,7 +345,7 @@ namespace csl::mp {
     constexpr bool is_valid_tuple_v = is_valid_tuple<T>::value;
 
     namespace concepts {
-        template <typename T> concept ValidTuple = is_valid_tuple_v<T>;
+        template <typename T> concept valid_tuple = is_valid_tuple_v<T>;
     }
 
     // size
@@ -356,7 +370,7 @@ namespace csl::mp {
 
     namespace concepts {
         template <typename T>
-        concept EmptyTuple = Tuple<T> and empty_v<T>;
+        concept empty_tuple = tuple<T> and empty_v<T>;
     }
 
     // count
@@ -395,7 +409,7 @@ namespace csl::mp {
     struct index_of : std::integral_constant<std::size_t,
         tuple_type::template by_type_<T>::index
     >{};
-    template <typename T, concepts::ValidTuple tuple_type>
+    template <typename T, concepts::valid_tuple tuple_type>
     constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
 
     // unfold_into
@@ -643,14 +657,14 @@ namespace csl::mp {
             tuple<Ts>, tuple<>
         >...
     >{};
-    template <concepts::Tuple tuple_type, template <typename...> typename predicate>
+    template <concepts::tuple tuple_type, template <typename...> typename predicate>
     using filter_t = typename filter<tuple_type, predicate>::type;
 
     // deduplicate / make_valid
     // TODO(Guss): reverse prior to filtering, to preserve order
     template <typename>
     struct deduplicate;
-    template <concepts::ValidTuple T>
+    template <concepts::valid_tuple T>
     struct deduplicate<T> : type_identity<T>{};
     template <typename ... Ts>
     struct deduplicate<tuple<Ts...>> : 
@@ -670,7 +684,7 @@ namespace csl::mp {
             >...
         >{};
     }(std::make_index_sequence<tuple_size_v<tuple<Ts...>>>{})){};
-    template <concepts::Tuple tuple_type>
+    template <concepts::tuple tuple_type>
     using deduplicate_t = typename deduplicate<tuple_type>::type;
 
     // flatten_once
@@ -679,13 +693,13 @@ namespace csl::mp {
     // fwd_as_tuple
     // get<I>, get<T>
     // // for_each
-    // template <concepts::ValidTuple tuple_type>
+    // template <concepts::valid_tuple tuple_type>
     // void for_each(tuple_type && value, auto && visitor){
     //     [&](){}();
     // }
 
     // for_each_with_index
-    // template <concepts::ValidTuple tuple_type>
+    // template <concepts::valid_tuple tuple_type>
     // void for_each_with_index(tuple_type && value, auto && visitor){
     //     [&](){}();
     // }
@@ -712,7 +726,7 @@ namespace csl::mp {
     // tuple_element
 
     template <std::size_t index>
-    [[nodiscard]] constexpr auto get(concepts::Tuple auto && value) noexcept -> decltype(auto) {
+    [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
         return value.template get<index>();
     }
     // WIP
@@ -731,10 +745,10 @@ namespace csl::mp {
 #include <utility> // std::tuple_size, std::tuple_element
 
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
-template <csl::mp::concepts::Tuple tuple_type>
+template <csl::mp::concepts::tuple tuple_type>
 struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
 
-template <std::size_t index, csl::mp::concepts::Tuple tuple_type>
+template <std::size_t index, csl::mp::concepts::tuple tuple_type>
 struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
 // NOLINTEND(cert-dcl58-cpp)
 #pragma endregion
