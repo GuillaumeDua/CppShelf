@@ -131,9 +131,13 @@ namespace csl::mp::seq {
 
 // ---
 
-// tuple
-// TODO(@Guss): structured-binding (std::tuple_size, std::tuple_element)
-// TODO(@Guss): concepts: tuple_interface, empty_tuple, etc.
+// csl::mp::tuple
+//  TODO(@Guss): structured-binding (std::tuple_size, std::tuple_element)
+//  TODO(@Guss): concepts: tuple_interface, empty_tuple, etc.
+//  TODO(@Guss): apply
+//  WIP:  ==, not_eq
+//  WIP: user-defined deduction guide
+//  WIP: fix build CI
 
 namespace csl::mp {
     template <std::size_t I>
@@ -291,6 +295,8 @@ namespace csl::mp {
     private:
         storage_type storage;
     };
+    template <typename ... Ts>
+    tuple(Ts && ...) -> tuple<std::remove_cvref_t<Ts>...>;
 
     // is_tuple
     template <typename>
@@ -446,8 +452,8 @@ namespace csl::mp {
                 // [ 0 0 1 1 2 ][ 0 1 0 1 0 ]
 
                 struct {
-                    std::size_t tuple_index[size];      // NOLINT(cppcoreguidelines-avoid-c-arrays
-                    std::size_t element_index[size];    // NOLINT(cppcoreguidelines-avoid-c-arrays
+                    std::size_t tuple_index[size];      // NOLINT(*-avoid-c-arrays)
+                    std::size_t element_index[size];    // NOLINT(*-avoid-c-arrays)
                 } mapped_indexes{};
 
                 auto create_indexes_for = [
@@ -485,9 +491,13 @@ namespace csl::mp {
                         >>
                     >...
                 >;
-                return type{};
+                return type{
+                    get<indexes_map.element_index[indexes]>(
+                        get<indexes_map.tuple_index[indexes]>(fwd(tuples))
+                    )...
+                };
             }(
-                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ /* fwd(tuples)... */ },
+                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ fwd(tuples)... },
                 std::make_index_sequence<size>{}
             );
         }
