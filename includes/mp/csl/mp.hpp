@@ -181,8 +181,12 @@ namespace csl::mp::details {
 
     template <std::size_t index, typename T>
     struct tuple_element_storage {
-        T value; // NOLINT(*-non-private-member-variables-in-classes)
-        constexpr auto operator<=>(const tuple_element_storage &) const = default;
+        T value;
+
+        template <std::size_t I, std::three_way_comparable_with<T> U>
+        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const{
+            return value == other.value;
+        }
     };
 
     template <typename indexes, typename ... Ts>
@@ -258,7 +262,7 @@ namespace csl::mp {
         {}
 
         // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
-        // constexpr auto operator<=>(const tuple & other) const = default; // implicitly deleted
+        constexpr auto operator<=>(const tuple & other) const = default; // default is implicitly deleted because of inherited type
 
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
         template <std::size_t index>
@@ -300,17 +304,17 @@ namespace csl::mp {
     tuple(Ts && ...) -> tuple<std::remove_cvref_t<Ts>...>;
 
     // compare
-    template <typename ... Ts, typename ... Us>
-    requires (sizeof...(Ts) == sizeof...(Us))
-         and (true and ... and std::three_way_comparable_with<Ts, Us>)
-    constexpr inline static auto operator<=>(
-        const tuple<Ts...> & lhs,
-        const tuple<Us...> & rhs
-    ){
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return ((get<indexes>(lhs) <=> get<indexes>(rhs)) <=> ...);
-        }(std::make_index_sequence<sizeof...(Ts)>{});
-    }
+    // template <typename ... Ts, typename ... Us>
+    // requires (sizeof...(Ts) == sizeof...(Us))
+    //      and (true and ... and std::three_way_comparable_with<Ts, Us>)
+    // constexpr inline static auto operator<=>(
+    //     const tuple<Ts...> & lhs,
+    //     const tuple<Us...> & rhs
+    // ){
+    //     return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //         return ((get<indexes>(lhs) <=> get<indexes>(rhs)) <=> ...);
+    //     }(std::make_index_sequence<sizeof...(Ts)>{});
+    // }
 
     // is_tuple
     template <typename>
