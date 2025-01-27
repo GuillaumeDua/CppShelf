@@ -19,6 +19,7 @@
 //  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
 #include <iterator>
+#include <compare>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
@@ -183,9 +184,17 @@ namespace csl::mp::details {
     struct tuple_element_storage {
         T value;
 
-        template <std::size_t I, std::three_way_comparable_with<T> U>
-        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const{
+        template <std::size_t I, std::equality_comparable_with<T> U>
+        constexpr auto operator==(const tuple_element_storage<I, U> & other) const
+        noexcept(noexcept(value == other.value))
+        {
             return value == other.value;
+        }
+        template <std::size_t I, std::three_way_comparable_with<T> U>
+        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
+        noexcept(noexcept(value <=> other.value))
+        {
+            return value <=> other.value;
         }
     };
 
@@ -261,8 +270,14 @@ namespace csl::mp {
         : storage{ fwd(args)... }
         {}
 
+        template <typename ... Us>
+        requires (true and ... and std::three_way_comparable_with<Ts, Us>)
+        constexpr auto operator<=>(const tuple<Us...> & other) const {
+            return storage <=> other.storage;
+        }
+
         // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
-        constexpr auto operator<=>(const tuple & other) const = default; // default is implicitly deleted because of inherited type
+        // constexpr auto operator<=>(const tuple & other) const = default; // default is implicitly deleted because of inherited type
 
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
         template <std::size_t index>
