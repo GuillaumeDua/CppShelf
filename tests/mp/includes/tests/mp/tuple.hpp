@@ -78,6 +78,20 @@ namespace testi::tuples::is_valid_tuple {
     static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<>>);
     static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<int>>);
 }
+namespace test::tuples::compare {
+
+    // tuple_element_storage
+    static_assert(std::three_way_comparable<
+        csl::mp::details::tuple_element_storage<0, int>
+    >);
+
+    using type = csl::mp::tuple<int, char>;
+    static_assert(std::three_way_comparable<type>);
+    static_assert(std::three_way_comparable_with<
+        type,
+        csl::mp::tuple<double, int>
+    >);
+}
 namespace test::tuples::tuple_cat {
 
     // empty
