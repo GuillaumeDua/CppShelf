@@ -87,6 +87,9 @@ namespace test::tuples::compare {
 
     using type = csl::mp::tuple<int, char>;
     static_assert(std::three_way_comparable<type>);
+    static_assert(requires{
+        type{} <=> csl::mp::tuple<double, int>{};
+    });
     static_assert(std::three_way_comparable_with<
         type,
         csl::mp::tuple<double, int>
