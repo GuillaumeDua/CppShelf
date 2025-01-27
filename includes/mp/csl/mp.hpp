@@ -218,6 +218,8 @@ namespace csl::mp::details {
         constexpr tuple_storage & operator=(tuple_storage &&) noexcept = default;
         constexpr tuple_storage & operator=(const tuple_storage &) = default;
 
+        // WIP: not default, but every instances. + friends
+        constexpr bool operator==(const tuple_storage &) const = default;
         constexpr auto operator<=>(const tuple_storage &) const = default;
     };
 
@@ -258,6 +260,8 @@ namespace csl::mp {
         std::make_index_sequence<sizeof...(Ts)>,
         Ts...
     >{
+        template <typename ... Us> friend struct tuple;
+
         using type = tuple<Ts...>;
         constexpr static auto size = sizeof...(Ts);
         using index_sequence_type = std::make_index_sequence<size>;
@@ -270,6 +274,11 @@ namespace csl::mp {
         : storage{ fwd(args)... }
         {}
 
+        template <typename ... Us>
+        requires (true and ... and std::equality_comparable_with<Ts, Us>)
+        constexpr auto operator==(const tuple<Us...> & other) const {
+            return storage == other.storage;
+        }
         template <typename ... Us>
         requires (true and ... and std::three_way_comparable_with<Ts, Us>)
         constexpr auto operator<=>(const tuple<Us...> & other) const {
