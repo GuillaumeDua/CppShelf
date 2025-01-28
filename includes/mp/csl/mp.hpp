@@ -163,6 +163,30 @@ namespace csl::mp {
         using type = trait<Us..., Ts...>;
     };
 }
+namespace csl::mp::details::compare {
+
+    // emulate __detail::__synth3way_t
+    constexpr auto synth_three_way = []<class T, class U>(const T& t, const U& u)
+    requires requires
+        {
+            { t < u } -> std::convertible_to<bool>;
+            { u < t } -> std::convertible_to<bool>;
+        }
+    {
+        if constexpr (std::three_way_comparable_with<T, U>)
+            return t <=> u;
+        else
+        {
+            if (t < u)
+                return std::weak_ordering::less;
+            if (u < t)
+                return std::weak_ordering::greater;
+            return std::weak_ordering::equivalent;
+        }
+    };
+    template <class T, class U = T>
+    using synth_three_way_result = decltype(synth_three_way(std::declval<T&>(), std::declval<U&>()));
+}
 namespace csl::mp::details {
 
     template <std::size_t I, typename T>
@@ -176,22 +200,34 @@ namespace csl::mp::details {
         constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
     };
 
+
     template <std::size_t index, typename T>
     struct tuple_element_storage {
+
         T value;
 
-        template <std::size_t I, std::equality_comparable_with<T> U>
-        constexpr auto operator==(const tuple_element_storage<I, U> & other) const
-        noexcept(noexcept(value == other.value))
-        {
-            return value == other.value;
-        }
-        template <std::size_t I, std::three_way_comparable_with<T> U>
-        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
-        noexcept(noexcept(value <=> other.value))
-        {
-            return value <=> other.value;
-        }
+        // template <std::size_t I, std::equality_comparable_with<T> U>
+        // constexpr auto operator==(const tuple_element_storage<I, U> & other) const
+        // noexcept(noexcept(value == other.value))
+        // {
+        //     return value == other.value;
+        // }
+        // template <std::size_t I, std::three_way_comparable_with<T> U>
+        // friend constexpr auto operator<=>(
+        //     const tuple_element_storage & lhs,
+        //     const tuple_element_storage<I, U> & rhs)
+        // noexcept(noexcept(lhs.value <=> rhs.value))
+        // {
+        //     return lhs.value <=> rhs.value;
+        // }
+
+        // template <std::size_t I, typename U>
+        // constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
+        // // noexcept(noexcept(value <=> other.value))
+        // -> std::common_comparison_category_t<compare::synth_three_way_result<T, U>>
+        // {
+        //     return compare::synth_three_way(value, other.value);
+        // }
     };
 
     template <typename indexes, typename ... Ts>
@@ -202,6 +238,9 @@ namespace csl::mp::details {
     struct tuple_storage<std::index_sequence<indexes...>, Ts...>
     : tuple_element_storage<indexes, Ts>...
     {
+        template <typename index_seq, typename ... Us>
+        friend struct tuple_storage;
+
         explicit constexpr tuple_storage(auto && ... args)
         requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
         : tuple_element_storage<indexes, Ts>{ fwd(args) }...
@@ -215,8 +254,17 @@ namespace csl::mp::details {
         constexpr tuple_storage & operator=(const tuple_storage &) = default;
 
         // WIP: not default, but every instances. + friends
-        constexpr bool operator==(const tuple_storage &) const = default;
-        constexpr auto operator<=>(const tuple_storage &) const = default;
+        // constexpr bool operator==(const tuple_storage &) const = default;
+        // constexpr auto operator<=>(const tuple_storage &) const = default;
+
+        // template <std::equality_comparable_with<Ts> ... Us>
+        // constexpr bool operator==(const tuple_storage<std::index_sequence<indexes...>, Us...> &) const {
+        //     return true;
+        // }
+        // template <std::equality_comparable_with<Ts> ... Us>
+        // constexpr auto operator<=>(const tuple_storage<std::index_sequence<indexes...>, Us...> &) const {
+        //     return std::strong_ordering::equal;
+        // }
     };
 
     template <typename>
@@ -271,15 +319,20 @@ namespace csl::mp {
         {}
 
         template <typename ... Us>
-        requires (true and ... and std::equality_comparable_with<Ts, Us>)
+        requires
+            (sizeof...(Ts) == sizeof...(Us))
+        and (true and ... and std::equality_comparable_with<Ts, Us>)
         constexpr auto operator==(const tuple<Us...> & other) const {
-            return storage == other.storage;
+            // return storage == other.storage;
+            return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return (true and ... and (get<indexes>() == other.template get<indexes>()));
+            }(std::make_index_sequence<sizeof...(Ts)>{});
         }
-        template <typename ... Us>
-        requires (true and ... and std::three_way_comparable_with<Ts, Us>)
-        constexpr auto operator<=>(const tuple<Us...> & other) const {
-            return storage <=> other.storage;
-        }
+        // template <typename ... Us>
+        // requires (true and ... and std::three_way_comparable_with<Ts, Us>)
+        // constexpr auto operator<=>(const tuple<Us...> & other) const {
+        //     // return storage <=> other.storage;
+        // }
 
         // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
         // constexpr auto operator<=>(const tuple & other) const = default; // default is implicitly deleted because of inherited type

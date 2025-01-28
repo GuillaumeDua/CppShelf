@@ -81,18 +81,38 @@ namespace testi::tuples::is_valid_tuple {
 namespace test::tuples::compare {
 
     // tuple_element_storage
-    static_assert(std::three_way_comparable<
-        csl::mp::details::tuple_element_storage<0, int>
+    // static_assert(std::three_way_comparable<
+    //     csl::mp::details::tuple_element_storage<0, int>
+    // >);
+    // static_assert(std::three_way_comparable<
+    //     csl::mp::details::tuple_element_storage<1, float>
+    // >);
+    // static_assert(std::three_way_comparable_with<
+    //     csl::mp::details::tuple_element_storage<0, int>,
+    //     csl::mp::details::tuple_element_storage<1, float>
+    // >);
+
+    using lhs_t = csl::mp::tuple<int, char>;
+    using rhs_t = csl::mp::tuple<double, int>;
+    
+    // equality
+    static_assert(std::equality_comparable<lhs_t>);
+    static_assert(std::equality_comparable<rhs_t>);
+    static_assert(requires{
+        lhs_t{} == rhs_t{};
+    });
+    static_assert(std::equality_comparable_with<
+        lhs_t, rhs_t
     >);
 
-    using type = csl::mp::tuple<int, char>;
-    static_assert(std::three_way_comparable<type>);
+    // spaceship
+    static_assert(std::three_way_comparable<lhs_t>);
+    static_assert(std::three_way_comparable<rhs_t>);
     static_assert(requires{
-        type{} <=> csl::mp::tuple<double, int>{};
+        lhs_t{} <=> rhs_t{}
     });
     static_assert(std::three_way_comparable_with<
-        type,
-        csl::mp::tuple<double, int>
+        lhs_t, rhs_t
     >);
 }
 namespace test::tuples::tuple_cat {
