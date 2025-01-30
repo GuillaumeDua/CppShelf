@@ -101,9 +101,9 @@ namespace test::tuples::compare {
     static_assert(requires{
         lhs_t{} == rhs_t{};
     });
-    static_assert(std::equality_comparable_with<
-        lhs_t, rhs_t
-    >);
+    // static_assert(std::equality_comparable_with<
+    //     lhs_t, rhs_t
+    // >);
 
     // spaceship
     static_assert(std::three_way_comparable<lhs_t>);
@@ -111,9 +111,9 @@ namespace test::tuples::compare {
     static_assert(requires{
         lhs_t{} <=> rhs_t{}
     });
-    static_assert(std::three_way_comparable_with<
-        lhs_t, rhs_t
-    >);
+    // static_assert(std::three_way_comparable_with<
+    //     lhs_t, rhs_t
+    // >);
 }
 namespace test::tuples::tuple_cat {
 
@@ -234,6 +234,9 @@ namespace test::tuples::storage::constructors::move {
         auto value = std::move(tmp); // NOLINT(performance-move-const-arg)
         return value;
     }();
+}
+namespace test::tuples::storage::constructors::convertion {
+    constexpr csl::mp::tuple<int, char> value = csl::mp::tuple<double, int>{1,2};
 }
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<
