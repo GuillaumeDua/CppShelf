@@ -317,6 +317,21 @@ namespace csl::mp {
 
     // storage
         constexpr tuple() = default;
+        constexpr tuple(const tuple &) = default;
+        constexpr tuple(tuple &&) noexcept((true and ... and std::is_nothrow_move_constructible_v<Ts>)) = default;
+        constexpr ~tuple() = default;
+
+        template <std::convertible_to<Ts> ... Us>
+        constexpr auto operator=(tuple<Us...> && other)
+        noexcept((true and ... and std::is_nothrow_convertible_v<Us&&, Ts&>))
+        {
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                return ((get<indexes>() = fwd(other).template get<indexes>()), ...);
+            }(std::make_index_sequence<sizeof...(Ts)>{});
+            return *this;
+        }
+
+
         explicit constexpr tuple(auto && ... args)
         requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
         : storage{ fwd(args)... }
@@ -327,19 +342,27 @@ namespace csl::mp {
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::equality_comparable_with<Ts, Us>)
         constexpr auto operator==(const tuple<Us...> & other) const {
-            // return storage == other.storage;
             return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return (true and ... and (get<indexes>() == other.template get<indexes>()));
             }(std::make_index_sequence<sizeof...(Ts)>{});
         }
-        // template <typename ... Us>
-        // requires (true and ... and std::three_way_comparable_with<Ts, Us>)
-        // constexpr auto operator<=>(const tuple<Us...> & other) const {
-        //     // return storage <=> other.storage;
-        // }
+        template <typename ... Us>
+        requires
+            (sizeof...(Ts) == sizeof...(Us))
+        and (true and ... and std::three_way_comparable_with<Ts, Us>)
+        constexpr auto operator<=>(const tuple<Us...> & other) const {
 
-        // TODO(Guillaume): comparison: operator<=>, conditionaly noexcept ?
-        // constexpr auto operator<=>(const tuple & other) const = default; // default is implicitly deleted because of inherited type
+            // auto result = std::strong_ordering::equivalent;
+            // const auto compare = [&](const auto & lhs, const auto & rhs){
+            //     if (result != std::strong_ordering::equivalent) return;
+            //     result = (lhs <=> rhs);
+            // };
+            // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            //     ((compare(get<indexes>(), other.template get<indexes>())), ...);
+            // }(std::make_index_sequence<sizeof...(Ts)>{});
+            // return result;
+        }
+        
 
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
         template <std::size_t index>
