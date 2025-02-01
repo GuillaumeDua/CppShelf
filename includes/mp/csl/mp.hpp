@@ -444,28 +444,29 @@ namespace csl::mp {
         #endif
 
 
+        // get
+        template <std::size_t index> requires (index >= size)
+        constexpr void get() const & noexcept {
+            static_assert(false, "csl::mp::tuple::get<size_t>: out-of-bounds");
+        }
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
-        template <std::size_t index>
+        template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & get() & noexcept {
-            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
             using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
             return static_cast<accessor&>(storage).value;
         }
-        template <std::size_t index>
+        template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr const auto & get() const & noexcept {
-            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
             using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
             return static_cast<const accessor&>(storage).value;
         }
-        template <std::size_t index>
+        template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto && get() && noexcept {
-            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
             using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
             return static_cast<accessor &&>(std::move(storage)).value;
         }
-        template <std::size_t index>
+        template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr const auto && get() const && noexcept {
-            static_assert(index <= size, "csl::mp::tuple::get<size_t>: out-of-bounds");
             using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
             return static_cast<const accessor &&>(std::move(storage)).value;
         }
