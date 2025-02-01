@@ -240,31 +240,47 @@ namespace csl::mp::details {
     struct tuple_storage<std::index_sequence<indexes...>, Ts...>
     : tuple_element_storage<indexes, Ts>...
     {
+        static_assert(sizeof...(indexes) == sizeof...(Ts));
+
         template <typename index_seq, typename ... Us>
         friend struct tuple_storage;
 
         template <typename ... Us>
-        constexpr
-        explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
+        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
         tuple_storage(Us && ... args)
         noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us>))
-        requires (true and ... and std::constructible_from<Ts, decltype(fwd(args))>)
-        : tuple_element_storage<indexes, Ts>{ fwd(args) }...
+        requires (
+            sizeof...(Ts) == sizeof...(Us)
+        and (true and ... and std::constructible_from<Ts, decltype(fwd(args))>)
+        )
+        : tuple_element_storage<indexes, Ts>{
+            #if defined(CSL_MP_TUPLE__ALLOW_CONVERSION) and CSL_MP_TUPLE__ALLOW_CONVERSION
+            static_cast<Ts>(fwd(args))
+            #else
+            fwd(args)
+            #endif
+        }...
         {}
 
         template <typename seq, typename ... Us>
         explicit constexpr tuple_storage(tuple_storage<seq, Us...> && other)
-        requires (true and ... and std::constructible_from<Ts, Us>)
-        : tuple_element_storage<indexes, Ts>{
-            std::forward<tuple_element_storage<indexes, Us>>(fwd(other)).value
-        }...
+        requires (
+            sizeof...(Ts) == sizeof...(Us)
+        and (true and ... and std::constructible_from<Ts, Us>)
+        )
+        : tuple_storage{
+            std::forward<tuple_element_storage<indexes, Us>>(fwd(other)).value...
+        }
         {}
         template <typename seq, typename ... Us>
         explicit constexpr tuple_storage(const tuple_storage<seq, Us...> & other)
-        requires (true and ... and std::constructible_from<Ts, Us>)
-        : tuple_element_storage<indexes, Ts>{
-            std::forward<tuple_element_storage<indexes, Us>>(fwd(other)).value
-        }...
+        requires (
+            sizeof...(Ts) == sizeof...(Us)
+        and (true and ... and std::constructible_from<Ts, Us>)
+        )
+        : tuple_storage{
+            std::forward<tuple_element_storage<indexes, Us>>(fwd(other)).value...
+        }
         {}
 
         constexpr tuple_storage() = default;
