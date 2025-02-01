@@ -240,8 +240,9 @@ namespace test::tuples::storage::constructors::convertion {
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .42 , 42 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .42f };
     #endif
-    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t> c = csl::mp::tuple<std::int8_t>{};
-    [[maybe_unused]] constexpr csl::mp::tuple<double>       d { float{} };
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 c = csl::mp::tuple<std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   d = csl::mp::tuple<std::int8_t, std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<double>                       e { float{} };
 }
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<

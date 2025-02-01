@@ -290,7 +290,7 @@ namespace csl::mp::details {
         constexpr tuple_storage & operator=(tuple_storage &&) noexcept = default;
         constexpr tuple_storage & operator=(const tuple_storage &) = default;
 
-        // WIP: not default, but every instances. + friends
+        // WIP: not default, but every instances. + friends ?
         // constexpr bool operator==(const tuple_storage &) const = default;
         // constexpr auto operator<=>(const tuple_storage &) const = default;
 
@@ -349,14 +349,35 @@ namespace csl::mp {
         using storage_type = details::tuple_storage<index_sequence_type, Ts...>;
 
     // storage
-        constexpr tuple() = default;
-        constexpr tuple(const tuple &) = default;
-        constexpr tuple(tuple &&) noexcept((true and ... and std::is_nothrow_move_constructible_v<Ts>)) = default;
+        constexpr tuple()
+        noexcept ((true and ... and std::is_nothrow_constructible_v<Ts>))
+        requires (true and ... and std::is_default_constructible_v<Ts>)
+        = default;
+        constexpr tuple(const tuple &)
+        noexcept ((true and ... and std::is_nothrow_copy_constructible_v<Ts>))
+        requires (true and ... and std::is_copy_constructible_v<Ts>)
+        = default;
+        constexpr tuple(tuple &&)
+        noexcept((true and ... and std::is_nothrow_move_constructible_v<Ts>))
+        requires (true and ... and std::is_move_constructible_v<Ts>)
+        = default;
+        constexpr tuple & operator=(const tuple &)
+        noexcept((true and ... and std::is_nothrow_copy_assignable_v<Ts>))
+        requires (true and ... and std::is_copy_assignable_v<Ts>)
+        = default;
+        constexpr tuple & operator=(tuple &&)
+        noexcept((true and ... and std::is_nothrow_move_assignable_v<Ts>))
+        requires (true and ... and std::is_move_assignable_v<Ts>)
+        = default;
         constexpr ~tuple() = default;
 
+    // storage conversion
         template <std::convertible_to<Ts> ... Us>
         constexpr auto & operator=(tuple<Us...> && other)
-        noexcept((true and ... and std::is_nothrow_convertible_v<Us&&, Ts&>))
+        noexcept((true and ... and std::is_nothrow_assignable_v<Ts&, Us&&>))
+        requires
+            (sizeof...(Ts) == sizeof...(Us))
+        and (true and ... and std::is_assignable_v<Ts, Us&&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return ((get<indexes>() = fwd(other).template get<indexes>()), ...);
@@ -364,8 +385,11 @@ namespace csl::mp {
             return *this;
         }
         template <std::convertible_to<Ts> ... Us>
-        constexpr auto & operator=(tuple<Us...> & other)
-        noexcept((true and ... and std::is_nothrow_convertible_v<Us&, Ts&>))
+        constexpr auto & operator=(const tuple<Us...> & other)
+        noexcept((true and ... and std::is_nothrow_assignable_v<Ts&, const Us&>))
+        requires
+            (sizeof...(Ts) == sizeof...(Us))
+        and (true and ... and std::is_assignable_v<Ts, const Us&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return ((get<indexes>() = fwd(other).template get<indexes>()), ...);
@@ -373,17 +397,26 @@ namespace csl::mp {
             return *this;
         }
 
-        explicit constexpr tuple(auto && ... args)
-        requires (std::constructible_from<Ts, decltype(fwd(args))> and ...)
+        template <typename ... Us>
+        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
+        tuple(Us && ... args)
+        noexcept((std::is_nothrow_constructible_v<Ts, Us&&> and ...))
+        requires
+            (sizeof...(Ts) == sizeof...(Us))
+        and (std::constructible_from<Ts, Us&&> and ...)
         : storage{ fwd(args)... }
         {}
         template <typename ... Us>
-        constexpr tuple(tuple<Us...> && other)
-        requires (true and ... and std::constructible_from<Ts, Us&&>)
+        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
+        tuple(tuple<Us...> && other)
+        requires 
+            (sizeof...(Ts) == sizeof...(Us))
+        and (true and ... and std::constructible_from<Ts, Us&&>)
         : storage{ fwd(other).storage }
         {}
         template <typename ... Us>
-        constexpr tuple(const tuple<Us...> & other)
+        constexpr explicit(not (true and ... and std::convertible_to<const Us &, Ts>))
+        tuple(const tuple<Us...> & other)
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ fwd(other).storage }
         {}
@@ -458,7 +491,6 @@ namespace csl::mp {
                 const tuple<_UElements...>& __u)
             { return !(__t < __u); }
         #endif
-
 
         // get
         template <std::size_t index> requires (index >= size)
