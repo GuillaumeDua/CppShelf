@@ -109,7 +109,7 @@ namespace test::tuples::compare {
     static_assert(std::three_way_comparable<lhs_t>);
     static_assert(std::three_way_comparable<rhs_t>);
     static_assert(requires{
-        lhs_t{} <=> rhs_t{}
+        lhs_t{} <=> rhs_t{};
     });
     // static_assert(std::three_way_comparable_with<
     //     lhs_t, rhs_t
@@ -229,14 +229,15 @@ namespace test::tuples::storage::constructors::copy {
 }
 namespace test::tuples::storage::constructors::move {
     using type = csl::mp::tuple<int, char, std::string_view>;
-    [[maybe_unused]] const static auto moved_to = []{
+    [[maybe_unused]] constexpr auto moved_to = []{
         auto tmp = type{ 42, 'a', std::string_view{} }; // NOLINT(*-magic-numbers)
         auto value = std::move(tmp); // NOLINT(performance-move-const-arg)
         return value;
     }();
+    constexpr auto qwe = std::tuple<int>{42.f};
 }
 namespace test::tuples::storage::constructors::convertion {
-    constexpr csl::mp::tuple<int, char> value = csl::mp::tuple<double, int>{1,2};
+    [[maybe_unused]] constexpr csl::mp::tuple<int, char> value = csl::mp::tuple<double, int>{1,2};
 }
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<
