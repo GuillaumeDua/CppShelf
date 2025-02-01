@@ -234,10 +234,14 @@ namespace test::tuples::storage::constructors::move {
         auto value = std::move(tmp); // NOLINT(performance-move-const-arg)
         return value;
     }();
-    constexpr auto qwe = std::tuple<int>{42.f};
 }
 namespace test::tuples::storage::constructors::convertion {
-    [[maybe_unused]] constexpr csl::mp::tuple<int, char> value = csl::mp::tuple<double, int>{1,2};
+    #if defined(CSL_MP_TUPLE__ALLOW_CONVERSION) and CSL_MP_TUPLE__ALLOW_CONVERSION
+    [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .42 , 42 };
+    [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .42f };
+    #endif
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t> c = csl::mp::tuple<std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<double>       d { float{} };
 }
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<
