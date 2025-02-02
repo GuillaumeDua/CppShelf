@@ -107,12 +107,12 @@ namespace test::tuples::compare {
     });
     static_assert(lhs_t{} == lhs_t{});
     static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
-    // WIP
     static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
     static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
-    // static_assert(std::equality_comparable_with<
-    //     lhs_t, rhs_t
-    // >);
+
+    static_assert(not std::equality_comparable_with<
+        lhs_t, rhs_t // no common reference, just like std::tuple
+    >);
 
     // spaceship
     static_assert(std::three_way_comparable<lhs_t>);
@@ -120,9 +120,12 @@ namespace test::tuples::compare {
     static_assert(requires{
         lhs_t{} <=> rhs_t{};
     });
-    // static_assert(std::three_way_comparable_with<
-    //     lhs_t, rhs_t
-    // >);
+    constexpr auto qqq = rhs_t{0.f,2};
+    constexpr auto www = lhs_t{ 0, 1 };
+    // static_assert(lhs_t{ 0, 1 } < rhs_t{0.f,2});
+    static_assert(not std::three_way_comparable_with<
+        lhs_t, rhs_t // no common reference, just like std::tuple
+    >);
 }
 namespace test::tuples::tuple_cat {
 
@@ -245,7 +248,7 @@ namespace test::tuples::storage::constructors::move {
     }();
 }
 namespace test::tuples::storage::constructors::convertion {
-    #if defined(CSL_MP_TUPLE__ALLOW_CONVERSION) and CSL_MP_TUPLE__ALLOW_CONVERSION
+    #if not defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) or not CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .42 , 42 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .42f };
     #endif
