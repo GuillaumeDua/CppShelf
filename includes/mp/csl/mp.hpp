@@ -254,10 +254,10 @@ namespace csl::mp::details {
         and (true and ... and std::constructible_from<Ts, decltype(fwd(args))>)
         )
         : tuple_element_storage<indexes, Ts>{
-            #if defined(CSL_MP_TUPLE__ALLOW_CONVERSION) and CSL_MP_TUPLE__ALLOW_CONVERSION
-            static_cast<Ts>(fwd(args))
+            #if defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) and CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
+            std::forward<decltype(args)>(args)
             #else
-            fwd(args)
+            static_cast<Ts>(std::forward<decltype(args)>(args))
             #endif
         }...
         {}
@@ -455,11 +455,12 @@ namespace csl::mp {
             using category_t = std::common_comparison_category_t<
                 details::compare::synth_three_way_result<Ts, Us>...
             >;
-            return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-                int cmp = category_t::equivalent; // or equal ?
-                ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
-                return cmp;
-            }(std::index_sequence_for<Ts...>{});
+            return category_t::equivalent;
+            // return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            //     int cmp = category_t::equivalent; // or equal ?
+            //     ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
+            //     return cmp;
+            // }(std::index_sequence_for<Ts...>{});
         }
 
         // get
