@@ -397,12 +397,24 @@ namespace csl::mp {
             return *this;
         }
 
+        // QUESTION: interop with other tuplelike (pair, array, etc.)
+        //  not tuple but tuplelike
+
+        constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
+        tuple(const Ts & ... args)
+        noexcept((std::is_nothrow_constructible_v<Ts, const Ts &> and ...))
+        requires
+            (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
+        and (std::constructible_from<Ts, const Ts &> and ...)
+        : storage{ fwd(args)... }
+        {}
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
         tuple(Us && ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, Us&&> and ...))
         requires
-            (sizeof...(Ts) == sizeof...(Us))
+            (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
+        and (sizeof...(Ts) == sizeof...(Us))
         and (std::constructible_from<Ts, Us&&> and ...)
         : storage{ fwd(args)... }
         {}

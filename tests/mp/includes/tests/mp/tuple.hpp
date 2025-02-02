@@ -108,8 +108,8 @@ namespace test::tuples::compare {
     static_assert(lhs_t{} == lhs_t{});
     static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
     // WIP
-    // static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
-    // static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
+    static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
+    static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
     // static_assert(std::equality_comparable_with<
     //     lhs_t, rhs_t
     // >);
