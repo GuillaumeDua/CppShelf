@@ -440,61 +440,19 @@ namespace csl::mp {
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::three_way_comparable_with<Ts, Us>)
         constexpr auto operator<=>(const tuple<Us...> & other) const
-        -> std::common_comparison_category_t<std::__detail::__synth3way_t<Ts, Us>...>
+        -> std::common_comparison_category_t<
+            details::compare::synth_three_way_result<Ts, Us>...
+        >
         {
-            using _Cat
-	= std::common_comparison_category_t<std::__detail::__synth3way_t<Ts, Us>...>;
-      return std::__tuple_cmp<_Cat>(*this, other, std::make_index_sequence<sizeof...(Ts)>{});
-
-            // auto result = std::strong_ordering::equivalent;
-            // const auto compare = [&](const auto & lhs, const auto & rhs){
-            //     if (result != std::strong_ordering::equivalent) return;
-            //     result = (lhs <=> rhs);
-            // };
-            // [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            //     ((compare(get<indexes>(), other.template get<indexes>())), ...);
-            // }(std::make_index_sequence<sizeof...(Ts)>{});
-            // return result;
+            using category_t = std::common_comparison_category_t<
+                details::compare::synth_three_way_result<Ts, Us>...
+            >;
+            return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
+                int cmp = category_t::equivalent; // or equal ?
+                ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
+                return cmp;
+            }(std::index_sequence_for<Ts...>{});
         }
-        
-        #if false
-          template<typename... _TElements, typename... _UElements>
-            constexpr bool
-            operator<(const tuple<_TElements...>& __t,
-                const tuple<_UElements...>& __u)
-            {
-            static_assert(sizeof...(_TElements) == sizeof...(_UElements),
-            "tuple objects can only be compared if they have equal sizes.");
-            using __compare = __tuple_compare<tuple<_TElements...>,
-                            tuple<_UElements...>,
-                            0, sizeof...(_TElements)>;
-            return __compare::__less(__t, __u);
-            }
-
-        template<typename... _TElements, typename... _UElements>
-            constexpr bool
-            operator!=(const tuple<_TElements...>& __t,
-                const tuple<_UElements...>& __u)
-            { return !(__t == __u); }
-
-        template<typename... _TElements, typename... _UElements>
-            constexpr bool
-            operator>(const tuple<_TElements...>& __t,
-                const tuple<_UElements...>& __u)
-            { return __u < __t; }
-
-        template<typename... _TElements, typename... _UElements>
-            constexpr bool
-            operator<=(const tuple<_TElements...>& __t,
-                const tuple<_UElements...>& __u)
-            { return !(__u < __t); }
-
-        template<typename... _TElements, typename... _UElements>
-            constexpr bool
-            operator>=(const tuple<_TElements...>& __t,
-                const tuple<_UElements...>& __u)
-            { return !(__t < __u); }
-        #endif
 
         // get
         template <std::size_t index> requires (index >= size)
