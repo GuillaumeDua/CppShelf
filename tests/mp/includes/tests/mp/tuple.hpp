@@ -2,6 +2,8 @@
 #include <csl/mp.hpp>
 #include <cstdint>
 
+// NOLINTBEGIN(*-avoid-magic-numbers)
+
 // tuples: details::concepts
 namespace test::tuples::concepts::deductible {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
@@ -95,12 +97,19 @@ namespace test::tuples::compare {
     using lhs_t = csl::mp::tuple<int, char>;
     using rhs_t = csl::mp::tuple<double, int>;
     
+    constexpr auto qwe = std::tuple<int, char>{ {}, {} };
+
     // equality
     static_assert(std::equality_comparable<lhs_t>);
     static_assert(std::equality_comparable<rhs_t>);
     static_assert(requires{
         lhs_t{} == rhs_t{};
     });
+    static_assert(lhs_t{} == lhs_t{});
+    static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
+    // WIP
+    // static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
+    // static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
     // static_assert(std::equality_comparable_with<
     //     lhs_t, rhs_t
     // >);
@@ -230,7 +239,7 @@ namespace test::tuples::storage::constructors::copy {
 namespace test::tuples::storage::constructors::move {
     using type = csl::mp::tuple<int, char, std::string_view>;
     [[maybe_unused]] constexpr auto moved_to = []{
-        auto tmp = type{ 42, 'a', std::string_view{} }; // NOLINT(*-magic-numbers)
+        auto tmp = type{ 42, 'a', std::string_view{} };
         auto value = std::move(tmp); // NOLINT(performance-move-const-arg)
         return value;
     }();
@@ -258,7 +267,7 @@ namespace test::tuples::get {
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
-    static_assert(42 == value.template get<0>()); // NOLINT(*-magic-numbers)
+    static_assert(42  == value.template get<0>());
     static_assert('a' == value.template get<1>());
 }
 
@@ -288,7 +297,7 @@ namespace test::tuples::std_interopterability::get {
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
-    static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
+    static_assert(42  == get<0>(value));
     static_assert('a' == get<1>(value));
 }
 
@@ -299,7 +308,7 @@ namespace test::tuples::get::ADL {
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
 
-    static_assert(42 == get<0>(value)); // NOLINT(*-magic-numbers)
+    static_assert(42 == get<0>(value));
     static_assert('a' == get<1>(value));
 }
 
@@ -323,3 +332,5 @@ namespace test::tuples::structured_binding {
         [[maybe_unused]] const auto && [i, c] = type{};
     }
 }
+
+// NOLINTEND(*-avoid-magic-numbers)
