@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.md": "markdown",
         "array": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
@@ -50,11 +51,66 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "cstring": "cpp",
+        "charconv": "cpp",
+        "text_encoding": "cpp",
+        "__verbose_abort": "cpp",
+        "span": "cpp",
+        "ratio": "cpp",
+        "expected": "cpp",
+        "chrono": "cpp",
+        "format": "cpp",
+        "__bit_reference": "cpp",
+        "__node_handle": "cpp",
+        "locale": "cpp",
+        "mutex": "cpp",
+        "__config": "cpp",
+        "execution": "cpp",
+        "iomanip": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "debug.terminal.clearBeforeReusing": true,
     "clang-tidy.buildPath": "./build/",
     // "clang-tidy.buildPath": "${workspaceFolder}/build"
-    "clangd.path": "clangd"
+    "clangd.path": "clangd",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh"
+        },
+        "fish": {
+            "path": "fish"
+        },
+        "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+        },
+        "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh"
 }

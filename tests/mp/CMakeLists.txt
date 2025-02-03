@@ -1,14 +1,19 @@
 set(component_name mp)
-set(TEST_LIST "")
 
 set(test_name test_${PROJECT_NAME}_${component_name}_compile_time)
-list(APPEND TEST_LIST ${test_name})
+
+# TODO: duplicate tuple tests with CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
 
 add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp)
 add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
 target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
+)
+
+target_include_directories(${test_name}
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/includes
 )
 
 add_test(
@@ -18,5 +23,5 @@ add_test(
 
 # Tests: all
 add_custom_target("${component_name}_build_all_tests"
-	DEPENDS ${TEST_LIST}
+	DEPENDS ${test_name}
 )

@@ -26,11 +26,10 @@ jobs:
       run: |
           sudo apt update
           sudo apt install ninja-build libstdc++-$libstdcpp_release_id-dev
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" $release_id all
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh) $release_id all"
           sudo update-alternatives \
             --install /usr/bin/clang clang /usr/bin/clang-$release_id 100
-          sudo update-alternatives \
-            --install /usr/bin/clang++ clang++ /usr/bin/clang++-$release_id 100
+            --slave /usr/bin/clang++ clang++ /usr/bin/clang++-$release_id 100
           sudo apt install libc++1-$release_id libc++-$release_id-dev libc++abi-$release_id-dev libc++abi1-$release_id
 
     - name: cmake create build env - ${{matrix.BUILD_TYPE}} - ${{matrix.STL_IMPLEMENTATION}}
