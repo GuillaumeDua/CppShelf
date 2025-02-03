@@ -258,6 +258,7 @@ namespace csl::mp::details {
         and (true and ... and std::constructible_from<Ts, decltype(fwd(args))>)
         )
         : tuple_element_storage<indexes, Ts>{
+            // TODO(Guillaume) integration in cmake
             #if defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) and CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
             std::forward<decltype(args)>(args)
             #else
@@ -459,18 +460,18 @@ namespace csl::mp {
             using category_t = std::common_comparison_category_t<
                 details::compare::synth_three_way_result<Ts, Us>...
             >;
-            return category_t::equivalent;
-            // return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            //     int cmp = category_t::equivalent; // or equal ?
-            //     ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
-            //     return cmp;
-            // }(std::index_sequence_for<Ts...>{});
+            // return category_t::equivalent;
+            return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
+                int cmp = category_t::equivalent; // or equal ?
+                ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
+                return cmp;
+            }(std::index_sequence_for<Ts...>{});
         }
 
         // get
         template <std::size_t index> requires (index >= size)
         constexpr void get() const & noexcept {
-            static_assert(false, "csl::mp::tuple::get<size_t>: out-of-bounds");
+            static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
         }
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
         template <std::size_t index> requires (index < size)

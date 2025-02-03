@@ -120,8 +120,7 @@ namespace test::tuples::compare {
     static_assert(requires{
         lhs_t{} <=> rhs_t{};
     });
-    constexpr auto qqq = rhs_t{0.f,2};
-    constexpr auto www = lhs_t{ 0, 1 };
+    // WIP
     // static_assert(lhs_t{ 0, 1 } < rhs_t{0.f,2});
     static_assert(not std::three_way_comparable_with<
         lhs_t, rhs_t // no common reference, just like std::tuple
