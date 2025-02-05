@@ -97,8 +97,6 @@ namespace test::tuples::compare {
     using lhs_t = csl::mp::tuple<int, char>;
     using rhs_t = csl::mp::tuple<double, int>;
     
-    constexpr auto qwe = std::tuple<int, char>{ {}, {} };
-
     // equality
     static_assert(std::equality_comparable<lhs_t>);
     static_assert(std::equality_comparable<rhs_t>);
