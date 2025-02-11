@@ -255,7 +255,7 @@ namespace csl::mp::details {
         noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us>))
         requires (
             sizeof...(Ts) == sizeof...(Us)
-        and (true and ... and std::constructible_from<Ts, decltype(fwd(args))>)
+        and (true and ... and std::constructible_from<Ts, decltype(csl_fwd(args))>)
         )
         : tuple_element_storage<indexes, Ts>{
             // TODO(Guillaume) integration in cmake
@@ -274,7 +274,7 @@ namespace csl::mp::details {
         and (true and ... and std::constructible_from<Ts, Us>)
         )
         : tuple_storage{
-            std::forward<tuple_element_storage<indexes, Us>>(fwd(other)).value...
+            std::forward<tuple_element_storage<indexes, Us>>(csl_fwd(other)).value...
         }
         {}
         template <typename seq, typename ... Us>
@@ -284,7 +284,7 @@ namespace csl::mp::details {
         and (true and ... and std::constructible_from<Ts, Us>)
         )
         : tuple_storage{
-            std::forward<tuple_element_storage<indexes, Us>>(fwd(other)).value...
+            std::forward<tuple_element_storage<indexes, Us>>(csl_fwd(other)).value...
         }
         {}
 
@@ -385,7 +385,7 @@ namespace csl::mp {
         and (true and ... and std::is_assignable_v<Ts, Us&&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return ((get<indexes>() = fwd(other).template get<indexes>()), ...);
+                return ((get<indexes>() = csl_fwd(other).template get<indexes>()), ...);
             }(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }
@@ -397,7 +397,7 @@ namespace csl::mp {
         and (true and ... and std::is_assignable_v<Ts, const Us&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return ((get<indexes>() = fwd(other).template get<indexes>()), ...);
+                return ((get<indexes>() = csl_fwd(other).template get<indexes>()), ...);
             }(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }
@@ -411,7 +411,7 @@ namespace csl::mp {
         requires
             (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
         and (std::constructible_from<Ts, const Ts &> and ...)
-        : storage{ fwd(args)... }
+        : storage{ csl_fwd(args)... }
         {}
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
@@ -421,7 +421,7 @@ namespace csl::mp {
             (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
         and (sizeof...(Ts) == sizeof...(Us))
         and (std::constructible_from<Ts, Us&&> and ...)
-        : storage{ fwd(args)... }
+        : storage{ csl_fwd(args)... }
         {}
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
@@ -429,13 +429,13 @@ namespace csl::mp {
         requires 
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::constructible_from<Ts, Us&&>)
-        : storage{ fwd(other).storage }
+        : storage{ csl_fwd(other).storage }
         {}
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<const Us &, Ts>))
         tuple(const tuple<Us...> & other)
         requires (true and ... and std::constructible_from<Ts, const Us&>)
-        : storage{ fwd(other).storage }
+        : storage{ csl_fwd(other).storage }
         {}
 
         // compare
@@ -716,11 +716,11 @@ namespace csl::mp {
                 >;
                 return type{
                     get<indexes_map.element_index[indexes]>(
-                        get<indexes_map.tuple_index[indexes]>(fwd(tuples))
+                        get<indexes_map.tuple_index[indexes]>(csl_fwd(tuples))
                     )...
                 };
             }(
-                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ fwd(tuples)... },
+                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ csl_fwd(tuples)... },
                 std::make_index_sequence<size>{}
             );
         }
@@ -1402,6 +1402,7 @@ namespace csl::mp {
     template <typename T>
     using deduplicate_t = typename deduplicate<T>::type;
 }
+#endif
 
 #undef csl_fwd
 #undef csl_static_dependent_error
