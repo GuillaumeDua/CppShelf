@@ -51,6 +51,12 @@ jobs:
             -S ${{github.workspace}}                                                                                        \
             -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
 
+    - name: debug - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
+      run: |
+        echo "DEBUG: test working dir = [${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}]"
+        apt install -y tree
+        tree ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
+
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
       run: |
         cmake \
@@ -58,11 +64,6 @@ jobs:
             --config ${{matrix.BUILD_TYPE}}                                 \
             --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
 
-    - name: debug - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
-      run: |
-        echo "DEBUG: test working dir = [${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}]"
-        apt install -y tree
-        tree ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
 
     - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}

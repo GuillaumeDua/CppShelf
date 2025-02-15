@@ -81,7 +81,7 @@ message(VERBOSE "[${PROJECT_NAME}] CSL_ENABLE_ALL_EXAMPLES set to ${CSL_ENABLE_A
 
 ### Opt-ins: Tests, Examples
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-    option(CSL_BUILD_TESTS_${component_name}   "[${PROJECT_NAME}] csl::${component_name} (tests)"   ${CSL_ENABLE_ALL_TESTS})
+    option(CSL_BUILD_TESTS_${component_name}    "[${PROJECT_NAME}] csl::${component_name} (tests)"   ${CSL_ENABLE_ALL_TESTS})
     option(CSL_BUILD_EXAMPLES_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_ENABLE_ALL_EXAMPLES})
 endforeach()
 
