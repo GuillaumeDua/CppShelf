@@ -11,13 +11,13 @@ jobs:
         matrix:
             CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
             CLANG_COMPILER_VERSIONS: [17, 18, 19]
-            # TODO: compiler with versions as variations
+            # TODO: compiler with versions as variations, or one file per toolchain
             BUILD_TYPE: [Debug, Release]
             STL_IMPLEMENTATION:
-              - cxx_flag: -stdlib="libstdc++"
-                name: gnu
-              - cxx_flag: -stdlib="libc++ -lc++abi"
-                name: llvm
+              - name: gnu
+                cxx_flag: -stdlib="libstdc++"
+              - name: llvm
+                cxx_flag: -stdlib="libc++ -lc++abi"
 
     steps:
     - uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
     - name: debug - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
       run: |
         echo "DEBUG: test working dir = [${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}]"
-        apt install -y tree
+        sudo apt install -y tree
         tree ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
 
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
