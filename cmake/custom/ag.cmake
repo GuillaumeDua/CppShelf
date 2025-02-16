@@ -6,28 +6,28 @@ include(CMakeDependentOption)
 option(CSL_AG__VERBOSE_BUILD "[${CMAKE_PROJECT_NAME}] csl::${component_name}: verbose build (might use additional useful build messages)" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__VERBOSE_BUILD set to [${CSL_AG__VERBOSE_BUILD}]")
 if (CSL_AG__VERBOSE_BUILD)
-    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__VERBOSE_BUILD)
+    target_compile_definitions(csl_${component_name} INTERFACE CSL_AG__VERBOSE_BUILD)
 endif()
 
 # CSL_AG__ENABLE_BITFIELDS_SUPPORT
 option(CSL_AG__ENABLE_BITFIELDS_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable bitfields support (slower compilation)" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_BITFIELDS_SUPPORT set to [${CSL_AG__ENABLE_BITFIELDS_SUPPORT}]")
 if (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+    target_compile_definitions(csl_${component_name} INTERFACE CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_IOSTREAM_SUPPORT
 option(CSL_AG__ENABLE_IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable std::format support" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_IOSTREAM_SUPPORT set to [${CSL_AG__ENABLE_IOSTREAM_SUPPORT}]")
 if (CSL_AG__ENABLE_IOSTREAM_SUPPORT)
-    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_IOSTREAM_SUPPORT)
+    target_compile_definitions(csl_${component_name} INTERFACE CSL_AG__ENABLE_IOSTREAM_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_FORMAT_SUPPORT
 option(CSL_AG__ENABLE_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable std::format support" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_FORMAT_SUPPORT set to [${CSL_AG__ENABLE_FORMAT_SUPPORT}]")
 if (CSL_AG__ENABLE_FORMAT_SUPPORT)
-    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_FORMAT_SUPPORT)
+    target_compile_definitions(csl_${component_name} INTERFACE CSL_AG__ENABLE_FORMAT_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_FMTLIB_SUPPORT
@@ -35,7 +35,7 @@ option(CSL_AG__ENABLE_FMTLIB_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_n
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_AG__ENABLE_FMTLIB_SUPPORT set to [${CSL_AG__ENABLE_FMTLIB_SUPPORT}]")
 if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
 
-    target_compile_definitions(csl_${component_name}_lib INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT)
+    target_compile_definitions(csl_${component_name} INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT)
 
     if (NOT TARGET fmt::fmt-header-only AND NOT TARGET fmt::fmt)
 
@@ -55,11 +55,11 @@ if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
     endif()
     
     if (TARGET fmt::fmt-header-only)
-            add_dependencies(csl_${component_name}_lib fmt::fmt-header-only)
-            target_link_libraries(csl_${component_name}_lib INTERFACE fmt::fmt-header-only)
+            add_dependencies(csl_${component_name} fmt::fmt-header-only)
+            target_link_libraries(csl_${component_name} INTERFACE fmt::fmt-header-only)
         elseif(target fmt::fmt)
-            add_dependencies(csl_${component_name}_lib fmt::fmt)
-            target_link_libraries(csl_${component_name}_lib INTERFACE fmt::fmt)
+            add_dependencies(csl_${component_name} fmt::fmt)
+            target_link_libraries(csl_${component_name} INTERFACE fmt::fmt)
         else()
             message(ERROR "[${CMAKE_PROJECT_NAME}] csl::${component_name}: unexpected ill-formed fmt library")
         endif()

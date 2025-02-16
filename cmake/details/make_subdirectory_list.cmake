@@ -1,4 +1,4 @@
-include (CMakeParseArguments)
+include(CMakeParseArguments)
 
 MACRO(MAKE_SUBDIRECTORY_LIST)
 

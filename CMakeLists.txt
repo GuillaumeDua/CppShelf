@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # WIP: REFACTO: cleanunp + simplication => update CI
 include(CMakeDependentOption)
+include(CMakeParseArguments)
 
 # CSL_ALL
 # CSL_INSTALL
@@ -42,9 +43,6 @@ message(STATUS "[${PROJECT_NAME}] available components: [${CSL_COMPONENTS_LIST}]
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
 message(VERBOSE "[${PROJECT_NAME}] CSL_BUILD_ALL set to ${CSL_BUILD_ALL}")
 
-unset(CSL_ENABLED_COMPONENTS_LIST)
-unset(CSL_DISABLED_COMPONENTS_LIST)
-
 message(CHECK_START "[${PROJECT_NAME}] enabled components")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
@@ -64,9 +62,12 @@ endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 message(CHECK_PASS "done")
 
-### Components - enabled vs. disabled
-set(CSL_DISABLED_COMPONENTS_LIST ${CSL_COMPONENTS_LIST})
-list(REMOVE_ITEM CSL_DISABLED_COMPONENTS_LIST ${CSL_ENABLED_COMPONENTS_LIST})
+#### Warn for empty CSL_ENABLED_COMPONENTS_LIST
+list(LENGTH CSL_ENABLED_COMPONENTS_LIST CSL_ENABLED_COMPONENTS_LIST_length)
+if (${CSL_ENABLED_COMPONENTS_LIST_length} EQUAL 0)
+    message(WARNING "[${PROJECT_NAME}] No components enabled, is it intended ? Aborting.")
+    return()
+endif()
 
 ### Components - tests
 enable_testing()
@@ -80,73 +81,76 @@ message(VERBOSE "[${PROJECT_NAME}] CSL_EXAMPLE_ALL set to ${CSL_EXAMPLE_ALL} ...
 ### Components - Tests, Examples (Opt-outs)
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     option(CSL_TEST_${component_name}    "[${PROJECT_NAME}] csl::${component_name} (tests)"   ${CSL_TEST_ALL})
+    # TECH-DEBT: tests: add_compile_options(-Wall -Wextra -Wno-unknown-pragmas)
     option(CSL_EXAMPLE_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_EXAMPLE_ALL})
 endforeach()
 
-# list(LENGTH CSL_ENABLED_TESTS_LIST CSL_ENABLED_TESTS_LIST_length)
-# if (NOT ${CSL_ENABLED_TESTS_LIST_length} EQUAL 0)
-#     enable_testing()
-#     add_compile_options(-Wall -Wextra -Wno-unknown-pragmas)
-#     #TODO(Guss): sanitizers
+# WIP: move to another file cmake/add_component
+### Components - Targets - csl_lib::<name>
+function(csl_add)
 
-#     # if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-#     #     add_compile_options(-fdiagnostics-color=always)
-#     # elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#     #     add_compile_options(-fcolor-diagnostics)
-#     # endif()
+    set(options)
+    set(oneValueArgs COMPONENT)
+    set(multiValueArgs)
+    cmake_parse_arguments(csl_add
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
-#     # Catch2
-# endif()
+    if (DEFINED csl_add_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "[csl_add] error: UNPARSED_ARGUMENTS = [${csl_add_UNPARSED_ARGUMENTS}]")
+    endif()
+    if (DEFINED csl_add_KEYWORDS_MISSING_VALUES)
+        message(FATAL_ERROR "[csl_add] error: KEYWORDS_MISSING_VALUES = [${csl_add_KEYWORDS_MISSING_VALUES}]")
+    endif()
 
-# target_compile_definitions
+    add_library(${PROJECT_NAME}_${csl_add_COMPONENT} INTERFACE)
+    add_library(${PROJECT_NAME}::${csl_add_COMPONENT} ALIAS ${PROJECT_NAME}_${csl_add_COMPONENT})
 
-### Components libraries - csl_lib::<name>
-function(csl_create_component component_name)
-    message(STATUS "[${PROJECT_NAME}] csl::${component_name}")
-
-    # add the component
-    add_library(csl_${component_name}_lib INTERFACE)
-    add_library(csl::${component_name} ALIAS csl_${component_name}_lib)
-    # check if component has a custom cmake pre-build/configuration to inject
-    set(maybe_component_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/${component_name}.cmake")
-    if (EXISTS "${maybe_component_custom_cmake_path}")
-        message(STATUS "[${PROJECT_NAME}] csl::${component_name} : custom cmake rules detected ...")
+    # check if component has a custom cmake file to inject
+    set(maybe_${csl_add_COMPONENT}_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/custom/${csl_add_COMPONENT}.cmake")
+    if (EXISTS "${maybe_${csl_add_COMPONENT}_custom_cmake_path}")
+        message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} : custom cmake rules detected in [${maybe_${csl_add_COMPONENT}_custom_cmake_path}]")
         list(APPEND CMAKE_MESSAGE_INDENT "  ")
-        include("${maybe_component_custom_cmake_path}")
+        include("${maybe_${csl_add_COMPONENT}_custom_cmake_path}")
         list(POP_BACK CMAKE_MESSAGE_INDENT)
     endif()
-    target_include_directories(csl_${component_name}_lib INTERFACE
-        ${PROJECT_SOURCE_DIR}/includes/${component_name}
+
+    target_include_directories(csl_${csl_add_COMPONENT} INTERFACE
+        ${PROJECT_SOURCE_DIR}/includes/${csl_add_COMPONENT}
     )
 
     # test
-    option(CSL_TEST_${component_name} "[${PROJECT_NAME}] csl::${component_name} (tests)" ${CSL_TEST_ALL})
-    if (CSL_TEST_${component_name})
-        message(STATUS "[${PROJECT_NAME}] csl::${component_name} (tests)")
-        add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${component_name})
+    option(CSL_TEST_${csl_add_COMPONENT} "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)" ${CSL_TEST_ALL})
+    if (CSL_TEST_${csl_add_COMPONENT})
+        message(STATUS "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)")
+        add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${csl_add_COMPONENT})
     endif()
 
     # example
-    option(CSL_EXAMPLE_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_EXAMPLE_ALL})
-    if (CSL_EXAMPLE_${component_name})
-        if (NOT EXISTS ${PROJECT_SOURCE_DIR}/examples/${component_name}/CMakeLists.txt)
-            # message(AUTHOR_WARNING "[${PROJECT_NAME}] : csl::${component_name} has no examples available, skipping ...")
+    option(CSL_EXAMPLE_${csl_add_COMPONENT} "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (example)" ${CSL_EXAMPLE_ALL})
+    if (CSL_EXAMPLE_${csl_add_COMPONENT})
+        if (NOT EXISTS ${PROJECT_SOURCE_DIR}/examples/${csl_add_COMPONENT}/CMakeLists.txt)
+            # message(AUTHOR_WARNING "[${PROJECT_NAME}] : csl::${csl_add_COMPONENT} has no examples available, skipping ...")
         else()
-            message(STATUS "[${PROJECT_NAME}] csl::${component_name} (example)")
-            add_subdirectory(${PROJECT_SOURCE_DIR}/examples/${component_name})
+            message(STATUS "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (example)")
+            add_subdirectory(${PROJECT_SOURCE_DIR}/examples/${csl_add_COMPONENT})
         endif()
     endif()
 
 endfunction()
 
-message(STATUS "")
-message(STATUS "[${PROJECT_NAME}] csl_lib ...")
+message(STATUS "[${PROJECT_NAME}] meta-target ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
-add_library(csl_lib INTERFACE)
+add_library(${PROJECT_NAME} INTERFACE)
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-    csl_create_component(${component_name})
+    csl_add(
+        COMPONENT ${component_name}
+    )
     
-    add_dependencies(csl_lib csl::${component_name})
-    target_link_libraries(csl_lib INTERFACE csl::${component_name})
+    add_dependencies(${PROJECT_NAME} csl::${component_name})
+    target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
