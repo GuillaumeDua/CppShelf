@@ -11,6 +11,17 @@ project(csl LANGUAGES CXX)
 set(PROJECT_VERSION 0.1.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# TODO: REFACTO: cleanunp + simplication => update CI
+# - include(CMakeDependentOption)
+
+# CSL_ALL
+# CSL_INSTALL
+# CSL_TESTS
+# CSL_EXAMPLES
+# CSL_DOCS
+# CSL_BENCHMARKS
+
+
 # TODO(Guss): dev vs. consumer profiles
 #   - consumer can load 1-N csl lib
 # TODO(Guss): options to enable opt-in based macro defines
@@ -20,13 +31,14 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif()
 
 ## Components
+# TODO: get ${CMAKE_CURRENT_SOURCE_DIR}/includes/* names ?
 set(CSL_COMPONENT_LIST
-    mp
-    wf
     ag
     ensure
     functional
+    mp
     typeinfo
+    wf
 )
 
 ### Components - build
