@@ -15,14 +15,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
-# CSL_ALL
-# CSL_INSTALL
-# CSL_TESTS
-# CSL_EXAMPLES
-# CSL_DOCS
-# CSL_BENCHMARKS
-
-
 # TODO(Guss): dev vs. consumer profiles
 #   - consumer can load 1-N csl lib
 # TODO(Guss): options to enable opt-in based macro defines
@@ -69,20 +61,26 @@ if (${CSL_ENABLED_COMPONENTS_LIST_length} EQUAL 0)
     return()
 endif()
 
-### Components - tests
-enable_testing()
-option(CSL_TEST_ALL "Build all tests for csl" OFF) # force all tests
-message(VERBOSE "[${PROJECT_NAME}] CSL_TEST_ALL set to ${CSL_TEST_ALL} ...")
+#### Typical options (opt-outs)
+set(CSL_OPTIONS_LIST
+    TEST # TECH-DEBT: tests: add_compile_options(-Wall -Wextra -Wno-unknown-pragmas)
+    EXAMPLE
+    INSTALL
+    DOC
+    BENCHMARK
+)
+foreach(option_name IN LISTS CSL_OPTIONS_LIST)
+    option(CSL_${option_name}_ALL "Build all tests for csl" ON)
+    message(STATUS "[${PROJECT_NAME}] CSL_${option_name}_ALL set to [${CSL_${option_name}_ALL}]")
 
-### Components - examples 
-option(CSL_EXAMPLE_ALL "Build all examples for csl" OFF) # force all examples
-message(VERBOSE "[${PROJECT_NAME}] CSL_EXAMPLE_ALL set to ${CSL_EXAMPLE_ALL} ...")
-
-### Components - Tests, Examples (Opt-outs)
-foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-    option(CSL_TEST_${component_name}    "[${PROJECT_NAME}] csl::${component_name} (tests)"   ${CSL_TEST_ALL})
-    # TECH-DEBT: tests: add_compile_options(-Wall -Wextra -Wno-unknown-pragmas)
-    option(CSL_EXAMPLE_${component_name} "[${PROJECT_NAME}] csl::${component_name} (example)" ${CSL_EXAMPLE_ALL})
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+        option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}_ALL})
+        if (NOT ${CSL_${option_name}_${component_name}} STREQUAL ${CSL_${option_name}_ALL})
+            message(STATUS "[${PROJECT_NAME}] CSL_${option_name}_${component_name} set to [${CSL_${option_name}_${component_name}}]")
+        endif()
+    endforeach()
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()
 
 # WIP: move to another file cmake/add_component
