@@ -23,6 +23,8 @@ jobs:
     - uses: actions/checkout@v4
 
     # TECH-DEBT: only once for all matrix product
+    # - subaction to build + test a specific cache entry, using a toolchain as argument
+    
     - name: Install compiler (clang)
       run: |
           sudo apt update -qqy
