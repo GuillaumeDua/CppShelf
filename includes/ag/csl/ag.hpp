@@ -128,7 +128,7 @@ namespace csl::ag::details::mp {
     template <class T, typename... Ts>
     struct first_index_of<T, std::tuple<Ts...>> : std::integral_constant<std::size_t, 
         [](){
-            static_assert(sizeof...(Ts));
+            static_assert(sizeof...(Ts), "first_index_of: requires a non-empty type sequence");
             constexpr auto results = std::array{ std::is_same_v<T, Ts>... };
             const auto it = std::find(std::cbegin(results), std::cend(results), true);
             if (it == std::cend(results))
@@ -144,7 +144,7 @@ namespace csl::ag::concepts {
 	template <typename T>
 	concept unqualified_aggregate =
         std::is_aggregate_v<T> and
-		not std::is_empty_v<T> and
+	//  not std::is_empty_v<T> and
 		not std::is_union_v<T> and
 		not std::is_polymorphic_v<T> and
 		not std::is_reference_v<T>
@@ -213,7 +213,8 @@ namespace csl::ag::details {
     [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
     // faster algorithm if T is default_initializable (ref fields can be initialized),
     // and no fields is a bitfield.
-        static_assert(not std::is_reference_v<T>, "concepts::aggregate T cannot be cv-ref qualified");
+        static_assert(not std::is_reference_v<T>);
+        static_assert(not std::is_empty_v<T>);
 
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
@@ -235,6 +236,7 @@ namespace csl::ag::details {
     [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
     // costly algorithm
         static_assert(not std::is_reference_v<T>);
+        static_assert(not std::is_empty_v<T>);
 
         if constexpr (indice == 0) {
             static_assert(indice != 0, "csl::ag::details::fields_count (with ref) : Cannot evalute T's field count");
@@ -255,6 +257,10 @@ namespace csl::ag::details {
         * sizeof(std::byte) * CHAR_BIT
         #endif
     >();
+	template <concepts::aggregate T>
+    requires std::is_empty_v<T>
+    constexpr inline static std::size_t fields_count<T> = 0;
+    
 #pragma endregion
 #pragma region to_tuple
 	// generated : interface
@@ -270,6 +276,16 @@ namespace csl::ag::details {
 		// -> std::tuple<decltype(get<I>(value))...>
         {
             static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+        }
+
+        // WIP
+        template <std::size_t N> requires (N == 0) // NOLINT
+         [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto &&) noexcept {
+        	return std::type_identity<std::tuple<>>{};
+        }
+        template <std::size_t N> requires (N == 0) // NOLINT
+         [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept {
+        	return std::tuple{};
         }
     }
 
@@ -294,6 +310,7 @@ namespace csl::ag::details {
         }(std::make_index_sequence<size>{});
     }
 }
+
 // --- generated: details ---
 namespace csl::ag::details::generated {
 // GENERATED CONTENT, DO NOT EDIT MANUALLY !
@@ -646,6 +663,7 @@ namespace csl::ag {
 	template <csl::ag::concepts::aggregate T>
 	constexpr inline static auto size_v = size<T>::value;
 
+    // empty
     template <csl::ag::concepts::aggregate T>
     struct empty: std::bool_constant<(size<T>::value == 0)>{};
     template <csl::ag::concepts::aggregate T>
@@ -701,13 +719,18 @@ namespace csl::ag {
 
     // get<std::size_t>
     template <std::size_t N>
-    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
-        static_assert(N < size_v<std::remove_cvref_t<decltype(value)>>, "csl::ag::get<std::size_t>: index >= size_v");
+    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value)
+    noexcept
+    requires (N < size_v<std::remove_cvref_t<decltype(value)>>)
+    {
         return ::std::get<N>(to_tuple_view(std::forward<decltype(value)>(value)));
     }
     // get<T>
     template <typename T>
-    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value) noexcept {
+    [[nodiscard]] constexpr decltype(auto) get(concepts::aggregate auto && value)
+    noexcept
+    requires (0 not_eq size_v<std::remove_cvref_t<decltype(value)>>)
+    {
     // using indexes here rather than type, to avoid collisions of cvref-qualified view elements
         using tuple_t = to_tuple_t<std::remove_cvref_t<decltype(value)>>;
         constexpr auto index = details::mp::first_index_of_v<T, tuple_t>;
