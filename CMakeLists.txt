@@ -8,20 +8,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # top-level project
 project(csl LANGUAGES CXX)
-set(PROJECT_VERSION 0.1.0)
+set(PROJECT_VERSION 0.2.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# WIP: REFACTO: cleanunp + simplication => update CI
-include(CMakeDependentOption)
-include(CMakeParseArguments)
-
-# TODO(Guss): dev vs. consumer profiles
-#   - consumer can load 1-N csl lib
-# TODO(Guss): options to enable opt-in based macro defines
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "[${PROJECT_NAME}] : In-source build not recommended")
 endif()
+
+include(CMakeDependentOption)
+include(CMakeParseArguments)
 
 ## Components - detection, list
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/make_subdirectory_list.cmake)
