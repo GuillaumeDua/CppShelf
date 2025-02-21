@@ -6,6 +6,10 @@
 #include <vector>
 
 namespace test::ag::types {
+
+    struct empty{};
+    struct not_empty_but_size_1{ char c; };
+
     template <typename T>
     struct aggregate_all_cvref {
         // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
