@@ -30,7 +30,7 @@ jobs:
           sudo apt update -qqy
           chmod +x .devcontainer/scripts/llvm.sh
           sudo ./.devcontainer/scripts/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
-          
+
     - name: cmake create build env - ${{matrix.BUILD_TYPE}}
       run: |
         cmake -E make_directory ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
@@ -39,19 +39,26 @@ jobs:
     - name: cmake cache - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.cxx_flags}})
       run: |
         cmake \
-            -DCMAKE_C_COMPILER=/usr/bin/clang-${{matrix.CLANG_COMPILER_VERSIONS}}                                           \
-            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${{matrix.CLANG_COMPILER_VERSIONS}}                                       \
-            -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.cxx_flags}}"                                                    \
-            -DCSL_BUILD_ALL:BOOL=FALSE                                                                                      \
-            -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                                \
-            -DCSL_ENABLE_ALL_TESTS:BOOL=FALSE                                                                               \
-            -DCSL_BUILD_TESTS_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                          \
-            -DCSL_ENABLE_ALL_EXAMPLES:BOOL=FALSE                                                                            \
-            -DCSL_BUILD_EXAMPLES_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE                                                       \
-            -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}} \
-            -S ${{github.workspace}}                                                                                        \
-            -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
+              CSL_BENCHMARK_ALL:BOOL=OFF        \
+              CSL_BUILD_ALL:BOOL=OFF            \
+              CSL_DOC_ALL:BOOL=OFF              \
+              CSL_ENABLE_ALL_EXAMPLES:BOOL=OFF  \
+              CSL_ENABLE_ALL_TESTS:BOOL=OFF     \
+              CSL_EXAMPLE_ALL:BOOL=OFF          \
+              CSL_INSTALL_ALL:BOOL=OFF          \
+              CSL_TEST_ALL:BOOL=OFF             \
+            \
+              -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
+              -DCSL_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE     \
+              -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE  \
+            \
+              -DCMAKE_C_COMPILER=/usr/bin/clang-${{matrix.CLANG_COMPILER_VERSIONS}}                                           \
+              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${{matrix.CLANG_COMPILER_VERSIONS}}                                       \
+              -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.cxx_flags}}"                                                    \
+              -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}} \
+              -S ${{github.workspace}}                                                                                        \
+              -B ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
 
     - name: debug - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
       run: |
@@ -62,14 +69,14 @@ jobs:
     - name: cmake build - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
       run: |
         cmake \
-            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}  \
-            --config ${{matrix.BUILD_TYPE}}                                 \
+            --build ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}} \
+            --config ${{matrix.BUILD_TYPE}} \
             --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
-
 
     - name: Test - ${{matrix.CSL_COMPONENTS}} (${{matrix.BUILD_TYPE}}, ${{matrix.STL_IMPLEMENTATION.name}})
       working-directory: ${{github.workspace}}/out/build/${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}
       shell: bash
       run: ctest -R csl_test_${{matrix.CSL_COMPONENTS}}
 
+      # TECH-DEBT: check examples (run as tests)
       # TECH-DEBT: check installation

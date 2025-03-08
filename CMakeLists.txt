@@ -58,7 +58,7 @@ endif()
 
 #### Typical options (opt-outs)
 set(CSL_OPTIONS_LIST
-    TEST # TECH-DEBT: tests: add_compile_options(-Wall -Wextra -Wno-unknown-pragmas)
+    TEST # TECH-DEBT: tests: add_compile_options(-Werror -Wall -Wextra -Wno-unknown-pragmas)
     EXAMPLE
     INSTALL
     DOC

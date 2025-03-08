@@ -46,6 +46,7 @@ add_test(
 set(test_name test_${PROJECT_NAME}_${component_name}_fmtlib_support_runtime)
 
 # 3rd-parties
+# TECH-DEBT: use CPM
 set(FETCHCONTENT_QUIET ON)
 include(FetchContent)
 
