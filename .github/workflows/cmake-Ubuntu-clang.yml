@@ -15,9 +15,9 @@ jobs:
             BUILD_TYPE: [Debug, Release]
             STL_IMPLEMENTATION:
               - name: gnu
-                cxx_flags: -stdlib="libstdc++"
+                cxx_flags: -stdlib=libstdc++
               - name: llvm
-                cxx_flags: -stdlib="libc++ -lc++abi"
+                cxx_flags: -stdlib=libc++ -lc++abi
 
     steps:
     - uses: actions/checkout@v4
