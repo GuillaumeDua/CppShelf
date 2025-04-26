@@ -44,8 +44,6 @@ jobs:
     - name: 📦 CMake cache (${{ env.PATH_CHUNK }})
       run: |
         cmake \
-              -DCMAKE_BUILD_TYPE="${{matrix.BUILD_TYPE}}" \
-            \
               -DCSL_BENCHMARK_ALL:BOOL=OFF        \
               -DCSL_BUILD_ALL:BOOL=OFF            \
               -DCSL_DOC_ALL:BOOL=OFF              \
@@ -63,7 +61,9 @@ jobs:
               -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${{matrix.CLANG_COMPILER_VERSIONS}}                                       \
               -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.cxx_flags}}"                                                    \
               -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
-              -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.PATH_CHUNK }} \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.PATH_CHUNK }}                             \
+              -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
+              -G Ninja                                                                                                        \
               -S ${{github.workspace}}                                                                                        \
               -B ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
 
@@ -76,6 +76,7 @@ jobs:
             --build ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }} \
             --config ${{matrix.BUILD_TYPE}}
       # --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
+      # --target all
 
     - name: 🧪 CTest - (${{ env.PATH_CHUNK }})
       working-directory: ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}

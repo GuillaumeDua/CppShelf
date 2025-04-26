@@ -544,6 +544,9 @@ namespace csl::mp::details::concepts {
         and requires { std::void_t<typename tuple_type::template nth_<I>>(); }
     ;
 }
+namespace csl::mp::details {
+    constexpr static std::size_t npos = static_cast<std::size_t>(-1);
+}
 namespace csl::mp {
 
     // size
@@ -763,11 +766,11 @@ namespace csl::mp {
     requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
     struct first_index_of<T, tuple<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = std::string::npos;
-            (void)((pos = (pos == std::string::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            std::size_t pos = details::npos;
+            (void)((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
             return pos;
         }(std::make_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq std::string::npos, "first_index_of : not found");
+        static_assert(value not_eq details::npos, "first_index_of : not found");
     };
     template <typename T, typename tuple_type>
     constexpr std::size_t first_index_of_v = first_index_of<T, tuple_type>::value;
@@ -783,11 +786,11 @@ namespace csl::mp {
     requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
     struct rfirst_index_of<T, tuple<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = std::string::npos;
-            (void)((pos = (pos == std::string::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            std::size_t pos = details::npos;
+            (void)((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
             return pos;
         }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq std::string::npos, "rfirst_index_of : not found");
+        static_assert(value not_eq details::npos, "rfirst_index_of : not found");
     };
     template <typename T, typename tuple_type>
     constexpr std::size_t rfirst_index_of_v = rfirst_index_of<T, tuple_type>::value;
@@ -802,11 +805,11 @@ namespace csl::mp {
     requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
     struct last_index_of<T, tuple<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = std::string::npos;
+            std::size_t pos = details::npos;
             (void)((pos = std::is_same_v<T, Ts> ? indexes : pos), ...);
             return pos;
         }(std::make_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq std::string::npos, "last_index_of : not found");
+        static_assert(value not_eq details::npos, "last_index_of : not found");
     };
     template <typename T, typename tuple_type>
     constexpr std::size_t last_index_of_v = last_index_of<T, tuple_type>::value;
@@ -1319,11 +1322,11 @@ namespace csl::mp {
     template <typename T, template <typename...> typename pack, typename ... Ts>
     struct rindex_of<T, pack<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = std::string::npos;
+            std::size_t pos = details::npos;
             ((pos = (std::is_same_v<T, Ts> ? indexes : pos)), ...);
             return pos;
         }(std::make_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq std::string::npos, "rindex_of : not found");
+        static_assert(value not_eq details::npos, "rindex_of : not found");
     };
     template <typename T, typename ... Ts>
     constexpr inline static std::size_t rindex_of_v = rindex_of<T, Ts...>::value;
@@ -1336,11 +1339,11 @@ namespace csl::mp {
     template <typename T, template <typename ...> typename pack, typename ... Ts>
     struct index_of<T, pack<Ts...>> {
         constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = std::string::npos;
-            ((pos = (pos == std::string::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+            std::size_t pos = details::npos;
+            ((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
             return pos;
         }(std::make_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq std::string::npos, "index_of : not found");
+        static_assert(value not_eq details::npos, "index_of : not found");
     };
     template <typename T, typename ... Ts>
     constexpr inline static std::size_t index_of_v = index_of<T, Ts...>::value;
