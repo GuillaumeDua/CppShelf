@@ -236,6 +236,7 @@ namespace test::tuples::storage::constructors::copy {
     [[maybe_unused]] constexpr auto copy = value;
     static_assert(value == copy);
 }
+#include <string_view>
 namespace test::tuples::storage::constructors::move {
     using type = csl::mp::tuple<int, char, std::string_view>;
     [[maybe_unused]] constexpr auto moved_to = []{

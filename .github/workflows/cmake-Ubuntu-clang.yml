@@ -74,14 +74,20 @@ jobs:
       run: |
         cmake \
             --build ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }} \
-            --config ${{matrix.BUILD_TYPE}}
+            --config ${{matrix.BUILD_TYPE}} \
+            --target all
       # --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
-      # --target all
 
     - name: 🧪 CTest - (${{ env.PATH_CHUNK }})
       working-directory: ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
       shell: bash
-      run: ctest # -R csl_test_${{matrix.CSL_COMPONENTS}}
+      run: |
+        ctest --parallel 10 \
+        --output-on-failure
+      # --test-dir ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
+      # --no-tests=error
+      # -R csl_test_${{matrix.CSL_COMPONENTS}}
+      # --tests-regex '^csl_test_${{matrix.CSL_COMPONENTS}}*$'
 
       # TECH-DEBT: check examples (run as tests)
       # TECH-DEBT: check installation
