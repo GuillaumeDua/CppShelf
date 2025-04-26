@@ -11,7 +11,6 @@
 //  A given tuple T is considered valid if csl::mp::concepts::tuple<T> evaluates to true (csl::mp::is_tuple is std::true_type), and contains no duplicates.
 //  if a given tuple type T instanciation is not valid, less performant algorithms may be selected to provide similar functionalities, as a best-effort.
 
-#include <bits/utility.h>
 #include <compare>
 #include <type_traits>
 #include <concepts>
