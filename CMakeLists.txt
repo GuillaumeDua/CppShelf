@@ -65,7 +65,7 @@ set(CSL_OPTIONS_LIST
     BENCHMARK
 )
 foreach(option_name IN LISTS CSL_OPTIONS_LIST)
-    option(CSL_${option_name}_ALL "Build all tests for csl" ON)
+    option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" ON)
     message(STATUS "[${PROJECT_NAME}] CSL_${option_name}_ALL set to [${CSL_${option_name}_ALL}]")
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")

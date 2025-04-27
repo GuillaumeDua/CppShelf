@@ -135,7 +135,7 @@ See project's
     include(FetchContent)
 
     # Forces csl a options ...
-    # example: set(CSL_TESTS_ALL OFF CACHE INTERNAL "")
+    # example: set(CSL_TEST_ALL OFF CACHE INTERNAL "")
 
     FetchContent_Declare(
         csl
@@ -148,21 +148,27 @@ See project's
 
 #### CMake - options
 
+> 💡Each cache entry is structured as `CSL_<WHAT>_<ALL|NAME>`.
+
 General options:
 
-| Option                    | Type | Default | Description |
-| ------------------------- | ---- | ------- | ----------- |
-| `CSL_BUILD_ALL`           | bool | ON      | enable/disable all components **build**    |
-| `CSL_TESTS_ALL`    | bool | OFF     | enable/disable all components **tests**    |
-| `CSL_EXAMPLES_ALL` | bool | OFF     | enable/disable all components **examples** |
+| Option              | Type | Default | Description |
+| ------------------- | ---- | ------- | ----------- |
+| `CSL_BUILD_ALL`     | bool | ON      | enable/disable all components **build**      |
+| `CSL_INSTALL_ALL`   | bool | ON      | enable/disable all components **install**    |
+| `CSL_TEST_ALL`      | bool | OFF     | enable/disable all components **tests**      |
+| `CSL_EXAMPLE_ALL`   | bool | OFF     | enable/disable all components **examples**   |
+| `CSL_BENCHMARK_ALL` | bool | OFF     | enable/disable all components **benchmarks** |
 
 Components-specific options:
 
-| Option syntax                    | Type | Default                   | Description |
-| -------------------------------- | ---- | ------------------------- | ----------- |
-| `CSL_BUILD_\<component_name\>`   | BOOL | `CSL_BUILD_ALL`           | enable/disable a specific component **build**   |
-| `CSL_TEST_\<component_name\>`    | BOOL | `CSL_TESTS_ALL`    | enable/disable a specific component **test**    |
-| `CSL_EXAMPLE_\<component_name\>` | BOOL | `CSL_EXAMPLES_ALL` | enable/disable a specific component **example** |
+| Option syntax                      | Type | Default / dependent       | Description |
+| ---------------------------------- | ---- | ------------------------- | ----------- |
+| `CSL_BUILD_\<component_name\>`     | BOOL | `CSL_BUILD_ALL`           | enable/disable a specific component **build**   |
+| `CSL_INSTALL_\<component_name\>`   | BOOL | `CSL_INSTALL_ALL`         | enable/disable a specific component **install** |
+| `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST_ALL`            | enable/disable a specific component **test**    |
+| `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`         | enable/disable a specific component **example** |
+| `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL`       | enable/disable a specific component **benchmark** |
 
 For options related to a specific component, refer to its dedicated documentation.
 

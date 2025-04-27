@@ -9,22 +9,23 @@ jobs:
 
     strategy:
         matrix:
-            CSL_COMPONENTS: [ag, ensure, functional, mp, typeinfo, wf]
-            CLANG_COMPILER_VERSIONS: [17, 18, 19]
+            COMPILER: [ clang ]
+            CSL_COMPONENTS: [ ag, ensure, functional, mp, typeinfo, wf ]
+            CLANG_COMPILER_VERSIONS: [ 18, 19 ]
             # TODO: compiler with versions as variations, or one file per toolchain (--toolchain <path-to-file>)
             # COMPILER:
-            BUILD_TYPE: [Debug, Release]
+            BUILD_TYPE: [ Debug, Release ]
             STL_IMPLEMENTATION:
               - name: gnu
                 cxx_flags: '-stdlib=libstdc++'
               - name: llvm
                 cxx_flags: '-stdlib=libc++'
-
-            # CMAKE_EXE_LINKER_FLAGS : -stdlib=libc++ -lc++abi
+                # CMAKE_EXE_LINKER_FLAGS : -stdlib=libc++ -lc++abi
 
     env:
       # TODO: one cache per OS, compiler, STL
-      PATH_CHUNK: '${{matrix.BUILD_TYPE}}/${{matrix.STL_IMPLEMENTATION.name}}/${{matrix.CSL_COMPONENTS}}'
+      # TODO: cross-build ?
+      TOOLCHAIN_PATH: '${{ matrix.BUILD_TYPE }}/${{ matrix.COMPILER }}/${{ matrix.STL_IMPLEMENTATION.name }}/${{ matrix.CSL_COMPONENTS }}'
 
     steps:
     - uses: actions/checkout@v4
@@ -38,55 +39,54 @@ jobs:
           chmod +x .devcontainer/scripts/llvm.sh
           sudo ./.devcontainer/scripts/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
 
-    - name: CMake create destination directories (${{ env.PATH_CHUNK }})
+    - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
       run: |
-        cmake -E make_directory ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
-        cmake -E make_directory ${{github.workspace}}/out/install/${{ env.PATH_CHUNK }}
+        cmake -E make_directory ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
+        cmake -E make_directory ${{github.workspace}}/out/install/${{ env.TOOLCHAIN_PATH }}
       
-    - name: 📦 CMake cache (${{ env.PATH_CHUNK }})
+    - name: 📦 CMake cache (${{ env.TOOLCHAIN_PATH }})
       run: |
         cmake \
-              -DCSL_BENCHMARK_ALL:BOOL=OFF        \
               -DCSL_BUILD_ALL:BOOL=OFF            \
+              -DCSL_BENCHMARK_ALL:BOOL=OFF        \
               -DCSL_DOC_ALL:BOOL=OFF              \
-              -DCSL_EXAMPLES_ALL:BOOL=OFF  \
-              -DCSL_TESTS_ALL:BOOL=OFF     \
               -DCSL_EXAMPLE_ALL:BOOL=OFF          \
-              -DCSL_INSTALL_ALL:BOOL=OFF          \
               -DCSL_TEST_ALL:BOOL=OFF             \
             \
-              -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
-              -DCSL_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE     \
-              -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE  \
+              -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE      \
+              -DCSL_BENCHMARK_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE  \
+              -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
+              -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
+              -DCSL_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE       \
             \
               -DCMAKE_C_COMPILER=/usr/bin/clang-${{matrix.CLANG_COMPILER_VERSIONS}}                                           \
               -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${{matrix.CLANG_COMPILER_VERSIONS}}                                       \
               -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.cxx_flags}}"                                                    \
               -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
-              -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.PATH_CHUNK }}                             \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.TOOLCHAIN_PATH }}                         \
               -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
               -G Ninja                                                                                                        \
               -S ${{github.workspace}}                                                                                        \
-              -B ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
+              -B ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
 
     # WIP: build the target, its tests, then use ctest filter to run only the targets tests (or all, as there are the only one which should be builded)
     #   rename tests: test_csl_${{matrix.CSL_COMPONENTS}}_*
 
-    - name: 🏗️ CMake build - (${{ env.PATH_CHUNK }})
+    - name: 🏗️ CMake build - (${{ env.TOOLCHAIN_PATH }})
       run: |
         cmake \
-            --build ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }} \
+            --build ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }} \
             --config ${{matrix.BUILD_TYPE}} \
             --target all
       # --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
 
-    - name: 🧪 CTest - (${{ env.PATH_CHUNK }})
-      working-directory: ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
+    - name: 🧪 CTest - (${{ env.TOOLCHAIN_PATH }})
+      working-directory: ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
       shell: bash
       run: |
         ctest --parallel 10 \
-        --output-on-failure
-      # --test-dir ${{github.workspace}}/out/build/${{ env.PATH_CHUNK }}
+        --output-on-failure \
+        --test-dir ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
       # --no-tests=error
       # -R csl_test_${{matrix.CSL_COMPONENTS}}
       # --tests-regex '^csl_test_${{matrix.CSL_COMPONENTS}}*$'
