@@ -18,7 +18,9 @@ jobs:
               - name: gnu
                 cxx_flags: '-stdlib=libstdc++'
               - name: llvm
-                cxx_flags: '-stdlib=libc++ -lc++abi'
+                cxx_flags: '-stdlib=libc++'
+
+            # CMAKE_EXE_LINKER_FLAGS : -stdlib=libc++ -lc++abi
 
     env:
       # TODO: one cache per OS, compiler, STL
@@ -47,8 +49,8 @@ jobs:
               -DCSL_BENCHMARK_ALL:BOOL=OFF        \
               -DCSL_BUILD_ALL:BOOL=OFF            \
               -DCSL_DOC_ALL:BOOL=OFF              \
-              -DCSL_ENABLE_ALL_EXAMPLES:BOOL=OFF  \
-              -DCSL_ENABLE_ALL_TESTS:BOOL=OFF     \
+              -DCSL_EXAMPLES_ALL:BOOL=OFF  \
+              -DCSL_TESTS_ALL:BOOL=OFF     \
               -DCSL_EXAMPLE_ALL:BOOL=OFF          \
               -DCSL_INSTALL_ALL:BOOL=OFF          \
               -DCSL_TEST_ALL:BOOL=OFF             \

@@ -133,6 +133,15 @@ function(csl_add)
         endif()
     endif()
 
+    # install
+    # TODO
+
+    # doc
+    # TODO
+
+    # benchmark
+    # TODO
+
 endfunction()
 
 message(STATUS "[${PROJECT_NAME}] meta-target ...")
