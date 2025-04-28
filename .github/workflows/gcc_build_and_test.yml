@@ -1,9 +1,9 @@
-name: cmake-Ubuntu-gcc
+name: gcc_build_and_test
 
 on: [push, pull_request]
 
 jobs:
-  cmake-Ubuntu-gcc_build_test:
+  gcc-build_and_test:
 
     runs-on: ubuntu-24.04 # ubuntu-latest
 

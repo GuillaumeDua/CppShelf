@@ -1,43 +1,43 @@
-name: cmake-Ubuntu-clang
+name: clang_build_and_test
 
 on: [push, pull_request]
 
 jobs:
-  cmake-Ubuntu-clang_build_test:
+  clang-build_and_test:
 
     runs-on: ubuntu-24.04 # ubuntu-latest TODO: ${{ matrix.OS }}
 
     strategy:
         matrix:
-            COMPILER: [ clang ]
             CSL_COMPONENTS: [ ag, ensure, functional, mp, typeinfo, wf ]
-            CLANG_COMPILER_VERSIONS: [ 18, 19 ]
-            # TODO: compiler with versions as variations, or one file per toolchain (--toolchain <path-to-file>)
-            # COMPILER:
-            BUILD_TYPE: [ Debug, Release ]
+            COMPILER:
+              - CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+            COMPILER_VERSION: [ 18, 19 ]
             STL_IMPLEMENTATION:
               - name: gnu
-                cxx_flags: '-stdlib=libstdc++'
+                CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
               - name: llvm
-                cxx_flags: '-stdlib=libc++'
-                # CMAKE_EXE_LINKER_FLAGS : -stdlib=libc++ -lc++abi
+                CMAKE_CXX_FLAGS: '-stdlib=libc++'
+                CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
+            BUILD_TYPE: [ Debug, Release ]
 
+    # WIP: github composite action for build_and_test
     env:
-      # TODO: one cache per OS, compiler, STL
-      # TODO: cross-build ?
-      TOOLCHAIN_PATH: '${{ matrix.BUILD_TYPE }}/${{ matrix.COMPILER }}/${{ matrix.STL_IMPLEMENTATION.name }}/${{ matrix.CSL_COMPONENTS }}'
+      TOOLCHAIN_PATH: '${{ matrix.BUILD_TYPE }}/${{ matrix.COMPILER.CMAKE_C_COMPILER }}/${{ matrix.STL_IMPLEMENTATION.name }}/${{ matrix.CSL_COMPONENTS }}'
 
     steps:
     - uses: actions/checkout@v4
 
-    # TECH-DEBT: only once for all matrix product
+    # TECH-DEBT: only once for all matrix product - one cache per OS, compiler, STL
     # - subaction to build + test a specific cache entry, using a toolchain as argument
+    # TODO: cross-build ?
     
     - name: Install compiler (clang)
       run: |
           sudo apt update -qqy
           chmod +x .devcontainer/scripts/llvm.sh
-          sudo ./.devcontainer/scripts/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{matrix.CLANG_COMPILER_VERSIONS}}"
+          sudo ./.devcontainer/scripts/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{matrix.COMPILER_VERSION}}"
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
       run: |
@@ -59,9 +59,9 @@ jobs:
               -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
               -DCSL_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE       \
             \
-              -DCMAKE_C_COMPILER=/usr/bin/clang-${{matrix.CLANG_COMPILER_VERSIONS}}                                           \
-              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-${{matrix.CLANG_COMPILER_VERSIONS}}                                       \
-              -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.cxx_flags}}"                                                    \
+              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{matrix.COMPILER_VERSION}}                  \
+              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_CXX_COMPILER}}-${{matrix.COMPILER_VERSION}}              \
+              -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.CMAKE_CXX_FLAGS}}"                                              \
               -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
               -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.TOOLCHAIN_PATH }}                         \
               -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
@@ -93,3 +93,4 @@ jobs:
 
       # TECH-DEBT: check examples (run as tests)
       # TECH-DEBT: check installation
+
