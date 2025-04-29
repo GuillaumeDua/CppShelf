@@ -33,7 +33,7 @@ jobs:
     # - subaction to build + test a specific cache entry, using a toolchain as argument
     # TODO: cross-build ?
     
-    - name: Install compiler (clang)
+    - name: Install compiler (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{matrix.COMPILER_VERSION}})
       run: |
           sudo apt update -qqy
           chmod +x .devcontainer/scripts/llvm.sh
