@@ -11,20 +11,36 @@ jobs:
         matrix:
             CSL_COMPONENTS: [ ag, ensure, functional, mp, typeinfo, wf ]
             COMPILER:
-              - CMAKE_C_COMPILER: clang
+              - name: llvm
+                CMAKE_C_COMPILER: clang
                 CMAKE_CXX_COMPILER: clang++
-            COMPILER_VERSION: [ 18, 19 ]
-            STL_IMPLEMENTATION:
+                VERSION: 18
+              - name: llvm
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                VERSION: 19
+              - name: gnu
+                CMAKE_C_COMPILER: gcc
+                CMAKE_CXX_COMPILER: g++
+                VERSION: 13
+              - name: gnu
+                CMAKE_C_COMPILER: gcc
+                CMAKE_CXX_COMPILER: g++
+                VERSION: 14
+            STL:
               - name: gnu
                 CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
               - name: llvm
                 CMAKE_CXX_FLAGS: '-stdlib=libc++'
                 CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
             BUILD_TYPE: [ Debug, Release ]
+            exclude:
+            - COMPILER.name: gnu
+              STL.name: llvm
 
     # WIP: github composite action for build_and_test
     env:
-      TOOLCHAIN_PATH: '${{ matrix.BUILD_TYPE }}/${{ matrix.COMPILER.CMAKE_C_COMPILER }}/${{ matrix.STL_IMPLEMENTATION.name }}/${{ matrix.CSL_COMPONENTS }}'
+      TOOLCHAIN_PATH: '${{ matrix.BUILD_TYPE }}/${{ matrix.COMPILER.CMAKE_C_COMPILER }}/${{ matrix.STL.name }}/${{ matrix.CSL_COMPONENTS }}'
 
     steps:
     - uses: actions/checkout@v4
@@ -61,7 +77,7 @@ jobs:
             \
               -DCMAKE_C_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{matrix.COMPILER_VERSION}}                  \
               -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_CXX_COMPILER}}-${{matrix.COMPILER_VERSION}}              \
-              -DCMAKE_CXX_FLAGS="${{matrix.STL_IMPLEMENTATION.CMAKE_CXX_FLAGS}}"                                              \
+              -DCMAKE_CXX_FLAGS="${{matrix.STL.CMAKE_CXX_FLAGS}}"                                              \
               -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
               -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.TOOLCHAIN_PATH }}                         \
               -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
