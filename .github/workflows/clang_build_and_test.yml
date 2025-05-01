@@ -5,42 +5,39 @@ on: [push, pull_request]
 jobs:
   clang-build_and_test:
 
-    runs-on: ubuntu-24.04 # ubuntu-latest TODO: ${{ matrix.OS }}
+    # ubuntu-latest TODO: ${{ matrix.OS }}
+    runs-on: ubuntu-24.04
 
     strategy:
         matrix:
-            CSL_COMPONENTS: [ ag, ensure, functional, mp, typeinfo, wf ]
-            COMPILER:
-              - name: llvm
-                CMAKE_C_COMPILER: clang
+            CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
+            compiler:
+              - CMAKE_C_COMPILER: clang
                 CMAKE_CXX_COMPILER: clang++
-                VERSION: 18
-              - name: llvm
-                CMAKE_C_COMPILER: clang
+                version: 18
+              - CMAKE_C_COMPILER: clang
                 CMAKE_CXX_COMPILER: clang++
-                VERSION: 19
-              - name: gnu
-                CMAKE_C_COMPILER: gcc
+                version: 19
+              - CMAKE_C_COMPILER: gcc
                 CMAKE_CXX_COMPILER: g++
-                VERSION: 13
-              - name: gnu
-                CMAKE_C_COMPILER: gcc
+                version: 13
+              - CMAKE_C_COMPILER: gcc
                 CMAKE_CXX_COMPILER: g++
-                VERSION: 14
+                version: 14
             STL:
               - name: gnu
                 CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
               - name: llvm
                 CMAKE_CXX_FLAGS: '-stdlib=libc++'
                 CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
-            BUILD_TYPE: [ Debug, Release ]
+            CMAKE_BUILD_TYPE: [ Debug, Release ]
             exclude:
-            - COMPILER.name: gnu
+            - compiler.CMAKE_C_COMPILER: gcc
               STL.name: llvm
 
     # WIP: github composite action for build_and_test
     env:
-      TOOLCHAIN_PATH: '${{ matrix.BUILD_TYPE }}/${{ matrix.COMPILER.CMAKE_C_COMPILER }}/${{ matrix.STL.name }}/${{ matrix.CSL_COMPONENTS }}'
+      TOOLCHAIN_PATH: '${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.COMPILER.CMAKE_C_COMPILER }}-${{ matrix.compiler.version }}/${{ matrix.STL.name }}/${{ matrix.CSL_component }}'
 
     steps:
     - uses: actions/checkout@v4
@@ -49,16 +46,31 @@ jobs:
     # - subaction to build + test a specific cache entry, using a toolchain as argument
     # TODO: cross-build ?
     
-    - name: Install compiler (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{matrix.COMPILER_VERSION}})
+    - name: Install compiler (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }})
       run: |
+          
+          case "${{ matrix.compiler.CMAKE_C_COMPILER }}" in
+            clang)
+              script_name="llvm"
+              ;;
+            gcc)
+              script_name="gcc"
+              ;;
+            *)
+              echo "Unsupported compiler: ${{ matrix.compiler.CMAKE_C_COMPILER }}"
+              exit 1
+              ;;
+          esac
+          INSTALLATION_SCRIPT="./.devcontainer/scripts/${script_name}.sh"
+
           sudo apt update -qqy
-          chmod +x .devcontainer/scripts/llvm.sh
-          sudo ./.devcontainer/scripts/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{matrix.COMPILER_VERSION}}"
+          chmod +x "${INSTALLATION_SCRIPT}"
+          sudo ./"${INSTALLATION_SCRIPT}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
       run: |
-        cmake -E make_directory ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
-        cmake -E make_directory ${{github.workspace}}/out/install/${{ env.TOOLCHAIN_PATH }}
+        cmake -E make_directory ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
+        cmake -E make_directory ${{ github.workspace }}/out/install/${{ env.TOOLCHAIN_PATH }}
       
     - name: 📦 CMake cache (${{ env.TOOLCHAIN_PATH }})
       run: |
@@ -69,43 +81,43 @@ jobs:
               -DCSL_EXAMPLE_ALL:BOOL=OFF          \
               -DCSL_TEST_ALL:BOOL=OFF             \
             \
-              -DCSL_BUILD_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE      \
-              -DCSL_BENCHMARK_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE  \
-              -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
-              -DCSL_EXAMPLE_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE    \
-              -DCSL_TEST_${{matrix.CSL_COMPONENTS}}:BOOL=TRUE       \
+              -DCSL_BUILD_${{ matrix.CSL_component }}:BOOL=TRUE      \
+              -DCSL_BENCHMARK_${{ matrix.CSL_component }}:BOOL=TRUE  \
+              -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
+              -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
+              -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE       \
             \
-              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{matrix.COMPILER_VERSION}}                  \
-              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_CXX_COMPILER}}-${{matrix.COMPILER_VERSION}}              \
+              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }}                  \
+              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_CXX_COMPILER}}-${{ matrix.compiler.version }}              \
               -DCMAKE_CXX_FLAGS="${{matrix.STL.CMAKE_CXX_FLAGS}}"                                              \
-              -DCMAKE_BUILD_TYPE:STRING=${{matrix.BUILD_TYPE}}                                                                \
-              -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/out/install/${{ env.TOOLCHAIN_PATH }}                         \
+              -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                                                \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ env.TOOLCHAIN_PATH }}                         \
               -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
               -G Ninja                                                                                                        \
-              -S ${{github.workspace}}                                                                                        \
-              -B ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
+              -S ${{ github.workspace }}                                                                                        \
+              -B ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
 
     # WIP: build the target, its tests, then use ctest filter to run only the targets tests (or all, as there are the only one which should be builded)
-    #   rename tests: test_csl_${{matrix.CSL_COMPONENTS}}_*
+    #   rename tests: test_csl_${{ matrix.CSL_component }}_*
 
     - name: 🏗️ CMake build - (${{ env.TOOLCHAIN_PATH }})
       run: |
         cmake \
-            --build ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }} \
-            --config ${{matrix.BUILD_TYPE}} \
+            --build ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }} \
+            --config ${{ matrix.CMAKE_BUILD_TYPE }} \
             --target all
-      # --target ${{matrix.CSL_COMPONENTS}}_build_all_tests
+      # --target ${{ matrix.CSL_component }}_build_all_tests
 
     - name: 🧪 CTest - (${{ env.TOOLCHAIN_PATH }})
-      working-directory: ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
+      working-directory: ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
       shell: bash
       run: |
         ctest --parallel 10 \
         --output-on-failure \
-        --test-dir ${{github.workspace}}/out/build/${{ env.TOOLCHAIN_PATH }}
+        --test-dir ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
       # --no-tests=error
-      # -R csl_test_${{matrix.CSL_COMPONENTS}}
-      # --tests-regex '^csl_test_${{matrix.CSL_COMPONENTS}}*$'
+      # -R csl_test_${{ matrix.CSL_component }}
+      # --tests-regex '^csl_test_${{ matrix.CSL_component }}*$'
 
       # TECH-DEBT: check examples (run as tests)
       # TECH-DEBT: check installation
