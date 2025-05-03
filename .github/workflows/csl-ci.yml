@@ -1,15 +1,18 @@
-name: clang_build_and_test
+name: csl CI
 
 on: [push, pull_request]
 
 jobs:
-  clang-build_and_test:
+  build_and_test:
 
     # ubuntu-latest TODO: ${{ matrix.OS }}
     runs-on: ubuntu-24.04
 
     strategy:
+      # fail-fast: false
+      # TODO: sanitizers
         matrix:
+            CMAKE_BUILD_TYPE: [ Debug, Release ]
             CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
             compiler:
               - CMAKE_C_COMPILER: clang
@@ -25,15 +28,14 @@ jobs:
                 CMAKE_CXX_COMPILER: g++
                 version: 14
             STL:
-              - name: gnu
+              - name: gnu-libstdcxx
                 CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
-              - name: llvm
+              - name: llvm-libcxx
                 CMAKE_CXX_FLAGS: '-stdlib=libc++'
                 CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
-            CMAKE_BUILD_TYPE: [ Debug, Release ]
             exclude:
             - compiler.CMAKE_C_COMPILER: gcc
-              STL.name: llvm
+              STL.name: llvm-libcxx
 
     # WIP: github composite action for build_and_test
     env:
@@ -49,23 +51,21 @@ jobs:
     - name: Install compiler (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }})
       run: |
           
-          case "${{ matrix.compiler.CMAKE_C_COMPILER }}" in
-            clang)
-              script_name="llvm"
-              ;;
-            gcc)
-              script_name="gcc"
-              ;;
-            *)
-              echo "Unsupported compiler: ${{ matrix.compiler.CMAKE_C_COMPILER }}"
-              exit 1
-              ;;
-          esac
-          INSTALLATION_SCRIPT="./.devcontainer/scripts/${script_name}.sh"
-
           sudo apt update -qqy
-          chmod +x "${INSTALLATION_SCRIPT}"
-          sudo ./"${INSTALLATION_SCRIPT}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+
+          COMPILER_INSTALL_SCRIPTS_DIRNAME=".devcontainer/scripts/"
+
+          if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "clang" ]]; then
+              
+              sudo chmod +x ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh \
+                && ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+          fi
+
+          if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "gcc" || ( "${{ matrix.STL.name }}" == "gnu-libstdcxx") ]]; then
+
+              sudo chmod +x ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh \
+                && ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+          fi
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
       run: |
@@ -87,14 +87,15 @@ jobs:
               -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
               -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE       \
             \
-              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }}                  \
-              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_CXX_COMPILER}}-${{ matrix.compiler.version }}              \
-              -DCMAKE_CXX_FLAGS="${{matrix.STL.CMAKE_CXX_FLAGS}}"                                              \
-              -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                                                \
-              -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ env.TOOLCHAIN_PATH }}                         \
-              -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
-              -G Ninja                                                                                                        \
-              -S ${{ github.workspace }}                                                                                        \
+              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }}      \
+              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.COMPILER.CMAKE_CXX_COMPILER}}-${{ matrix.compiler.version }}  \
+              -DCMAKE_CXX_FLAGS="${{matrix.STL.CMAKE_CXX_FLAGS}}"                                                   \
+              -DCMAKE_EXE_LINKER_FLAGS="${{matrix.STL.CMAKE_EXE_LINKER_FLAGS}}"                                     \
+              -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                              \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ env.TOOLCHAIN_PATH }}             \
+              -DCMAKE_GENERATOR:STRING=Ninja                                                                        \
+              -G Ninja                                                                                              \
+              -S ${{ github.workspace }}                                                                            \
               -B ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
 
     # WIP: build the target, its tests, then use ctest filter to run only the targets tests (or all, as there are the only one which should be builded)
