@@ -5,7 +5,6 @@ on: [push, pull_request]
 defaults:
   run:
     shell: bash
-    run: bash -euo pipefail -c "$0"
 
 jobs:
   build_and_test:
@@ -57,7 +56,7 @@ jobs:
     
     - name: Install compiler, STL (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }}, ${{ matrix.STL.name }})
       run: |
-          
+          set -euo pipefail
           sudo apt update -qqy
 
           COMPILER_INSTALL_SCRIPTS_DIRNAME=".devcontainer/scripts/"
@@ -81,11 +80,13 @@ jobs:
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
       run: |
+        set -euo pipefail
         cmake -E make_directory ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
         cmake -E make_directory ${{ github.workspace }}/out/install/${{ env.TOOLCHAIN_PATH }}
       
     - name: 📦 CMake cache (${{ env.TOOLCHAIN_PATH }})
       run: |
+        set -euo pipefail
         cmake \
               -DCSL_BUILD_ALL:BOOL=OFF            \
               -DCSL_BENCHMARK_ALL:BOOL=OFF        \
@@ -115,6 +116,7 @@ jobs:
 
     - name: 🏗️ CMake build - (${{ env.TOOLCHAIN_PATH }})
       run: |
+        set -euo pipefail
         cmake \
             --build ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }} \
             --config ${{ matrix.CMAKE_BUILD_TYPE }} \
@@ -125,6 +127,7 @@ jobs:
       working-directory: ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
       shell: bash
       run: |
+        set -euo pipefail
         ctest --parallel 10 \
         --output-on-failure \
         --test-dir ${{ github.workspace }}/out/build/${{ env.TOOLCHAIN_PATH }}
