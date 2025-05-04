@@ -67,14 +67,14 @@ jobs:
 
               if [[ "${{ matrix.STL.name }}" == "gnu-libstdcxx" ]]; then
                 script_name="${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh"
-                sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="latest-stable"
+                sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="latest-stable"
               fi
           fi
 
           if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "gcc" ]]; then
 
               script_name="${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh"
-              sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+              sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.compiler.version }}"
           fi
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
