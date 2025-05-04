@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 defaults:
   run:
-    shell: bash -euo pipefail -c "$0"
+    shell: bash -euo pipefail -c "{0}"
 
 jobs:
   build_and_test:
