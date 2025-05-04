@@ -50,7 +50,7 @@ jobs:
     # - subaction to build + test a specific cache entry, using a toolchain as argument
     # TODO: cross-build ?
     
-    - name: Install compiler (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }})
+    - name: Install compiler, STL (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }}, ${{ matrix.STL.name }})
       run: |
           
           sudo apt update -qqy
@@ -59,14 +59,19 @@ jobs:
 
           if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "clang" ]]; then
               
-              sudo chmod +x ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh \
-                && ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+              script_name='./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh'
+              sudo chmod +x "${script_name}" && sudo ./"${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+
+              if [[ "${{ matrix.STL.name }}" == "gnu-libstdcxx" ]]; then
+                script_name='./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh'
+                sudo chmod +x "${script_name}" && sudo ./"${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="latest-stable"
+              fi
           fi
 
-          if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "gcc" || ( "${{ matrix.STL.name }}" == "gnu-libstdcxx") ]]; then
+          if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "gcc" ]]; then
 
-              sudo chmod +x ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh \
-                && ./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+              script_name='./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh'
+              sudo chmod +x "${script_name}" && sudo ./"${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
           fi
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
