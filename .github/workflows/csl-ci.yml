@@ -58,23 +58,23 @@ jobs:
       run: |
           sudo apt update -qqy
 
-          COMPILER_INSTALL_SCRIPTS_DIRNAME="${{ github.workspace }}/.devcontainer/scripts/"
+          COMPILER_INSTALL_SCRIPTS_DIRNAME="${{ github.workspace }}/.devcontainer/scripts"
 
           if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "clang" ]]; then
 
-              script_name="./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh"
-              sudo chmod +x "${script_name}" && sudo ./"${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+              script_name="${COMPILER_INSTALL_SCRIPTS_DIRNAME}/llvm.sh"
+              sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
 
               if [[ "${{ matrix.STL.name }}" == "gnu-libstdcxx" ]]; then
-                script_name="./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh"
-                sudo chmod +x "${script_name}" && sudo ./"${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="latest-stable"
+                script_name="${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh"
+                sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="latest-stable"
               fi
           fi
 
           if [[ "${{ matrix.compiler.CMAKE_C_COMPILER }}" == "gcc" ]]; then
 
-              script_name="./${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh"
-              sudo chmod +x "${script_name}" && sudo ./"${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
+              script_name="${COMPILER_INSTALL_SCRIPTS_DIRNAME}/gcc.sh"
+              sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.compiler.version }}"
           fi
 
     - name: CMake create destination directories (${{ env.TOOLCHAIN_PATH }})
