@@ -34,8 +34,10 @@ jobs:
                 CMAKE_CXX_FLAGS: '-stdlib=libc++'
                 CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
             exclude:
-            - compiler.CMAKE_C_COMPILER: gcc
-              STL.name: llvm-libcxx
+            - compiler:
+                CMAKE_C_COMPILER: gcc
+              STL:
+                name: llvm-libcxx
 
     # WIP: github composite action for build_and_test
     env:
