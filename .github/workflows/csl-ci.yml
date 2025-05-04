@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 defaults:
   run:
-    shell: /usr/bin/bash --noprofile --norc -e -o -u pipefail {0}
+    shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
 
 jobs:
   build_and_test:
