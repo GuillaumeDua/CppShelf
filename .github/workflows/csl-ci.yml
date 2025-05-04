@@ -2,6 +2,10 @@ name: csl CI
 
 on: [push, pull_request]
 
+defaults:
+  run:
+    shell: bash -euo pipefail
+
 jobs:
   build_and_test:
 
@@ -51,6 +55,7 @@ jobs:
     # TODO: cross-build ?
     
     - name: Install compiler, STL (${{matrix.COMPILER.CMAKE_C_COMPILER}}-${{ matrix.compiler.version }}, ${{ matrix.STL.name }})
+      shell:
       run: |
           
           sudo apt update -qqy
