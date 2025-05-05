@@ -11,6 +11,7 @@ jobs:
 
     # ubuntu-latest TODO: ${{ matrix.OS }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     strategy:
       # fail-fast: false
@@ -31,17 +32,15 @@ jobs:
               - CMAKE_C_COMPILER: gcc
                 CMAKE_CXX_COMPILER: g++
                 version: 14
-            STL:
+            include:
+            - compiler:
+                CMAKE_C_COMPILER: clang
+              STL:
               - name: gnu-libstdcxx
                 CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
               - name: llvm-libcxx
                 CMAKE_CXX_FLAGS: '-stdlib=libc++'
                 CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
-            exclude:
-            - compiler:
-                CMAKE_C_COMPILER: gcc
-              STL:
-                name: llvm-libcxx
 
     # WIP: github composite action for build_and_test
     env:
