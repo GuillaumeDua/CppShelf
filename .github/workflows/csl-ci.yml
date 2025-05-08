@@ -9,7 +9,7 @@ defaults:
 jobs:
   build_and_test:
 
-    name: ${{ matrix.configuration.CSL_component }} (${{ matrix.configuration.OS }} ${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }} ${{ matrix.configuration.CMAKE_BUILD_TYPE }})
+    name: ${{ matrix.CSL_component }} (${{ matrix.configuration.OS }} ${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }} ${{ matrix.configuration.CMAKE_BUILD_TYPE }})
     runs-on: ${{ matrix.configuration.OS }}
     timeout-minutes: 15
 
@@ -137,7 +137,6 @@ jobs:
             \
               -DCSL_BUILD_${{ matrix.CSL_component }}:BOOL=TRUE      \
               -DCSL_BENCHMARK_${{ matrix.CSL_component }}:BOOL=TRUE  \
-              -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
               -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
               -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE       \
             \
