@@ -9,7 +9,10 @@ defaults:
 jobs:
   build_and_test:
 
-    name: ${{ matrix.CSL_component }} (${{ matrix.configuration.OS }} ${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }} ${{ matrix.configuration.CMAKE_BUILD_TYPE }})
+    name: |
+      ${{ matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '' }}
+      ${{ matrix.CSL_component }} 
+      (${{ matrix.configuration.OS }} ${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }} ${{ matrix.configuration.CMAKE_BUILD_TYPE }})
     runs-on: ${{ matrix.configuration.OS }}
     timeout-minutes: 15
 
@@ -80,6 +83,24 @@ jobs:
             #   CMAKE_CXX_COMPILER: clang++,
             #   version: 19
             # }
+            include:
+              - CMAKE_BUILD_TYPE: Debug
+                configuration:
+                  OS: ubuntu-latest
+                  CMAKE_C_COMPILER: clang
+                  CMAKE_CXX_COMPILER: clang++
+                  version: 'latest-stable'
+                  CMAKE_CXX_FLAGS: '-stdlib=libc++ -fsanitize=address,undefined -fno-omit-frame-pointer -g'
+                  CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi -fsanitize=address,undefined'
+                enable_sanitizer: true
+            # sanitizer:
+            #   # for Debug
+            #   - "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
+            #   - "-fsanitize=memory"
+            #   - "-fsanitize=thread"
+            #   - "-fsanitize=dataflow"
+            #   # for Release
+            #   - "-flto -fvisibility=hidden -fsanitize=cfi -fno-sanitize-trap=cfi"
 
     env:
       STL_NAME: "${{
