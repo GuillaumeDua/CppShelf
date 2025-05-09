@@ -88,6 +88,7 @@ jobs:
             enable_sanitizer: [ false ]
             include:
             - CMAKE_BUILD_TYPE: Debug
+              CSL_component: ag
               configuration:
                 OS: ubuntu-latest
                 CMAKE_C_COMPILER: clang
@@ -95,6 +96,41 @@ jobs:
                 version: latest-stable
                 libcxx: true
               enable_sanitizer: true
+            - CMAKE_BUILD_TYPE: Debug
+              CSL_component: ensure
+              configuration:
+                OS: ubuntu-latest
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                version: latest-stable
+                libcxx: true
+              enable_sanitizer: true
+            - CMAKE_BUILD_TYPE: Debug
+              CSL_component: functional
+              configuration:
+                OS: ubuntu-latest
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                version: latest-stable
+                libcxx: true
+              enable_sanitizer: true
+            - CMAKE_BUILD_TYPE: Debug
+              CSL_component: typeinfo
+              configuration:
+                OS: ubuntu-latest
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                version: latest-stable
+                libcxx: true
+              enable_sanitizer: true
+            - CMAKE_BUILD_TYPE: Debug
+              CSL_component: wf
+              configuration:
+                OS: ubuntu-latest
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                version: latest-stable
+                libcxx: true
     steps:
     - uses: actions/checkout@v4
    
