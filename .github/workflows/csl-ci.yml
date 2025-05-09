@@ -79,21 +79,22 @@ jobs:
             #   version: 19
             # }
             # sanitizer:
-            include:
-            # Add enable_sanitizer only to clang + Debug combinations
-            - CMAKE_BUILD_TYPE: Debug
-              configuration:
-                CMAKE_C_COMPILER: clang
-              enable_sanitizer: true
-      
-            #   # for Debug
             #   - "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
             #   - "-fsanitize=memory"
             #   - "-fsanitize=thread"
             #   - "-fsanitize=dataflow"
             #   # for Release
             #   - "-flto -fvisibility=hidden -fsanitize=cfi -fno-sanitize-trap=cfi"
-
+            enable_sanitizer: [ false ]
+            include:
+            - CMAKE_BUILD_TYPE: Debug
+              configuration:
+                OS: ubuntu-latest
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                version: latest-stable
+                libcxx: true
+              enable_sanitizer: true
     steps:
     - uses: actions/checkout@v4
    
