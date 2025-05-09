@@ -11,11 +11,6 @@ jobs:
 
     name: ${{ format('{0}{1} ({2} {3}-{4} {5})', matrix.configuration.enable_sanitizer == 'true' && '(sanitizer) ' || '', matrix.CSL_component, matrix.configuration.OS, matrix.configuration.CMAKE_C_COMPILER, matrix.configuration.version, matrix.CMAKE_BUILD_TYPE) }}
 
-    # name: |
-    #   ${{ matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '' }}
-    #   ${{ matrix.CSL_component }} 
-    #   (${{ matrix.configuration.OS }} ${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }} ${{ matrix.CMAKE_BUILD_TYPE }})
-    
     runs-on: ${{ matrix.configuration.OS }}
     timeout-minutes: 15
     # continue-on-error: true
@@ -85,15 +80,11 @@ jobs:
             # }
             # sanitizer:
             include:
-              - CMAKE_BUILD_TYPE: Debug
-                CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
-                configuration:
-                - OS: ubuntu-latest,
-                  CMAKE_C_COMPILER: clang,
-                  CMAKE_CXX_COMPILER: clang++,
-                  version: 19,
-                  libcxx: true,
-                  enable_sanitizer: true
+            # Add enable_sanitizer only to clang + Debug combinations
+            - CMAKE_BUILD_TYPE: Debug
+              configuration:
+                CMAKE_C_COMPILER: clang
+              enable_sanitizer: true
       
             #   # for Debug
             #   - "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
@@ -110,12 +101,11 @@ jobs:
     # - subaction to build + test a specific cache entry, using a toolchain as argument
     # TODO: cross-build ?
     
-    - name: Set libc++ env flags
+    - name: Set cxx and linker flags
       if: matrix.configuration.libcxx && matrix.configuration.CMAKE_C_COMPILER == 'clang'
       run: |
         echo "CMAKE_CXX_FLAGS=-stdlib=libc++" >> "$GITHUB_ENV"
         echo "CMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -lc++abi" >> "$GITHUB_ENV"
-
 
     - name: Install clang
       if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'clang' }}
