@@ -9,7 +9,7 @@ defaults:
 jobs:
   build_and_test:
 
-    name: ${{ format('{0}{1} ({2} {3}-{4} {5})', matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '', matrix.CSL_component, matrix.configuration.OS, matrix.configuration.CMAKE_C_COMPILER, matrix.configuration.version, matrix.CMAKE_BUILD_TYPE) }}
+    name: ${{ format('{0}{1} ({2} {3}-{4} {5})', matrix.configuration.enable_sanitizer == 'true' && '(sanitizer) ' || '', matrix.CSL_component, matrix.configuration.OS, matrix.configuration.CMAKE_C_COMPILER, matrix.configuration.version, matrix.CMAKE_BUILD_TYPE) }}
 
     # name: |
     #   ${{ matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '' }}
