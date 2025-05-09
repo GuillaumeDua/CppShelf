@@ -83,19 +83,20 @@ jobs:
             #   CMAKE_CXX_COMPILER: clang++,
             #   version: 19
             # }
+            # sanitizer:
             include:
               - CMAKE_BUILD_TYPE: Debug
+                CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
                 configuration:
-                  OS: ubuntu-latest
-                  CMAKE_C_COMPILER: clang
-                  CMAKE_CXX_COMPILER: clang++
-                  version: 'latest-stable'
-                  libcxx: true
-                  CMAKE_CXX_FLAGS: '-fsanitize=address,undefined -fno-omit-frame-pointer -g'
-                  CMAKE_EXE_LINKER_FLAGS: '-fsanitize=address,undefined'
-                enable_sanitizer: true
-                # continue-on-error: true
-            # sanitizer:
+                  - {
+                    OS: ubuntu-latest,
+                    CMAKE_C_COMPILER: clang,
+                    CMAKE_CXX_COMPILER: clang++,
+                    version: 19,
+                    libcxx: true,
+                    enable_sanitizer: true
+                  }
+      
             #   # for Debug
             #   - "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
             #   - "-fsanitize=memory"
@@ -103,12 +104,6 @@ jobs:
             #   - "-fsanitize=dataflow"
             #   # for Release
             #   - "-flto -fvisibility=hidden -fsanitize=cfi -fno-sanitize-trap=cfi"
-
-        
-    # env:
-    #   CMAKE_CXX_FLAGS: '-stdlib=libc++'
-    #   CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
-
 
     steps:
     - uses: actions/checkout@v4
