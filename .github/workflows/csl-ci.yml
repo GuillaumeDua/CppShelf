@@ -88,14 +88,12 @@ jobs:
               - CMAKE_BUILD_TYPE: Debug
                 CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
                 configuration:
-                - {
-                  OS: ubuntu-latest,
+                - OS: ubuntu-latest,
                   CMAKE_C_COMPILER: clang,
                   CMAKE_CXX_COMPILER: clang++,
                   version: 19,
                   libcxx: true,
                   enable_sanitizer: true
-                }
       
             #   # for Debug
             #   - "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
