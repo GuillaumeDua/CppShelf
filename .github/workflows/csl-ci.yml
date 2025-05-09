@@ -33,15 +33,13 @@ jobs:
               CMAKE_C_COMPILER: clang,
               CMAKE_CXX_COMPILER: clang++,
               version: 19,
-              CMAKE_CXX_FLAGS: '-stdlib=libc++',
-              CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
+              libcxx: true
             }
             - {
               OS: ubuntu-latest,
               CMAKE_C_COMPILER: clang,
               CMAKE_CXX_COMPILER: clang++,
-              version: 19,
-              CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
+              version: 19
             }
             # clang-18
             - {
@@ -49,15 +47,13 @@ jobs:
               CMAKE_C_COMPILER: clang,
               CMAKE_CXX_COMPILER: clang++,
               version: 18,
-              CMAKE_CXX_FLAGS: '-stdlib=libc++',
-              CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
+              libcxx: true
             }
             - {
               OS: ubuntu-latest,
               CMAKE_C_COMPILER: clang,
               CMAKE_CXX_COMPILER: clang++,
-              version: 18,
-              CMAKE_CXX_FLAGS: '-stdlib=libstdc++'
+              version: 18
             }
             # gcc-14
             - {
@@ -94,8 +90,9 @@ jobs:
                   CMAKE_C_COMPILER: clang
                   CMAKE_CXX_COMPILER: clang++
                   version: 'latest-stable'
-                  CMAKE_CXX_FLAGS: '-stdlib=libc++ -fsanitize=address,undefined -fno-omit-frame-pointer -g'
-                  CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi -fsanitize=address,undefined'
+                  libcxx: true
+                  CMAKE_CXX_FLAGS: '-fsanitize=address,undefined -fno-omit-frame-pointer -g'
+                  CMAKE_EXE_LINKER_FLAGS: '-fsanitize=address,undefined'
                 enable_sanitizer: true
                 # continue-on-error: true
             # sanitizer:
@@ -107,22 +104,26 @@ jobs:
             #   # for Release
             #   - "-flto -fvisibility=hidden -fsanitize=cfi -fno-sanitize-trap=cfi"
 
-    env:
-      STL_NAME: "${{
-           matrix.configuration.CMAKE_CXX_FLAGS == '-stdlib=libstdc++' && 'libstdcxx'
-        || matrix.configuration.CMAKE_CXX_FLAGS == '-stdlib=libc++' && 'libcxx'
-        || matrix.configuration.CMAKE_C_COMPILER == 'cl' && 'msvc-stl'
-        || 'none'
-        }}"
+        
+    # env:
+    #   CMAKE_CXX_FLAGS: '-stdlib=libc++'
+    #   CMAKE_EXE_LINKER_FLAGS: '-stdlib=libc++ -lc++abi'
 
 
     steps:
     - uses: actions/checkout@v4
-
+   
     # TECH-DEBT: only once for all matrix product - one cache per OS, compiler, STL
     # - subaction to build + test a specific cache entry, using a toolchain as argument
     # TODO: cross-build ?
     
+    - name: Set libc++ env flags
+      if: matrix.configuration.libcxx && matrix.configuration.CMAKE_C_COMPILER == 'clang'
+      run: |
+        echo "CMAKE_CXX_FLAGS=-stdlib=libc++" >> "$GITHUB_ENV"
+        echo "CMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -lc++abi" >> "$GITHUB_ENV"
+
+
     - name: Install clang
       if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'clang' }}
       run: |
@@ -131,6 +132,7 @@ jobs:
               script_name="${{ github.workspace }}/.devcontainer/scripts/llvm.sh"
               sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.configuration.version }}"
           fi
+          echo "COMPILER_VERSION=$(clang -dumpversion | cut -d. -f1)" >> "$GITHUB_ENV"
 
     - name: Install gcc
       if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'gcc' }}
@@ -140,11 +142,12 @@ jobs:
               script_name="${{ github.workspace }}/.devcontainer/scripts/gcc.sh"
               sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
           fi
+          echo "COMPILER_VERSION=$(gcc -dumpversion | cut -d. -f1)" >> "$GITHUB_ENV"
 
     - name: Make toolchain path
       id: make_toolchain_path
       run: |
-        TOOLCHAIN_PATH='${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}/${{ env.STL_NAME }}/${{ matrix.CSL_component }}'
+        TOOLCHAIN_PATH='${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-$COMPILER_VERSION/${{ matrix.CSL_component }}'
         echo "TOOLCHAIN_PATH=${TOOLCHAIN_PATH}" >> $GITHUB_OUTPUT
 
     - name: CMake create destination directories (${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }})
@@ -166,10 +169,10 @@ jobs:
               -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
               -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE       \
             \
-              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.configuration.CMAKE_C_COMPILER}}-${{ matrix.configuration.version }}      \
-              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.configuration.CMAKE_CXX_COMPILER}}-${{ matrix.configuration.version }}  \
-              -DCMAKE_CXX_FLAGS="${{matrix.configuration.CMAKE_CXX_FLAGS}}"                                                   \
-              -DCMAKE_EXE_LINKER_FLAGS="${{matrix.configuration.CMAKE_EXE_LINKER_FLAGS}}"                                     \
+              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.configuration.CMAKE_C_COMPILER}}-$COMPILER_VERSION                        \
+              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.configuration.CMAKE_CXX_COMPILER}}-$COMPILER_VERSION                    \
+              -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS ${{matrix.configuration.CMAKE_CXX_FLAGS}}"                                  \
+              -DCMAKE_EXE_LINKER_FLAGS="$CMAKE_EXE_LINKER_FLAGS ${{matrix.configuration.CMAKE_EXE_LINKER_FLAGS}}"             \
               -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                                        \
               -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }} \
               -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
