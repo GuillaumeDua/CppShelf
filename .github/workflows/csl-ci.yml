@@ -9,6 +9,7 @@ defaults:
 jobs:
   build_and_test:
 
+    # WIP: ${{ format('{0}', matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '') always ''
     name: ${{ format('{0}{1} ({2} {3}-{4} {5})', matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '', matrix.CSL_component, matrix.configuration.OS, matrix.configuration.CMAKE_C_COMPILER, matrix.configuration.version, matrix.CMAKE_BUILD_TYPE) }}
 
     runs-on: ${{ matrix.configuration.OS }}
@@ -18,6 +19,7 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
+
             CMAKE_BUILD_TYPE: [ Debug, Release ]
             CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
             configuration:
@@ -88,43 +90,7 @@ jobs:
             enable_sanitizer: [ false ]
             include:
             - CMAKE_BUILD_TYPE: Debug
-              CSL_component: ag
-              configuration:
-                OS: ubuntu-latest
-                CMAKE_C_COMPILER: clang
-                CMAKE_CXX_COMPILER: clang++
-                version: latest-stable
-                libcxx: true
-              enable_sanitizer: true
-            - CMAKE_BUILD_TYPE: Debug
-              CSL_component: ensure
-              configuration:
-                OS: ubuntu-latest
-                CMAKE_C_COMPILER: clang
-                CMAKE_CXX_COMPILER: clang++
-                version: latest-stable
-                libcxx: true
-              enable_sanitizer: true
-            - CMAKE_BUILD_TYPE: Debug
-              CSL_component: functional
-              configuration:
-                OS: ubuntu-latest
-                CMAKE_C_COMPILER: clang
-                CMAKE_CXX_COMPILER: clang++
-                version: latest-stable
-                libcxx: true
-              enable_sanitizer: true
-            - CMAKE_BUILD_TYPE: Debug
-              CSL_component: typeinfo
-              configuration:
-                OS: ubuntu-latest
-                CMAKE_C_COMPILER: clang
-                CMAKE_CXX_COMPILER: clang++
-                version: latest-stable
-                libcxx: true
-              enable_sanitizer: true
-            - CMAKE_BUILD_TYPE: Debug
-              CSL_component: wf
+              CSL_component: ALL
               configuration:
                 OS: ubuntu-latest
                 CMAKE_C_COMPILER: clang
