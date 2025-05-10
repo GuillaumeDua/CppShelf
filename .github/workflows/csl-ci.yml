@@ -97,6 +97,10 @@ jobs:
                 CMAKE_CXX_COMPILER: clang++
                 version: latest-stable
                 libcxx: true
+
+    env:
+      toolchain_path: "${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}/${{ matrix.CSL_component }}"
+    
     steps:
     - uses: actions/checkout@v4
    
@@ -114,34 +118,26 @@ jobs:
       if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'clang' }}
       run: |
           sudo apt update -qqy
-          if [[ "${{ matrix.configuration.CMAKE_C_COMPILER }}" == "clang" ]]; then
-              script_name="${{ github.workspace }}/.devcontainer/scripts/llvm.sh"
-              sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.configuration.version }}"
-          fi
-          echo "COMPILER_VERSION=$(clang -dumpversion | cut -d. -f1)" >> "$GITHUB_ENV"
+          script_name="${{ github.workspace }}/.devcontainer/scripts/llvm.sh"
+          sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.configuration.version }}"
 
     - name: Install gcc
       if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'gcc' }}
       run: |
           sudo apt update -qqy
-          if [[ "${{ matrix.configuration.CMAKE_C_COMPILER }}" == "gcc" ]]; then
-              script_name="${{ github.workspace }}/.devcontainer/scripts/gcc.sh"
-              sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
-          fi
-          echo "COMPILER_VERSION=$(gcc -dumpversion | cut -d. -f1)" >> "$GITHUB_ENV"
+          script_name="${{ github.workspace }}/.devcontainer/scripts/gcc.sh"
+          sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
 
-    - name: Make toolchain path
-      id: make_toolchain_path
+    - name: 💡 Compiler informations
       run: |
-        TOOLCHAIN_PATH='${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-$COMPILER_VERSION/${{ matrix.CSL_component }}'
-        echo "TOOLCHAIN_PATH=${TOOLCHAIN_PATH}" >> $GITHUB_OUTPUT
+        ${{ matrix.configuration.CMAKE_C_COMPILER }} --version
 
-    - name: CMake create destination directories (${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }})
+    - name: CMake create destination directories (${{ env.toolchain_path }})
       run: |
-        cmake -E make_directory ${{ github.workspace }}/out/build/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }}
-        cmake -E make_directory ${{ github.workspace }}/out/install/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }}
+        cmake -E make_directory ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
+        cmake -E make_directory ${{ github.workspace }}/out/install/${{ env.toolchain_path }}
       
-    - name: 📦 CMake configure (${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }})
+    - name: 📦 CMake configure (${{ env.toolchain_path }})
       run: |
         cmake \
               -DCSL_BUILD_ALL:BOOL=OFF            \
@@ -155,34 +151,34 @@ jobs:
               -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
               -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE       \
             \
-              -DCMAKE_C_COMPILER=/usr/bin/${{matrix.configuration.CMAKE_C_COMPILER}}-$COMPILER_VERSION                        \
-              -DCMAKE_CXX_COMPILER=/usr/bin/${{matrix.configuration.CMAKE_CXX_COMPILER}}-$COMPILER_VERSION                    \
-              -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS ${{matrix.configuration.CMAKE_CXX_FLAGS}}"                                  \
-              -DCMAKE_EXE_LINKER_FLAGS="$CMAKE_EXE_LINKER_FLAGS ${{matrix.configuration.CMAKE_EXE_LINKER_FLAGS}}"             \
-              -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                                        \
-              -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }} \
-              -DCMAKE_GENERATOR:STRING=Ninja                                                                                  \
-              -G Ninja                                                                                                        \
-              -S ${{ github.workspace }}                                                                                      \
-              -B ${{ github.workspace }}/out/build/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }}
+              -DCMAKE_C_COMPILER=${{matrix.configuration.CMAKE_C_COMPILER}}                                       \
+              -DCMAKE_CXX_COMPILER=${{matrix.configuration.CMAKE_CXX_COMPILER}}                                   \
+              -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS ${{matrix.configuration.CMAKE_CXX_FLAGS}}"                      \
+              -DCMAKE_EXE_LINKER_FLAGS="$CMAKE_EXE_LINKER_FLAGS ${{matrix.configuration.CMAKE_EXE_LINKER_FLAGS}}" \
+              -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                            \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ env.toolchain_path }}           \
+              -DCMAKE_GENERATOR:STRING=Ninja                                                                      \
+              -G Ninja                                                                                            \
+              -S ${{ github.workspace }}                                                                          \
+              -B ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
 
     # WIP: build the target, its tests, then use ctest filter to run only the targets tests (or all, as there are the only one which should be builded)
     #   rename tests: test_csl_${{ matrix.CSL_component }}_*
 
-    - name: 🏗️ CMake build - (${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }})
+    - name: 🏗️ CMake build - (${{ env.toolchain_path }})
       run: |
         cmake \
-            --build ${{ github.workspace }}/out/build/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }} \
+            --build ${{ github.workspace }}/out/build/${{ env.toolchain_path }} \
             --config ${{ matrix.CMAKE_BUILD_TYPE }} \
             --target all
       # --target ${{ matrix.CSL_component }}_build_all_tests
 
-    - name: 🧪 CTest - (${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }})
-      working-directory: ${{ github.workspace }}/out/build/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }}
+    - name: 🧪 CTest - (${{ env.toolchain_path }})
+      working-directory: ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
       run: |
         ctest --parallel 10 \
         --output-on-failure \
-        --test-dir ${{ github.workspace }}/out/build/${{ steps.make_toolchain_path.outputs.TOOLCHAIN_PATH }}
+        --test-dir ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
       # --no-tests=error
       # -R csl_test_${{ matrix.CSL_component }}
       # --tests-regex '^csl_test_${{ matrix.CSL_component }}*$'
