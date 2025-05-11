@@ -97,6 +97,7 @@ jobs:
                 CMAKE_CXX_COMPILER: clang++
                 version: latest-stable
                 libcxx: true
+                enable_sanitizer: true
 
     env:
       toolchain_path: "${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}/${{ matrix.CSL_component }}"
