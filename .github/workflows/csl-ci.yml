@@ -9,7 +9,6 @@ defaults:
 jobs:
   build_and_test:
 
-    # WIP: ${{ format('{0}', matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '') always ''
     name: ${{ format('{0}{1} ({2} {3}-{4} {5})', matrix.enable_sanitizer == 'true' && '(sanitizer) ' || '', matrix.CSL_component, matrix.configuration.OS, matrix.configuration.CMAKE_C_COMPILER, matrix.configuration.version, matrix.CMAKE_BUILD_TYPE) }}
 
     runs-on: ${{ matrix.configuration.OS }}
@@ -66,6 +65,7 @@ jobs:
               CMAKE_CXX_COMPILER: g++,
               version: 13
             }
+            # TODO: Windows and msvc-cl support
             # msvc-cl
             # - {
             #   OS: windows-latest,
@@ -73,6 +73,7 @@ jobs:
             #   CMAKE_CXX_COMPILER: cl,
             #   version: 13
             # }
+            # TODO: Apple and apple-clang support
             # Apple clang
             # - {
             #   OS: macos-latest,
@@ -80,14 +81,20 @@ jobs:
             #   CMAKE_CXX_COMPILER: clang++,
             #   version: 19
             # }
-            # sanitizer:
-            #   - "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
-            #   - "-fsanitize=memory"
-            #   - "-fsanitize=thread"
-            #   - "-fsanitize=dataflow"
-            #   # for Release
-            #   - "-flto -fvisibility=hidden -fsanitize=cfi -fno-sanitize-trap=cfi"
-            enable_sanitizer: [ false ]
+            # WIP: sanitizers:
+            # asan: -fsanitize=address -fno-omit-frame-pointer
+            # usan: -fsanitize=undefined -fno-sanitize-recover=undefined
+            # msan: -fsanitize=memory -fno-omit-frame-pointer -fsanitize-memory-track-origins
+            # tsan: -fsanitize=thread
+
+            # -fsanitize=cfi -fsanitize-cfi-cross-dso -fno-sanitize-trap=cfi -flto -fno-omit-frame-pointer -fvisibility=hidden
+            #     -fsanitize=cfi-icall
+            #     -fsanitize=cfi-vcall
+            #     -fsanitize=cfi-derived-cast
+            #     -fsanitize=cfi-unrelated-cast
+
+            # -fsanitize=dataflow -fno-omit-frame-pointer
+
             include:
             - CMAKE_BUILD_TYPE: Debug
               CSL_component: ALL
@@ -97,7 +104,7 @@ jobs:
                 CMAKE_CXX_COMPILER: clang++
                 version: latest-stable
                 libcxx: true
-                enable_sanitizer: true
+              enable_sanitizer: true
 
     env:
       toolchain_path: "${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}/${{ matrix.CSL_component }}"
@@ -105,9 +112,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
    
-    # TECH-DEBT: only once for all matrix product - one cache per OS, compiler, STL
+    # TECH-DEBT: Less matrix entries: only once for each plateform - one cache per OS, compiler, STL
     # - subaction to build + test a specific cache entry, using a toolchain as argument
-    # TODO: cross-build ?
+
+    # QUESTION: cross-build ?
+    #   - Windows: x86_64-w64-mingw32-gcc
+    #   - MacOS: nope
+    #   - ARM, AMD, etc.
     
     - name: Set cxx and linker flags
       if: matrix.configuration.libcxx && matrix.configuration.CMAKE_C_COMPILER == 'clang'
