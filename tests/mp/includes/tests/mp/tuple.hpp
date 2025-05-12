@@ -292,8 +292,8 @@ namespace test::tuples::std_interopterability::tuple_element {
     static_assert(std::is_same_v<int,  std::tuple_element_t<0, invalid_tuple>>);
 }
 namespace test::tuples::std_interopterability::get {
-    // NOTE: std::get is not a customization point
-    using std::get;
+
+    using std::get; // NOTE: std::get is not a customization point
 
     using type = csl::mp::tuple<int, char>;
     constexpr auto value = type{ 42, 'a' };
@@ -304,6 +304,7 @@ namespace test::tuples::std_interopterability::get {
 
 // ADL
 namespace test::tuples::get::ADL {
+    
     using csl::mp::get;
 
     using type = csl::mp::tuple<int, char>;
