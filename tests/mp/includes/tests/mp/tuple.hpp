@@ -83,16 +83,23 @@ namespace testi::tuples::is_valid_tuple {
 namespace test::tuples::compare {
 
     // tuple_element_storage
-    // static_assert(std::three_way_comparable<
-    //     csl::mp::details::tuple_element_storage<0, int>
-    // >);
-    // static_assert(std::three_way_comparable<
-    //     csl::mp::details::tuple_element_storage<1, float>
-    // >);
-    // static_assert(std::three_way_comparable_with<
-    //     csl::mp::details::tuple_element_storage<0, int>,
-    //     csl::mp::details::tuple_element_storage<1, float>
-    // >);
+    static_assert(std::three_way_comparable<
+        csl::mp::details::tuple_element_storage<0, int>
+    >);
+    static_assert(std::three_way_comparable<
+        csl::mp::details::tuple_element_storage<1, float>
+    >);
+    static_assert(std::three_way_comparable_with<
+        csl::mp::details::tuple_element_storage<0, int>,
+        csl::mp::details::tuple_element_storage<0, int>
+    >);
+    static_assert(std::three_way_comparable_with<int, float>);
+
+    static_assert(not std::three_way_comparable_with<
+        // no common reference
+        csl::mp::details::tuple_element_storage<0, int>,
+        csl::mp::details::tuple_element_storage<1, float>
+    >);
 
     using lhs_t = csl::mp::tuple<int, char>;
     using rhs_t = csl::mp::tuple<double, int>;
@@ -304,7 +311,7 @@ namespace test::tuples::std_interopterability::get {
 
 // ADL
 namespace test::tuples::get::ADL {
-    
+
     using csl::mp::get;
 
     using type = csl::mp::tuple<int, char>;

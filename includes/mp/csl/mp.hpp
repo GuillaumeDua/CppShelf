@@ -210,24 +210,27 @@ namespace csl::mp::details {
 
         T value;
 
-        // template <std::size_t I, std::equality_comparable_with<T> U>
-        // constexpr auto operator==(const tuple_element_storage<I, U> & other) const
-        // noexcept(noexcept(value == other.value))
-        // {
-        //     return value == other.value;
-        // }
-        // template <std::size_t I, std::three_way_comparable_with<T> U>
-        // friend constexpr auto operator<=>(
-        //     const tuple_element_storage & lhs,
-        //     const tuple_element_storage<I, U> & rhs)
-        // noexcept(noexcept(lhs.value <=> rhs.value))
-        // {
-        //     return lhs.value <=> rhs.value;
-        // }
+        template <std::size_t I, std::equality_comparable_with<T> U>
+        constexpr auto operator==(const tuple_element_storage<I, U> & other) const
+        noexcept(noexcept(value == other.value))
+        {
+            return value == other.value;
+        }
 
-        // template <std::size_t I, typename U>
+        constexpr auto operator<=>(const tuple_element_storage&) const
+        noexcept(noexcept(std::declval<const T &>() == std::declval<const T &>()))
+        = default;
+
+        template <std::size_t I, std::three_way_comparable_with<T> U>
+        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
+        noexcept(noexcept(value <=> other.value))
+        {
+            return value <=> other.value;
+        }
+
+        // template <std::size_t I, std::three_way_comparable_with<T> U>
         // constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
-        // // noexcept(noexcept(value <=> other.value))
+        // noexcept(noexcept(value <=> other.value))
         // -> std::common_comparison_category_t<compare::synth_three_way_result<T, U>>
         // {
         //     return compare::synth_three_way(value, other.value);
