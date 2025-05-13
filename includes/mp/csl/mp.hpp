@@ -211,6 +211,8 @@ namespace csl::mp::details {
 
         T value;
 
+        // WIP: skip https://godbolt.org/z/eKEzve96q, just compare get<N>(lhs) <=> get<N>(rhs)
+
         template <std::size_t I, std::equality_comparable_with<T> U>
         constexpr auto operator==(const tuple_element_storage<I, U> & other) const
         noexcept(noexcept(value == other.value))
@@ -310,6 +312,9 @@ namespace csl::mp::details {
         // constexpr auto operator<=>(const tuple_storage<std::index_sequence<indexes...>, Us...> &) const {
         //     return std::strong_ordering::equal;
         // }
+
+
+
     };
 
     template <typename>
