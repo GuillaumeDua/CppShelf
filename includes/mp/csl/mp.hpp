@@ -169,6 +169,7 @@ namespace csl::mp {
 namespace csl::mp::details::compare {
 
     // emulate __detail::__synth3way_t
+    // see https://en.cppreference.com/w/cpp/standard_library/synth-three-way
     constexpr auto synth_three_way = []<class T, class U>(const T& t, const U& u)
     requires requires
         {
@@ -221,20 +222,20 @@ namespace csl::mp::details {
         noexcept(noexcept(std::declval<const T &>() == std::declval<const T &>()))
         = default;
 
-        template <std::size_t I, std::three_way_comparable_with<T> U>
-        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
-        noexcept(noexcept(value <=> other.value))
-        {
-            return value <=> other.value;
-        }
-
         // template <std::size_t I, std::three_way_comparable_with<T> U>
         // constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
         // noexcept(noexcept(value <=> other.value))
-        // -> std::common_comparison_category_t<compare::synth_three_way_result<T, U>>
         // {
-        //     return compare::synth_three_way(value, other.value);
+        //     return value <=> other.value;
         // }
+
+        template <std::size_t I, std::three_way_comparable_with<T> U>
+        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
+        noexcept(noexcept(value <=> other.value))
+        -> std::common_comparison_category_t<compare::synth_three_way_result<T, U>>
+        {
+            return compare::synth_three_way(value, other.value);
+        }
     };
 
     template <typename indexes, typename ... Ts>
