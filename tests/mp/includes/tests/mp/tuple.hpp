@@ -4,6 +4,27 @@
 
 // NOLINTBEGIN(*-avoid-magic-numbers)
 
+// concepts
+namespace test::tuples::concepts::tuple_element {
+    using T = csl::mp::tuple<int, float>;
+    static_assert(csl::mp::concepts::tuple_element<T, 0>);
+    static_assert(csl::mp::concepts::tuple_element<T, 1>);
+    static_assert(not csl::mp::concepts::tuple_element<T, 2>);
+    static_assert(not csl::mp::concepts::tuple_element<int, 2>);
+}
+namespace test::tuples::concepts::tuple_like {
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int>>);
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, int>>);
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, float>>);
+}
+namespace test::tuples::concepts::pair_like {
+    static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<>>);
+    static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<int>>);
+    static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, int>>);
+    static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, float>>);
+}
+
 // tuples: details::concepts
 namespace test::tuples::concepts::deductible {
     using without_duplicates = csl::mp::tuple<int, char, bool>;

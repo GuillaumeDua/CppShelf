@@ -138,7 +138,41 @@ namespace csl::mp::seq {
 //  TODO(@Guss): apply
 //  WIP:  ==, not_eq
 //  WIP: user-defined deduction guide
-//  WIP: fix build CI
+
+namespace csl::mp::concepts {
+    // P2165 - tuple-like
+    // Note that this is a good-enough implementation of P2165 to only fit this project's needs
+	template <typename T, std::size_t N>
+    concept tuple_element =
+            requires { std::tuple_size<T>{}; }
+        and std::tuple_size_v<T> > N
+        and requires(T t) {
+            typename std::tuple_element_t<N, std::remove_const_t<T>>;
+            { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
+        }
+    ;
+    namespace details {
+        // QUICK-FIX: Clang >= 18.1.8 Same mangled name error
+        template <typename T>
+        constexpr static auto valid_tuple_elements_v = []<std::size_t... I>(std::index_sequence<I...>) constexpr {
+            return (true and ... and tuple_element<T, I>);
+        }(std::make_index_sequence<std::tuple_size_v<T>>{});
+    }
+    template <typename T>
+    concept tuple_like =
+        not std::is_reference_v<T>
+        and requires {
+            typename std::tuple_size<T>::type;
+            requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
+        }
+        and details::valid_tuple_elements_v<T>
+        // and []<std::size_t... I>(std::index_sequence<I...>) constexpr {
+        //     return (tuple_element<T, I> && ...);
+        // }(std::make_index_sequence<std::tuple_size_v<T>>{})
+    ;
+    template <typename T>
+    concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
+}
 
 namespace csl::mp {
     template <std::size_t I>
@@ -205,7 +239,7 @@ namespace csl::mp::details {
     };
 
 
-    // QUESTION: or storage<tuple_element<index, T>>
+    // QUESTION: or storage<tuple_element<index, T>>, or derived from tuple_element ?
     template <std::size_t index, typename T>
     struct tuple_element_storage {
 
@@ -410,8 +444,7 @@ namespace csl::mp {
             return *this;
         }
 
-        // QUESTION: interop with other tuplelike (pair, array, etc.)
-        //  not tuple but tuplelike
+        // QUESTION: interop with other other tuplelike (pair, array, etc.)
 
         constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
         tuple(const Ts & ... args)
@@ -470,7 +503,7 @@ namespace csl::mp {
             >;
             // return category_t::equivalent;
             return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-                int cmp = category_t::equivalent; // or equal ?
+                int cmp = category_t::equivalent;
                 ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
                 return cmp;
             }(std::index_sequence_for<Ts...>{});
