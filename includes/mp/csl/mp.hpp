@@ -383,6 +383,36 @@ namespace csl::mp::details {
 }
 namespace csl::mp {
 
+    // template<
+    //     typename _TTuple, __tuple_like _UTuple,
+    // template<typename> class _TQual, template<typename> class _UQual,
+    //     typename = make_index_sequence<tuple_size_v<_TTuple>>>
+    // struct __tuple_like_common_reference;
+
+    // template<__tuple_like _TTuple, __tuple_like _UTuple,
+    //     template<typename> class _TQual, template<typename> class _UQual,
+    //     size_t... _Is>
+    // requires requires
+    // { typename tuple<common_reference_t<_TQual<tuple_element_t<_Is, _TTuple>>,
+    //                 _UQual<tuple_element_t<_Is, _UTuple>>>...>; }
+    // struct __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual, index_sequence<_Is...>>
+    // {
+    // using type = tuple<common_reference_t<_TQual<tuple_element_t<_Is, _TTuple>>,
+    //                 _UQual<tuple_element_t<_Is, _UTuple>>>...>;
+    // };
+
+    // template<__tuple_like _TTuple, __tuple_like _UTuple,
+    //     template<typename> class _TQual, template<typename> class _UQual>
+    // requires (__is_tuple_v<_TTuple> || __is_tuple_v<_UTuple>)
+    // && is_same_v<_TTuple, decay_t<_TTuple>>
+    // && is_same_v<_UTuple, decay_t<_UTuple>>
+    // && (tuple_size_v<_TTuple> == tuple_size_v<_UTuple>)
+    // && requires { typename __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual>::type; }
+    // struct basic_common_reference<_TTuple, _UTuple, _TQual, _UQual>
+    // {
+    // using type = typename __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual>::type;
+    // };
+
     template <typename ... Ts>
     struct tuple : mp::details::make_tuple_t<
         std::make_index_sequence<sizeof...(Ts)>,
@@ -503,7 +533,7 @@ namespace csl::mp {
             >;
             // return category_t::equivalent;
             return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-                int cmp = category_t::equivalent;
+                category_t cmp = category_t::equivalent;
                 ((cmp = (get<indexes>() <=> other.template get<indexes>())), ...);
                 return cmp;
             }(std::index_sequence_for<Ts...>{});
