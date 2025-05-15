@@ -54,11 +54,10 @@ namespace test::nth {
 // }
 
 // #include <iostream> // debug only
+
 auto main() -> int {
 
     // using namespace csl::mp;
     // std::cout << "1 == " << last_index_of_v<int,
     //     char, char, int, bool> << '\n';
-
-    
 }

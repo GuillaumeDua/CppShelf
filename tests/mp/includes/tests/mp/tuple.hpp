@@ -168,6 +168,7 @@ namespace test::tuples::compare::tuple {
     });
     // WIP
     static_assert(std::tuple{ 0, 1 } < std::tuple{0.F,2});
+    static_assert(std::tuple{ 0, 2 } < std::tuple{1.F,2});
     // static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
     static_assert(not std::three_way_comparable_with<
         lhs_t, rhs_t // no common reference, just like std::tuple
