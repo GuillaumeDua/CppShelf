@@ -6,6 +6,17 @@
 
 // concepts
 namespace test::tuples::concepts::tuple_element {
+
+    // std::array
+    static_assert(csl::mp::concepts::tuple_element<std::array<int, 2>, 0>);
+    static_assert(csl::mp::concepts::tuple_element<std::array<int, 2>, 1>);
+    static_assert(not csl::mp::concepts::tuple_element<std::array<int, 2>, 2>);
+
+    // std::pair
+    static_assert(csl::mp::concepts::tuple_element<std::pair<int, float>, 0>);
+    static_assert(not csl::mp::concepts::tuple_element<std::pair<int, float>, 2>);
+
+    // tuple
     using T = csl::mp::tuple<int, float>;
     static_assert(csl::mp::concepts::tuple_element<T, 0>);
     static_assert(csl::mp::concepts::tuple_element<T, 1>);
@@ -13,12 +24,26 @@ namespace test::tuples::concepts::tuple_element {
     static_assert(not csl::mp::concepts::tuple_element<int, 2>);
 }
 namespace test::tuples::concepts::tuple_like {
+
+    static_assert(csl::mp::concepts::tuple_like<std::array<int, 2>>);
+    static_assert(csl::mp::concepts::tuple_like<std::pair<int, float>>);
+
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<>>);
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int>>);
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, int>>);
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, float>>);
 }
 namespace test::tuples::concepts::pair_like {
+
+    // std::array
+    static_assert(not csl::mp::concepts::pair_like<std::array<int, 1>>);
+    static_assert(csl::mp::concepts::pair_like<std::array<int, 2>>);
+    static_assert(not csl::mp::concepts::pair_like<std::array<int, 3>>);
+
+    // std::pair
+    static_assert(csl::mp::concepts::pair_like<std::pair<int, float>>);
+
+    // tuple
     static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<>>);
     static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<int>>);
     static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, int>>);

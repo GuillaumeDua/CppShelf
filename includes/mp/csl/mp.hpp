@@ -413,52 +413,6 @@ namespace csl::mp {
     // using type = typename __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual>::type;
     // };
 
-
-    // template <typename ... Ts>
-    // struct tuple;
-
-    // namespace details {
-    //     template <typename ... Ts, typename ... Us, std::size_t ... indexes>
-    //     requires
-    //         (sizeof...(Ts) == sizeof...(Us))
-    //     and (sizeof...(Ts) == sizeof...(indexes))
-    //     and (true and ... and std::three_way_comparable_with<Ts, Us>)
-    //     constexpr static auto tuple_compare(
-    //         const tuple<Us...> & lhs,
-    //         const tuple<Us...> & rhs,
-    //         std::index_sequence<indexes...>
-    //     )
-    //     -> std::common_comparison_category_t<
-    //         details::compare::synth_three_way_result<Ts, Us>...
-    //     >
-    //     {
-    //         using category_t = std::common_comparison_category_t<
-    //             details::compare::synth_three_way_result<Ts, Us>...
-    //         >;
-
-    //         using values_t = std::array<category_t, sizeof...(indexes)>;
-    //         for (category_t cmp : values_t{ (get<indexes>(lhs) <=> get<indexes>(rhs))... }) {
-    //             if (cmp != 0) return cmp;
-    //         }
-    //         return category_t::equivalent;
-    //     }
-    // }
-
-    // template <typename ... Ts, typename ... Us>
-    // requires
-    //     (sizeof...(Ts) == sizeof...(Us))
-    // and (true and ... and std::three_way_comparable_with<Ts, Us>)
-    // constexpr static auto tuple_compare(const tuple<Ts...> & lhs, const tuple<Us...> & rhs)
-    // -> std::common_comparison_category_t<
-    //     details::compare::synth_three_way_result<Ts, Us>...
-    // >
-    // {
-    //     return details::tuple_compare(
-    //         lhs, rhs,
-    //         std::make_index_sequence<sizeof...(Ts)>{}
-    //     );
-    // }
-
     template <typename ... Ts>
     struct tuple : mp::details::make_tuple_t<
         std::make_index_sequence<sizeof...(Ts)>,
