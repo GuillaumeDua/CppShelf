@@ -23,14 +23,16 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
-// [WIP] refactoring => reorder/sort
+// WIP refactoring => reorder/sort
 //  sequences::* : op on sequences
 //  seq types    : sequences definitions
 //  tuple
 //  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
 //
-// [WIP] range-like API for sequence, tuple
+// WIP range-like API for sequence, tuple
 //  std::make_index_sequence<4> | reverse | drop(1) | take(2) => std::integer_sequence<std::size_t, 3, 2>
+//
+// TODO: decouple-from/remove std::index_sequence, std::make_sequence
 
 // sequences
 #include <array>
@@ -237,6 +239,10 @@ namespace csl::mp::details {
         // type-to-index mapping
         constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
     };
+    template <std::size_t I, typename T>
+    using tuple_element_t = tuple_element<I, T>::type;
+    template <std::size_t I, typename T>
+    constexpr static auto tuple_element_index = tuple_element<I, T>::index;
 
 
     // QUESTION: or storage<tuple_element<index, T>>, or derived from tuple_element ?
@@ -346,9 +352,6 @@ namespace csl::mp::details {
         // constexpr auto operator<=>(const tuple_storage<std::index_sequence<indexes...>, Us...> &) const {
         //     return std::strong_ordering::equal;
         // }
-
-
-
     };
 
     template <typename>
@@ -383,35 +386,108 @@ namespace csl::mp::details {
 }
 namespace csl::mp {
 
-    // template<
-    //     typename _TTuple, __tuple_like _UTuple,
-    // template<typename> class _TQual, template<typename> class _UQual,
-    //     typename = make_index_sequence<tuple_size_v<_TTuple>>>
-    // struct __tuple_like_common_reference;
+    template <typename ... Ts>
+    struct tuple;
 
-    // template<__tuple_like _TTuple, __tuple_like _UTuple,
-    //     template<typename> class _TQual, template<typename> class _UQual,
-    //     size_t... _Is>
-    // requires requires
-    // { typename tuple<common_reference_t<_TQual<tuple_element_t<_Is, _TTuple>>,
-    //                 _UQual<tuple_element_t<_Is, _UTuple>>>...>; }
-    // struct __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual, index_sequence<_Is...>>
-    // {
-    // using type = tuple<common_reference_t<_TQual<tuple_element_t<_Is, _TTuple>>,
-    //                 _UQual<tuple_element_t<_Is, _UTuple>>>...>;
-    // };
+    // is_tuple
+    template <typename>
+    struct is_tuple : std::false_type{};
+    template <typename ... Ts>
+    struct is_tuple<tuple<Ts...>> : std::true_type{};
+    template <typename T>
+    constexpr static bool is_tuple_v = is_tuple<T>::value;
 
-    // template<__tuple_like _TTuple, __tuple_like _UTuple,
-    //     template<typename> class _TQual, template<typename> class _UQual>
-    // requires (__is_tuple_v<_TTuple> || __is_tuple_v<_UTuple>)
-    // && is_same_v<_TTuple, decay_t<_TTuple>>
-    // && is_same_v<_UTuple, decay_t<_UTuple>>
-    // && (tuple_size_v<_TTuple> == tuple_size_v<_UTuple>)
-    // && requires { typename __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual>::type; }
-    // struct basic_common_reference<_TTuple, _UTuple, _TQual, _UQual>
-    // {
-    // using type = typename __tuple_like_common_reference<_TTuple, _UTuple, _TQual, _UQual>::type;
-    // };
+    namespace concepts {
+        template <typename T> concept tuple = is_tuple_v<std::remove_cvref_t<T>>;
+    }
+
+    // tuple_size
+    template <typename>
+    struct tuple_size;
+    template <typename ... Ts>
+    struct tuple_size<tuple<Ts...>> : std::integral_constant<
+        std::size_t, sizeof...(Ts)
+    >{};
+    template <typename tuple_type>
+    constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
+
+    // tuple_like_common_reference
+    template <
+        typename T,
+        concepts::tuple_like U,
+        template <typename> class TQual,
+        template <typename> class UQual,
+        typename = std::make_index_sequence<tuple_size_v<T>>>
+    struct tuple_like_common_reference;
+
+    template <
+        concepts::tuple_like T,
+        concepts::tuple_like U,
+        template <typename> class TQual,
+        template <typename> class UQual,
+        size_t... indexes
+    >
+    requires
+        requires {
+            typename tuple<
+                    std::common_reference_t<
+                        TQual<details::tuple_element_t<indexes, T>>,
+                        UQual<details::tuple_element_t<indexes, U>>
+                    >...
+            >;
+        }
+    struct tuple_like_common_reference<
+        T, U,
+        TQual, UQual,
+        std::index_sequence<indexes...>
+    >
+    {
+        using type = tuple<
+            std::common_reference_t<
+                TQual<details::tuple_element_t<indexes, T>>,
+                UQual<details::tuple_element_t<indexes, U>>
+            >...
+        >;
+    };
+    template <
+        typename T,
+        concepts::tuple_like U,
+        template <typename> class TQual,
+        template <typename> class UQual
+    >
+    using tuple_like_common_reference_t = typename tuple_like_common_reference<
+        T, U,
+        TQual, UQual
+    >::type;
+}
+
+// std::basic_common_reference<tuple-like, tuple-like>
+// QUESTION: Would basic_common_reference<tuple-like> be already enough ?
+// https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
+namespace std {
+    template <
+        csl::mp::concepts::tuple_like T,
+        csl::mp::concepts::tuple_like U,
+        template <typename> class TQual,
+        template <typename> class UQual
+    >
+    requires (csl::mp::concepts::tuple<T> or csl::mp::concepts::tuple<U>)
+    and std::same_as<T, std::remove_cvref_t<T>>
+    and std::same_as<U, std::remove_cvref_t<U>>
+    and (csl::mp::tuple_size_v<T> == csl::mp::tuple_size_v<U>)
+    and requires {
+        typename csl::mp::tuple_like_common_reference_t<T, U, TQual, UQual>;
+    }
+    struct basic_common_reference<T, U, TQual, UQual>
+    {
+        using type = csl::mp::tuple_like_common_reference_t<
+            T, U,
+            TQual, UQual
+        >;
+    };
+}
+
+namespace csl::mp {
 
     template <typename ... Ts>
     struct tuple : mp::details::make_tuple_t<
@@ -596,18 +672,6 @@ namespace csl::mp {
     //         return ((get<indexes>(lhs) <=> get<indexes>(rhs)) <=> ...);
     //     }(std::make_index_sequence<sizeof...(Ts)>{});
     // }
-
-    // is_tuple
-    template <typename>
-    struct is_tuple : std::false_type{};
-    template <typename ... Ts>
-    struct is_tuple<tuple<Ts...>> : std::true_type{};
-    template <typename T>
-    constexpr bool is_tuple_v = is_tuple<T>::value;
-
-    namespace concepts {
-        template <typename T> concept tuple = is_tuple_v<std::remove_cvref_t<T>>;
-    }
 }
 namespace csl::mp::details::concepts {
     // deductible: type
@@ -625,16 +689,6 @@ namespace csl::mp::details {
     constexpr static std::size_t npos = static_cast<std::size_t>(-1);
 }
 namespace csl::mp {
-
-    // size
-    template <typename>
-    struct tuple_size;
-    template <typename ... Ts>
-    struct tuple_size<tuple<Ts...>> : std::integral_constant<std::size_t,
-        sizeof...(Ts)
-    >{};
-    template <typename tuple_type>
-    constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
 
     // type-by-index
     template <std::size_t, typename>
