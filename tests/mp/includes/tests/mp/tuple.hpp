@@ -182,7 +182,8 @@ namespace test::tuples::compare::tuple {
     static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
 
     static_assert(not std::equality_comparable_with<
-        lhs_t, rhs_t // no common reference, just like std::tuple
+        // std::basic_common_reference<tuple-like> is a C++23 feature: https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
+        lhs_t, rhs_t
     >);
 
     // spaceship

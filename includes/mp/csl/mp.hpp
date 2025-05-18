@@ -464,6 +464,7 @@ namespace csl::mp {
 // std::basic_common_reference<tuple-like, tuple-like>
 // QUESTION: Would basic_common_reference<tuple-like> be already enough ?
 // https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
+// or consider one of T, U is csl::mp::tuple ?
 namespace std {
     template <
         csl::mp::concepts::tuple_like T,
