@@ -461,12 +461,13 @@ namespace csl::mp {
     >::type;
 }
 
-// std::basic_common_reference<tuple-like, tuple-like>
-// QUESTION: Would basic_common_reference<tuple-like> be already enough ?
-// https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
-// or consider one of T, U is csl::mp::tuple ?
+// NOTE: C++23: std::basic_common_reference<tuple-like> **should** be enough
+//  see https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
+//  but with GCC-14 with >= C++23 `__glibcxx_tuple_like`, __is_tuple_v is still a specialization for tuple, pair and array
+//
 namespace std {
     template <
+        // WIP: not tuple_like, but tuple ?
         csl::mp::concepts::tuple_like T,
         csl::mp::concepts::tuple_like U,
         template <typename> class TQual,

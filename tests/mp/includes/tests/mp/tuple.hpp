@@ -166,39 +166,60 @@ namespace test::tuples::compare::tuple_element_storage {
 
 }
 namespace test::tuples::compare::tuple {
-    // tuple
-    using lhs_t = csl::mp::tuple<int, char>;
+
+    using lhs_t = csl::mp::tuple<float, char>;
     using rhs_t = csl::mp::tuple<double, int>;
-    
-    // equality
-    static_assert(std::equality_comparable<lhs_t>);
-    static_assert(std::equality_comparable<rhs_t>);
-    static_assert(requires{
-        lhs_t{} == rhs_t{};
-    });
-    static_assert(lhs_t{} == lhs_t{});
-    static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
-    static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
-    static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
 
-    static_assert(not std::equality_comparable_with<
-        // std::basic_common_reference<tuple-like> is a C++23 feature: https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
-        lhs_t, rhs_t
-    >);
+    namespace common_reference {
 
-    // spaceship
-    static_assert(std::three_way_comparable<lhs_t>);
-    static_assert(std::three_way_comparable<rhs_t>);
-    static_assert(requires{
-        lhs_t{} <=> rhs_t{};
-    });
-    // WIP
-    static_assert(std::tuple{ 0, 1 } < std::tuple{0.F,2});
-    static_assert(std::tuple{ 0, 2 } < std::tuple{1.F,2});
-    // static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
-    static_assert(not std::three_way_comparable_with<
-        lhs_t, rhs_t // no common reference, just like std::tuple
-    >);
+        static_assert(requires{
+            std::common_reference_t<
+                lhs_t, lhs_t
+            >{};
+        });
+
+        static_assert(std::common_reference_with<
+            lhs_t, rhs_t
+        >);
+        static_assert(requires{
+            std::common_reference<
+                lhs_t, rhs_t
+            >::type{};
+        });
+    }
+
+    namespace equality {
+        static_assert(std::equality_comparable<lhs_t>);
+        static_assert(std::equality_comparable<rhs_t>);
+        static_assert(requires{
+            lhs_t{} == rhs_t{};
+        });
+        static_assert(lhs_t{} == lhs_t{});
+        static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
+        static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
+        static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
+
+        // NOTE: C++23
+        static_assert(not std::equality_comparable_with<
+            lhs_t, rhs_t
+        >);
+    }
+
+    namespace three_way {
+        static_assert(std::three_way_comparable<lhs_t>);
+        static_assert(std::three_way_comparable<rhs_t>);
+        static_assert(requires{
+            lhs_t{} <=> rhs_t{};
+        });
+        // WIP
+        static_assert(std::tuple{ 0, 1 } < std::tuple{0.F,2});
+        static_assert(std::tuple{ 0, 2 } < std::tuple{1.F,2});
+        static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
+
+        static_assert(not std::three_way_comparable_with<
+            lhs_t, rhs_t // just like std::tuple, see https://godbolt.org/z/9eqrKEhzr
+        >);
+    }
 }
 namespace test::tuples::tuple_cat {
 
@@ -222,6 +243,17 @@ namespace test::tuples::tuple_cat {
         csl::mp::tuple_cat_result_t<
             csl::mp::tuple<int, char>,
             csl::mp::tuple<double, float>
+        >
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::tuple<int, char, double, float>,
+        csl::mp::tuple_cat_result_t<
+            csl::mp::tuple<>,
+            csl::mp::tuple<int>,
+            csl::mp::tuple<>,
+            csl::mp::tuple<char>,
+            csl::mp::tuple<double, float>,
+            csl::mp::tuple<>
         >
     >);
 
