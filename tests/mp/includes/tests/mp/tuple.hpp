@@ -172,20 +172,39 @@ namespace test::tuples::compare::tuple {
 
     namespace common_reference {
 
-        static_assert(requires{
-            std::common_reference_t<
-                lhs_t, lhs_t
-            >{};
-        });
+        static_assert(requires{ std::common_reference_t<lhs_t>{}; });
+        static_assert(requires{ std::common_reference_t<rhs_t>{}; });
+
+        static_assert(std::same_as<
+            csl::mp::tuple_like_common_reference_t<
+                lhs_t, rhs_t,
+                std::type_identity_t, std::type_identity_t
+            >,
+            csl::mp::tuple<
+                std::common_reference_t<
+                    csl::mp::tuple_element_t<0, lhs_t>,
+                    csl::mp::tuple_element_t<0, rhs_t>
+                >,
+                std::common_reference_t<
+                    csl::mp::tuple_element_t<1, lhs_t>,
+                    csl::mp::tuple_element_t<1, rhs_t>
+                >
+            >
+        >);
+
+        static_assert(
+            requires {
+                typename csl::mp::tuple_like_common_reference_t<
+                    lhs_t, rhs_t,
+                    std::type_identity_t,
+                    std::type_identity_t
+                >;
+            }
+        );
 
         static_assert(std::common_reference_with<
             lhs_t, rhs_t
         >);
-        static_assert(requires{
-            std::common_reference<
-                lhs_t, rhs_t
-            >::type{};
-        });
     }
 
     namespace equality {
@@ -211,13 +230,10 @@ namespace test::tuples::compare::tuple {
         static_assert(requires{
             lhs_t{} <=> rhs_t{};
         });
-        // WIP
-        static_assert(std::tuple{ 0, 1 } < std::tuple{0.F,2});
-        static_assert(std::tuple{ 0, 2 } < std::tuple{1.F,2});
         static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
 
         static_assert(not std::three_way_comparable_with<
-            lhs_t, rhs_t // just like std::tuple, see https://godbolt.org/z/9eqrKEhzr
+            lhs_t, rhs_t // just like std::tuple, see https://godbolt.org/z/E6s6Y8a4K
         >);
     }
 }

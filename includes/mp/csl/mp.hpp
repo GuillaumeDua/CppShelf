@@ -413,16 +413,16 @@ namespace csl::mp {
 
     // tuple_like_common_reference
     template <
-        typename T,
-        concepts::tuple_like U,
+        concepts::tuple T,
+        concepts::tuple U,
         template <typename> class TQual,
         template <typename> class UQual,
         typename = std::make_index_sequence<tuple_size_v<T>>>
     struct tuple_like_common_reference;
 
     template <
-        concepts::tuple_like T,
-        concepts::tuple_like U,
+        concepts::tuple T,
+        concepts::tuple U,
         template <typename> class TQual,
         template <typename> class UQual,
         size_t... indexes
@@ -450,8 +450,8 @@ namespace csl::mp {
         >;
     };
     template <
-        typename T,
-        concepts::tuple_like U,
+        concepts::tuple T,
+        concepts::tuple U,
         template <typename> class TQual,
         template <typename> class UQual
     >
@@ -466,20 +466,21 @@ namespace csl::mp {
 //  but with GCC-14 with >= C++23 `__glibcxx_tuple_like`, __is_tuple_v is still a specialization for tuple, pair and array
 //
 namespace std {
+
     template <
-        // WIP: not tuple_like, but tuple ?
-        csl::mp::concepts::tuple_like T,
-        csl::mp::concepts::tuple_like U,
+        csl::mp::concepts::tuple T,
+        csl::mp::concepts::tuple U,
         template <typename> class TQual,
         template <typename> class UQual
     >
-    requires (csl::mp::concepts::tuple<T> or csl::mp::concepts::tuple<U>)
-    and std::same_as<T, std::remove_cvref_t<T>>
+    requires
+    // (csl::mp::concepts::tuple<T> or csl::mp::concepts::tuple<U>) and the other tuplelike ?
+        std::same_as<T, std::remove_cvref_t<T>>
     and std::same_as<U, std::remove_cvref_t<U>>
     and (csl::mp::tuple_size_v<T> == csl::mp::tuple_size_v<U>)
-    and requires {
-        typename csl::mp::tuple_like_common_reference_t<T, U, TQual, UQual>;
-    }
+    // and requires {
+    //     typename csl::mp::tuple_like_common_reference_t<T, U, TQual, UQual>;
+    // }
     struct basic_common_reference<T, U, TQual, UQual>
     {
         using type = csl::mp::tuple_like_common_reference_t<
