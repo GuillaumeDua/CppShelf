@@ -461,9 +461,12 @@ namespace csl::mp {
     >::type;
 }
 
-// NOTE: C++23: std::basic_common_reference<tuple-like> **should** be enough
+// NOTE: C++23: std::basic_common_reference<tuple-like> **should** be enough,
+//  as csl::mp::tuple meets the tuplelike interface
+//
+//  but such a specialization is provided by <tuple>, and <csl/mp.hpp> is decoupled from <tuple>.
 //  see https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
-//  but with GCC-14 with >= C++23 `__glibcxx_tuple_like`, __is_tuple_v is still a specialization for tuple, pair and array
+//  also, with GCC-14 with >= C++23 `__glibcxx_tuple_like`, __is_tuple_v is still a specialization for tuple, pair and array
 //
 namespace std {
 
