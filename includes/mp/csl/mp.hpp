@@ -468,27 +468,25 @@ namespace csl::mp {
 //  see https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
 //  also, with GCC-14 with >= C++23 `__glibcxx_tuple_like`, __is_tuple_v is still a specialization for tuple, pair and array
 //
+// See https://eel.is/c++draft/meta.trans.other#1
 namespace std {
 
     template <
-        csl::mp::concepts::tuple T,
-        csl::mp::concepts::tuple U,
+        typename ... Ts,
+        typename ... Us,
         template <typename> class TQual,
         template <typename> class UQual
     >
     requires
-    // (csl::mp::concepts::tuple<T> or csl::mp::concepts::tuple<U>) and the other tuplelike ?
-        std::same_as<T, std::remove_cvref_t<T>>
-    and std::same_as<U, std::remove_cvref_t<U>>
-    and (csl::mp::tuple_size_v<T> == csl::mp::tuple_size_v<U>)
-    // and requires {
-    //     typename csl::mp::tuple_like_common_reference_t<T, U, TQual, UQual>;
-    // }
-    struct basic_common_reference<T, U, TQual, UQual>
+        (sizeof...(Ts) == sizeof...(Us))
+    and (true and ... and common_reference_with<Ts, Us>)
+    struct basic_common_reference< // NOLINT(cert-dcl58-cpp)
+        csl::mp::tuple<Ts...>,
+        csl::mp::tuple<Us...>,
+        TQual, UQual>
     {
-        using type = csl::mp::tuple_like_common_reference_t<
-            T, U,
-            TQual, UQual
+        using type = csl::mp::tuple<
+            common_reference_t<TQual<Ts>, UQual<Us>>...
         >;
     };
 }
