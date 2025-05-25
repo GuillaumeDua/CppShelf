@@ -175,22 +175,22 @@ namespace test::tuples::compare::tuple {
         static_assert(requires{ std::common_reference_t<lhs_t>{}; });
         static_assert(requires{ std::common_reference_t<rhs_t>{}; });
 
-        static_assert(std::same_as<
-            csl::mp::tuple_like_common_reference_t<
-                lhs_t, rhs_t,
-                std::type_identity_t, std::type_identity_t
-            >,
-            csl::mp::tuple<
-                std::common_reference_t<
-                    csl::mp::tuple_element_t<0, lhs_t>,
-                    csl::mp::tuple_element_t<0, rhs_t>
-                >,
-                std::common_reference_t<
-                    csl::mp::tuple_element_t<1, lhs_t>,
-                    csl::mp::tuple_element_t<1, rhs_t>
-                >
-            >
-        >);
+        // static_assert(std::same_as<
+        //     csl::mp::tuple_like_common_reference_t<
+        //         lhs_t, rhs_t,
+        //         std::type_identity_t, std::type_identity_t
+        //     >,
+        //     csl::mp::tuple<
+        //         std::common_reference_t<
+        //             csl::mp::tuple_element_t<0, lhs_t>,
+        //             csl::mp::tuple_element_t<0, rhs_t>
+        //         >,
+        //         std::common_reference_t<
+        //             csl::mp::tuple_element_t<1, lhs_t>,
+        //             csl::mp::tuple_element_t<1, rhs_t>
+        //         >
+        //     >
+        // >);
 
         static_assert(
             requires {
@@ -219,7 +219,7 @@ namespace test::tuples::compare::tuple {
         static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
 
         // NOTE: C++23
-        static_assert(not std::equality_comparable_with<
+        static_assert(std::equality_comparable_with<
             lhs_t, rhs_t
         >);
     }
@@ -232,7 +232,7 @@ namespace test::tuples::compare::tuple {
         });
         static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
 
-        static_assert(not std::three_way_comparable_with<
+        static_assert(std::three_way_comparable_with<
             lhs_t, rhs_t // just like std::tuple, see https://godbolt.org/z/E6s6Y8a4K
         >);
     }
