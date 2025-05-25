@@ -428,7 +428,10 @@ namespace csl::mp {
         size_t... indexes
     >
     requires
-        requires {
+            std::same_as<T, std::remove_cvref_t<T>>
+        and std::same_as<U, std::remove_cvref_t<U>>
+        and (tuple_size_v<T> == tuple_size_v<U>)
+        and requires {
             typename tuple<
                     std::common_reference_t<
                         TQual<details::tuple_element_t<indexes, T>>,
@@ -449,12 +452,17 @@ namespace csl::mp {
             >...
         >;
     };
+    // TODO: concepts::tuplelike instead of concepts::tuple
     template <
         concepts::tuple T,
         concepts::tuple U,
         template <typename> class TQual,
         template <typename> class UQual
     >
+    requires (concepts::tuple<T> or concepts::tuple<U>)
+    and std::same_as<T, std::remove_cvref_t<T>>
+    and std::same_as<U, std::remove_cvref_t<U>>
+    and (tuple_size_v<T> == tuple_size_v<U>)
     using tuple_like_common_reference_t = typename tuple_like_common_reference<
         T, U,
         TQual, UQual
