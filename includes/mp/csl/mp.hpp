@@ -202,6 +202,7 @@ namespace csl::mp {
         using type = trait<Us..., Ts...>;
     };
 }
+// WIP: useless ?
 namespace csl::mp::details::compare {
 
     // emulate __detail::__synth3way_t
@@ -240,10 +241,7 @@ namespace csl::mp::details {
         constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
     };
     template <std::size_t I, typename T>
-    using tuple_element_t = tuple_element<I, T>::type;
-    template <std::size_t I, typename T>
     constexpr static auto tuple_element_index = tuple_element<I, T>::index;
-
 
     // QUESTION: or storage<tuple_element<index, T>>, or derived from tuple_element ?
     template <std::size_t index, typename T>
@@ -416,39 +414,28 @@ namespace csl::mp {
         concepts::tuple T,
         concepts::tuple U,
         template <typename> class TQual,
-        template <typename> class UQual,
-        typename = std::make_index_sequence<tuple_size_v<T>>>
+        template <typename> class UQual
+    >
     struct tuple_like_common_reference;
 
     template <
-        concepts::tuple T,
-        concepts::tuple U,
+        typename ... Ts,
+        typename ... Us,
         template <typename> class TQual,
-        template <typename> class UQual,
-        size_t... indexes
+        template <typename> class UQual
     >
     requires
-            std::same_as<T, std::remove_cvref_t<T>>
-        and std::same_as<U, std::remove_cvref_t<U>>
-        and (tuple_size_v<T> == tuple_size_v<U>)
-        and requires {
-            typename tuple<
-                    std::common_reference_t<
-                        TQual<details::tuple_element_t<indexes, T>>,
-                        UQual<details::tuple_element_t<indexes, U>>
-                    >...
-            >;
-        }
+            (sizeof...(Ts) == sizeof...(Us))
+        and (true and ... and std::common_reference_with<TQual<Ts>, UQual<Us>>)
     struct tuple_like_common_reference<
-        T, U,
-        TQual, UQual,
-        std::index_sequence<indexes...>
+        tuple<Ts...>, tuple<Us...>,
+        TQual, UQual
     >
     {
         using type = tuple<
             std::common_reference_t<
-                TQual<details::tuple_element_t<indexes, T>>,
-                UQual<details::tuple_element_t<indexes, U>>
+                TQual<Ts>,
+                UQual<Us>
             >...
         >;
     };

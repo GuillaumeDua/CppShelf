@@ -230,11 +230,10 @@ namespace test::tuples::compare::tuple {
         static_assert(requires{
             lhs_t{} <=> rhs_t{};
         });
-        static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
-
         static_assert(std::three_way_comparable_with<
-            lhs_t, rhs_t // just like std::tuple, see https://godbolt.org/z/E6s6Y8a4K
+            lhs_t, rhs_t
         >);
+        static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
     }
 }
 namespace test::tuples::tuple_cat {
