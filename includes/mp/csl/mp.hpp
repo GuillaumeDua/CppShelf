@@ -409,14 +409,14 @@ namespace csl::mp {
     template <typename tuple_type>
     constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
 
-    // tuple_like_common_reference
+    // tuple_common_reference
     template <
         concepts::tuple T,
         concepts::tuple U,
         template <typename> class TQual,
         template <typename> class UQual
     >
-    struct tuple_like_common_reference;
+    struct tuple_common_reference;
 
     template <
         typename ... Ts,
@@ -427,7 +427,7 @@ namespace csl::mp {
     requires
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::common_reference_with<TQual<Ts>, UQual<Us>>)
-    struct tuple_like_common_reference<
+    struct tuple_common_reference<
         tuple<Ts...>, tuple<Us...>,
         TQual, UQual
     >
@@ -450,7 +450,7 @@ namespace csl::mp {
     and std::same_as<T, std::remove_cvref_t<T>>
     and std::same_as<U, std::remove_cvref_t<U>>
     and (tuple_size_v<T> == tuple_size_v<U>)
-    using tuple_like_common_reference_t = typename tuple_like_common_reference<
+    using tuple_common_reference_t = typename tuple_common_reference<
         T, U,
         TQual, UQual
     >::type;
@@ -478,12 +478,14 @@ namespace std {
     struct basic_common_reference< // NOLINT(cert-dcl58-cpp)
         csl::mp::tuple<Ts...>,
         csl::mp::tuple<Us...>,
-        TQual, UQual>
-    {
-        using type = csl::mp::tuple<
-            common_reference_t<TQual<Ts>, UQual<Us>>...
-        >;
-    };
+        TQual, UQual
+    >
+    : csl::mp::tuple_common_reference<
+        csl::mp::tuple<Ts...>,
+        csl::mp::tuple<Us...>,
+        TQual, UQual
+    >
+    {};
 }
 
 namespace csl::mp {

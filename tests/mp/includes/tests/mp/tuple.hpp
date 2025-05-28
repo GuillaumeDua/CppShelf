@@ -176,7 +176,7 @@ namespace test::tuples::compare::tuple {
         static_assert(requires{ std::common_reference_t<rhs_t>{}; });
 
         static_assert(std::same_as<
-            csl::mp::tuple_like_common_reference_t<
+            csl::mp::tuple_common_reference_t<
                 lhs_t, rhs_t,
                 std::type_identity_t, std::type_identity_t
             >,
@@ -194,7 +194,7 @@ namespace test::tuples::compare::tuple {
 
         static_assert(
             requires {
-                typename csl::mp::tuple_like_common_reference_t<
+                typename csl::mp::tuple_common_reference_t<
                     lhs_t, rhs_t,
                     std::type_identity_t,
                     std::type_identity_t
