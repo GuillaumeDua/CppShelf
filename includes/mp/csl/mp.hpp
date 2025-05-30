@@ -645,7 +645,7 @@ namespace csl::mp::details::concepts {
     // deductible: type element
     template <typename tuple_type, std::size_t I>
     concept can_deduce_by_index = is_tuple_v<tuple_type>
-        and requires { std::void_t<typename tuple_type::storage_type::template nth_<I>>(); }
+        and requires { std::void_t<typename tuple_type::storage_type::template by_index_<I>>(); }
     ;
 }
 namespace csl::mp::details {
