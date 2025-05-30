@@ -99,6 +99,8 @@ function(csl_add)
         message(FATAL_ERROR "[csl_add] error: KEYWORDS_MISSING_VALUES = [${csl_add_KEYWORDS_MISSING_VALUES}]")
     endif()
 
+    message(STATUS "[${PROJECT_NAME}] csl::${csl_add_COMPONENT}")
+
     add_library(${PROJECT_NAME}_${csl_add_COMPONENT} INTERFACE)
     add_library(${PROJECT_NAME}::${csl_add_COMPONENT} ALIAS ${PROJECT_NAME}_${csl_add_COMPONENT})
 
@@ -118,7 +120,7 @@ function(csl_add)
     # test
     option(CSL_TEST_${csl_add_COMPONENT} "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)" ${CSL_TEST_ALL})
     if (CSL_TEST_${csl_add_COMPONENT})
-        message(STATUS "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)")
+        message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)")
         add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${csl_add_COMPONENT})
     endif()
 
@@ -128,7 +130,7 @@ function(csl_add)
         if (NOT EXISTS ${PROJECT_SOURCE_DIR}/examples/${csl_add_COMPONENT}/CMakeLists.txt)
             # message(AUTHOR_WARNING "[${PROJECT_NAME}] : csl::${csl_add_COMPONENT} has no examples available, skipping ...")
         else()
-            message(STATUS "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (example)")
+            message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (example)")
             add_subdirectory(${PROJECT_SOURCE_DIR}/examples/${csl_add_COMPONENT})
         endif()
     endif()

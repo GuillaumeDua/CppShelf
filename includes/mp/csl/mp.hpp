@@ -301,7 +301,6 @@ namespace csl::mp::details {
         and (true and ... and std::constructible_from<Ts, decltype(csl_fwd(args))>)
         )
         : tuple_element_storage<indexes, Ts>{
-            // TODO(Guillaume) integration in cmake
             #if defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) and CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
             std::forward<decltype(args)>(args)
             #else
@@ -458,10 +457,13 @@ namespace csl::mp {
 
 // NOTE: C++23: std::basic_common_reference<tuple-like> **should** be enough,
 //  as csl::mp::tuple meets the tuplelike interface
-//
-//  but such a specialization is provided by <tuple>, and <csl/mp.hpp> is decoupled from <tuple>.
 //  see https://en.cppreference.com/w/cpp/utility/tuple/basic_common_reference
-//  also, with GCC-14 with >= C++23 `__glibcxx_tuple_like`, __is_tuple_v is still a specialization for tuple, pair and array
+//
+//  but such a specialization is provided by libstdc++'s <tuple> header,
+//  which <csl/mp.hpp> is decoupled from.
+//
+//  Also, /usr/include/c++/14/tuple with >= C++23 `__glibcxx_tuple_like`,
+//  __is_tuple_v is still a specialization for tuple, pair and array
 //
 // See https://eel.is/c++draft/meta.trans.other#1
 namespace std {
@@ -553,6 +555,7 @@ namespace csl::mp {
 
         // QUESTION: interop with other other tuplelike (pair, array, etc.)
 
+        // NOLINTBEGIN(*explicit-constructor)
         constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
         tuple(const Ts & ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, const Ts &> and ...))
@@ -585,6 +588,7 @@ namespace csl::mp {
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ csl_fwd(other).storage }
         {}
+        // NOLINTEND(*explicit-constructor)
 
         // compare
         template <typename ... Us>
@@ -1015,7 +1019,8 @@ namespace csl::mp {
     struct deduplicate<T> : type_identity<T>{};
     template <typename ... Ts>
     struct deduplicate<tuple<Ts...>> : 
-    //  // equivalent to filter<tuple<Ts...>, bind_back<is_unique, tuple<Ts...>>::type>{};
+    // equivalent to filter<tuple<Ts...>, bind_back<is_unique, tuple<Ts...>>::type>{};
+    //
     //  tuple_cat_result<
     //     std::conditional_t<
     //         is_unique_v<Ts, tuple<Ts...>>,
@@ -1085,9 +1090,9 @@ namespace csl::mp {
 #pragma region std utility inter-operatiblity (structured binding)
 
 //  N4606 [namespace.std]/1 :
-//  A program may add a template specialization for any standard library template to namespace std
-//  only if the declaration depends on a user-defined type 
-//  and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
+//      A program may add a template specialization for any standard library template to namespace std
+//      only if the declaration depends on a user-defined type 
+//      and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 
 #include <utility> // std::tuple_size, std::tuple_element
 

@@ -23,6 +23,7 @@ jobs:
             CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
             configuration:
             # TODO: ARM once it's not public preview (ubuntu-24.04-arm)
+            # TODO: clang, gcc -> minimum supported latest-stable, 
             # clang-19
             - {
               OS: ubuntu-latest,

@@ -1,0 +1,6 @@
+# opt-in: CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
+option(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION "[${CMAKE_PROJECT_NAME}] csl::${component_name}: disable implicit conversions" OFF)
+message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION set to [${CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION}]")
+if (${CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION})
+    target_compile_definitions(csl_${component_name} INTERFACE CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION)
+endif()
