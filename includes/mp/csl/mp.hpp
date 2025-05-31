@@ -233,42 +233,45 @@ namespace csl::mp::details::compare {
 }
 namespace csl::mp::details {
 
+    // Associate an index with a value
+    // - mp::index<I>           lookup
+    // - mp::type_identity<T>   lookup
     template <std::size_t I, typename T>
-    struct tuple_element {
+    struct tuple_member {
         constexpr static std::size_t index = I;
         using type = T;
 
         T value;
 
         // index-to-type mapping
-        constexpr static tuple_element<I, T> deduce_type(mp::index<I>);
+        constexpr static tuple_member<I, T> deduce_type(mp::index<I>);
         // type-to-index mapping (repetitions: clashes are handled downstream)
-        constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
+        constexpr static tuple_member<I, T> deduce_index(mp::type_identity<T>);
     };
     template <std::size_t I, typename T>
-    constexpr static auto tuple_element_index = tuple_element<I, T>::index;
+    constexpr static auto tuple_element_index = tuple_member<I, T>::index;
 
     // WIP: integration -> tuple::at, tuple[]
     template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static T & tuple_element_value(tuple_element<I, T> & te) noexcept { return te.value; }
+    [[nodiscard]] constexpr static T & tuple_member_value(tuple_member<I, T> & te) noexcept { return te.value; }
     template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static T & tuple_element_value(const tuple_element<I, T> & te) noexcept { return te.value; }
+    [[nodiscard]] constexpr static const T & tuple_member_value(const tuple_member<I, T> & te) noexcept { return te.value; }
     template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static T & tuple_element_value(tuple_element<I, T> && te) noexcept { return static_cast<T&&>(te.value); }
+    [[nodiscard]] constexpr static T && tuple_member_value(tuple_member<I, T> && te) noexcept { return static_cast<T&&>(te.value); }
     template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static T & tuple_element_value(const tuple_element<I, T> && te) noexcept { return static_cast<const T&&>(te.value); }
+    [[nodiscard]] constexpr static const T && tuple_member_value(const tuple_member<I, T> && te) noexcept { return static_cast<const T&&>(te.value); }
 
     template <typename ...>
     struct tuple_storage;
     template <>
     struct tuple_storage<>{};
     template <std::size_t ... indexes, typename ... Ts>
-    struct tuple_storage<tuple_element<indexes, Ts>...>
-    : tuple_element<indexes, Ts>... 
+    struct tuple_storage<tuple_member<indexes, Ts>...>
+    : tuple_member<indexes, Ts>... 
     {
     // tuple-element indexing
-        using tuple_element<indexes, Ts>::deduce_type...;
-        using tuple_element<indexes, Ts>::deduce_index...;
+        using tuple_member<indexes, Ts>::deduce_type...;
+        using tuple_member<indexes, Ts>::deduce_index...;
 
         template <std::size_t I>
         using by_index_ = decltype(deduce_type(index<I>{}));
@@ -287,7 +290,7 @@ namespace csl::mp::details {
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, decltype(csl_fwd(args))>)
         )
-        : tuple_element<indexes, Ts>{
+        : tuple_member<indexes, Ts>{
             #if defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) and CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
             std::forward<decltype(args)>(args)
             #else
@@ -296,24 +299,28 @@ namespace csl::mp::details {
         }...
         {}
 
-        template <typename seq, typename ... Us>
-        explicit constexpr tuple_storage(tuple_storage<seq, Us...> && other)
+        // TODO: noexcept clauses
+        template <typename ... Us>
+        explicit constexpr
+        tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
         requires (
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, Us>)
         )
         : tuple_storage{
-            std::forward<tuple_element<indexes, Us>>(csl_fwd(other)).value...
+            std::forward<tuple_member<indexes, Us>>(csl_fwd(other)).value...
         }
         {}
-        template <typename seq, typename ... Us>
-        explicit constexpr tuple_storage(const tuple_storage<seq, Us...> & other)
+        template <typename ... Us>
+        explicit constexpr
+        tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other)
         requires (
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, Us>)
         )
         : tuple_storage{
-            std::forward<tuple_element<indexes, Us>>(csl_fwd(other)).value...
+            // QUESTION: cast useless ?
+            static_cast<const tuple_member<indexes, Us>&>(csl_fwd(other)).value...
         }
         {}
 
@@ -330,7 +337,7 @@ namespace csl::mp::details {
     template <std::size_t ... indexes, typename ... Ts>
     struct make_tuple_storage<std::index_sequence<indexes...>, Ts...> : type_identity<
         typename mp::details::tuple_storage<
-            mp::details::tuple_element<indexes, Ts>...
+            mp::details::tuple_member<indexes, Ts>...
         >
     >{};
     template <
