@@ -23,6 +23,16 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
+#if defined(__clang__)
+#   define csl_compiler_is_clang
+#elif defined(__GNUC__) || defined(__GNUG__)
+#   define csl_compiler_is_gcc
+#elif defined(_MSC_VER)
+#   define csl_compiler_is_msvc
+#else
+#   define csl_compiler_is_unknown
+#endif
+
 // WIP refactoring => reorder/sort
 //  sequences::* : op on sequences
 //  seq types    : sequences definitions
@@ -300,9 +310,18 @@ namespace csl::mp::details {
         {}
 
         // TODO: noexcept clauses
+        #if defined(csl_compiler_is_gcc)
+        // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
+        template <std::size_t ... indexes_, typename ... Us>
+        // explicit
+        constexpr
+        tuple_storage(tuple_storage<tuple_member<indexes_, Us>...> && other)
+        #else
         template <typename ... Us>
-        explicit constexpr
+        // explicit
+        constexpr
         tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
+        #endif
         requires (
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, Us>)
@@ -312,7 +331,8 @@ namespace csl::mp::details {
         }
         {}
         template <typename ... Us>
-        explicit constexpr
+        // explicit
+        constexpr
         tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other)
         requires (
             sizeof...(Ts) == sizeof...(Us)
@@ -550,6 +570,7 @@ namespace csl::mp {
         and (true and ... and std::constructible_from<Ts, Us&&>)
         : storage{ csl_fwd(other).storage }
         {}
+        // WIP: MVE: https://godbolt.org/z/8oEW71xv8
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<const Us &, Ts>))
         tuple(const tuple<Us...> & other)
@@ -1510,6 +1531,10 @@ namespace csl::mp {
 
 #undef csl_fwd
 #undef csl_static_dependent_error
+#undef csl_compiler_is_clang
+#undef csl_compiler_is_gcc
+#undef csl_compiler_is_msvc
+#undef csl_compiler_is_unknown
 
 // wip : https://godbolt.org/z/TfMqM5TaG
 // wip, benchmarked : https://godbolt.org/z/fj4z8sjzh
