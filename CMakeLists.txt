@@ -58,7 +58,7 @@ endif()
 
 #### Typical options (opt-outs)
 set(CSL_OPTIONS_LIST
-    TEST # TECH-DEBT: tests: add_compile_options(-Werror -Wall -Wextra -Wno-unknown-pragmas)
+    TEST # TECH-DEBT: clang sanitizers, etc.
     EXAMPLE
     INSTALL
     DOC
@@ -103,6 +103,22 @@ function(csl_add)
 
     add_library(${PROJECT_NAME}_${csl_add_COMPONENT} INTERFACE)
     add_library(${PROJECT_NAME}::${csl_add_COMPONENT} ALIAS ${PROJECT_NAME}_${csl_add_COMPONENT})
+
+    target_compile_options(csl_${csl_add_COMPONENT} INTERFACE
+        -Werror
+        -Wall -Wextra
+        -Wshadow
+    #   -Wpedantic -pedantic-errors
+    #   -Wno-pointer-sign
+        -Wunused-variable
+        -Woverloaded-virtual
+        -Wno-unknown-pragmas
+        -Wno-unused-parameter
+        -Wnull-dereference
+    #   -Wdouble-promotion
+        -Wconversion
+        -Wsign-conversion
+    )
 
     # check if component has a custom cmake file to inject
     set(maybe_${csl_add_COMPONENT}_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/custom/${csl_add_COMPONENT}.cmake")
