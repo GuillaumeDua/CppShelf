@@ -78,6 +78,7 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()
 
+option(CSL_STRICT_WARNINGS "[${PROJECT_NAME}] strict warnings" OFF)
 # WIP: move to another file cmake/add_component
 ### Components - Targets - csl_lib::<name>
 function(csl_add)
@@ -105,19 +106,22 @@ function(csl_add)
     add_library(${PROJECT_NAME}::${csl_add_COMPONENT} ALIAS ${PROJECT_NAME}_${csl_add_COMPONENT})
 
     target_compile_options(csl_${csl_add_COMPONENT} INTERFACE
-        -Werror
+
+        $<$<BOOL:${CSL_STRICT_WARNINGS}>:-Werror >
+        # -Wdouble-promotion
+        # -Wpedantic -pedantic-errors
+
         -Wall -Wextra
         -Wshadow
-    #   -Wpedantic -pedantic-errors
     #   -Wno-pointer-sign
         -Wunused-variable
         -Woverloaded-virtual
         -Wno-unknown-pragmas
         -Wno-unused-parameter
         -Wnull-dereference
-    #   -Wdouble-promotion
         -Wconversion
         -Wsign-conversion
+        -Wimplicit-float-conversion
     )
 
     # check if component has a custom cmake file to inject
