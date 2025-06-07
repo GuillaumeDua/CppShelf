@@ -174,6 +174,7 @@ namespace test::tuples::compare::tuple {
         static_assert(requires{
             lhs_t{} == rhs_t{};
         });
+        constexpr static auto qwe = csl::mp::tuple<char>{42};
         static_assert(lhs_t{} == lhs_t{});
         static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
         static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
@@ -331,12 +332,13 @@ namespace test::tuples::storage::constructors::move {
 }
 namespace test::tuples::storage::constructors::convertion {
     #if not defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) or not CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
-    [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .42 , 42 };
-    [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .42f };
+    [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .0 , 0 };
+    [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .0F };
+    [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };
     #endif
-    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 c = csl::mp::tuple<std::int8_t>{};
-    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   d = csl::mp::tuple<std::int8_t, std::int8_t>{};
-    [[maybe_unused]] constexpr csl::mp::tuple<double>                       e { float{} };
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 d = csl::mp::tuple<std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   e = csl::mp::tuple<std::int8_t, std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<double>                       f { float{} };
 }
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<

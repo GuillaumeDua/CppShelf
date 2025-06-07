@@ -120,8 +120,6 @@ function(csl_add)
         -Wno-unused-parameter
         -Wnull-dereference
         -Wconversion
-        -Wsign-conversion
-        -Wimplicit-float-conversion
     )
 
     # check if component has a custom cmake file to inject

@@ -215,7 +215,6 @@ namespace csl::mp {
         using type = trait<Us..., Ts...>;
     };
 }
-// WIP: useless ?
 namespace csl::mp::details::compare {
 
     // emulate __detail::__synth3way_t
@@ -243,7 +242,22 @@ namespace csl::mp::details::compare {
 }
 namespace csl::mp::details {
 
-    // Associate an index with a value
+    // Drop-in replacement for std::tuple:
+    //  As <tuple> is -isystem, implicit casts does not produce warnings
+    //  The option cmake options and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
+    template <typename T>
+    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T&&> auto && value) {
+        return static_cast<
+            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+            T&&
+            #else
+            decltype(value)
+            #endif
+            >(value)
+        ;
+    }
+
+    // Associate an index and a type with a value
     // - mp::index<I>           lookup
     // - mp::type_identity<T>   lookup
     template <std::size_t I, typename T>
@@ -293,19 +307,14 @@ namespace csl::mp::details {
         friend struct tuple_storage;
 
         template <typename ... Us>
-        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
-        tuple_storage(Us && ... args)
-        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us>))
-        requires (
-            sizeof...(Ts) == sizeof...(Us)
-        and (true and ... and std::constructible_from<Ts, decltype(csl_fwd(args))>)
+        constexpr explicit tuple_storage(Us && ... args)
+        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us&&>))
+        requires (sizeof...(Ts) == sizeof...(Us)
+            and (true and ... and std::constructible_from<Ts, Us&&>)
         )
         : tuple_member<indexes, Ts>{
-            #if defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) and CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
-            std::forward<decltype(args)>(args)
-            #else
-            static_cast<Ts>(std::forward<decltype(args)>(args))
-            #endif
+            
+            fwd_maybe_cast<Ts>(args)
         }...
         {}
 
@@ -515,6 +524,7 @@ namespace csl::mp {
         = default;
         constexpr ~tuple() = default;
 
+    // operator=
     // storage conversion
         template <std::convertible_to<Ts> ... Us>
         constexpr auto & operator=(tuple<Us...> && other)
@@ -533,7 +543,7 @@ namespace csl::mp {
         noexcept((true and ... and std::is_nothrow_assignable_v<Ts&, const Us&>))
         requires
             (sizeof...(Ts) == sizeof...(Us))
-        and (true and ... and std::is_assignable_v<Ts, const Us&>)
+        and (true and ... and std::is_assignable_v<Ts&, const Us&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return ((get<indexes>() = csl_fwd(other).template get<indexes>()), ...);
@@ -826,25 +836,25 @@ namespace csl::mp {
                 return mapped_indexes;
             }();
 
-            return []<std::size_t ... indexes>(auto && tuples, std::index_sequence<indexes...>){
+            using tuple_of_tuples_t = csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>;
+            return []<std::size_t ... indexes>(tuple_of_tuples_t && tuple_of_tuples, std::index_sequence<indexes...>){
 
-                using tuples_type = std::remove_cvref_t<decltype(tuples)>;
                 using type = csl::mp::tuple<
                     csl::mp::tuple_element_t<
                         indexes_map.element_index[indexes],
                         std::remove_cvref_t<csl::mp::tuple_element_t<
                             indexes_map.tuple_index[indexes],
-                            tuples_type
+                            tuple_of_tuples_t
                         >>
                     >...
                 >;
                 return type{
                     get<indexes_map.element_index[indexes]>(
-                        get<indexes_map.tuple_index[indexes]>(csl_fwd(tuples))
+                        get<indexes_map.tuple_index[indexes]>(csl_fwd(tuple_of_tuples))
                     )...
                 };
             }(
-                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ csl_fwd(tuples)... },
+                tuple_of_tuples_t{ csl_fwd(tuples)... },
                 std::make_index_sequence<size>{}
             );
         }
