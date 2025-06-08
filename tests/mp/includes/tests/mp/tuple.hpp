@@ -174,16 +174,24 @@ namespace test::tuples::compare::tuple {
         static_assert(requires{
             lhs_t{} == rhs_t{};
         });
-        constexpr static auto qwe = csl::mp::tuple<char>{42};
+
         static_assert(lhs_t{} == lhs_t{});
-        static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
-        static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
-        static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
+        static_assert(lhs_t{ {}, {} } == lhs_t{ {}, {} });
+        static_assert(lhs_t{ {}, 'a' } != lhs_t{ 1.F, 'a'});
+        static_assert(lhs_t{ 42, {}  } != lhs_t{ 42.F, 'a'});
 
         // NOTE: C++23
         static_assert(std::equality_comparable_with<
             lhs_t, rhs_t
         >);
+
+        #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+            and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+        [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
+        static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
+        static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
+        static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
+        #endif
     }
 
     namespace three_way {
@@ -195,7 +203,8 @@ namespace test::tuples::compare::tuple {
         static_assert(std::three_way_comparable_with<
             lhs_t, rhs_t
         >);
-        static_assert(lhs_t{ 0, 1 } < rhs_t{0.F,2});
+        static_assert(lhs_t{ 0.F, {} } < rhs_t{1.F, {} });
+        static_assert(lhs_t{ 0.F, {} } < rhs_t{0.F, 1});
     }
 }
 namespace test::tuples::tuple_cat {
@@ -331,7 +340,8 @@ namespace test::tuples::storage::constructors::move {
     }();
 }
 namespace test::tuples::storage::constructors::convertion {
-    #if not defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) or not CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
+    #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+            and CSL_MP_TUPLE__IMPLICIT_CONVERSION
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .0 , 0 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .0F };
     [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };

@@ -246,10 +246,11 @@ namespace csl::mp::details {
     //  As <tuple> is -isystem, implicit casts does not produce warnings
     //  The option cmake options and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
     template <typename T>
-    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T&&> auto && value) {
+    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) {
         return static_cast<
-            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
-            T&&
+            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+                    and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+            T
             #else
             decltype(value)
             #endif
@@ -318,9 +319,10 @@ namespace csl::mp::details {
         }...
         {}
 
-        // TODO: noexcept clauses
+        // TODO(Guillaume): noexcept clauses
         #if defined(csl_compiler_is_gcc)
         // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
+        //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t ... indexes_, typename ... Us>
         // explicit
         constexpr
@@ -552,8 +554,10 @@ namespace csl::mp {
         }
 
         // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
+        // WIP: fix explicit 
 
         // NOLINTBEGIN(*explicit-constructor)
+        // Constructor: direct
         constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
         tuple(const Ts & ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, const Ts &> and ...))
@@ -562,6 +566,7 @@ namespace csl::mp {
         and (std::constructible_from<Ts, const Ts &> and ...)
         : storage{ csl_fwd(args)... }
         {}
+        // Constructor: converting (values...)
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
         tuple(Us && ... args)
@@ -572,20 +577,21 @@ namespace csl::mp {
         and (std::constructible_from<Ts, Us&&> and ...)
         : storage{ csl_fwd(args)... }
         {}
+        // Constructor: converting move
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
         tuple(tuple<Us...> && other)
         requires 
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::constructible_from<Ts, Us&&>)
-        : storage{ csl_fwd(other).storage }
+        : storage{ std::move(other.storage) }
         {}
-        // WIP: MVE: https://godbolt.org/z/8oEW71xv8
+        // Constructor: converting copy
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<const Us &, Ts>))
         tuple(const tuple<Us...> & other)
         requires (true and ... and std::constructible_from<Ts, const Us&>)
-        : storage{ csl_fwd(other).storage }
+        : storage{ other.storage }
         {}
         // NOLINTEND(*explicit-constructor)
 
