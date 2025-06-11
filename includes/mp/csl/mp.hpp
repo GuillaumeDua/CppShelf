@@ -201,9 +201,6 @@ namespace csl::mp {
     struct type_identity{ using type = T; };
 #endif
 
-    template <typename T>
-    struct is_int : std::is_same<T, int>{};
-
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_front {
         template <typename ... Us>
@@ -214,6 +211,52 @@ namespace csl::mp {
         template <typename ... Us>
         using type = trait<Us..., Ts...>;
     };
+
+#pragma region P1450 Enriching type modification traits // https://github.com/cplusplus/papers/issues/216
+    // P1450 copy_ref
+    template <typename from, typename to>
+    struct copy_ref : std::remove_reference<to>{};
+    template <typename from, typename to>
+    struct copy_ref<from&, to> : std::add_lvalue_reference<to>{};
+    template <typename from, typename to>
+    struct copy_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
+    template <typename from, typename to>
+    using copy_ref_t = typename copy_ref<from, to>::type;
+
+    // P1450 - add cv - impl detail (also for ref-qualified types)
+    template <typename T> struct add_const : std::type_identity<const T>{};
+    template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
+    template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
+    template <typename T> using add_const_t = typename add_const<T>::type;
+
+    template <typename T> struct add_volatile : std::type_identity<volatile T>{};
+    template <typename T> struct add_volatile<T&> : std::type_identity<volatile T&>{};
+    template <typename T> struct add_volatile<T&&> : std::type_identity<volatile T&&>{};
+    template <typename T> using add_volatile_t  = typename add_volatile<T>::type;
+
+    template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
+    template <typename T> using add_cv_t = typename add_cv<T>::type;
+
+    // P1450 copy_cv
+    template <typename from, typename to>
+    struct copy_cv : std::remove_cv<to>{};
+    template <typename from, typename to> requires (std::is_reference_v<from>)
+    struct copy_cv<from, to> : copy_cv<std::remove_reference_t<from>, to>{};
+    template <typename from, typename to>
+    struct copy_cv<const volatile from, to> : add_cv<to>{};
+    template <typename from, typename to>
+    struct copy_cv<const from, to> : add_const<to>{};
+    template <typename from, typename to>
+    struct copy_cv<volatile from, to> : add_volatile<to>{};
+    template <typename from, typename to>
+    using copy_cv_t = typename copy_cv<from, to>::type;
+
+    // P1450 copy_cvref
+    template <typename from, typename to>
+    struct copy_cvref : copy_cv<from, copy_ref_t<from, to>>{};
+    template <typename from, typename to>
+    using copy_cvref_t = typename copy_cvref<from, to>::type;
+#pragma endregion
 }
 namespace csl::mp::details::compare {
 
@@ -632,8 +675,20 @@ namespace csl::mp {
         constexpr void get() const & noexcept {
             static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
         }
-        // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
-        
+
+    // P0847R7 Explicit object parameter (deducing this)
+    #if defined(__cpp_explicit_this_parameter) \
+          and __cpp_explicit_this_parameter >= 202110L
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr auto && get(this auto && self) noexcept {
+            using accessor_t = copy_cvref_t<
+                decltype(csl_fwd(self)),
+                typename storage_type::template by_index_<index>
+            >;
+            return static_cast<accessor_t>(self.storage).value;
+        }
+    #else
+    // clang-18.1.8 does not support such a feature
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & get() & noexcept {
             using accessor = typename storage_type::template by_index_<index>;
@@ -654,6 +709,7 @@ namespace csl::mp {
             using accessor = typename storage_type::template by_index_<index>;
             return static_cast<const accessor &&>(std::move(storage)).value;
         }
+    #endif
 
     // storage accessors
         // get/at/operator[] -> cvref qualifiers matrix
