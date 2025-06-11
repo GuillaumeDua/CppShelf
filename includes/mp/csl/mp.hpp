@@ -324,13 +324,11 @@ namespace csl::mp::details {
         // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
         //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t ... indexes_, typename ... Us>
-        // explicit
-        constexpr
+        constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes_, Us>...> && other)
         #else
         template <typename ... Us>
-        // explicit
-        constexpr
+        constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
         #endif
         requires (
@@ -342,8 +340,7 @@ namespace csl::mp::details {
         }
         {}
         template <typename ... Us>
-        // explicit
-        constexpr
+        constexpr explicit 
         tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other)
         requires (
             sizeof...(Ts) == sizeof...(Us)
@@ -506,23 +503,23 @@ namespace csl::mp {
     // storage
         constexpr tuple()
         noexcept ((true and ... and std::is_nothrow_constructible_v<Ts>))
-        requires (true and ... and std::is_default_constructible_v<Ts>)
+        requires  (true and ... and std::is_default_constructible_v<Ts>)
         = default;
         constexpr tuple(const tuple &)
         noexcept ((true and ... and std::is_nothrow_copy_constructible_v<Ts>))
-        requires (true and ... and std::is_copy_constructible_v<Ts>)
+        requires  (true and ... and std::is_copy_constructible_v<Ts>)
         = default;
         constexpr tuple(tuple &&)
-        noexcept((true and ... and std::is_nothrow_move_constructible_v<Ts>))
-        requires (true and ... and std::is_move_constructible_v<Ts>)
+        noexcept ((true and ... and std::is_nothrow_move_constructible_v<Ts>))
+        requires  (true and ... and std::is_move_constructible_v<Ts>)
         = default;
         constexpr tuple & operator=(const tuple &)
-        noexcept((true and ... and std::is_nothrow_copy_assignable_v<Ts>))
-        requires (true and ... and std::is_copy_assignable_v<Ts>)
+        noexcept ((true and ... and std::is_nothrow_copy_assignable_v<Ts>))
+        requires  (true and ... and std::is_copy_assignable_v<Ts>)
         = default;
         constexpr tuple & operator=(tuple &&)
-        noexcept((true and ... and std::is_nothrow_move_assignable_v<Ts>))
-        requires (true and ... and std::is_move_assignable_v<Ts>)
+        noexcept ((true and ... and std::is_nothrow_move_assignable_v<Ts>))
+        requires  (true and ... and std::is_move_assignable_v<Ts>)
         = default;
         constexpr ~tuple() = default;
 
@@ -556,7 +553,7 @@ namespace csl::mp {
         // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
         // WIP: fix explicit 
 
-        // NOLINTBEGIN(*explicit-constructor)
+        // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
         // Constructor: direct
         constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
         tuple(const Ts & ... args)
@@ -636,6 +633,7 @@ namespace csl::mp {
             static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
         }
         // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
+        
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & get() & noexcept {
             using accessor = typename storage_type::template by_index_<index>;
