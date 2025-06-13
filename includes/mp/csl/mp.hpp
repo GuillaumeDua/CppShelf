@@ -319,15 +319,26 @@ namespace csl::mp::details {
     template <std::size_t I, typename T>
     constexpr static auto tuple_element_index = tuple_member<I, T>::index;
 
-    // WIP: integration -> tuple::at, tuple[]
-    template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static T & tuple_member_value(tuple_member<I, T> & te) noexcept { return te.value; }
-    template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static const T & tuple_member_value(const tuple_member<I, T> & te) noexcept { return te.value; }
-    template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static T && tuple_member_value(tuple_member<I, T> && te) noexcept { return static_cast<T&&>(te.value); }
-    template<std::size_t I, typename T>
-    [[nodiscard]] constexpr static const T && tuple_member_value(const tuple_member<I, T> && te) noexcept { return static_cast<const T&&>(te.value); }
+    // [[nodiscard]] constexpr static
+    // auto tuple_member_value(/*constrained: instance_of<tuple_member>*/ auto && te) noexcept -> decltype(auto) {
+    //     using result_type = copy_cvref_t<
+    //         decltype(te),
+    //         typename std::remove_cvref_t<decltype(te)>::type
+    //     >;
+    //     return static_cast<result_type>(te.value);
+    // }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    T & tuple_member_value(tuple_member<I, T> & te) noexcept { return te.value; }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    const T & tuple_member_value(const tuple_member<I, T> & te) noexcept { return te.value; }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    T && tuple_member_value(tuple_member<I, T> && te) noexcept { return static_cast<T&&>(te.value); }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    const T && tuple_member_value(const tuple_member<I, T> && te) noexcept { return static_cast<const T&&>(te.value); }
 
     template <typename ...>
     struct tuple_storage;
@@ -363,17 +374,17 @@ namespace csl::mp::details {
         {}
 
         // TODO(Guillaume): noexcept clauses
-        #if defined(csl_compiler_is_gcc)
+    #if defined(csl_compiler_is_gcc)
         // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
         //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t ... indexes_, typename ... Us>
         constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes_, Us>...> && other)
-        #else
+    #else
         template <typename ... Us>
         constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
-        #endif
+    #endif
         requires (
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, Us>)
@@ -594,7 +605,6 @@ namespace csl::mp {
         }
 
         // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
-        // WIP: fix explicit 
 
         // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
         // Constructor: direct
@@ -712,6 +722,7 @@ namespace csl::mp {
     #endif
 
     // storage accessors
+        // WIP: use tuple_member_value ?
         // get/at/operator[] -> cvref qualifiers matrix
         // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
         // compare/operator<=>

@@ -367,6 +367,22 @@ namespace test::tuples::get {
     static_assert(42  == value.template get<0>());
     static_assert('a' == value.template get<1>());
 }
+namespace test::tuples::get::cvref {
+
+    using tuple_element_t = csl::mp::tuple_element_t<0, type>;
+
+    using expecting_lvalue = decltype(std::declval<type &>().get<0>());
+    static_assert(std::same_as<tuple_element_t &, expecting_lvalue>);
+
+    using expecting_rvalue = decltype(std::declval<type &&>().get<0>());
+    static_assert(std::same_as<tuple_element_t &&, expecting_rvalue>);
+
+    using expecting_const_lvalue = decltype(std::declval<const type &>().get<0>());
+    static_assert(std::same_as<const tuple_element_t &, expecting_const_lvalue>);
+
+    using expecting_const_rvalue = decltype(std::declval<const type &&>().get<0>());
+    static_assert(std::same_as<const tuple_element_t &&, expecting_const_rvalue>);
+}
 
 // std::tuple interface/inter-operatiblity
 #include <tuple>
