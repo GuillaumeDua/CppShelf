@@ -1146,7 +1146,7 @@ namespace csl::mp {
 
     template <std::size_t index>
     [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
-        return value.template get<index>();
+        return csl_fwd(value).template get<index>();
     }
     // WIP
 

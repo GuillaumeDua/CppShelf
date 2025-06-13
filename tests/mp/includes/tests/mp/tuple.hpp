@@ -383,6 +383,25 @@ namespace test::tuples::get::cvref {
     using expecting_const_rvalue = decltype(std::declval<const type &&>().get<0>());
     static_assert(std::same_as<const tuple_element_t &&, expecting_const_rvalue>);
 }
+namespace test::tuples::get::cvref::consistency {
+
+    static_assert(std::same_as<
+        decltype(std::declval<type &>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<type &>()))
+    >);
+    static_assert(std::same_as<
+        decltype(std::declval<type &&>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<type &&>()))
+    >);
+    static_assert(std::same_as<
+        decltype(std::declval<const type &>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<const type &>()))
+    >);
+    static_assert(std::same_as<
+        decltype(std::declval<const type &&>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<const type &&>()))
+    >);
+}
 
 // std::tuple interface/inter-operatiblity
 #include <tuple>
