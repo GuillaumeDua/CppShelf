@@ -485,7 +485,7 @@ namespace csl::mp {
             >...
         >;
     };
-    // TODO: concepts::tuplelike instead of concepts::tuple
+    // TODO(Guillaume): concepts::tuplelike instead of concepts::tuple
     template <
         concepts::tuple T,
         concepts::tuple U,
@@ -680,7 +680,7 @@ namespace csl::mp {
             }(std::index_sequence_for<Ts...>{});
         }
 
-        // get
+    #pragma region tuple::get
         template <std::size_t index> requires (index >= size)
         constexpr void get() const & noexcept {
             static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
@@ -720,6 +720,7 @@ namespace csl::mp {
             return static_cast<const accessor &&>(std::move(storage)).value;
         }
     #endif
+    #pragma endregion
 
     // storage accessors
         // WIP: use tuple_member_value ?
@@ -1141,7 +1142,10 @@ namespace csl::mp {
 // tuple: API
 namespace csl::mp {
 
-    // tuple_size
+    // size
+    // - tuple<...>::size
+    // - tuple_size
+
     // tuple_element
 
     template <std::size_t index>
@@ -1154,7 +1158,7 @@ namespace csl::mp {
     // forward_as_tuple
 }
 
-#pragma region std utility inter-operatiblity (structured binding)
+#pragma region std inter-operatiblity, structured binding
 
 //  N4606 [namespace.std]/1 :
 //      A program may add a template specialization for any standard library template to namespace std

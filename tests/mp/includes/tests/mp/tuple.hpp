@@ -7,6 +7,9 @@
 // concepts
 namespace test::tuples::concepts::tuple_element {
 
+    // int
+    static_assert(not csl::mp::concepts::tuple_element<int, 0>);
+
     // std::array
     static_assert(csl::mp::concepts::tuple_element<std::array<int, 2>, 0>);
     static_assert(csl::mp::concepts::tuple_element<std::array<int, 2>, 1>);
@@ -21,7 +24,6 @@ namespace test::tuples::concepts::tuple_element {
     static_assert(csl::mp::concepts::tuple_element<T, 0>);
     static_assert(csl::mp::concepts::tuple_element<T, 1>);
     static_assert(not csl::mp::concepts::tuple_element<T, 2>);
-    static_assert(not csl::mp::concepts::tuple_element<int, 2>);
 }
 namespace test::tuples::concepts::tuple_like {
 
@@ -66,6 +68,14 @@ namespace test::tuples::concepts::deductible {
 
 // tuples: API
 namespace test::tuples::size {
+    static_assert(0 == csl::mp::tuple<>::size);
+    static_assert(1 == csl::mp::tuple<int>::size);
+    static_assert(2 == csl::mp::tuple<int, char>::size);
+    static_assert(3 == csl::mp::tuple<int, char, bool>::size);
+    // duplicates
+    static_assert(2 == csl::mp::tuple<int, int>::size);
+}
+namespace test::tuples::size {
     static_assert(0 == csl::mp::tuple_size_v<csl::mp::tuple<>>);
     static_assert(1 == csl::mp::tuple_size_v<csl::mp::tuple<int>>);
     static_assert(2 == csl::mp::tuple_size_v<csl::mp::tuple<int, char>>);
@@ -80,7 +90,8 @@ namespace test::tuples::empty {
     static_assert(csl::mp::concepts::empty_tuple<csl::mp::tuple<>>);
     static_assert(not csl::mp::concepts::empty_tuple<csl::mp::tuple<int>>);
 }
-namespace test::tuples::count {
+// TODO(Guillaume): revert API so it looks like std::ranges
+namespace test::tuples::algorithm::count {
     using t = csl::mp::tuple<int, char, bool, int, double>;
     static_assert(0 == csl::mp::count_v<float, t>);
     static_assert(1 == csl::mp::count_v<char, t>);
@@ -89,7 +100,7 @@ namespace test::tuples::count {
     // empty tuple
     static_assert(0 == csl::mp::count_v<int, csl::mp::tuple<>>);
 }
-namespace test::tuples::count_if {
+namespace test::tuples::algorithm::count_if {
     using t = csl::mp::tuple<int, char, bool, double, float>;
     static_assert(3 == csl::mp::count_if_v<std::is_integral, t>);
     static_assert(2 == csl::mp::count_if_v<std::is_floating_point, t>);
@@ -98,7 +109,7 @@ namespace test::tuples::count_if {
     using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
     static_assert(0 == csl::mp::count_if_v<is_int64_t::type, t>);
 }
-namespace test::tuples::contains {
+namespace test::tuples::algorithm::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
@@ -108,7 +119,7 @@ namespace test::tuples::contains {
     static_assert(not csl::mp::contains_v<double, with_duplicates>);
     static_assert(not csl::mp::contains_v<double, without_duplicates>);
 }
-namespace test::tuples::has_duplicates {
+namespace test::tuples::algorithm::has_duplicates {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
@@ -206,6 +217,9 @@ namespace test::tuples::compare::tuple {
         static_assert(lhs_t{ 0.F, {} } < rhs_t{1.F, {} });
         static_assert(lhs_t{ 0.F, {} } < rhs_t{0.F, 1});
     }
+}
+namespace test::tuples::compare::tuplelikes {
+    // TODO(Guillaume)
 }
 namespace test::tuples::tuple_cat {
 
