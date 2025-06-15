@@ -32,6 +32,8 @@
   - compare
   - conversion from/to std::tuple ? tuplelikes ?
     - make_from, convert_to ?
+- apply
+- make_from
 
 ### Algorithms
 
@@ -39,5 +41,11 @@
 - front, back
   - function -> get
   - type_trait -> type
-- apply
+- all/any/none
+- filter, filter_if
+- partition
+- fold_left, fold_right
+- zip(tuplelikes...)
+- flatten -> see POC
 - Cartesian product ? (motivation: matrixes)
+- Sorting ?
