@@ -733,9 +733,13 @@ namespace csl::ag {
     }
 
     // conversion factory. unfold into an either complete or template type T
-    // interally performs get<indexes>...
+    //  interally performs get<indexes>...
+    // WARNING: if csl::ag::size_v<decltype(from_value)> is less than the amount of elements
+    //  required to perform an aggregate initialization of T,
+    //  then might produce `-Wmissing-field-initializers`, just like std::make_from_tuple`.
+    //
     // REFACTO: universal template
-    // REFACTO: apply
+    // REFACTO: use apply
     template <typename T>
     [[nodiscard]] constexpr auto make(csl::ag::concepts::aggregate auto && from_value) {
         using type = std::remove_cvref_t<decltype(from_value)>;
