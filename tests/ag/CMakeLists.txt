@@ -9,6 +9,7 @@ add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/without_bitfield_support
 target_include_directories(${test_name}
 	PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/includes
+		${CMAKE_CURRENT_SOURCE_DIR}/../common/includes
 )
 add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
 target_link_libraries(${test_name}
@@ -30,6 +31,7 @@ add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/with_bitfield_support.cp
 target_include_directories(${test_name}
 	PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/includes
+		${CMAKE_CURRENT_SOURCE_DIR}/../common/includes
 )
 add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
 target_link_libraries(${test_name}

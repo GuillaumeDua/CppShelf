@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include "tests/types.hpp"
+#include "common/disable_warning.hpp"
 
 namespace test::ag::conversion::make_ {
     using type = test::ag::types::aggregate_all_cvref<int>;
