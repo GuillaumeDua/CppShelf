@@ -2,7 +2,7 @@
 
 #include <csl/wf.hpp>
 #include <memory>
-#include <utils/semantic_types.hpp>
+#include "common/semantic_types.hpp"
 
 namespace test::front_binder_ {
 

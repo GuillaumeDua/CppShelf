@@ -517,7 +517,7 @@ namespace test::mp_::invocation {
         }
     }
     consteval void applyable_trait_cvref_qualifiers_args() {
-        struct A{}; struct B{};
+
         auto func = [](A, B) noexcept { };
 
         using namespace csl::wf;
