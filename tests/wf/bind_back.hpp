@@ -6,7 +6,7 @@
 
 namespace test::back_binder_ {
 
-    constexpr auto func = []<typename T, typename U>(int args_0, char args_1) constexpr {
+    constexpr auto func = []<typename T, typename U>(int args_0, int args_1) constexpr {
         static_assert(std::same_as<void, T>);
         static_assert(std::same_as<void, U>);
         return args_0 + args_1;
@@ -15,16 +15,17 @@ namespace test::back_binder_ {
     using namespace csl::wf;
 
     consteval void declare_construct() {
+        constexpr auto expected = 107; // int('A') + 42
         {
             using type = back_binder<F, mp::ttps<void, void>, mp::args<int>>;
             {
                 constexpr auto value = type{ func, mp::ttps<void, void>{}, 42 }; // (1)
-                static_assert(value('A') == 107);
+                static_assert(value('A') == expected);
             }
             // [[maybe_unused]] auto value = type{ func, mp::ttps<>{}, 42}; // no
             {
                 constexpr auto value = type{ func, 42}; // (2)
-                static_assert(value('A') == 107);
+                static_assert(value('A') == expected);
             }
         }
     }
