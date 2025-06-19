@@ -34,7 +34,10 @@ namespace test::ag::conversion::make_::complete::to_larger {
     struct smaller { int i; };
     struct longer { int i; char c; };
 
+    CSL_DIAG_PUSH
+    CSL_DIAG_DISABLE("-Wmissing-field-initializers")
     static_assert(csl::ag::concepts::convertible_to<smaller, longer>);
+    CSL_DIAG_POP
     static_assert(std::same_as<
         longer,
         decltype(csl::ag::make<longer>(std::declval<smaller>()))

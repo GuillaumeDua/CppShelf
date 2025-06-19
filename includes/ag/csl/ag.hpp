@@ -1519,20 +1519,20 @@ public:
         // propagate range/tuple-like formats - {:n}
         csl::tuplelike::for_each(
             formatters,
-            [&](auto && formatter) constexpr {
-                using formatter_type = std::remove_cvref_t<decltype(formatter)>;
+            [&](auto && f) constexpr {
+                using formatter_type = std::remove_cvref_t<decltype(f)>;
                 using formatter_value_type = csl::ag::io::type_traits::formatter_value_type_t<formatter_type>;
                 if constexpr (
                     fmt::is_range<formatter_value_type, Char>::value
                 or  csl::ag::concepts::structured_bindable<formatter_value_type>
                 ){
                     auto ctx_copy_lvalue = (ctx);
-                    formatter.parse(ctx_copy_lvalue); // if not_eq end fmt::parse_error ?
+                    f.parse(ctx_copy_lvalue); // if not_eq end fmt::parse_error ?
                 }
                 else {
                     // auto parse_empty_specs = fmt::detail::parse_empty_specs<Char>{ctx};
                     auto empty_context = fmt::format_parse_context({});
-                    formatter.parse(empty_context);
+                    f.parse(empty_context);
                 }
             }
         );
