@@ -7,6 +7,10 @@
 - tuple_element_value: `decltype( get<I>(std::declval<T>()))`
   - which (if any) cvref-qualifier for T ? -> T&
 
+## Fix
+
+WTF duplicate run in CI ?
+
 ## Refacto
 
 - naming: `csl::mp::tpl` (after merge into `mp-tuple-storage`)
