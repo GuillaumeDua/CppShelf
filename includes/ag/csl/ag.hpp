@@ -736,7 +736,8 @@ namespace csl::ag {
     //  interally performs get<indexes>...
     // WARNING: if csl::ag::size_v<decltype(from_value)> is less than the amount of elements
     //  required to perform an aggregate initialization of T,
-    //  then might produce `-Wmissing-field-initializers`, just like std::make_from_tuple`.
+    //  which will results in some uninitialized fields,
+    //  effectively producing `-Wmissing-field-initializers`, just like std::make_from_tuple`.
     //
     // REFACTO: universal template
     // REFACTO: use apply
