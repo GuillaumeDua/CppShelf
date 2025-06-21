@@ -1,8 +1,6 @@
 #include <csl/ensure.hpp>
 
 #include <type_traits>
-#include <array>
-#include <cassert>
 #include <string>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
@@ -288,7 +286,7 @@ namespace test::CPO {
         assert(hasher(mm{42}) == std::hash<int>{}(42));
     }
     void comparator(){
-        constexpr auto comparator = csl::ensure::strong_type_comparator{};
+        constexpr auto comparator = csl::ensure::strong_type_equal_to{};
         static_assert(comparator(mm{42}, mm{42}));
     }
 }
