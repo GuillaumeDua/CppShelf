@@ -442,8 +442,9 @@ namespace csl::ensure::concepts {
 // STL compatibility/interoperability
 #include <functional>
 namespace csl::ensure {
+    
     // CPO - hasher
-    template <typename>
+    template <typename = void>
     struct strong_type_hasher;
     template <csl::ensure::concepts::Hashable T>
     struct strong_type_hasher<T> {
@@ -466,18 +467,30 @@ namespace csl::ensure {
             return std::invoke(hasher{}, value);
         }
     };
+
     // CPO - comparators
-    // WIP: both strong types
-    struct strong_type_equal_to
+    template <typename = void>
+    struct strong_type_equal_to;
+    template <concepts::StrongType T>
+    struct strong_type_equal_to<T>
     {
-        template <typename T, typename U>
-        requires concepts::EqualityComparableWith<T, U>
+        constexpr bool operator()(const T & lhs, const T & rhs)
+        const noexcept
+        {
+            return csl::ensure::to_underlying(lhs) == csl::ensure::to_underlying(rhs);
+        }
+    };
+    template <>
+    struct strong_type_equal_to<void>
+    {
+        template <typename T, concepts::EqualityComparableWith<T> U>
         constexpr bool operator()(const T & lhs, const U & rhs)
         const noexcept
         {
             return csl::ensure::unwrap(lhs) == csl::ensure::unwrap(rhs);
         }
     };
+
     struct strong_type_compare_three_way
     {
         template <typename T, typename U>
