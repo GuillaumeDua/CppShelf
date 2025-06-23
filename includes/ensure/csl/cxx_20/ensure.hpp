@@ -439,25 +439,14 @@ namespace csl::ensure::concepts {
     ;
 }
 
+// WIP: test hash, compare
+
 // STL compatibility/interoperability
 #include <functional>
 namespace csl::ensure {
     
     // CPO - hasher
-    template <typename = void>
-    struct strong_type_hasher;
-    template <csl::ensure::concepts::Hashable T>
-    struct strong_type_hasher<T> {
-        auto operator()(const T & value) const
-        noexcept(csl::ensure::concepts::NoThrowHashable<T>)
-        {
-            using type = csl::ensure::type_traits::underlying_type_t<T>;
-            using hasher = std::hash<type>;
-            return std::invoke(hasher{}, value);
-        }
-    };
-    template <>
-    struct strong_type_hasher<void> {
+    struct strong_type_hasher {
         template <csl::ensure::concepts::Hashable T>
         auto operator()(const T & value) const
         noexcept(csl::ensure::concepts::NoThrowHashable<T>)
@@ -469,23 +458,11 @@ namespace csl::ensure {
     };
 
     // CPO - comparators
-    template <typename = void>
-    struct strong_type_equal_to;
-    template <concepts::StrongType T>
-    struct strong_type_equal_to<T>
-    {
-        constexpr bool operator()(const T & lhs, const T & rhs)
-        const noexcept
-        {
-            return csl::ensure::to_underlying(lhs) == csl::ensure::to_underlying(rhs);
-        }
-    };
-    template <>
-    struct strong_type_equal_to<void>
+    struct strong_type_equal_to
     {
         template <typename T, concepts::EqualityComparableWith<T> U>
-        constexpr bool operator()(const T & lhs, const U & rhs)
-        const noexcept
+        [[nodiscard]] constexpr bool operator()(const T & lhs, const U & rhs)
+        const noexcept(noexcept(csl::ensure::unwrap(lhs) == csl::ensure::unwrap(rhs)))
         {
             return csl::ensure::unwrap(lhs) == csl::ensure::unwrap(rhs);
         }
@@ -495,8 +472,8 @@ namespace csl::ensure {
     {
         template <typename T, typename U>
         requires csl::ensure::concepts::ThreeWayComparableWith<T, U>
-        constexpr bool operator()(const T & lhs, const U & rhs)
-        const noexcept
+        [[nodiscard]] constexpr bool operator()(const T & lhs, const U & rhs)
+        const noexcept(noexcept(csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs)))
         {
             return csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs);
         }
@@ -504,7 +481,7 @@ namespace csl::ensure {
 }
 // CPO - std::hash
 template <csl::ensure::concepts::Hashable T>
-struct std::hash<T> : csl::ensure::strong_type_hasher<T>{}; // NOLINT(cert-dcl58-cpp)
+struct std::hash<T> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
 
 // --- opt-ins supports ---
 
