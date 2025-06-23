@@ -374,6 +374,14 @@ namespace csl::ensure::type_traits {
     using tag_type_t = typename tag_type<T>::type;
 }
 namespace csl::ensure {
+    namespace type_traits {
+        template <typename T>
+        struct unwrap_result_type : std::type_identity<T>{};
+        template <typename T> requires is_strong_type_v<T>
+        struct unwrap_result_type<T> : std::type_identity<underlying_type_t<T>>{};
+        template <typename T>
+        using unwrap_result_type_t = unwrap_result_type<T>::type;
+    }
     [[nodiscard]] static auto unwrap(auto && value) -> decltype(auto) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         if constexpr (type_traits::is_strong_type_v<value_type>)
@@ -412,16 +420,22 @@ namespace csl::ensure::concepts {
         and std::equality_comparable<csl::ensure::type_traits::underlying_type_t<T>>
     ;
     template <typename T, typename U>
-    concept EqualityComparableWith = StrongType<T>
-        and std::equality_comparable_with<csl::ensure::type_traits::underlying_type_t<T>, U>
+    concept EqualityComparableWith = (StrongType<T> or StrongType<U>)
+        and std::equality_comparable_with<
+            type_traits::unwrap_result_type_t<T>,
+            type_traits::unwrap_result_type_t<U>
+        >
     ;
     template <typename T>
     concept ThreeWayComparable = StrongType<T>
         and std::three_way_comparable<csl::ensure::type_traits::underlying_type_t<T>>
     ;
     template <typename T, typename U>
-    concept ThreeWayComparableWith = StrongType<T>
-        and std::three_way_comparable_with<csl::ensure::type_traits::underlying_type_t<T>, U>
+    concept ThreeWayComparableWith = (StrongType<T> or StrongType<U>)
+        and std::three_way_comparable_with<
+            type_traits::unwrap_result_type_t<T>,
+            type_traits::unwrap_result_type_t<U>
+        >
     ;
 }
 
@@ -429,7 +443,20 @@ namespace csl::ensure::concepts {
 #include <functional>
 namespace csl::ensure {
     // CPO - hasher
-    struct strong_type_hasher {
+    template <typename>
+    struct strong_type_hasher;
+    template <csl::ensure::concepts::Hashable T>
+    struct strong_type_hasher<T> {
+        auto operator()(const T & value) const
+        noexcept(csl::ensure::concepts::NoThrowHashable<T>)
+        {
+            using type = csl::ensure::type_traits::underlying_type_t<T>;
+            using hasher = std::hash<type>;
+            return std::invoke(hasher{}, value);
+        }
+    };
+    template <>
+    struct strong_type_hasher<void> {
         template <csl::ensure::concepts::Hashable T>
         auto operator()(const T & value) const
         noexcept(csl::ensure::concepts::NoThrowHashable<T>)
@@ -443,50 +470,28 @@ namespace csl::ensure {
     // WIP: both strong types
     struct strong_type_equal_to
     {
-        template <csl::ensure::concepts::StrongType T, typename U>
-        requires csl::ensure::concepts::EqualityComparableWith<T, U>
+        template <typename T, typename U>
+        requires concepts::EqualityComparableWith<T, U>
         constexpr bool operator()(const T & lhs, const U & rhs)
         const noexcept
         {
-            return csl::ensure::to_underlying(lhs) == rhs;
-        }
-
-        template <csl::ensure::concepts::StrongType T, csl::ensure::concepts::StrongType U>
-        requires std::equality_comparable_with<
-            csl::ensure::type_traits::underlying_type_t<T>,
-            csl::ensure::type_traits::underlying_type_t<U>
-        >
-        constexpr bool operator()(const T & lhs, const U & rhs)
-        const noexcept
-        {
-            return csl::ensure::to_underlying(lhs) == csl::ensure::to_underlying(rhs);
+            return csl::ensure::unwrap(lhs) == csl::ensure::unwrap(rhs);
         }
     };
     struct strong_type_compare_three_way
     {
-        template <csl::ensure::concepts::StrongType T, typename U>
+        template <typename T, typename U>
         requires csl::ensure::concepts::ThreeWayComparableWith<T, U>
         constexpr bool operator()(const T & lhs, const U & rhs)
         const noexcept
         {
-            return csl::ensure::to_underlying(lhs) <=> rhs;
-        }
-
-        template <csl::ensure::concepts::StrongType T, csl::ensure::concepts::StrongType U>
-        requires std::three_way_comparable_with<
-            csl::ensure::type_traits::underlying_type_t<T>,
-            csl::ensure::type_traits::underlying_type_t<U>
-        >
-        constexpr bool operator()(const T & lhs, const U & rhs)
-        const noexcept
-        {
-            return csl::ensure::to_underlying(lhs) <=> csl::ensure::to_underlying(rhs);
+            return csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs);
         }
     };
 }
 // CPO - std::hash
-template <typename T, typename tag>
-struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
+template <csl::ensure::concepts::Hashable T>
+struct std::hash<T> : csl::ensure::strong_type_hasher<T>{}; // NOLINT(cert-dcl58-cpp)
 
 // --- opt-ins supports ---
 
