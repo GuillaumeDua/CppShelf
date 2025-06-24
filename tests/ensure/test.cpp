@@ -275,20 +275,23 @@ namespace test::invocation {
     // static_assert(not std::is_invocable_v<func_t, const String &&>);
 }
 
+#include <common/test.hpp>
 namespace test::CPO {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     // std::hash::operator() does not produce an integral constant
     void std_hash(){
-        assert(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
+        csl_test_expect(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
     }
     void hasher(){
-        const auto hasher = csl::ensure::strong_type_hasher{};
-        assert(hasher(mm{42}) == std::hash<int>{}(42));
+        [[maybe_unused]] const auto hasher = csl::ensure::strong_type_hasher{};
+        csl_test_expect(hasher(mm{42}) == std::hash<int>{}(42));
     }
+    #if __cplusplus > 202002
     void comparator(){
         constexpr auto comparator = csl::ensure::strong_type_equal_to{};
         static_assert(comparator(mm{42}, mm{42}));
     }
+    #endif
 }
 namespace test::io_ {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;

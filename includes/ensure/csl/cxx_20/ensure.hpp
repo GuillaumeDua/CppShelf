@@ -382,7 +382,7 @@ namespace csl::ensure {
         template <typename T>
         using unwrap_result_type_t = unwrap_result_type<T>::type;
     }
-    [[nodiscard]] static auto unwrap(auto && value) -> decltype(auto) {
+    [[nodiscard]] constexpr static auto unwrap(auto && value) -> decltype(auto) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         if constexpr (type_traits::is_strong_type_v<value_type>)
             return to_underlying(value);

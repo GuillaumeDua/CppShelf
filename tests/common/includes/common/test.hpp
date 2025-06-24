@@ -17,6 +17,9 @@ namespace test {
         explicit failure(source_location_t location = source_location_t::current())
         : std::runtime_error(location.function_name())
         {}
+        using std::runtime_error::runtime_error;
         using std::runtime_error::what;
     };
 }
+
+#define csl_test_expect(expr) if (not (expr)) throw failure{}; // NOLINT(*-macro-usage)
