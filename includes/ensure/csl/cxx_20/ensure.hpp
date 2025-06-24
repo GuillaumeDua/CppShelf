@@ -472,7 +472,7 @@ namespace csl::ensure {
     {
         template <typename T, typename U>
         requires csl::ensure::concepts::ThreeWayComparableWith<T, U>
-        [[nodiscard]] constexpr bool operator()(const T & lhs, const U & rhs)
+        [[nodiscard]] constexpr auto operator()(const T & lhs, const U & rhs)
         const noexcept(noexcept(csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs)))
         {
             return csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs);

@@ -287,9 +287,15 @@ namespace test::CPO {
         csl_test_expect(hasher(mm{42}) == std::hash<int>{}(42));
     }
     #if __cplusplus > 202002
-    void comparator(){
+    void equal_to(){
         constexpr auto comparator = csl::ensure::strong_type_equal_to{};
         static_assert(comparator(mm{42}, mm{42}));
+    }
+    void three_way() {
+        constexpr auto comparator = csl::ensure::strong_type_compare_three_way{};
+        static_assert(std::strong_ordering::equal == comparator(mm{42}, mm{42}));
+        static_assert(std::strong_ordering::less == comparator(mm{0}, mm{42}));
+        static_assert(std::strong_ordering::greater == comparator(mm{42}, mm{0}));
     }
     #endif
 }
