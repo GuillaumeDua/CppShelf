@@ -286,7 +286,7 @@ namespace test::CPO {
         [[maybe_unused]] const auto hasher = csl::ensure::strong_type_hasher{};
         csl_test_expect(hasher(mm{42}) == std::hash<int>{}(42));
     }
-    #if __cplusplus > 202002
+    #if __cplusplus >= 202002 // TECH-DEBT: remove when C++17 support is decomissioned
     void equal_to(){
         constexpr auto comparator = csl::ensure::strong_type_equal_to{};
         static_assert(comparator(mm{42}, mm{42}));

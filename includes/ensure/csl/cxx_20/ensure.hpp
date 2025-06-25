@@ -439,8 +439,6 @@ namespace csl::ensure::concepts {
     ;
 }
 
-// WIP: test hash, compare
-
 // STL compatibility/interoperability
 #include <functional>
 namespace csl::ensure {
