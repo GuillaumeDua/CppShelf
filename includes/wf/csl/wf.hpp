@@ -1801,7 +1801,7 @@ namespace csl::wf::details::literals {
     {
         if (value < '0' or value > '9')
             throw std::out_of_range("not decimal value");
-        return value - '0';
+        return static_cast<T>(value - '0');
     }
 
     template <std::integral T>
@@ -1809,7 +1809,7 @@ namespace csl::wf::details::literals {
     {
         static_assert(std::numeric_limits<T>::digits10 > sizeof...(values), "out of numerical range");
         T result{ 0 };
-        ((result = result * 10 + (values - '0')), ...); //NOLINT
+        ((result = result * 10 + char_to_b10_integral<T>(values)), ...); //NOLINT
         return result;
     }
 }

@@ -29,6 +29,8 @@ namespace test::ag::conversion::make_::complete {
         decltype(csl::ag::make<expected>(std::declval<const type &&>()))
     >);
 }
+// Effectively produce -Wmissing-field-initializers
+/*
 namespace test::ag::conversion::make_::complete::to_larger {
     struct smaller { int i; };
     struct longer { int i; char c; };
@@ -43,6 +45,7 @@ namespace test::ag::conversion::make_::complete::to_larger {
         decltype(std::declval<smaller>() | csl::ag::to<longer>())
     >);
 }
+*/
 namespace test::ag::conversion::make_::complete::non_narrowing_conversion {
     struct int_aggregate { std::int32_t i; };
     struct long_aggregate { std::int64_t l; };

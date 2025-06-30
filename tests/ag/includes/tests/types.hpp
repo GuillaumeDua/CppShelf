@@ -18,9 +18,9 @@ namespace test::ag::types {
         // NOLINTEND(*-avoid-const-or-ref-data-members)
         using expected_to_tuple_t = std::tuple<int, int &, int &&, const int, const int &, const int &&>;
     };
-    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
     struct field_1 { int i; };
     struct field_2 { int i; char c; };
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members)
     struct field_ref_1 { int & i; };
     struct field_ref_2 { int & i; char && c; };
     struct field_ref_3 { int & i; char && c; char & cc; };

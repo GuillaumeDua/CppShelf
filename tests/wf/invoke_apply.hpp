@@ -2,6 +2,7 @@
 
 #include <csl/wf.hpp>
 
+// NOLINTBEGIN(*-avoid-magic-numbers)
 namespace test::invocation {
     consteval void invoke_() {
         using namespace csl::wf;
@@ -176,7 +177,7 @@ namespace test::invocation {
     }
 
     struct A{}; struct B{}; struct C{};
-    constexpr auto func = []<std::same_as<C> T>(auto && arg0, auto && arg1){};
+    constexpr auto func = []<std::same_as<C> T>(auto &&, auto &&){};
 
     consteval void apply_before_() {
         using namespace csl::wf;
@@ -517,7 +518,7 @@ namespace test::mp_::invocation {
         }
     }
     consteval void applyable_trait_cvref_qualifiers_args() {
-        struct A{}; struct B{};
+
         auto func = [](A, B) noexcept { };
 
         using namespace csl::wf;
@@ -607,3 +608,4 @@ namespace test::mp_::invocation {
         static_assert(is_applyable_v<func_type, std::tuple<ttps<int>>>);
     }
 }
+// NOLINTEND(*-avoid-magic-numbers)

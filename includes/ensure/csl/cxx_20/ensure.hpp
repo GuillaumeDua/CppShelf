@@ -4,20 +4,20 @@
 # error "csl/ensure.hpp requires C++20. Use csl/cxx_17/ensure.hpp"
 #endif
 
-// TODO(Guss): strong_type: opt-ins
+// TODO(Guillaume): strong_type: opt-ins
 // - Implicit conversion utilities to underlying
 // - operators support
 // - comparison operators
 //  - arithmetic binary operators: (+, -, *, /, etc.)
 // -            unary operators:  (++, --, not, implicit bool conversion ?)
 
-// TODO(Guss): conversion between strong_type<T> and strong_type<U> where T != U
+// TODO(Guillaume): conversion between strong_type<T> and strong_type<U> where T != U
 //  must be explicit and user-defined
 //  exemple: millimeter{42} < meter{1}, where both are strong_type int
 
-// TODO(Guss): Serialization support: opt-in in csl::srl side
+// TODO(Guillaume): Serialization support: opt-in in csl::srl side
 
-// TODO(Guss): : ensure
+// TODO(Guillaume): : ensure
 //  not_null<ptr_type>
 //  clamped/bounded_integral<lower, upper>
 
@@ -127,17 +127,17 @@ namespace csl::ensure
         constexpr rvalue_reference       underlying()        && noexcept { return static_cast<rvalue_reference>(value); }
         constexpr const_rvalue_reference underlying() const  && noexcept { return static_cast<const_rvalue_reference>(value); }
 
-        // TODO(Guss): default: explicit, opt-in: implicit
+        // TODO(Guillaume): default: explicit, opt-in: implicit
         constexpr /*explicit*/ operator lvalue_reference ()               & noexcept { return underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_lvalue_reference () const   & noexcept { return underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator rvalue_reference ()               && noexcept { return static_cast<strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
         constexpr /*explicit*/ operator const_rvalue_reference () const   && noexcept { return static_cast<const strong_type&&>(*this).underlying(); }  // NOLINT not explicit on purpose
 
-        // TODO(Guss): arythmetic operators
+        // TODO(Guillaume): arythmetic operators
         //  +, -, *, /,
         //  +=, -=, *=, /=
 
-        // TODO(Guss): logic operators ?
+        // TODO(Guillaume): logic operators ?
 
         constexpr type & operator=(const type & other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, const_lvalue_reference>)
@@ -373,6 +373,23 @@ namespace csl::ensure::type_traits {
     template <typename T>
     using tag_type_t = typename tag_type<T>::type;
 }
+namespace csl::ensure {
+    namespace type_traits {
+        template <typename T>
+        struct unwrap_result_type : std::type_identity<T>{};
+        template <typename T> requires is_strong_type_v<T>
+        struct unwrap_result_type<T> : std::type_identity<underlying_type_t<T>>{};
+        template <typename T>
+        using unwrap_result_type_t = unwrap_result_type<T>::type;
+    }
+    [[nodiscard]] constexpr static auto unwrap(auto && value) -> decltype(auto) {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        if constexpr (type_traits::is_strong_type_v<value_type>)
+            return to_underlying(value);
+        else
+            return value;
+    }
+}
 namespace csl::ensure::concepts {
     template <typename T>
     concept StrongType = csl::ensure::type_traits::is_strong_type_v<T>;
@@ -384,38 +401,85 @@ namespace csl::ensure::concepts {
     concept TaggedBy = StrongType<strong_type> and csl::ensure::type_traits::is_tagged_by_v<strong_type, T>;
     template <typename T>
     concept Hashable = StrongType<T> and requires {
-        std::hash<csl::ensure::type_traits::underlying_type_t<T>>{};
+        {
+            std::hash<csl::ensure::type_traits::underlying_type_t<T>>{}(
+                std::declval<const csl::ensure::type_traits::underlying_type_t<T> &>()
+            )
+        };
     };
+    template <typename T>
+    concept NoThrowHashable = StrongType<T> and requires {
+        {
+            std::hash<csl::ensure::type_traits::underlying_type_t<T>>{}(
+                std::declval<const csl::ensure::type_traits::underlying_type_t<T> &>()
+            )
+        } noexcept;
+    };
+    template <typename T>
+    concept EqualityComparable = StrongType<T>
+        and std::equality_comparable<csl::ensure::type_traits::underlying_type_t<T>>
+    ;
+    template <typename T, typename U>
+    concept EqualityComparableWith = (StrongType<T> or StrongType<U>)
+        and std::equality_comparable_with<
+            type_traits::unwrap_result_type_t<T>,
+            type_traits::unwrap_result_type_t<U>
+        >
+    ;
+    template <typename T>
+    concept ThreeWayComparable = StrongType<T>
+        and std::three_way_comparable<csl::ensure::type_traits::underlying_type_t<T>>
+    ;
+    template <typename T, typename U>
+    concept ThreeWayComparableWith = (StrongType<T> or StrongType<U>)
+        and std::three_way_comparable_with<
+            type_traits::unwrap_result_type_t<T>,
+            type_traits::unwrap_result_type_t<U>
+        >
+    ;
 }
 
 // STL compatibility/interoperability
 #include <functional>
 namespace csl::ensure {
+    
     // CPO - hasher
     struct strong_type_hasher {
-        template <csl::ensure::concepts::StrongType T>
-        requires csl::ensure::concepts::Hashable<T>
-        auto operator()(const T & value) const {
-            using type = std::remove_cvref_t<decltype(value)>;
-            using hasher = std::hash<csl::ensure::type_traits::underlying_type_t<type>>;
+        template <csl::ensure::concepts::Hashable T>
+        auto operator()(const T & value) const
+        noexcept(csl::ensure::concepts::NoThrowHashable<T>)
+        {
+            using type = csl::ensure::type_traits::underlying_type_t<T>;
+            using hasher = std::hash<type>;
             return std::invoke(hasher{}, value);
         }
     };
-    // CPO - comparator
-    struct strong_type_comparator
+
+    // CPO - comparators
+    struct strong_type_equal_to
     {
-        template <csl::ensure::concepts::StrongType T>
-        requires std::equality_comparable<csl::ensure::type_traits::underlying_type_t<T>>
-        constexpr bool operator()(const T & lhs, const T & rhs) const
+        template <typename T, concepts::EqualityComparableWith<T> U>
+        [[nodiscard]] constexpr bool operator()(const T & lhs, const U & rhs)
+        const noexcept(noexcept(csl::ensure::unwrap(lhs) == csl::ensure::unwrap(rhs)))
         {
-            using comparator = std::equal_to<csl::ensure::type_traits::underlying_type_t<T>>;
-            return std::invoke(comparator{}, lhs, rhs);
+            return csl::ensure::unwrap(lhs) == csl::ensure::unwrap(rhs);
+        }
+    };
+
+    struct strong_type_compare_three_way
+    {
+        template <typename T, typename U>
+        requires csl::ensure::concepts::ThreeWayComparableWith<T, U>
+        [[nodiscard]] constexpr auto operator()(const T & lhs, const U & rhs)
+        const noexcept(noexcept(csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs)))
+        {
+            return csl::ensure::unwrap(lhs) <=> csl::ensure::unwrap(rhs);
         }
     };
 }
 // CPO - std::hash
-template <typename T, typename tag>
-struct std::hash<csl::ensure::strong_type<T, tag>> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
+template <csl::ensure::concepts::Hashable T>
+struct std::hash<T> : csl::ensure::strong_type_hasher{}; // NOLINT(cert-dcl58-cpp)
 
 // --- opt-ins supports ---
 
