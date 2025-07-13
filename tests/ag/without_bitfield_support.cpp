@@ -1,4 +1,4 @@
-// Force CSL_AG__ENABLE_BITFIELDS_SUPPORT=OFF. See tests/ag/bitfield_support.cpp
+// Force CSL_AG__ENABLE_BITFIELDS_SUPPORT=OFF. See tests/ag/with_bitfield_support.cpp
 #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 # undef CSL_AG__ENABLE_BITFIELDS_SUPPORT
 #endif

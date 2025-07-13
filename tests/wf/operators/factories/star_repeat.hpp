@@ -6,19 +6,19 @@ namespace test::wf::operators::star {
 
     consteval void with_no_return() {
         constexpr auto result = [](){
-            std::array<int, 3> value;
+            std::array<std::size_t, 3> value{};
 
             {
                 using namespace csl::wf::operators;
                 auto func_3_times =
-                        [&, index = 0]() mutable { value[index] = index; index++; }
+                        [&, index = std::size_t{0}]() mutable { value[index] = index; index++; }
                     *   std::integral_constant<int, 3>{}
                 ;
                 func_3_times();
             }
             return value;
         }();
-        static_assert(result == std::array{0,1,2});
+        static_assert(result == std::array<std::size_t, 3>{0,1,2});
     }
     consteval void invoke_n_times_with_return_value() {
         using namespace csl::wf::operators;

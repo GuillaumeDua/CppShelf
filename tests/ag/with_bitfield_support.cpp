@@ -4,7 +4,7 @@
 #endif
 #include <csl/ag.hpp>
 #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-# error "[Test] csl::ag : expect CSL_AG__ENABLE_BITFIELDS_SUPPORT=OFF"
+# error "[Test] csl::ag : expect CSL_AG__ENABLE_BITFIELDS_SUPPORT=ON"
 #endif
 
 #include "includes/tests/ag/size.hpp"

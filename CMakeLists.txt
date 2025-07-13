@@ -58,7 +58,7 @@ endif()
 
 #### Typical options (opt-outs)
 set(CSL_OPTIONS_LIST
-    TEST # TECH-DEBT: tests: add_compile_options(-Werror -Wall -Wextra -Wno-unknown-pragmas)
+    TEST # TECH-DEBT: clang sanitizers, etc.
     EXAMPLE
     INSTALL
     DOC
@@ -78,6 +78,7 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()
 
+option(CSL_STRICT_WARNINGS "[${PROJECT_NAME}] strict warnings" OFF)
 # WIP: move to another file cmake/add_component
 ### Components - Targets - csl_lib::<name>
 function(csl_add)
@@ -103,6 +104,23 @@ function(csl_add)
 
     add_library(${PROJECT_NAME}_${csl_add_COMPONENT} INTERFACE)
     add_library(${PROJECT_NAME}::${csl_add_COMPONENT} ALIAS ${PROJECT_NAME}_${csl_add_COMPONENT})
+
+    target_compile_options(csl_${csl_add_COMPONENT} INTERFACE
+
+        $<$<BOOL:${CSL_STRICT_WARNINGS}>:-Werror >
+        # -Wdouble-promotion
+        # -Wpedantic -pedantic-errors
+
+        -Wall -Wextra
+        -Wshadow
+    #   -Wno-pointer-sign
+        -Wunused-variable
+        -Woverloaded-virtual
+        -Wno-unknown-pragmas
+        -Wno-unused-parameter
+        -Wnull-dereference
+        -Wconversion
+    )
 
     # check if component has a custom cmake file to inject
     set(maybe_${csl_add_COMPONENT}_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/custom/${csl_add_COMPONENT}.cmake")

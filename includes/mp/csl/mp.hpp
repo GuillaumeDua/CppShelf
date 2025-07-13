@@ -23,6 +23,16 @@
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
+#if defined(__clang__)
+#   define csl_compiler_is_clang
+#elif defined(__GNUC__) || defined(__GNUG__)
+#   define csl_compiler_is_gcc
+#elif defined(_MSC_VER)
+#   define csl_compiler_is_msvc
+#else
+#   define csl_compiler_is_unknown
+#endif
+
 // WIP refactoring => reorder/sort
 //  sequences::* : op on sequences
 //  seq types    : sequences definitions
@@ -30,7 +40,10 @@
 //  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
 //
 // WIP range-like API for sequence, tuple
-//  std::make_index_sequence<4> | reverse | drop(1) | take(2) => std::integer_sequence<std::size_t, 3, 2>
+//  views: std::make_index_sequence<4> | reverse | drop(1) | take(2) => std::integer_sequence<std::size_t, 3, 2>
+//  ranges: fold, flatten, partition, split, etc.
+//
+// TODO: range-like tuple ? operator[], size, empty, etc.
 //
 // TODO: decouple-from/remove std::index_sequence, std::make_sequence
 
@@ -188,9 +201,6 @@ namespace csl::mp {
     struct type_identity{ using type = T; };
 #endif
 
-    template <typename T>
-    struct is_int : std::is_same<T, int>{};
-
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_front {
         template <typename ... Us>
@@ -201,8 +211,53 @@ namespace csl::mp {
         template <typename ... Us>
         using type = trait<Us..., Ts...>;
     };
+
+#pragma region P1450 Enriching type modification traits // https://github.com/cplusplus/papers/issues/216
+    // P1450 copy_ref
+    template <typename from, typename to>
+    struct copy_ref : std::remove_reference<to>{};
+    template <typename from, typename to>
+    struct copy_ref<from&, to> : std::add_lvalue_reference<to>{};
+    template <typename from, typename to>
+    struct copy_ref<from&&, to> : std::add_rvalue_reference<std::remove_reference_t<to>>{};
+    template <typename from, typename to>
+    using copy_ref_t = typename copy_ref<from, to>::type;
+
+    // P1450 - add cv - impl detail (also for ref-qualified types)
+    template <typename T> struct add_const : std::type_identity<const T>{};
+    template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
+    template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
+    template <typename T> using add_const_t = typename add_const<T>::type;
+
+    template <typename T> struct add_volatile : std::type_identity<volatile T>{};
+    template <typename T> struct add_volatile<T&> : std::type_identity<volatile T&>{};
+    template <typename T> struct add_volatile<T&&> : std::type_identity<volatile T&&>{};
+    template <typename T> using add_volatile_t  = typename add_volatile<T>::type;
+
+    template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
+    template <typename T> using add_cv_t = typename add_cv<T>::type;
+
+    // P1450 copy_cv
+    template <typename from, typename to>
+    struct copy_cv : std::remove_cv<to>{};
+    template <typename from, typename to> requires (std::is_reference_v<from>)
+    struct copy_cv<from, to> : copy_cv<std::remove_reference_t<from>, to>{};
+    template <typename from, typename to>
+    struct copy_cv<const volatile from, to> : add_cv<to>{};
+    template <typename from, typename to>
+    struct copy_cv<const from, to> : add_const<to>{};
+    template <typename from, typename to>
+    struct copy_cv<volatile from, to> : add_volatile<to>{};
+    template <typename from, typename to>
+    using copy_cv_t = typename copy_cv<from, to>::type;
+
+    // P1450 copy_cvref
+    template <typename from, typename to>
+    struct copy_cvref : copy_cv<from, copy_ref_t<from, to>>{};
+    template <typename from, typename to>
+    using copy_cvref_t = typename copy_cvref<from, to>::type;
+#pragma endregion
 }
-// WIP: useless ?
 namespace csl::mp::details::compare {
 
     // emulate __detail::__synth3way_t
@@ -230,103 +285,124 @@ namespace csl::mp::details::compare {
 }
 namespace csl::mp::details {
 
+    // Drop-in replacement for std::tuple:
+    //  As <tuple> is -isystem, implicit casts does not produce warnings
+    //  The option cmake options and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
+    template <typename T>
+    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) {
+        return static_cast<
+            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+                    and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+            T
+            #else
+            decltype(value)
+            #endif
+            >(value)
+        ;
+    }
+
+    // Associate an index and a type with a value
+    // - mp::index<I>           lookup
+    // - mp::type_identity<T>   lookup
     template <std::size_t I, typename T>
-    struct tuple_element {
+    struct tuple_member {
         constexpr static std::size_t index = I;
         using type = T;
 
-        // index-to-type mapping
-        constexpr static tuple_element<I, T> deduce_type(mp::index<I>);
-        // type-to-index mapping
-        constexpr static tuple_element<I, T> deduce_index(mp::type_identity<T>);
-    };
-    template <std::size_t I, typename T>
-    constexpr static auto tuple_element_index = tuple_element<I, T>::index;
-
-    // QUESTION: or storage<tuple_element<index, T>>, or derived from tuple_element ?
-    template <std::size_t index, typename T>
-    struct tuple_element_storage {
-
         T value;
 
-        // WIP: skip https://godbolt.org/z/eKEzve96q, just compare get<N>(lhs) <=> get<N>(rhs)
-
-        template <std::size_t I, std::equality_comparable_with<T> U>
-        constexpr auto operator==(const tuple_element_storage<I, U> & other) const
-        noexcept(noexcept(value == other.value))
-        {
-            return value == other.value;
-        }
-
-        constexpr auto operator<=>(const tuple_element_storage&) const
-        noexcept(noexcept(std::declval<const T &>() == std::declval<const T &>()))
-        = default;
-
-        // template <std::size_t I, std::three_way_comparable_with<T> U>
-        // constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
-        // noexcept(noexcept(value <=> other.value))
-        // {
-        //     return value <=> other.value;
-        // }
-
-        template <std::size_t I, std::three_way_comparable_with<T> U>
-        constexpr auto operator<=>(const tuple_element_storage<I, U> & other) const
-        noexcept(noexcept(value <=> other.value))
-        -> std::common_comparison_category_t<compare::synth_three_way_result<T, U>>
-        {
-            return compare::synth_three_way(value, other.value);
-        }
+        // index-to-type mapping
+        constexpr static tuple_member<I, T> deduce_type(mp::index<I>);
+        // type-to-index mapping (repetitions: clashes are handled downstream)
+        constexpr static tuple_member<I, T> deduce_index(mp::type_identity<T>);
     };
+    template <std::size_t I, typename T>
+    constexpr static auto tuple_element_index = tuple_member<I, T>::index;
 
-    template <typename indexes, typename ... Ts>
-    struct tuple_storage{
-        static_assert([](){ return false; }(), "csl::mp::details::tuple_storage: ill-formed");
-    };
-    // WIP: explicit, noexcept, requires
+    // [[nodiscard]] constexpr static
+    // auto tuple_member_value(/*constrained: instance_of<tuple_member>*/ auto && te) noexcept -> decltype(auto) {
+    //     using result_type = copy_cvref_t<
+    //         decltype(te),
+    //         typename std::remove_cvref_t<decltype(te)>::type
+    //     >;
+    //     return static_cast<result_type>(te.value);
+    // }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    T & tuple_member_value(tuple_member<I, T> & te) noexcept { return te.value; }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    const T & tuple_member_value(const tuple_member<I, T> & te) noexcept { return te.value; }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    T && tuple_member_value(tuple_member<I, T> && te) noexcept { return static_cast<T&&>(te.value); }
+    template <std::size_t I, typename T>
+    [[nodiscard]] constexpr static
+    const T && tuple_member_value(const tuple_member<I, T> && te) noexcept { return static_cast<const T&&>(te.value); }
+
+    template <typename ...>
+    struct tuple_storage;
+    template <>
+    struct tuple_storage<>{};
     template <std::size_t ... indexes, typename ... Ts>
-    struct tuple_storage<std::index_sequence<indexes...>, Ts...>
-    : tuple_element_storage<indexes, Ts>...
+    struct tuple_storage<tuple_member<indexes, Ts>...>
+    : tuple_member<indexes, Ts>... 
     {
-        static_assert(sizeof...(indexes) == sizeof...(Ts));
+    // tuple-element indexing
+        using tuple_member<indexes, Ts>::deduce_type...;
+        using tuple_member<indexes, Ts>::deduce_index...;
 
-        template <typename index_seq, typename ... Us>
+        template <std::size_t I>
+        using by_index_ = decltype(deduce_type(index<I>{}));
+        template <typename T>
+        using by_type_ = decltype(deduce_index(type_identity<T>{}));
+
+    // conversion support
+        template <typename ...>
         friend struct tuple_storage;
 
         template <typename ... Us>
-        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
-        tuple_storage(Us && ... args)
-        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us>))
-        requires (
-            sizeof...(Ts) == sizeof...(Us)
-        and (true and ... and std::constructible_from<Ts, decltype(csl_fwd(args))>)
+        constexpr explicit tuple_storage(Us && ... args)
+        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us&&>))
+        requires (sizeof...(Ts) == sizeof...(Us)
+            and (true and ... and std::constructible_from<Ts, Us&&>)
         )
-        : tuple_element_storage<indexes, Ts>{
-            #if defined(CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION) and CSL_MP_TUPLE__DISABLE_IMPLICIT_CONVERSION
-            std::forward<decltype(args)>(args)
-            #else
-            static_cast<Ts>(std::forward<decltype(args)>(args))
-            #endif
+        : tuple_member<indexes, Ts>{
+            
+            fwd_maybe_cast<Ts>(args)
         }...
         {}
 
-        template <typename seq, typename ... Us>
-        explicit constexpr tuple_storage(tuple_storage<seq, Us...> && other)
+        // TODO(Guillaume): noexcept clauses
+    #if defined(csl_compiler_is_gcc)
+        // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
+        //  MVE: https://godbolt.org/z/8oEW71xv8
+        template <std::size_t ... indexes_, typename ... Us>
+        constexpr explicit
+        tuple_storage(tuple_storage<tuple_member<indexes_, Us>...> && other)
+    #else
+        template <typename ... Us>
+        constexpr explicit
+        tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
+    #endif
         requires (
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, Us>)
         )
         : tuple_storage{
-            std::forward<tuple_element_storage<indexes, Us>>(csl_fwd(other)).value...
+            static_cast<tuple_member<indexes, Us>&&>(csl_fwd(other)).value...
         }
         {}
-        template <typename seq, typename ... Us>
-        explicit constexpr tuple_storage(const tuple_storage<seq, Us...> & other)
+        template <typename ... Us>
+        constexpr explicit 
+        tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other)
         requires (
             sizeof...(Ts) == sizeof...(Us)
         and (true and ... and std::constructible_from<Ts, Us>)
         )
         : tuple_storage{
-            std::forward<tuple_element_storage<indexes, Us>>(csl_fwd(other)).value...
+            // QUESTION: cast useless ?
+            static_cast<const tuple_member<indexes, Us>&>(csl_fwd(other)).value...
         }
         {}
 
@@ -336,50 +412,21 @@ namespace csl::mp::details {
         constexpr tuple_storage(const tuple_storage &) = default;
         constexpr tuple_storage & operator=(tuple_storage &&) noexcept = default;
         constexpr tuple_storage & operator=(const tuple_storage &) = default;
-
-        // WIP: not default, but every instances. + friends ?
-        // constexpr bool operator==(const tuple_storage &) const = default;
-        // constexpr auto operator<=>(const tuple_storage &) const = default;
-
-        // template <std::equality_comparable_with<Ts> ... Us>
-        // constexpr bool operator==(const tuple_storage<std::index_sequence<indexes...>, Us...> &) const {
-        //     return true;
-        // }
-        // template <std::equality_comparable_with<Ts> ... Us>
-        // constexpr auto operator<=>(const tuple_storage<std::index_sequence<indexes...>, Us...> &) const {
-        //     return std::strong_ordering::equal;
-        // }
     };
-
-    template <typename>
-    struct tuple_storage_accessor;
-    template <std::size_t index, typename T>
-    struct tuple_storage_accessor<tuple_element<index, T>> : std::type_identity<tuple_element_storage<index, T>>{};
-    template <typename T>
-    using tuple_storage_accessor_t = tuple_storage_accessor<T>::type;
-
-    template <typename ... Ts>
-    struct tuple_impl : Ts... {
-    // tuple-element indexing
-        using Ts::deduce_type...;
-        using Ts::deduce_index...;
-
-        template <std::size_t I>
-        using nth_ = decltype(deduce_type(index<I>{}));
-        template <typename T>
-        using by_type_ = decltype(deduce_index(type_identity<T>{}));
-    };
-    template <>
-    struct tuple_impl<>{};
 
     template <typename sequence_type, typename ... Ts>
-    struct make_tuple;
+    struct make_tuple_storage;
     template <std::size_t ... indexes, typename ... Ts>
-    struct make_tuple<std::index_sequence<indexes...>, Ts...> : type_identity<
-        typename mp::details::tuple_impl<mp::details::tuple_element<indexes, Ts>...>
+    struct make_tuple_storage<std::index_sequence<indexes...>, Ts...> : type_identity<
+        typename mp::details::tuple_storage<
+            mp::details::tuple_member<indexes, Ts>...
+        >
     >{};
-    template <typename sequence_type, typename ... Ts>
-    using make_tuple_t = typename make_tuple<sequence_type, Ts...>::type;
+    template <
+        csl::mp::seq::concepts::sequence sequence_type,
+        typename ... Ts
+    >
+    using make_tuple_storage_t = typename make_tuple_storage<sequence_type, Ts...>::type;
 }
 namespace csl::mp {
 
@@ -438,7 +485,7 @@ namespace csl::mp {
             >...
         >;
     };
-    // TODO: concepts::tuplelike instead of concepts::tuple
+    // TODO(Guillaume): concepts::tuplelike instead of concepts::tuple
     template <
         concepts::tuple T,
         concepts::tuple U,
@@ -493,40 +540,44 @@ namespace std {
 namespace csl::mp {
 
     template <typename ... Ts>
-    struct tuple : mp::details::make_tuple_t<
-        std::make_index_sequence<sizeof...(Ts)>,
-        Ts...
-    >{
+    struct tuple
+    {
         template <typename ... Us> friend struct tuple;
 
         using type = tuple<Ts...>;
         constexpr static auto size = sizeof...(Ts);
-        using index_sequence_type = std::make_index_sequence<size>;
-        using storage_type = details::tuple_storage<index_sequence_type, Ts...>;
+        using storage_type = details::make_tuple_storage_t<std::make_index_sequence<size>, Ts...>;
+
+    private:
+
+        storage_type storage;
+
+    public:
 
     // storage
         constexpr tuple()
         noexcept ((true and ... and std::is_nothrow_constructible_v<Ts>))
-        requires (true and ... and std::is_default_constructible_v<Ts>)
+        requires  (true and ... and std::is_default_constructible_v<Ts>)
         = default;
         constexpr tuple(const tuple &)
         noexcept ((true and ... and std::is_nothrow_copy_constructible_v<Ts>))
-        requires (true and ... and std::is_copy_constructible_v<Ts>)
+        requires  (true and ... and std::is_copy_constructible_v<Ts>)
         = default;
         constexpr tuple(tuple &&)
-        noexcept((true and ... and std::is_nothrow_move_constructible_v<Ts>))
-        requires (true and ... and std::is_move_constructible_v<Ts>)
+        noexcept ((true and ... and std::is_nothrow_move_constructible_v<Ts>))
+        requires  (true and ... and std::is_move_constructible_v<Ts>)
         = default;
         constexpr tuple & operator=(const tuple &)
-        noexcept((true and ... and std::is_nothrow_copy_assignable_v<Ts>))
-        requires (true and ... and std::is_copy_assignable_v<Ts>)
+        noexcept ((true and ... and std::is_nothrow_copy_assignable_v<Ts>))
+        requires  (true and ... and std::is_copy_assignable_v<Ts>)
         = default;
         constexpr tuple & operator=(tuple &&)
-        noexcept((true and ... and std::is_nothrow_move_assignable_v<Ts>))
-        requires (true and ... and std::is_move_assignable_v<Ts>)
+        noexcept ((true and ... and std::is_nothrow_move_assignable_v<Ts>))
+        requires  (true and ... and std::is_move_assignable_v<Ts>)
         = default;
         constexpr ~tuple() = default;
 
+    // operator=
     // storage conversion
         template <std::convertible_to<Ts> ... Us>
         constexpr auto & operator=(tuple<Us...> && other)
@@ -545,7 +596,7 @@ namespace csl::mp {
         noexcept((true and ... and std::is_nothrow_assignable_v<Ts&, const Us&>))
         requires
             (sizeof...(Ts) == sizeof...(Us))
-        and (true and ... and std::is_assignable_v<Ts, const Us&>)
+        and (true and ... and std::is_assignable_v<Ts&, const Us&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return ((get<indexes>() = csl_fwd(other).template get<indexes>()), ...);
@@ -553,9 +604,10 @@ namespace csl::mp {
             return *this;
         }
 
-        // QUESTION: interop with other other tuplelike (pair, array, etc.)
+        // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
 
-        // NOLINTBEGIN(*explicit-constructor)
+        // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
+        // Constructor: direct
         constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
         tuple(const Ts & ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, const Ts &> and ...))
@@ -564,6 +616,7 @@ namespace csl::mp {
         and (std::constructible_from<Ts, const Ts &> and ...)
         : storage{ csl_fwd(args)... }
         {}
+        // Constructor: converting (values...)
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
         tuple(Us && ... args)
@@ -574,19 +627,21 @@ namespace csl::mp {
         and (std::constructible_from<Ts, Us&&> and ...)
         : storage{ csl_fwd(args)... }
         {}
+        // Constructor: converting move
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
         tuple(tuple<Us...> && other)
         requires 
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::constructible_from<Ts, Us&&>)
-        : storage{ csl_fwd(other).storage }
+        : storage{ std::move(other.storage) }
         {}
+        // Constructor: converting copy
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<const Us &, Ts>))
         tuple(const tuple<Us...> & other)
         requires (true and ... and std::constructible_from<Ts, const Us&>)
-        : storage{ csl_fwd(other).storage }
+        : storage{ other.storage }
         {}
         // NOLINTEND(*explicit-constructor)
 
@@ -625,42 +680,57 @@ namespace csl::mp {
             }(std::index_sequence_for<Ts...>{});
         }
 
-        // get
+    #pragma region accessors
+    #pragma region tuple::get
         template <std::size_t index> requires (index >= size)
         constexpr void get() const & noexcept {
             static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
         }
-        // TODO(Guillaume): if C++23, use deducing this, rather than such a quadruplication
+
+    // P0847R7 Explicit object parameter (deducing this)
+    #if defined(__cpp_explicit_this_parameter) \
+          and __cpp_explicit_this_parameter >= 202110L
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr auto && get(this auto && self) noexcept {
+            using accessor_t = copy_cvref_t<
+                decltype(csl_fwd(self)),
+                typename storage_type::template by_index_<index>
+            >;
+            return static_cast<accessor_t>(self.storage).value;
+        }
+    #else
+    // clang-18.1.8 does not support such a feature
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & get() & noexcept {
-            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            using accessor = typename storage_type::template by_index_<index>;
             return static_cast<accessor&>(storage).value;
         }
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr const auto & get() const & noexcept {
-            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            using accessor = typename storage_type::template by_index_<index>;
             return static_cast<const accessor&>(storage).value;
         }
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto && get() && noexcept {
-            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            using accessor = typename storage_type::template by_index_<index>;
             return static_cast<accessor &&>(std::move(storage)).value;
         }
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr const auto && get() const && noexcept {
-            using accessor = details::tuple_storage_accessor_t<typename type::template nth_<index>>;
+            using accessor = typename storage_type::template by_index_<index>;
             return static_cast<const accessor &&>(std::move(storage)).value;
         }
+    #endif
+    #pragma endregion
+    #pragma endregion
 
     // storage accessors
+        // WIP: use tuple_member_value ?
         // get/at/operator[] -> cvref qualifiers matrix
         // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
         // compare/operator<=>
 
         // visit/operator()
-
-    private:
-        storage_type storage;
     };
     template <typename ... Ts>
     tuple(Ts && ...) -> tuple<std::remove_cvref_t<Ts>...>;
@@ -682,12 +752,12 @@ namespace csl::mp::details::concepts {
     // deductible: type
     template <typename tuple_type, typename T>
     concept can_deduce_by_type = is_tuple_v<tuple_type>
-        and requires { std::void_t<typename tuple_type::template by_type_<T>>(); }
+        and requires { std::void_t<typename tuple_type::storage_type::template by_type_<T>>(); }
     ;
     // deductible: type element
     template <typename tuple_type, std::size_t I>
     concept can_deduce_by_index = is_tuple_v<tuple_type>
-        and requires { std::void_t<typename tuple_type::template nth_<I>>(); }
+        and requires { std::void_t<typename tuple_type::storage_type::template by_index_<I>>(); }
     ;
 }
 namespace csl::mp::details {
@@ -699,11 +769,11 @@ namespace csl::mp {
     template <std::size_t, typename>
     struct tuple_element;
     template <std::size_t index, typename ... Ts>
-    struct tuple_element<index, tuple<Ts...>> : tuple<Ts...>::template nth_<index>{};
-    template <std::size_t index, typename tuple_type>
+    struct tuple_element<index, tuple<Ts...>> : tuple<Ts...>::storage_type::template by_index_<index>{};
+    template <std::size_t index, concepts::tuple tuple_type>
     using tuple_element_t = typename tuple_element<index, tuple_type>::type;
 
-    template <std::size_t index, typename T>
+    template <std::size_t index, concepts::tuple T>
     using nth = tuple_element_t<index, T>;
 
     template <typename T>
@@ -758,7 +828,7 @@ namespace csl::mp {
     // index-by-type
     template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
     struct index_of : std::integral_constant<std::size_t,
-        tuple_type::template by_type_<T>::index
+        tuple_type::storage_type::template by_type_<T>::index
     >{};
     template <typename T, concepts::valid_tuple tuple_type>
     constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
@@ -840,25 +910,25 @@ namespace csl::mp {
                 return mapped_indexes;
             }();
 
-            return []<std::size_t ... indexes>(auto && tuples, std::index_sequence<indexes...>){
+            using tuple_of_tuples_t = csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>;
+            return []<std::size_t ... indexes>(tuple_of_tuples_t && tuple_of_tuples, std::index_sequence<indexes...>){
 
-                using tuples_type = std::remove_cvref_t<decltype(tuples)>;
                 using type = csl::mp::tuple<
                     csl::mp::tuple_element_t<
                         indexes_map.element_index[indexes],
                         std::remove_cvref_t<csl::mp::tuple_element_t<
                             indexes_map.tuple_index[indexes],
-                            tuples_type
+                            tuple_of_tuples_t
                         >>
                     >...
                 >;
                 return type{
                     get<indexes_map.element_index[indexes]>(
-                        get<indexes_map.tuple_index[indexes]>(csl_fwd(tuples))
+                        get<indexes_map.tuple_index[indexes]>(csl_fwd(tuple_of_tuples))
                     )...
                 };
             }(
-                csl::mp::tuple<std::remove_cvref_t<decltype(tuples)>...>{ csl_fwd(tuples)... },
+                tuple_of_tuples_t{ csl_fwd(tuples)... },
                 std::make_index_sequence<size>{}
             );
         }
@@ -1074,12 +1144,15 @@ namespace csl::mp {
 // tuple: API
 namespace csl::mp {
 
-    // tuple_size
+    // size
+    // - tuple<...>::size
+    // - tuple_size
+
     // tuple_element
 
     template <std::size_t index>
     [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
-        return value.template get<index>();
+        return csl_fwd(value).template get<index>();
     }
     // WIP
 
@@ -1087,7 +1160,7 @@ namespace csl::mp {
     // forward_as_tuple
 }
 
-#pragma region std utility inter-operatiblity (structured binding)
+#pragma region std inter-operatiblity, structured binding
 
 //  N4606 [namespace.std]/1 :
 //      A program may add a template specialization for any standard library template to namespace std
@@ -1545,6 +1618,10 @@ namespace csl::mp {
 
 #undef csl_fwd
 #undef csl_static_dependent_error
+#undef csl_compiler_is_clang
+#undef csl_compiler_is_gcc
+#undef csl_compiler_is_msvc
+#undef csl_compiler_is_unknown
 
 // wip : https://godbolt.org/z/TfMqM5TaG
 // wip, benchmarked : https://godbolt.org/z/fj4z8sjzh
