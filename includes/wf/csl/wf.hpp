@@ -1819,7 +1819,7 @@ namespace csl::wf::literals {
     using times = std::integral_constant<decltype(value), value>;
 
     template <char... chars_values>
-    constexpr auto operator"" _times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
+    constexpr auto operator""_times() -> times<details::literals::char_pack_to_integral<std::size_t>(chars_values...)>
     {
         return {};
     }
