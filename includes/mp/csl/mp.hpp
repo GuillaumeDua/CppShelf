@@ -4,7 +4,7 @@
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 #if not __cplusplus >= 202002L
-# error "csl/mp.hpp requires C++20"
+# error "csl/mp.hpp requires C++20 or greater"
 #endif
 
 // About [tuples]:
@@ -17,8 +17,6 @@
 // todo : remove dependency on std::tuple and std::integer_sequence
 //  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
-#include <iterator>
-#include <compare>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
@@ -70,7 +68,7 @@ namespace csl::mp::seq {
     template <typename T, T ... values>
     struct to_tuplelike<std::integer_sequence<T, values...>>{
         using type = std::array<T, sizeof...(values)>;
-        constexpr static inline auto value = type{ values... };
+        constexpr static auto value = type{ values... };
     };
     template <typename T>
     constexpr static inline auto to_tuplelike_t = to_tuplelike<T>::type;
@@ -149,14 +147,11 @@ namespace csl::mp::seq {
 
 // csl::mp::tuple
 //  TODO(@Guss): structured-binding (std::tuple_size, std::tuple_element)
-//  TODO(@Guss): concepts: tuple_interface, empty_tuple, etc.
 //  TODO(@Guss): apply
-//  WIP:  ==, not_eq
 //  WIP: user-defined deduction guide
 
+#pragma region P2165 - tuple-like
 namespace csl::mp::concepts {
-    // P2165 - tuple-like
-    // Note that this is a good-enough implementation of P2165 to only fit this project's needs
 	template <typename T, std::size_t N>
     concept tuple_element =
             requires { std::tuple_size<T>{}; }
@@ -188,11 +183,13 @@ namespace csl::mp::concepts {
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
 }
+#pragma endregion
 
 namespace csl::mp {
     template <std::size_t I>
     using index = std::integral_constant<std::size_t, I>;
 
+#pragma region P0887R1 - The identity metafunction
 #if defined(__cpp_lib_type_identity)
     template <typename T>
     using type_identity = typename std::type_identity<T>;
@@ -200,6 +197,7 @@ namespace csl::mp {
     template <typename T>
     struct type_identity{ using type = T; };
 #endif
+#pragma endregion
 
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_front {
@@ -212,7 +210,7 @@ namespace csl::mp {
         using type = trait<Us..., Ts...>;
     };
 
-#pragma region P1450 Enriching type modification traits // https://github.com/cplusplus/papers/issues/216
+#pragma region P1450 - Enriching type modification traits // https://github.com/cplusplus/papers/issues/216
     // P1450 copy_ref
     template <typename from, typename to>
     struct copy_ref : std::remove_reference<to>{};
@@ -258,10 +256,10 @@ namespace csl::mp {
     using copy_cvref_t = typename copy_cvref<from, to>::type;
 #pragma endregion
 }
+#pragma region __detail::__synth3way_t
+// see https://en.cppreference.com/w/cpp/standard_library/synth-three-way
 namespace csl::mp::details::compare {
 
-    // emulate __detail::__synth3way_t
-    // see https://en.cppreference.com/w/cpp/standard_library/synth-three-way
     constexpr auto synth_three_way = []<class T, class U>(const T& t, const U& u)
     requires requires
         {
@@ -283,11 +281,13 @@ namespace csl::mp::details::compare {
     template <class T, class U = T>
     using synth_three_way_result = decltype(synth_three_way(std::declval<T&>(), std::declval<U&>()));
 }
+#pragma endregion
+
 namespace csl::mp::details {
 
     // Drop-in replacement for std::tuple:
-    //  As <tuple> is -isystem, implicit casts does not produce warnings
-    //  The option cmake options and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
+    //  As <tuple> is -isystem, implicit casts do not produce warnings
+    //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
     template <typename T>
     [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) {
         return static_cast<
@@ -302,8 +302,8 @@ namespace csl::mp::details {
     }
 
     // Associate an index and a type with a value
-    // - mp::index<I>           lookup
-    // - mp::type_identity<T>   lookup
+    // - mp::index<I>           lookup by index
+    // - mp::type_identity<T>   lookup by type
     template <std::size_t I, typename T>
     struct tuple_member {
         constexpr static std::size_t index = I;
