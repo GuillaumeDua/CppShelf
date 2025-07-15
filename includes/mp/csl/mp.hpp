@@ -312,9 +312,9 @@ namespace csl::mp::details {
         T value;
 
         // index-to-type mapping
-        constexpr static tuple_member<I, T> deduce_type(mp::index<I>);
+        constexpr static tuple_member<I, T> deduce_type(mp::index<I>) noexcept;
         // type-to-index mapping (repetitions: clashes are handled downstream)
-        constexpr static tuple_member<I, T> deduce_index(mp::type_identity<T>);
+        constexpr static tuple_member<I, T> deduce_index(mp::type_identity<T>) noexcept;
     };
     template <std::size_t I, typename T>
     constexpr static auto tuple_element_index = tuple_member<I, T>::index;
@@ -362,19 +362,17 @@ namespace csl::mp::details {
         friend struct tuple_storage;
 
         template <typename ... Us>
-        constexpr explicit tuple_storage(Us && ... args)
+        constexpr explicit tuple_storage(Us && ... args) // NOLINT(*-missing-std-forward)
         noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us&&>))
         requires (sizeof...(Ts) == sizeof...(Us)
             and (true and ... and std::constructible_from<Ts, Us&&>)
         )
         : tuple_member<indexes, Ts>{
-            
-            fwd_maybe_cast<Ts>(args)
+            fwd_maybe_cast<Ts>(csl_fwd(args))
         }...
         {}
 
-        // TODO(Guillaume): noexcept clauses
-    #if defined(csl_compiler_is_gcc)
+    #if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
         // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
         //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t ... indexes_, typename ... Us>
@@ -385,24 +383,25 @@ namespace csl::mp::details {
         constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
     #endif
+        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us &&>))
         requires (
             sizeof...(Ts) == sizeof...(Us)
-        and (true and ... and std::constructible_from<Ts, Us>)
+        and (true and ... and std::constructible_from<Ts, Us &&>)
         )
         : tuple_storage{
-            static_cast<tuple_member<indexes, Us>&&>(csl_fwd(other)).value...
+            static_cast<tuple_member<indexes, Us>&&>(std::move(other)).value...
         }
         {}
         template <typename ... Us>
         constexpr explicit 
         tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other)
+        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, const Us &>))
         requires (
             sizeof...(Ts) == sizeof...(Us)
-        and (true and ... and std::constructible_from<Ts, Us>)
+        and (true and ... and std::constructible_from<Ts, const Us &>)
         )
         : tuple_storage{
-            // QUESTION: cast useless ?
-            static_cast<const tuple_member<indexes, Us>&>(csl_fwd(other)).value...
+            static_cast<const tuple_member<indexes, Us>&>(other).value...
         }
         {}
 
@@ -608,7 +607,7 @@ namespace csl::mp {
 
         // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
         // Constructor: direct
-        constexpr explicit(not (true and ... and std::convertible_to<const Ts&, Ts>))
+        constexpr explicit
         tuple(const Ts & ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, const Ts &> and ...))
         requires
@@ -618,7 +617,7 @@ namespace csl::mp {
         {}
         // Constructor: converting (values...)
         template <typename ... Us>
-        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
+        constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
         tuple(Us && ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, Us&&> and ...))
         requires
@@ -629,8 +628,9 @@ namespace csl::mp {
         {}
         // Constructor: converting move
         template <typename ... Us>
-        constexpr explicit(not (true and ... and std::convertible_to<Us&&, Ts>))
+        constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
         tuple(tuple<Us...> && other)
+        noexcept(std::is_nothrow_constructible_v<decltype(storage), decltype(std::move(other.storage))>)
         requires 
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::constructible_from<Ts, Us&&>)
@@ -638,12 +638,15 @@ namespace csl::mp {
         {}
         // Constructor: converting copy
         template <typename ... Us>
-        constexpr explicit(not (true and ... and std::convertible_to<const Us &, Ts>))
+        constexpr explicit(not (true and ... and std::convertible_to<Ts, const Us &>))
         tuple(const tuple<Us...> & other)
+        noexcept(std::is_nothrow_constructible_v<decltype(storage), decltype(other.storage)>)
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ other.storage }
         {}
         // NOLINTEND(*explicit-constructor)
+
+        // WIP: noexcept
 
         // compare
         template <typename ... Us>
