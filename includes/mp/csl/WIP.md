@@ -10,6 +10,9 @@
 ## Test
 
 - Coverage
+- noexcept
+  - construction
+  - comparison
 
 ## Refacto
 

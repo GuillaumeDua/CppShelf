@@ -646,14 +646,14 @@ namespace csl::mp {
         {}
         // NOLINTEND(*explicit-constructor)
 
-        // WIP: noexcept
-
         // compare
         template <typename ... Us>
         requires
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::equality_comparable_with<Ts, Us>)
-        constexpr auto operator==(const tuple<Us...> & other) const {
+        constexpr auto operator==(const tuple<Us...> & other) const
+        noexcept((true && ... && noexcept(std::declval<const Ts&>() == std::declval<const Us &>())))
+        {
             return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return (true and ... and (get<indexes>() == other.template get<indexes>()));
             }(std::make_index_sequence<sizeof...(Ts)>{});
@@ -663,6 +663,7 @@ namespace csl::mp {
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::three_way_comparable_with<Ts, Us>)
         constexpr auto operator<=>(const tuple<Us...> & other) const
+        noexcept((true && ... && noexcept(std::declval<const Ts&>() <=> std::declval<const Us &>())))
         -> std::common_comparison_category_t<
             details::compare::synth_three_way_result<Ts, Us>...
         >
@@ -702,7 +703,7 @@ namespace csl::mp {
             return static_cast<accessor_t>(self.storage).value;
         }
     #else
-    // clang-18.1.8 does not support such a feature
+    // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & get() & noexcept {
             using accessor = typename storage_type::template by_index_<index>;
@@ -726,6 +727,8 @@ namespace csl::mp {
     #endif
     #pragma endregion
     #pragma endregion
+
+    // WIP ...
 
     // storage accessors
         // WIP: use tuple_member_value ?
