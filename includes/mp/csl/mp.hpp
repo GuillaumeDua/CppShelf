@@ -796,6 +796,15 @@ namespace csl::mp {
         template <typename T> concept valid_tuple = is_valid_tuple_v<T>;
     }
 
+    template <typename T>
+    struct is_homogeneous : std::false_type{};
+    template <typename T0, typename ... Ts>
+    struct is_homogeneous<tuple<T0, Ts...>> : std::bool_constant<(
+        true and ... and std::same_as<T0, Ts>
+    )>{};
+    template <typename T>
+    constexpr bool is_homogeneous_v = is_homogeneous<T>::value;
+
     // empty
     template <typename>
     struct empty;
