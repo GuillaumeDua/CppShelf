@@ -782,7 +782,8 @@ namespace csl::mp {
     template <std::size_t index, concepts::tuple T>
     using nth = tuple_element_t<index, T>;
 
-    template <typename T>
+    // is_valid_tuple
+    template <typename>
     struct is_valid_tuple : std::false_type{};
     template <typename ... Ts>
     struct is_valid_tuple<tuple<Ts...>> : std::bool_constant<
@@ -796,14 +797,38 @@ namespace csl::mp {
         template <typename T> concept valid_tuple = is_valid_tuple_v<T>;
     }
 
+    // is_homogeneous
     template <typename T>
-    struct is_homogeneous : std::false_type{};
+    struct is_homogeneous_tuple : std::false_type{};
     template <typename T0, typename ... Ts>
-    struct is_homogeneous<tuple<T0, Ts...>> : std::bool_constant<(
+    struct is_homogeneous_tuple<tuple<T0, Ts...>> : std::bool_constant<(
         true and ... and std::same_as<T0, Ts>
     )>{};
     template <typename T>
-    constexpr bool is_homogeneous_v = is_homogeneous<T>::value;
+    constexpr bool is_homogeneous_tuple_v = is_homogeneous_tuple<T>::value;
+
+    namespace concepts {
+        template <typename T> concept homogeneous_tuple = is_homogeneous_tuple_v<T>;
+    }
+
+    // is_constrained_tuple
+    template <typename, template <typename> typename>
+    struct is_constrained_tuple : std::false_type{};
+    template <template <typename> typename predicate>
+    struct is_constrained_tuple<tuple<>, predicate> : std::false_type{};
+    template <template <typename> typename predicate, typename ... Ts>
+    struct is_constrained_tuple<tuple<Ts...>, predicate> : std::bool_constant<
+        (true and ... and predicate<Ts>::value)
+    >{};
+    template <typename T, template <typename> typename predicate>
+    constexpr auto is_constrained_tuple_v = is_constrained_tuple<T, predicate>::value;
+
+    namespace concepts {
+        template <typename T, template <typename> typename predicate>
+        concept constrained_tuple = is_constrained_tuple_v<T, predicate>;
+    }
+
+    // TODO(Guillaume) naming: namespace tuple_traits::is_valid, etc. ? ⬆️⬇️
 
     // empty
     template <typename>
@@ -939,7 +964,7 @@ namespace csl::mp {
                 >;
                 return type{
                     get<indexes_map.element_index[indexes]>(
-                        get<indexes_map.tuple_index[indexes]>(csl_fwd(tuple_of_tuples))
+                        get<indexes_map.tuple_index[indexes]>(std::move(tuple_of_tuples))
                     )...
                 };
             }(
