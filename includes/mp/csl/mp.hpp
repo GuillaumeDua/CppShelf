@@ -702,6 +702,13 @@ namespace csl::mp {
             >;
             return static_cast<accessor_t>(self.storage).value;
         }
+
+        // tuple[indexes]...
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr auto && operator[](this auto && self) noexcept {
+            return csl_fwd(self).template get<index>();
+        }
+        // TODO(guillaume): integral_constant, index_type
     #else
     // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
@@ -733,6 +740,8 @@ namespace csl::mp {
     // storage accessors
         // WIP: use tuple_member_value ?
         // get/at/operator[] -> cvref qualifiers matrix
+        // - index
+        // index_of<T>
         // assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
         // compare/operator<=>
 
