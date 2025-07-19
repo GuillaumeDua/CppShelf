@@ -17,6 +17,7 @@
 // todo : remove dependency on std::tuple and std::integer_sequence
 //  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
+#include <functional>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
@@ -746,6 +747,7 @@ namespace csl::mp {
         // compare/operator<=>
 
         // visit/operator()
+        // Integrate some data_store design
     };
     template <typename ... Ts>
     tuple(Ts && ...) -> tuple<std::remove_cvref_t<Ts>...>;
@@ -778,6 +780,8 @@ namespace csl::mp::details::concepts {
 namespace csl::mp::details {
     constexpr static std::size_t npos = static_cast<std::size_t>(-1);
 }
+
+// TODO(Guillaume): concepts::tuple<T> everywhere below ?
 namespace csl::mp {
 
     // type-by-index
@@ -820,21 +824,41 @@ namespace csl::mp {
         template <typename T> concept homogeneous_tuple = is_homogeneous_tuple_v<T>;
     }
 
-    // is_constrained_tuple
+    // is_constrained_by_tuple
     template <typename, template <typename> typename>
-    struct is_constrained_tuple : std::false_type{};
+    struct is_constrained_by_tuple : std::false_type{};
     template <template <typename> typename predicate>
-    struct is_constrained_tuple<tuple<>, predicate> : std::false_type{};
+    struct is_constrained_by_tuple<tuple<>, predicate> : std::false_type{};
     template <template <typename> typename predicate, typename ... Ts>
-    struct is_constrained_tuple<tuple<Ts...>, predicate> : std::bool_constant<
+    struct is_constrained_by_tuple<tuple<Ts...>, predicate> : std::bool_constant<
         (true and ... and predicate<Ts>::value)
     >{};
     template <typename T, template <typename> typename predicate>
-    constexpr auto is_constrained_tuple_v = is_constrained_tuple<T, predicate>::value;
+    constexpr auto is_constrained_by_tuple_v = is_constrained_by_tuple<T, predicate>::value;
 
     namespace concepts {
         template <typename T, template <typename> typename predicate>
-        concept constrained_tuple = is_constrained_tuple_v<T, predicate>;
+        concept constrained_by_tuple = concepts::tuple<T> and is_constrained_by_tuple_v<T, predicate>;
+    }
+
+    // predicate: TTP to std::predicate adapter
+    template <template <typename> class P>
+    struct predicate {
+        // std::predicate
+        template <typename T>
+        [[nodiscard]] constexpr static auto operator()()          noexcept { return P<T>::value; }
+        // deduced T
+        template <typename T>
+        [[nodiscard]] constexpr static auto operator()(const T &) noexcept { return P<T>::value; }
+    };
+
+    // REFACTO: out of traits !
+    template <concepts::tuple T>
+    [[nodiscard]] constexpr auto is_constrained_by_tuple_f(const T & value, std::predicate auto && p){
+        // REFACTO: reduce
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::invoke(p, get<indexes>(value)));
+        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
     }
 
     // TODO(Guillaume) naming: namespace tuple_traits::is_valid, etc. ? ⬆️⬇️
