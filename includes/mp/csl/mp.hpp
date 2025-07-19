@@ -721,7 +721,7 @@ namespace csl::mp {
 
         // tuple[indexes]...
         template <std::size_t index> requires (index < size)
-        [[nodiscard]] constexpr auto && operator[](this auto && self) noexcept {
+        [[nodiscard]] constexpr auto && operator[](this auto && self, index_t<index>) noexcept {
             return csl_fwd(self).template get<index>();
         }
         // TODO(guillaume): integral_constant, index_type
