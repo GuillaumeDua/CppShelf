@@ -148,7 +148,7 @@ namespace csl::mp::seq {
 
 // csl::mp::tuple
 //  TODO(@Guss): structured-binding (std::tuple_size, std::tuple_element)
-//  TODO(@Guss): apply
+//  TODO(@Guss): foreach, apply
 //  WIP: user-defined deduction guide
 
 #pragma region P2165 - tuple-like
@@ -187,8 +187,23 @@ namespace csl::mp::concepts {
 #pragma endregion
 
 namespace csl::mp {
-    template <std::size_t I>
-    using index = std::integral_constant<std::size_t, I>;
+    template <std::size_t N>
+    struct index_t: std::integral_constant<std::size_t, N>{};
+    template <std::size_t N>
+    constexpr static index_t<N> const index = {};
+
+    inline namespace literals {
+
+        template <std::size_t base, char... c> constexpr auto char_sequence_to_base()
+        {
+            auto value = 0ULL;
+            ((value = value * base + (c - '0')), ...);
+            return value;
+        }
+        template <char... c> constexpr auto operator""_index() noexcept {
+            return index<char_sequence_to_base<10, c...>()>; // NOLINT(*-magic-numbers)
+        }
+    }
 
 #pragma region P0887R1 - The identity metafunction
 #if defined(__cpp_lib_type_identity)
@@ -303,7 +318,7 @@ namespace csl::mp::details {
     }
 
     // Associate an index and a type with a value
-    // - mp::index<I>           lookup by index
+    // - mp::index_t<I>         lookup by index
     // - mp::type_identity<T>   lookup by type
     template <std::size_t I, typename T>
     struct tuple_member {
@@ -313,7 +328,7 @@ namespace csl::mp::details {
         T value;
 
         // index-to-type mapping
-        constexpr static tuple_member<I, T> deduce_type(mp::index<I>) noexcept;
+        constexpr static tuple_member<I, T> deduce_type(mp::index_t<I>) noexcept;
         // type-to-index mapping (repetitions: clashes are handled downstream)
         constexpr static tuple_member<I, T> deduce_index(mp::type_identity<T>) noexcept;
     };
@@ -354,7 +369,7 @@ namespace csl::mp::details {
         using tuple_member<indexes, Ts>::deduce_index...;
 
         template <std::size_t I>
-        using by_index_ = decltype(deduce_type(index<I>{}));
+        using by_index_ = decltype(deduce_type(index_t<I>{}));
         template <typename T>
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
 
