@@ -3,19 +3,26 @@
 // under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
+// About [tuple]:
+//  A given tuple T is considered valid if csl::mp::concepts::tuple<T> evaluates to true (csl::mp::is_tuple is std::true_type), and contains no duplicates.
+//  If a given tuple type T instanciation is not valid, less performant algorithms may be selected to provide similar functionalities, as a best-effort.
+
+// About [algorithms]:
+//  All algorithms are partitioned in two groups:
+//      [type-traits]: contains, count/count_if, find/find_if, etc.
+//      [functions]: tuple_cat, etc.
+
+
 #if not __cplusplus >= 202002L
 # error "csl/mp.hpp requires C++20 or greater"
 #endif
 
-// About [tuples]:
-//  A given tuple T is considered valid if csl::mp::concepts::tuple<T> evaluates to true (csl::mp::is_tuple is std::true_type), and contains no duplicates.
-//  if a given tuple type T instanciation is not valid, less performant algorithms may be selected to provide similar functionalities, as a best-effort.
+// TODO(Guillaume) : remove dependency on std::tuple and std::integer_sequence
+//  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 
 #include <compare>
 #include <type_traits>
 #include <concepts>
-// todo : remove dependency on std::tuple and std::integer_sequence
-//  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
 #include <algorithm>
 #include <functional>
 
@@ -145,11 +152,6 @@ namespace csl::mp::seq {
 }
 
 // ---
-
-// csl::mp::tuple
-//  TODO(@Guss): structured-binding (std::tuple_size, std::tuple_element)
-//  TODO(@Guss): foreach, apply
-//  WIP: user-defined deduction guide
 
 #pragma region P2165 - tuple-like
 namespace csl::mp::concepts {
@@ -719,12 +721,12 @@ namespace csl::mp {
             return static_cast<accessor_t>(self.storage).value;
         }
 
-        // tuple[indexes]...
+        // tuple[index<N>]...
+        //  as tuple[N]... would requires some tuple.template operator[]<N>()...
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto && operator[](this auto && self, index_t<index>) noexcept {
             return csl_fwd(self).template get<index>();
         }
-        // TODO(guillaume): integral_constant, index_type
     #else
     // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
@@ -796,6 +798,19 @@ namespace csl::mp::details {
     constexpr static std::size_t npos = static_cast<std::size_t>(-1);
 }
 
+
+namespace csl::mp::inline functions {
+    template <concepts::tuple T>
+    [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
+        // REFACTO: reduce
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::invoke(p, get<indexes>(value)));
+        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
+    }
+    // TODO(Guillaume) any_of, none_of
+}
+
+
 // TODO(Guillaume): concepts::tuple<T> everywhere below ?
 namespace csl::mp {
 
@@ -866,15 +881,6 @@ namespace csl::mp {
         template <typename T>
         [[nodiscard]] constexpr static auto operator()(const T &) noexcept { return P<T>::value; }
     };
-
-    // REFACTO: out of traits !
-    template <concepts::tuple T>
-    [[nodiscard]] constexpr auto is_constrained_by_tuple_f(const T & value, std::predicate auto && p){
-        // REFACTO: reduce
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and std::invoke(p, get<indexes>(value)));
-        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
-    }
 
     // TODO(Guillaume) naming: namespace tuple_traits::is_valid, etc. ? ⬆️⬇️
 
@@ -1031,9 +1037,9 @@ namespace csl::mp {
     using tuple_cat_result_t = typename tuple_cat_result<tuple_types...>::type;
 
     // contains
-    // benchmark (~ +10% perfs): https://build-bench.com/b/uZluytW6RILwmbT8SpMrpfiINoA
     template <typename, typename>
     struct contains;
+    // build benchmark (~ +20% perfs): https://build-bench.com/b/Ir0K0cw2wfFLyRYPYYIMVASDYQU
     template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
     struct contains<T, tuple_type> : std::true_type{};
     template <typename T, typename ... Ts>

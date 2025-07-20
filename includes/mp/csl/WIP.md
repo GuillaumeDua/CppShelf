@@ -35,6 +35,7 @@
   - compare
   - conversion from/to std::tuple ? tuplelikes ?
     - make_from, convert_to ?
+- foreach
 - apply
 - make_from
 

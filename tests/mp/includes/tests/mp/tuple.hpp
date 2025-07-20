@@ -459,6 +459,20 @@ namespace test::tuples::get::ADL {
     static_assert('a' == get<1>(value));
 }
 
+namespace test::tuples::get::square_bracket_op {
+
+    using type = csl::mp::tuple<int, char>;
+    constexpr auto value = type{ 42, 'a' };
+    
+    static_assert(42 == value[csl::mp::index_t<0>{}]);
+    static_assert(42 == value[csl::mp::index<0>]);
+
+    namespace literals {
+        using namespace csl::mp::literals;
+        static_assert(42 == value[0_index]);
+    }
+}
+
 // structured binding
 namespace test::tuples::structured_binding {
 
