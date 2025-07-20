@@ -1,13 +1,21 @@
 #pragma once
 #include <csl/mp.hpp>
 
-// sequences
-namespace test::reverse_::ordered_ {
+// NOLINTBEGIN(*-avoid-magic-numbers)
+
+namespace test::seq::is_sequence_ {
+    using type = std::make_index_sequence<5>;
+
+    static_assert(csl::mp::seq::is_sequence_v<type>);
+    static_assert(csl::mp::seq::concepts::sequence<type>);
+}
+
+namespace test::seq::reverse_::ordered_ {
     
     using namespace csl::mp::seq;
 
-    using type = std::make_index_sequence<5>;                             // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-    using reversed_type = csl::mp::seq::make_reverse_index_sequence<5>; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    using type = std::make_index_sequence<5>;
+    using reversed_type = csl::mp::seq::make_reverse_index_sequence<5>;
     static_assert(std::same_as<
         reversed_type,
         std::index_sequence<4,3,2,1,0>
@@ -21,19 +29,30 @@ namespace test::reverse_::ordered_ {
         reverse_t<std::index_sequence<0,1,2,3,4>>
     >);
 }
-namespace test::reverse_::unordered_ {
+namespace test::seq::reverse_::unordered_ {
     using namespace csl::mp::seq;
 
-    using type = std::index_sequence<4,1,0,3,2>;                           // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    using type = std::index_sequence<4,1,0,3,2>;
     static_assert(std::same_as<
         reverse_t<type>,
         std::index_sequence<2,3,0,1,4>
     >);
 }
 
-namespace test::at_ {
+namespace test::seq::to_tuplelike_ {
+    using type = std::make_index_sequence<2>;
+
+    static_assert(std::same_as<
+        std::array<std::size_t, 2>,
+        csl::mp::seq::to_tuplelike_t<type>
+    >);
+}
+
+namespace test::seq::at_ {
 
 }
-namespace test::get_ {
+namespace test::seq::get_ {
 
 }
+
+// NOLINTEND(*-avoid-magic-numbers)

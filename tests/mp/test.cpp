@@ -9,8 +9,8 @@
 #endif
 
 // parts
-#include <tests/mp/tuple.hpp>
 #include <tests/mp/sequence.hpp>
+#include <tests/mp/tuple.hpp>
 // #include <tests/mp/flat.hpp>
 
 // pack: legacy algos to refactor/move

@@ -55,7 +55,8 @@
 
 // sequences
 #include <array>
-namespace csl::mp::seq::type_traits {
+namespace csl::mp::seq {
+
     // is_sequence
     template <typename T>
     struct is_sequence : std::false_type{};
@@ -63,15 +64,17 @@ namespace csl::mp::seq::type_traits {
     struct is_sequence<std::integer_sequence<T, values...>> : std::true_type{};
     template <typename T>
     constexpr static inline auto is_sequence_v = is_sequence<T>::value;
-}
-namespace csl::mp::seq::concepts {
-    template <typename T>
-    concept sequence = type_traits::is_sequence_v<T>;
-}
-namespace csl::mp::seq {
+
+    namespace concepts {
+        template <typename T>
+        concept sequence = is_sequence_v<T>;
+    }
 
     // to_tuplelike
-    template <typename T>
+    template <
+        typename T
+    // TODO(Guillaume) universal TTP: to = std::array
+    >
     struct to_tuplelike;
     template <typename T, T ... values>
     struct to_tuplelike<std::integer_sequence<T, values...>>{
@@ -79,7 +82,7 @@ namespace csl::mp::seq {
         constexpr static auto value = type{ values... };
     };
     template <typename T>
-    constexpr static inline auto to_tuplelike_t = to_tuplelike<T>::type;
+    using to_tuplelike_t = to_tuplelike<T>::type;
     template <typename T>
     constexpr static inline auto to_tuplelike_v = to_tuplelike<T>::value;
 
@@ -153,8 +156,8 @@ namespace csl::mp::seq {
 
 // ---
 
-#pragma region P2165 - tuple-like
-namespace csl::mp::concepts {
+// P2165 - tuple-like
+namespace csl::mp::concepts::inline P2165 {
 	template <typename T, std::size_t N>
     concept tuple_element =
             requires { std::tuple_size<T>{}; }
@@ -186,28 +189,9 @@ namespace csl::mp::concepts {
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
 }
-#pragma endregion
 
-namespace csl::mp {
-    template <std::size_t N>
-    struct index_t: std::integral_constant<std::size_t, N>{};
-    template <std::size_t N>
-    constexpr static index_t<N> const index = {};
-
-    inline namespace literals {
-
-        template <std::size_t base, char... c> constexpr auto char_sequence_to_base()
-        {
-            auto value = 0ULL;
-            ((value = value * base + (c - '0')), ...);
-            return value;
-        }
-        template <char... c> constexpr auto operator""_index() noexcept {
-            return index<char_sequence_to_base<10, c...>()>; // NOLINT(*-magic-numbers)
-        }
-    }
-
-#pragma region P0887R1 - The identity metafunction
+// P0887 - The identity metafunction
+namespace csl::mp::inline P0887 {
 #if defined(__cpp_lib_type_identity)
     template <typename T>
     using type_identity = typename std::type_identity<T>;
@@ -215,20 +199,10 @@ namespace csl::mp {
     template <typename T>
     struct type_identity{ using type = T; };
 #endif
-#pragma endregion
+}
 
-    template <template <typename ...> typename trait, typename ... Ts>
-    struct bind_front {
-        template <typename ... Us>
-        using type = trait<Ts..., Us...>;
-    };
-    template <template <typename ...> typename trait, typename ... Ts>
-    struct bind_back {
-        template <typename ... Us>
-        using type = trait<Us..., Ts...>;
-    };
-
-#pragma region P1450 - Enriching type modification traits // https://github.com/cplusplus/papers/issues/216
+// P1450 - Enriching type modification traits https://github.com/cplusplus/papers/issues/216
+namespace csl::mp::inline P1450 {
     // P1450 copy_ref
     template <typename from, typename to>
     struct copy_ref : std::remove_reference<to>{};
@@ -272,7 +246,29 @@ namespace csl::mp {
     struct copy_cvref : copy_cv<from, copy_ref_t<from, to>>{};
     template <typename from, typename to>
     using copy_cvref_t = typename copy_cvref<from, to>::type;
-#pragma endregion
+}
+
+namespace csl::mp::inline indexing {
+    template <std::size_t N>
+    struct index_t: std::integral_constant<std::size_t, N>{};
+    template <std::size_t N>
+    constexpr static index_t<N> const index = {};
+
+    inline namespace literals {
+
+        namespace details {
+            template <std::size_t base, char... c> constexpr auto char_sequence_to_base()
+            {
+                auto value = 0ULL;
+                ((value = value * base + (c - '0')), ...);
+                return value;
+            }
+        }
+
+        template <char... c> constexpr auto operator""_index() noexcept {
+            return index<details::char_sequence_to_base<10, c...>()>; // NOLINT(*-magic-numbers)
+        }
+    }
 }
 #pragma region __detail::__synth3way_t
 // see https://en.cppreference.com/w/cpp/standard_library/synth-three-way
@@ -1273,8 +1269,20 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 #pragma endregion
 
 
-// TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
+namespace csl::mp::inline type_traits {
+    template <template <typename ...> typename trait, typename ... Ts>
+    struct bind_front {
+        template <typename ... Us>
+        using type = trait<Ts..., Us...>;
+    };
+    template <template <typename ...> typename trait, typename ... Ts>
+    struct bind_back {
+        template <typename ... Us>
+        using type = trait<Us..., Ts...>;
+    };
+}
 
+// TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 
 // ===================
 // -- OLD, to refactor
