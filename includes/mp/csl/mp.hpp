@@ -17,9 +17,6 @@
 # error "csl/mp.hpp requires C++20 or greater"
 #endif
 
-// TODO(Guillaume) : remove dependency on std::tuple and std::integer_sequence
-//  then add a compile-time option to extend csl::mp to tuple (get, etc.) if required
-
 #include <compare>
 #include <type_traits>
 #include <concepts>
@@ -27,6 +24,7 @@
 #include <functional>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
+// deprecated by P2593R0 - Allowing static_assert(false)
 #define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
 
 #if defined(__clang__)
@@ -53,7 +51,8 @@
 //
 // TODO: decouple-from/remove std::index_sequence, std::make_sequence
 
-// sequences
+// --- sequence ---
+
 #include <array>
 namespace csl::mp::seq {
 
@@ -73,7 +72,7 @@ namespace csl::mp::seq {
     // to_tuplelike
     template <
         typename T
-    // TODO(Guillaume) universal TTP: to = std::array
+    // TODO(Guillaume) universal TTP: to = std::array | std::tuple | std::pair etc.
     >
     struct to_tuplelike;
     template <typename T, T ... values>
@@ -154,7 +153,7 @@ namespace csl::mp::seq {
     }
 }
 
-// ---
+// --- tuple ---
 
 // P2165 - tuple-like
 namespace csl::mp::concepts::inline P2165 {
@@ -794,19 +793,6 @@ namespace csl::mp::details {
     constexpr static std::size_t npos = static_cast<std::size_t>(-1);
 }
 
-
-namespace csl::mp::inline functions {
-    template <concepts::tuple T>
-    [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
-        // REFACTO: reduce
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and std::invoke(p, get<indexes>(value)));
-        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
-    }
-    // TODO(Guillaume) any_of, none_of
-}
-
-
 // TODO(Guillaume): concepts::tuple<T> everywhere below ?
 namespace csl::mp {
 
@@ -1268,6 +1254,17 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 // NOLINTEND(cert-dcl58-cpp)
 #pragma endregion
 
+// tuple algorithms functions
+namespace csl::mp::inline functions {
+    template <concepts::tuple T>
+    [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
+        // REFACTO: reduce
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::invoke(p, get<indexes>(value)));
+        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
+    }
+    // TODO(Guillaume) any_of, none_of
+}
 
 namespace csl::mp::inline type_traits {
     template <template <typename ...> typename trait, typename ... Ts>
