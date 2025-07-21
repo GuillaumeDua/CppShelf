@@ -1256,6 +1256,19 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 
 // tuple algorithms functions
 namespace csl::mp::inline functions {
+
+    // foreach
+    void for_each(concepts::tuple auto && value, auto f){
+        constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((
+                std::invoke(f, std::get<indexes>(csl_fwd(value)))
+            ), ...);
+        }(std::make_index_sequence<size>{});
+    }
+
+    // apply
+
     template <concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
@@ -1264,6 +1277,9 @@ namespace csl::mp::inline functions {
         }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
     }
     // TODO(Guillaume) any_of, none_of
+
+    // split
+    // chunk_by: <N>, predicate
 }
 
 namespace csl::mp::inline type_traits {
@@ -1278,6 +1294,8 @@ namespace csl::mp::inline type_traits {
         using type = trait<Us..., Ts...>;
     };
 }
+
+// TODO(@Guss): fmt, std formatter
 
 // TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 
