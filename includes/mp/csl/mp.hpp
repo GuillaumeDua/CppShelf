@@ -1258,14 +1258,16 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 namespace csl::mp::inline functions {
 
     // foreach
-    void for_each(concepts::tuple auto && value, auto f){
+    auto for_each(concepts::tuple auto && value, auto f){
         constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
                 std::invoke(f, std::get<indexes>(csl_fwd(value)))
             ), ...);
         }(std::make_index_sequence<size>{});
+        return f;
     }
+    // foreach (ExecutionPolicy &&)
 
     // apply
 
@@ -1276,7 +1278,18 @@ namespace csl::mp::inline functions {
             return (true and ... and std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
     }
-    // TODO(Guillaume) any_of, none_of
+    template <concepts::tuple T>
+    [[nodiscard]] constexpr auto any_of(const T & value, std::predicate auto && p){
+        // REFACTO: reduce
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (false or ... or std::invoke(p, get<indexes>(value)));
+        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
+    }
+    template <concepts::tuple T>
+    [[nodiscard]] constexpr auto none_of(const T & value, std::predicate auto && p){
+        // REFACTO: reduce
+        return all_of(value, std::not_fn(csl_fwd(p)));
+    }
 
     // split
     // chunk_by: <N>, predicate
