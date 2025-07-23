@@ -1257,6 +1257,16 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 // tuple algorithms functions
 namespace csl::mp::inline functions {
 
+    // QUESTION: primitive for
+    // auto ??? (concepts::tuple auto && value, auto f){
+    //     constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+    //     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //         ((
+    //             // arg<indexes...>(std::get<indexes>(csl_fwd(values))))
+    //         ), ...);
+    //     }(std::make_index_sequence<size>{});
+    // }
+
     // foreach
     auto for_each(concepts::tuple auto && value, auto f){
         constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
@@ -1267,7 +1277,17 @@ namespace csl::mp::inline functions {
         }(std::make_index_sequence<size>{});
         return f;
     }
-    // foreach (ExecutionPolicy &&)
+
+    // QUESTION: what if f<indexes>(element) ?
+    auto for_each_enumerate(concepts::tuple auto && value, auto f){
+        constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((
+                std::invoke(f, indexes, std::get<indexes>(csl_fwd(value)))
+            ), ...);
+        }(std::make_index_sequence<size>{});
+        return f;
+    }
 
     // apply
 
@@ -1294,6 +1314,38 @@ namespace csl::mp::inline functions {
     // split
     // chunk_by: <N>, predicate
 }
+#if defined CSL_MP_TUPLE_EXPERIMENTALE
+#include <execution>
+#include <future>
+namespace csl::mp::inline functions::experimentale {
+    template <typename ExecutionPolicy, typename F>
+    requires std::is_execution_policy_v<ExecutionPolicy>
+    void for_each(ExecutionPolicy &&, concepts::tuple auto &&, F &&) {
+        static_assert(false, "Unsupported execution policy");
+    }
+
+    void for_each(std::execution::sequenced_policy, concepts::tuple auto && value, auto f) {
+        for_each(fwd(value), f);
+    }
+    // most likely, a very bad idea ?
+    // consider some thread with cooperative cancelation -> std::stop_token
+    void for_each(std::execution::parallel_policy, concepts::tuple auto && value, auto f) {
+        constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        std::vector<std::future<void>> tasks;
+        tasks.reserve(size);
+        // REFACTO: transform
+        for_each(csl_fwd(value), [&](auto && element){
+            tasks.push_back(
+                std::async(std::launch::async, f, csl_fwd(element))
+            );
+        });
+        // join by future destructor
+    }
+    void for_each(std::execution::parallel_unsequenced_policy&, concepts::tuple auto && value, auto f) {
+        for_each(std::execution::par, csl_fwd(value), csl_fwd(f));
+    }
+}
+#endif
 
 namespace csl::mp::inline type_traits {
     template <template <typename ...> typename trait, typename ... Ts>
