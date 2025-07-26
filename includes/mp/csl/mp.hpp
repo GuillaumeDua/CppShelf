@@ -1255,6 +1255,7 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 #pragma endregion
 
 // tuple algorithms functions
+// REFACTO: concepts::tuple -> tuple_like
 namespace csl::mp::inline functions {
 
     // QUESTION: primitive for
@@ -1290,6 +1291,35 @@ namespace csl::mp::inline functions {
     }
 
     // apply
+    namespace details::exposition_only {
+        template <std::size_t... indexes>
+        constexpr decltype(auto) apply(
+            auto && f,
+            concepts::tuple_like auto && value,
+            std::index_sequence<indexes...>
+        )
+        noexcept(std::is_nothrow_invocable_v<decltype(f), decltype(get<indexes>(csl_fwd(value)))...>)
+        requires std::invocable<decltype(f), decltype(get<indexes>(csl_fwd(value)))...>
+        {
+            return std::invoke(
+                csl_fwd(f),
+                get<indexes>(csl_fwd(value))...
+            );
+        }
+    }
+    constexpr decltype(auto) apply(auto && f, concepts::tuple_like auto && value)
+    noexcept(noexcept(
+        details::exposition_only::apply(
+            csl_fwd(f), csl_fwd(value),
+            std::make_index_sequence<tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
+        )
+    ))
+    {
+        return details::exposition_only::apply(
+            csl_fwd(f), csl_fwd(value),
+            std::make_index_sequence<tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
+        );
+    }
 
     template <concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
