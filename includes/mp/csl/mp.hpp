@@ -1256,7 +1256,7 @@ struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tup
 
 // tuple algorithms functions
 // REFACTO: concepts::tuple -> tuple_like
-namespace csl::mp::inline functions {
+namespace csl::mp::functions {
 
     // QUESTION: primitive for
     // auto ??? (concepts::tuple auto && value, auto f){
@@ -1291,7 +1291,7 @@ namespace csl::mp::inline functions {
     }
 
     // apply
-    namespace details::exposition_only {
+    namespace details::inline exposition_only {
         template <std::size_t... indexes>
         constexpr decltype(auto) apply(
             auto && f,
@@ -1321,6 +1321,24 @@ namespace csl::mp::inline functions {
         );
     }
 
+    // WIP: https://godbolt.org/z/95xGczhGE
+    // WIP: folder with operator overload -> handle heterogeneous result types
+    // WIP: size == 0
+    // WIP: size == 1
+    // WIP: non-mandatory init
+    constexpr auto fold_left(
+        concepts::tuple auto && value,
+        std::assignable_from<tuple_element_t<0, std::remove_cvref_t<decltype(value)>>> auto init,
+        auto f
+    )
+    requires concepts::homogeneous_tuple<std::remove_cvref_t<decltype(value)>>
+    {
+        for_each(csl_fwd(value), [&](auto && element){
+            ((init = std::invoke(f, init, csl_fwd(element))));
+        });
+        return init;
+    }
+
     template <concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
@@ -1338,12 +1356,18 @@ namespace csl::mp::inline functions {
     template <concepts::tuple T>
     [[nodiscard]] constexpr auto none_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
-        return all_of(value, std::not_fn(csl_fwd(p)));
+        // return all_of(value, std::not_fn(csl_fwd(p)));
+        return not all_of(value, csl_fwd(p));
     }
 
     // split
     // chunk_by: <N>, predicate
 }
+
+namespace csl::mp {
+    using namespace csl::mp::functions;
+}
+
 #if defined CSL_MP_TUPLE_EXPERIMENTALE
 #include <execution>
 #include <future>
