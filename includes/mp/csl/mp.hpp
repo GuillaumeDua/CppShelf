@@ -24,8 +24,7 @@
 #include <functional>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
-// deprecated by P2593R0 - Allowing static_assert(false)
-#define csl_static_dependent_error(message) static_assert([](){ return false; }(), message) // NOLINT(cppcoreguidelines-macro-usage)
+
 
 #if defined(__clang__)
 #   define csl_compiler_is_clang
@@ -50,6 +49,13 @@
 // TODO: range-like tuple ? operator[], size, empty, etc.
 //
 // TODO: decouple-from/remove std::index_sequence, std::make_sequence
+
+namespace csl::mp:: deprecated_by_P2593R0 {
+    template <typename ...>
+    struct [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]] dependent_false : std::false_type{};
+    template <typename ... Ts> // NOTE: for NTTP, use decltype(value)
+    constexpr static auto dependent_false_v = dependent_false<Ts...>::value;
+}
 
 // --- sequence ---
 
@@ -1321,7 +1327,7 @@ namespace csl::mp::functions {
         );
     }
 
-    // WIP: https://godbolt.org/z/95xGczhGE
+    // WIP: each sub-expression different result type https://godbolt.org/z/z1so3dqee
     // WIP: folder with operator overload -> handle heterogeneous result types
     // WIP: size == 0
     // WIP: size == 1
@@ -1422,7 +1428,7 @@ namespace csl::mp::inline type_traits {
 // -- OLD, to refactor
 // ===================
 
-#if false
+#if defined(CSL_MP__LEGACY) and CSL_MP__LEGACY
 
 namespace csl::mp {
     // pack
@@ -1853,7 +1859,6 @@ namespace csl::mp {
 #endif
 
 #undef csl_fwd
-#undef csl_static_dependent_error
 #undef csl_compiler_is_clang
 #undef csl_compiler_is_gcc
 #undef csl_compiler_is_msvc
