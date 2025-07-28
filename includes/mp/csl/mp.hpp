@@ -50,7 +50,8 @@
 //
 // TODO: decouple-from/remove std::index_sequence, std::make_sequence
 
-namespace csl::mp:: deprecated_by_P2593R0 {
+// deprecated by P2593R0 - Allowing static_assert(false)
+namespace csl::mp::inline deprecated_by_P2593R0 {
     template <typename ...>
     struct [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]] dependent_false : std::false_type{};
     template <typename ... Ts> // NOTE: for NTTP, use decltype(value)
@@ -275,6 +276,7 @@ namespace csl::mp::inline indexing {
         }
     }
 }
+
 #pragma region __detail::__synth3way_t
 // see https://en.cppreference.com/w/cpp/standard_library/synth-three-way
 namespace csl::mp::details::compare {
@@ -302,6 +304,7 @@ namespace csl::mp::details::compare {
 }
 #pragma endregion
 
+// tuple_storage
 namespace csl::mp::details {
 
     // Drop-in replacement for std::tuple:
@@ -312,12 +315,11 @@ namespace csl::mp::details {
         return static_cast<
             #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
                     and CSL_MP_TUPLE__IMPLICIT_CONVERSION
-            T
+                T
             #else
-            decltype(value)
+                decltype(value)
             #endif
-            >(value)
-        ;
+        >(value);
     }
 
     // Associate an index and a type with a value
@@ -446,6 +448,7 @@ namespace csl::mp::details {
     >
     using make_tuple_storage_t = typename make_tuple_storage<sequence_type, Ts...>::type;
 }
+// tuple: API traits
 namespace csl::mp {
 
     template <typename ... Ts>
@@ -472,6 +475,10 @@ namespace csl::mp {
     >{};
     template <typename tuple_type>
     constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
+
+    namespace details {
+        constexpr static std::size_t npos = static_cast<std::size_t>(-1);
+    }
 
     // tuple_common_reference
     template <
@@ -531,6 +538,8 @@ namespace csl::mp {
 //  __is_tuple_v is still a specialization for tuple, pair and array
 //
 // See https://eel.is/c++draft/meta.trans.other#1
+//
+// TODO(Guillaume) Make sure it does not clash with std::tuple when both <csl/mp.hpp> and <tuple> are included
 namespace std {
 
     template <
@@ -555,6 +564,7 @@ namespace std {
     {};
 }
 
+// tuple
 namespace csl::mp {
 
     template <typename ... Ts>
@@ -783,7 +793,9 @@ namespace csl::mp {
     //     }(std::make_index_sequence<sizeof...(Ts)>{});
     // }
 }
+// tuple: indexing deduction
 namespace csl::mp::details::concepts {
+
     // deductible: type
     template <typename tuple_type, typename T>
     concept can_deduce_by_type = is_tuple_v<tuple_type>
@@ -795,10 +807,8 @@ namespace csl::mp::details::concepts {
         and requires { std::void_t<typename tuple_type::storage_type::template by_index_<I>>(); }
     ;
 }
-namespace csl::mp::details {
-    constexpr static std::size_t npos = static_cast<std::size_t>(-1);
-}
 
+// tuple_element, convenient API
 // TODO(Guillaume): concepts::tuple<T> everywhere below ?
 namespace csl::mp {
 
@@ -827,6 +837,10 @@ namespace csl::mp {
     namespace concepts {
         template <typename T> concept valid_tuple = is_valid_tuple_v<T>;
     }
+}
+
+// mp algorithms
+namespace csl::mp {
 
     // is_homogeneous
     template <typename T>
@@ -1242,23 +1256,21 @@ namespace csl::mp {
     // forward_as_tuple
 }
 
-#pragma region std inter-operatiblity, structured binding
-
+// std inter-operatiblity, structured binding
 //  N4606 [namespace.std]/1 :
 //      A program may add a template specialization for any standard library template to namespace std
 //      only if the declaration depends on a user-defined type 
 //      and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-
 #include <utility> // std::tuple_size, std::tuple_element
-
+namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
 template <csl::mp::concepts::tuple tuple_type>
-struct std::tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
+struct tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
 
-template <std::size_t index, csl::mp::concepts::tuple tuple_type>
-struct std::tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
+template <size_t index, csl::mp::concepts::tuple tuple_type>
+struct tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
 // NOLINTEND(cert-dcl58-cpp)
-#pragma endregion
+}
 
 // tuple algorithms functions
 // REFACTO: concepts::tuple -> tuple_like
