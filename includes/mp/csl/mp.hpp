@@ -1222,8 +1222,6 @@ namespace csl::mp {
     //     [&](){}();
     // }
 
-    // apply
-
     // projection: column vs. row
     // column: projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
     //  project_by_index<0>(tuple_of_tuplelike) -> tuple{ int, int }
@@ -1272,9 +1270,9 @@ struct tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_ty
 // NOLINTEND(cert-dcl58-cpp)
 }
 
-// tuple algorithms functions
+// tuple algorithms
 // REFACTO: concepts::tuple -> tuple_like
-namespace csl::mp::functions {
+namespace csl::mp::algorithm {
 
     // QUESTION: primitive for
     // auto ??? (concepts::tuple auto && value, auto f){
@@ -1297,7 +1295,7 @@ namespace csl::mp::functions {
         return f;
     }
 
-    // QUESTION: what if f<indexes>(element) ?
+    // QUESTION: what for f<indexes>(element) ?
     auto for_each_enumerate(concepts::tuple auto && value, auto f){
         constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -1309,7 +1307,7 @@ namespace csl::mp::functions {
     }
 
     // apply
-    namespace details::inline exposition_only {
+    namespace details::exposition_only {
         template <std::size_t... indexes>
         constexpr decltype(auto) apply(
             auto && f,
@@ -1339,17 +1337,24 @@ namespace csl::mp::functions {
         );
     }
 
+    namespace concepts {
+        template <typename F, typename T>
+        concept can_apply = requires {
+            apply(std::declval<F>(), std::declval<T>());
+        };
+    }
+
     // WIP: each sub-expression different result type https://godbolt.org/z/z1so3dqee
     // WIP: folder with operator overload -> handle heterogeneous result types
     // WIP: size == 0
     // WIP: size == 1
     // WIP: non-mandatory init
     constexpr auto fold_left(
-        concepts::tuple auto && value,
+        csl::mp::concepts::tuple auto && value,
         std::assignable_from<tuple_element_t<0, std::remove_cvref_t<decltype(value)>>> auto init,
         auto f
     )
-    requires concepts::homogeneous_tuple<std::remove_cvref_t<decltype(value)>>
+    requires csl::mp::concepts::homogeneous_tuple<std::remove_cvref_t<decltype(value)>>
     {
         for_each(csl_fwd(value), [&](auto && element){
             ((init = std::invoke(f, init, csl_fwd(element))));
@@ -1357,21 +1362,21 @@ namespace csl::mp::functions {
         return init;
     }
 
-    template <concepts::tuple T>
+    template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
     }
-    template <concepts::tuple T>
+    template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto any_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (false or ... or std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
     }
-    template <concepts::tuple T>
+    template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto none_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
         // return all_of(value, std::not_fn(csl_fwd(p)));
@@ -1382,9 +1387,9 @@ namespace csl::mp::functions {
     // chunk_by: <N>, predicate
 }
 
-namespace csl::mp {
-    using namespace csl::mp::functions;
-}
+// namespace csl::mp {
+//     using namespace csl::mp::functions;
+// }
 
 #if defined CSL_MP_TUPLE_EXPERIMENTALE
 #include <execution>
