@@ -3,6 +3,10 @@
 - tuple_element_value: `decltype( get<I>(std::declval<T>()))`
   - which (if any) cvref-qualifier for T ? -> T&
 
+Check:
+
+- https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
+
 ## Test
 
 - Coverage

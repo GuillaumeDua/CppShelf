@@ -18,9 +18,9 @@ namespace test::tuples::algorithm::apply_ {
 
     void invoke(){
         auto value = tuple_type{};
-        static_assert(requires {csl::mp::algorithm::apply(f_lvalue, value); });
-        static_assert(requires {csl::mp::algorithm::apply(f_rvalue, std::move(value)); });
-        static_assert(requires {csl::mp::algorithm::apply(f_const_lvalue, std::as_const(value)); });
-        static_assert(requires {csl::mp::algorithm::apply(f_const_rvalue, static_cast<const tuple_type &&>(value)); });
+        static_assert(requires { csl::mp::algorithm::apply(f_lvalue, value); });
+        static_assert(requires { csl::mp::algorithm::apply(f_rvalue, std::move(value)); });
+        static_assert(requires { csl::mp::algorithm::apply(f_const_lvalue, std::as_const(value)); });
+        static_assert(requires { csl::mp::algorithm::apply(f_const_rvalue, static_cast<const tuple_type &&>(value)); });
     }
 }

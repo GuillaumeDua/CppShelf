@@ -1344,23 +1344,58 @@ namespace csl::mp::algorithm {
         };
     }
 
-    // WIP: each sub-expression different result type https://godbolt.org/z/z1so3dqee
+    #pragma region fold
+    // MVE: https://godbolt.org/z/z1so3dqee
     // WIP: folder with operator overload -> handle heterogeneous result types
     // WIP: size == 0
     // WIP: size == 1
     // WIP: non-mandatory init
-    constexpr auto fold_left(
-        csl::mp::concepts::tuple auto && value,
-        std::assignable_from<tuple_element_t<0, std::remove_cvref_t<decltype(value)>>> auto init,
-        auto f
-    )
-    requires csl::mp::concepts::homogeneous_tuple<std::remove_cvref_t<decltype(value)>>
-    {
-        for_each(csl_fwd(value), [&](auto && element){
-            ((init = std::invoke(f, init, csl_fwd(element))));
-        });
-        return init;
+
+    namespace details {
+        template <typename F, typename T>
+        struct folder {
+
+            F f;        // Q: consider const-lvalue-reference and make stateful ops invalid to users from the API perspective ?
+            T value;    // Q: requires T to be trivially movable ?
+
+            // left: f(f(f(f(init, x1), x2), ...), xn), where x1, x2, ..., xn are the tuple elements
+            template <typename U>
+            [[nodiscard]] friend constexpr auto operator<<(folder && lhs, folder<F, U> && rhs) -> decltype(auto) {
+                return details::folder{ lhs.f, std::invoke(lhs.f, rhs.value, lhs.value ) };
+            }
+            // right: f(x1, f(x2, ...f(xn, init))), where x1, x2, ..., xn are the tuple elements
+            template <typename U>
+            [[nodiscard]] friend constexpr auto operator>>(folder && lhs, folder<F, U> && rhs) -> decltype(auto) {
+                return details::folder{ lhs.f, std::invoke(lhs.f, lhs.value, rhs.value) };
+            }
+        };
+        template <typename F, typename T>
+        folder(F, T) -> folder<std::remove_cvref_t<F>, std::remove_cvref_t<T>>;
     }
+
+    // Q: consider std::ranges::fold_left/right if tuple-like is range/std::array
+
+    [[nodiscard]] constexpr auto fold_left(auto f, csl::mp::concepts::tuple_like auto && value, auto init)
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+            return (
+                details::folder{ f, get<indexes>(fwd(value)) }
+                << ...
+                << details::folder{ f, init }
+            ).value;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
+    }
+    [[nodiscard]] constexpr auto fold_right(auto f, csl::mp::concepts::tuple_like auto && value, auto init)
+    {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+            return (
+                details::folder{ f, init }
+                >> ...
+                >> details::folder{ f, get<indexes>(fwd(value)) }
+            ).value;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
+    }
+    #pragma endregion
 
     template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
