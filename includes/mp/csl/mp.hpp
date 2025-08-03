@@ -478,6 +478,14 @@ namespace csl::mp {
         template <typename T> concept tuple = is_tuple_v<std::remove_cvref_t<T>>;
     }
 
+    // REFACTO:
+    //  template <typename T>
+    //  struct size : std::tuple_size<std::remove_cvref_t<T>>{};
+    //
+    //  same for element -> std::tuple_element
+    //
+    // as it's already done for STL interops afterward
+
     // tuple_size
     template <typename>
     struct tuple_size;
@@ -1359,8 +1367,6 @@ namespace csl::mp::algorithm {
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
     // WIP: folder with operator overload -> handle heterogeneous result types
-    // WIP: size == 0
-    // WIP: size == 1
     // WIP: non-mandatory init ?
 
     namespace details {
@@ -1370,6 +1376,7 @@ namespace csl::mp::algorithm {
             F f;        // Q: consider const-lvalue-reference and make stateful ops invalid to users from the API perspective ?
             T value;    // Q: requires T to be trivially movable ?
 
+            // NOLINTBEGIN(*-not-moved)
             // left: f(f(f(f(init, x1), x2), ...), xn), where x1, x2, ..., xn are the tuple elements
             template <typename U>
             [[nodiscard]] friend constexpr auto operator<<(folder && lhs, folder<F, U> && rhs) -> decltype(auto) {
@@ -1380,19 +1387,15 @@ namespace csl::mp::algorithm {
             [[nodiscard]] friend constexpr auto operator>>(folder && lhs, folder<F, U> && rhs) -> decltype(auto) {
                 return details::folder{ lhs.f, std::invoke(lhs.f, lhs.value, rhs.value) };
             }
+            // NOLINTEND(*-not-moved)
         };
         template <typename F, typename T>
         folder(F, T) -> folder<std::remove_cvref_t<F>, std::remove_cvref_t<T>>;
     }
 
-    // Q: consider std::ranges::fold_left/right if tuple-like is range/std::array ?
-
-    // WIP: simplier concepts usage/synthax rather than std::remove_cvref_t everywhere
-
-    [[nodiscard]] constexpr auto fold_left(auto f, auto && value, auto init)
-    requires csl::mp::concepts::tuple_like<std::remove_cvref_t<decltype(value)>>
+    [[nodiscard]] constexpr auto fold_left(auto f, csl::mp::concepts::tuple_like auto && value, auto init)
     {
-        if constexpr (0 == tuple_size_v<std::remove_cvref_t<decltype(value)>>)
+        if constexpr (0 == std::tuple_size_v<std::remove_cvref_t<decltype(value)>>)
             return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             return (
@@ -1404,6 +1407,8 @@ namespace csl::mp::algorithm {
     }
     [[nodiscard]] constexpr auto fold_right(auto f, csl::mp::concepts::tuple_like auto && value, auto init)
     {
+        if constexpr (0 == std::tuple_size_v<std::remove_cvref_t<decltype(value)>>)
+            return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             return (
                 details::folder{ f, init }

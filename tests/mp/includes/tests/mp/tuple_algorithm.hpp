@@ -33,12 +33,24 @@ namespace test::tuples::algorithm::fold {
     static_assert(result == 15);
 
     static_assert(std::invocable<std::plus<void>, std::string, char>);
-    static_assert(std::invocable<std::plus<void>, char,        std::string>);
-    static_assert(std::invocable<std::plus<void>, std::string, std::string_view>);
+    static_assert(std::invocable<std::plus<void>, std::string, std::string>);
+    static_assert(std::invocable<std::plus<void>, std::string, const char *>);
+    #if __cpp_lib_string_view >= 202403
+    static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // requires C++26 - P2591
+    #endif
     
     static_assert(csl::mp::algorithm::fold_left(
         std::plus<void>{},
-        std::tuple{ 'a', std::string{ "hello, " }, std::string_view{ " pouet!" } },
+        std::tuple{
+            'a',
+            std::string{ "hello, " },
+            " pouet",
+        #if __cpp_lib_string_view >= 202403
+            std::string_view{ "!" }
+        #else
+            "!"
+        #endif
+        },
         std::string{}
     ).length() == 15);
 }
