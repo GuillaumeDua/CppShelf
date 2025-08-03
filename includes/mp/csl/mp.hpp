@@ -163,6 +163,7 @@ namespace csl::mp::seq {
 // --- tuple ---
 
 // P2165 - tuple-like
+//  https://en.cppreference.com/w/cpp/utility/tuple/tuple-like.html
 namespace csl::mp::concepts::inline P2165 {
 	template <typename T, std::size_t N>
     concept tuple_element =
@@ -187,6 +188,7 @@ namespace csl::mp::concepts::inline P2165 {
             typename std::tuple_size<T>::type;
             requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
         }
+        // QUICK-FIX: Clang >= 18.1.8 Same mangled name error
         and details::valid_tuple_elements_v<T>
         // and []<std::size_t... I>(std::index_sequence<I...>) constexpr {
         //     return (tuple_element<T, I> && ...);
@@ -1349,7 +1351,7 @@ namespace csl::mp::algorithm {
     // WIP: folder with operator overload -> handle heterogeneous result types
     // WIP: size == 0
     // WIP: size == 1
-    // WIP: non-mandatory init
+    // WIP: non-mandatory init ?
 
     namespace details {
         template <typename F, typename T>
@@ -1373,13 +1375,18 @@ namespace csl::mp::algorithm {
         folder(F, T) -> folder<std::remove_cvref_t<F>, std::remove_cvref_t<T>>;
     }
 
-    // Q: consider std::ranges::fold_left/right if tuple-like is range/std::array
+    // Q: consider std::ranges::fold_left/right if tuple-like is range/std::array ?
 
-    [[nodiscard]] constexpr auto fold_left(auto f, csl::mp::concepts::tuple_like auto && value, auto init)
+    // WIP: simplier concepts usage/synthax rather than std::remove_cvref_t everywhere
+
+    [[nodiscard]] constexpr auto fold_left(auto f, auto && value, auto init)
+    requires csl::mp::concepts::tuple_like<std::remove_cvref_t<decltype(value)>>
     {
+        if constexpr (0 == tuple_size_v<std::remove_cvref_t<decltype(value)>>)
+            return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             return (
-                details::folder{ f, get<indexes>(fwd(value)) }
+                details::folder{ f, get<indexes>(csl_fwd(value)) }
                 << ...
                 << details::folder{ f, init }
             ).value;
@@ -1391,7 +1398,7 @@ namespace csl::mp::algorithm {
             return (
                 details::folder{ f, init }
                 >> ...
-                >> details::folder{ f, get<indexes>(fwd(value)) }
+                >> details::folder{ f, get<indexes>(csl_fwd(value)) }
             ).value;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
     }
