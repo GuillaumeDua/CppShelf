@@ -164,7 +164,7 @@ namespace csl::mp::seq {
 
 // P2165 - tuple-like
 //  https://en.cppreference.com/w/cpp/utility/tuple/tuple-like.html
-namespace csl::mp::concepts::inline P2165 {
+namespace csl::mp::concepts::P2165 {
 	template <typename T, std::size_t N>
     concept tuple_element =
             requires { std::tuple_size<T>{}; }
@@ -196,6 +196,15 @@ namespace csl::mp::concepts::inline P2165 {
     ;
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
+}
+namespace csl::mp::concepts {
+	template <typename T, std::size_t N>
+    concept tuple_element = P2165::tuple_element<std::remove_cvref_t<T>, N>;
+
+    template <typename T>
+    concept tuple_like = P2165::tuple_like<std::remove_cvref_t<T>>;
+    template <typename T>
+    concept pair_like = P2165::pair_like<std::remove_cvref_t<T>>;
 }
 
 // P0887 - The identity metafunction
@@ -257,6 +266,7 @@ namespace csl::mp::inline P1450 {
 }
 
 namespace csl::mp::inline indexing {
+
     template <std::size_t N>
     struct index_t: std::integral_constant<std::size_t, N>{};
     template <std::size_t N>
