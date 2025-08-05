@@ -209,6 +209,7 @@ namespace csl::mp::concepts::P2165 {
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
 }
+
 namespace csl::mp::concepts {
 	template <typename T, std::size_t N>
     concept tuple_element = P2165::tuple_element<std::remove_cvref_t<T>, N>;
@@ -220,13 +221,13 @@ namespace csl::mp::concepts {
     concept pair_like = P2165::pair_like<std::remove_cvref_t<T>>;
 
     template <typename T>
-    concept tuple_empty = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == 0;
+    concept tuple_empty = tuple_like<T> and csl::mp::size_v<T> == 0;
     template <typename T>
     concept tuple_not_empty = tuple_like<T> and not tuple_empty<T>;
     template <typename T, std::size_t N>
-    concept tuple_sized = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == N;
+    concept tuple_sized = tuple_like<T> and csl::mp::size_v<T> == N;
     template <typename T, std::size_t N>
-    concept tuple_sized_at_least = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> >= N;
+    concept tuple_sized_at_least = tuple_like<T> and csl::mp::size_v<T> >= N;
 }
 
 // P0887 - The identity metafunction
@@ -502,7 +503,7 @@ namespace csl::mp {
 
     // REFACTO:
     //  template <typename T>
-    //  struct size : std::tuple_size<std::remove_cvref_t<T>>{};
+    //  struct size : csl::mp::size<std::remove_cvref_t<T>>{};
     //
     //  same for element -> std::tuple_element
     //
@@ -1301,7 +1302,7 @@ namespace csl::mp {
 //      A program may add a template specialization for any standard library template to namespace std
 //      only if the declaration depends on a user-defined type 
 //      and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-#include <utility> // std::tuple_size, std::tuple_element
+#include <utility> // csl::mp::size, std::tuple_element
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
 template <csl::mp::concepts::tuple tuple_type>
@@ -1417,7 +1418,7 @@ namespace csl::mp::algorithm {
 
     [[nodiscard]] constexpr auto fold_left(csl::mp::concepts::tuple_like auto && value, auto f, auto init)
     {
-        if constexpr (0 == std::tuple_size_v<std::remove_cvref_t<decltype(value)>>)
+        if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             return (
@@ -1425,11 +1426,11 @@ namespace csl::mp::algorithm {
                 << ...
                 << details::folder{ f, init }
             ).value;
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
+        }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }
     [[nodiscard]] constexpr auto fold_right(csl::mp::concepts::tuple_like auto && value, auto f, auto init)
     {
-        if constexpr (0 == std::tuple_size_v<std::remove_cvref_t<decltype(value)>>)
+        if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
             return (
@@ -1437,7 +1438,7 @@ namespace csl::mp::algorithm {
                 >> ...
                 >> details::folder{ f, get<indexes>(csl_fwd(value)) }
             ).value;
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
+        }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }
     #pragma endregion
 
@@ -1486,7 +1487,7 @@ namespace csl::mp::inline functions::experimentale {
     // most likely, a very bad idea ?
     // consider some thread with cooperative cancelation -> std::stop_token
     void for_each(std::execution::parallel_policy, concepts::tuple auto && value, auto f) {
-        constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        constexpr auto size = csl::mp::size_v<decltype(value)>;
         std::vector<std::future<void>> tasks;
         tasks.reserve(size);
         // REFACTO: transform
@@ -1685,7 +1686,7 @@ namespace csl::mp {
     // todo : no, use csl::mp instead
     //  need to define csl::Pack concept
     template <typename T>
-    concept TupleType = requires { std::tuple_size_v<T>; };
+    concept TupleType = requires { csl::mp::size_v<T>; };
 
     // get<index>
     template <std::size_t index, typename ... Ts>
