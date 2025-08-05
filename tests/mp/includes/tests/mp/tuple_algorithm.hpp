@@ -27,17 +27,17 @@ namespace test::tuples::algorithm::apply_ {
 // TODO: static_assert result type
 namespace test::tuples::algorithm::fold {
 
-    static_assert(csl::mp::algorithm::fold_left(std::plus<void>{}, std::tuple{},     0) == 0);
-    static_assert(csl::mp::algorithm::fold_left(std::plus<void>{}, csl::mp::tuple{}, 0) == 0);
+    static_assert(csl::mp::algorithm::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
+    static_assert(csl::mp::algorithm::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
 
     static_assert(csl::mp::algorithm::fold_left(
-        std::plus<void>{},
         std::array{ 0, 1, 2, 3, 4, 5 },
+        std::plus<void>{},
         int{}
     ) == 15);
     static_assert(csl::mp::algorithm::fold_right(
-        std::plus<void>{},
         std::array{ 0, 1, 2, 3, 4, 5 },
+        std::plus<void>{},
         int{}
     ) == 15);
 
@@ -50,23 +50,23 @@ namespace test::tuples::algorithm::fold {
     
     constexpr auto value = std::tuple{
             'a',
-            std::string{ "bcdefgh" },
-            "ijklmn",
+            std::string{ "bc" },
+            "de",
         #if __cpp_lib_string_view >= 202403
-            std::string_view{ "o" }
+            std::string_view{ "fg" }
         #else
-            "o"
+            "fg"
         #endif
     };
 
     static_assert(csl::mp::algorithm::fold_left(
-        std::plus<void>{},
         value,
+        std::plus<void>{},
         std::string{}
-    ) == "abcdefghijklmno");
+    ) == "abcdefg");
     static_assert(csl::mp::algorithm::fold_right(
-        std::plus<void>{},
         value,
+        std::plus<void>{},
         std::string{}
-    ) == "onmlkjihgfedcba");
+    ) == "fgdebca");
 }
