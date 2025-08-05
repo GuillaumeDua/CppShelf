@@ -162,6 +162,18 @@ namespace csl::mp::seq {
 
 // --- tuple ---
 
+namespace csl::mp {
+    // NOTE: std::remove_cv should be enough here, as the standard already removes const/volatile qualifiers
+    template <typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
+    template <typename T> constexpr auto size_v = size<T>::value;
+    template <std::size_t N, typename T> struct element : std::tuple_element<N, std::remove_cvref_t<T>>{};
+    template <std::size_t N, typename T> using element_t = element<N, T>::type;
+    template <std::size_t N, typename T> struct member : std::type_identity<decltype(
+        get<N>(std::declval<T>())
+    )>{};
+    template <std::size_t N, typename T> using member_t = member<N, T>::type;
+}
+
 // P2165 - tuple-like
 //  https://en.cppreference.com/w/cpp/utility/tuple/tuple-like.html
 namespace csl::mp::concepts::P2165 {
@@ -1377,7 +1389,7 @@ namespace csl::mp::algorithm {
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
     // WIP: folder with operator overload -> handle heterogeneous result types
-    // WIP: non-mandatory init ?
+    // WIP: non-mandatory init: split, head is init
 
     namespace details {
         template <typename F, typename T>
