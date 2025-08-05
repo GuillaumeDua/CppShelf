@@ -24,13 +24,22 @@ namespace test::tuples::algorithm::apply_ {
         static_assert(requires { csl::mp::algorithm::apply(f_const_rvalue, static_cast<const tuple_type &&>(value)); });
     }
 }
+// TODO: static_assert result type
 namespace test::tuples::algorithm::fold {
-    constexpr auto result = csl::mp::algorithm::fold_left(
+
+    static_assert(csl::mp::algorithm::fold_left(std::plus<void>{}, std::tuple{},     0) == 0);
+    static_assert(csl::mp::algorithm::fold_left(std::plus<void>{}, csl::mp::tuple{}, 0) == 0);
+
+    static_assert(csl::mp::algorithm::fold_left(
         std::plus<void>{},
         std::array{ 0, 1, 2, 3, 4, 5 },
         int{}
-    );
-    static_assert(result == 15);
+    ) == 15);
+    static_assert(csl::mp::algorithm::fold_right(
+        std::plus<void>{},
+        std::array{ 0, 1, 2, 3, 4, 5 },
+        int{}
+    ) == 15);
 
     static_assert(std::invocable<std::plus<void>, std::string, char>);
     static_assert(std::invocable<std::plus<void>, std::string, std::string>);
@@ -39,18 +48,25 @@ namespace test::tuples::algorithm::fold {
     static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // requires C++26 - P2591
     #endif
     
+    constexpr auto value = std::tuple{
+            'a',
+            std::string{ "bcdefgh" },
+            "ijklmn",
+        #if __cpp_lib_string_view >= 202403
+            std::string_view{ "o" }
+        #else
+            "o"
+        #endif
+    };
+
     static_assert(csl::mp::algorithm::fold_left(
         std::plus<void>{},
-        std::tuple{
-            'a',
-            std::string{ "hello, " },
-            " pouet",
-        #if __cpp_lib_string_view >= 202403
-            std::string_view{ "!" }
-        #else
-            "!"
-        #endif
-        },
+        value,
         std::string{}
-    ).length() == 15);
+    ) == "abcdefghijklmno");
+    static_assert(csl::mp::algorithm::fold_right(
+        std::plus<void>{},
+        value,
+        std::string{}
+    ) == "onmlkjihgfedcba");
 }

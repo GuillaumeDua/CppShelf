@@ -44,7 +44,7 @@
 //
 // WIP range-like API for sequence, tuple
 //  views: std::make_index_sequence<4> | reverse | drop(1) | take(2) => std::integer_sequence<std::size_t, 3, 2>
-//  ranges: fold, flatten, partition, split, etc.
+//  ranges: flatten, partition, split, etc.
 //
 // TODO: range-like tuple ? operator[], size, empty, etc.
 //
@@ -200,9 +200,15 @@ namespace csl::mp::concepts::P2165 {
 namespace csl::mp::concepts {
 	template <typename T, std::size_t N>
     concept tuple_element = P2165::tuple_element<std::remove_cvref_t<T>, N>;
-
+    // NOTE: as details::valid_tuple_elements is costly, could be refactored with a less restrictive check
+    //  empty or not_empty -> tuple_size and tuple_element<0, T> not the other elements
     template <typename T>
     concept tuple_like = P2165::tuple_like<std::remove_cvref_t<T>>;
+    template <typename T>
+    concept tuple_empty = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == 0;
+    template <typename T>
+    concept tuple_not_empty = tuple_like<T> and not tuple_empty<T>;
+
     template <typename T>
     concept pair_like = P2165::pair_like<std::remove_cvref_t<T>>;
 }
