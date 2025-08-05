@@ -7,7 +7,25 @@ namespace test::seq::is_sequence_ {
     using type = std::make_index_sequence<5>;
 
     static_assert(csl::mp::seq::is_sequence_v<type>);
+
     static_assert(csl::mp::seq::concepts::sequence<type>);
+    static_assert(csl::mp::seq::concepts::sequence<type &>);
+    static_assert(csl::mp::seq::concepts::sequence<type &&>);
+    static_assert(csl::mp::seq::concepts::sequence<const type &>);
+}
+
+namespace test::seq::size {
+    using type = std::make_index_sequence<5>;
+
+    static_assert(csl::mp::seq::size_v<type> == 5);
+    static_assert(csl::mp::seq::size_v<type> == type::size());
+    
+    static_assert(csl::mp::seq::concepts::empty<std::index_sequence<>>);
+    static_assert(not csl::mp::seq::concepts::empty<type>);
+    static_assert(csl::mp::seq::concepts::not_empty<type>);
+    static_assert(csl::mp::seq::concepts::sized<type, 5>);
+    static_assert(csl::mp::seq::concepts::sized_at_least<type, 4>);
+    static_assert(csl::mp::seq::concepts::sized_at_least<type, 5>);
 }
 
 namespace test::seq::reverse_::ordered_ {

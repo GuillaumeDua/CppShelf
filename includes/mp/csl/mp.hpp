@@ -73,7 +73,28 @@ namespace csl::mp::seq {
 
     namespace concepts {
         template <typename T>
-        concept sequence = is_sequence_v<T>;
+        concept sequence = is_sequence_v<std::remove_cvref_t<T>>;
+    }
+
+    // size | pref. seq::size()
+    template <typename T>
+    struct size;
+    template <typename T, T ... values>
+    struct size<std::integer_sequence<T, values...>>
+    : std::integral_constant<std::size_t, sizeof...(values)>
+    {};
+    template <typename T>
+    constexpr auto size_v = size<T>::value;
+
+    namespace concepts {
+        template <typename T>
+        concept empty = sequence<T> and std::remove_cvref_t<T>::size() == 0;
+        template <typename T>
+        concept not_empty = sequence<T> and std::remove_cvref_t<T>::size() not_eq 0;
+        template <typename T, std::size_t N>
+        concept sized = sequence<T> and std::remove_cvref_t<T>::size() == N;
+        template <typename T, std::size_t N>
+        concept sized_at_least = sequence<T> and std::remove_cvref_t<T>::size() >= N;
     }
 
     // to_tuplelike
@@ -91,14 +112,6 @@ namespace csl::mp::seq {
     using to_tuplelike_t = to_tuplelike<T>::type;
     template <typename T>
     constexpr static inline auto to_tuplelike_v = to_tuplelike<T>::value;
-
-    // size | pref. seq::size()
-    template <typename T>
-    struct size;
-    template <typename T, T ... values>
-    struct size<std::integer_sequence<T, values...>>
-    : std::integral_constant<std::size_t, sizeof...(values)>
-    {};
 
     // at<index>
     template <std::size_t, typename>
@@ -161,7 +174,7 @@ namespace csl::mp::seq {
 }
 
 // --- tuple ---
-
+#include <utility>
 namespace csl::mp {
     // NOTE: std::remove_cv should be enough here, as the standard already removes const/volatile qualifiers
     template <typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
