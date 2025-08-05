@@ -2,9 +2,60 @@
 #include <csl/mp.hpp>
 #include <cstdint>
 
+// STL tuplelikes
+#include <tuple>
+#include <array>
+#include <utility> // std::pair
+
 // NOLINTBEGIN(*-avoid-magic-numbers)
 
 // concepts
+namespace test::tuples::concepts::tuple_like {
+
+    static_assert(csl::mp::concepts::tuple_like<std::array<int, 2>>);
+    static_assert(csl::mp::concepts::tuple_like<std::pair<int, float>>);
+
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int> &>);
+    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, int> &&>);
+    static_assert(csl::mp::concepts::tuple_like<const csl::mp::tuple<int, float> &>);
+}
+namespace test::tuples::concepts::pair_like {
+
+    // std::array
+    static_assert(not csl::mp::concepts::pair_like<std::array<int, 1>>);
+    static_assert(csl::mp::concepts::pair_like<std::array<int, 2>>);
+    static_assert(not csl::mp::concepts::pair_like<std::array<int, 3>>);
+
+    // std::pair
+    static_assert(csl::mp::concepts::pair_like<std::pair<int, float>>);
+
+    // tuple
+    static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<>>);
+    static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<int>>);
+    static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, int>>);
+    static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, float>>);
+}
+namespace test::tuples::concepts::sized {
+
+    // empty
+    static_assert(csl::mp::concepts::tuple_empty<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::tuple_empty<std::tuple<>>);
+    static_assert(csl::mp::concepts::tuple_empty<std::array<int, 0>>);
+
+    // not_empty
+    static_assert(not csl::mp::concepts::tuple_empty<std::pair<int, char>>);
+    static_assert(csl::mp::concepts::tuple_not_empty<std::pair<int, char>>);
+    static_assert(not csl::mp::concepts::tuple_empty<std::tuple<int>>);
+    static_assert(csl::mp::concepts::tuple_not_empty<std::tuple<int>>);
+
+    // sized, at_least
+    static_assert(csl::mp::concepts::tuple_sized<csl::mp::tuple<>, 0>);
+    static_assert(csl::mp::concepts::tuple_sized<csl::mp::tuple<int>, 1>);
+    static_assert(csl::mp::concepts::tuple_sized_at_least<csl::mp::tuple<int>, 1>);
+    static_assert(not csl::mp::concepts::tuple_sized_at_least<csl::mp::tuple<int>, 2>);
+    static_assert(csl::mp::concepts::tuple_sized<std::pair<int, char>, 2>);
+}
 namespace test::tuples::concepts::tuple_element {
 
     // int
@@ -24,32 +75,6 @@ namespace test::tuples::concepts::tuple_element {
     static_assert(csl::mp::concepts::tuple_element<T, 0>);
     static_assert(csl::mp::concepts::tuple_element<T, 1>);
     static_assert(not csl::mp::concepts::tuple_element<T, 2>);
-}
-namespace test::tuples::concepts::tuple_like {
-
-    static_assert(csl::mp::concepts::tuple_like<std::array<int, 2>>);
-    static_assert(csl::mp::concepts::tuple_like<std::pair<int, float>>);
-
-    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<>>);
-    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int>>);
-    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, int>>);
-    static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, float>>);
-}
-namespace test::tuples::concepts::pair_like {
-
-    // std::array
-    static_assert(not csl::mp::concepts::pair_like<std::array<int, 1>>);
-    static_assert(csl::mp::concepts::pair_like<std::array<int, 2>>);
-    static_assert(not csl::mp::concepts::pair_like<std::array<int, 3>>);
-
-    // std::pair
-    static_assert(csl::mp::concepts::pair_like<std::pair<int, float>>);
-
-    // tuple
-    static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<>>);
-    static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<int>>);
-    static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, int>>);
-    static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, float>>);
 }
 
 // tuples: details::concepts
@@ -418,7 +443,6 @@ namespace test::tuples::get::cvref::consistency {
 }
 
 // std::tuple interface/inter-operatiblity
-#include <tuple>
 namespace test::tuples::std_interopterability::tuple_size {
     using valid_tuple = csl::mp::tuple<int, char>;
     using invalid_tuple = csl::mp::tuple<int, char, int>;

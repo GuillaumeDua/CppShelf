@@ -205,12 +205,16 @@ namespace csl::mp::concepts {
     template <typename T>
     concept tuple_like = P2165::tuple_like<std::remove_cvref_t<T>>;
     template <typename T>
+    concept pair_like = P2165::pair_like<std::remove_cvref_t<T>>;
+
+    template <typename T>
     concept tuple_empty = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == 0;
     template <typename T>
     concept tuple_not_empty = tuple_like<T> and not tuple_empty<T>;
-
-    template <typename T>
-    concept pair_like = P2165::pair_like<std::remove_cvref_t<T>>;
+    template <typename T, std::size_t N>
+    concept tuple_sized = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == N;
+    template <typename T, std::size_t N>
+    concept tuple_sized_at_least = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> >= N;
 }
 
 // P0887 - The identity metafunction
