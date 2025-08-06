@@ -175,16 +175,20 @@ namespace csl::mp::seq {
 
 // --- tuple ---
 #include <utility>
+// WIP: integration: reverse the logic
+//  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
 namespace csl::mp {
-    // NOTE: std::remove_cv should be enough here, as the standard already removes const/volatile qualifiers
+    // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
+
     template <typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
     template <typename T> constexpr auto size_v = size<T>::value;
     template <std::size_t N, typename T> struct element : std::tuple_element<N, std::remove_cvref_t<T>>{};
-    template <std::size_t N, typename T> using element_t = element<N, T>::type;
+    template <std::size_t N, typename T> using element_t = typename element<N, T>::type;
+    // [naming] (tuple_)element_value ?
     template <std::size_t N, typename T> struct member : std::type_identity<decltype(
         get<N>(std::declval<T>())
     )>{};
-    template <std::size_t N, typename T> using member_t = member<N, T>::type;
+    template <std::size_t N, typename T> using member_t = typename member<N, T>::type;
 }
 
 // P2165 - tuple-like
@@ -370,7 +374,7 @@ namespace csl::mp::details {
         >(value);
     }
 
-    // Associate an index and a type with a value
+    // Member storage: associates an index and/or a type with a value
     // - mp::index_t<I>         lookup by index
     // - mp::type_identity<T>   lookup by type
     template <std::size_t I, typename T>
@@ -404,7 +408,7 @@ namespace csl::mp::details {
     const T & tuple_member_value(const tuple_member<I, T> & te) noexcept { return te.value; }
     template <std::size_t I, typename T>
     [[nodiscard]] constexpr static
-    T && tuple_member_value(tuple_member<I, T> && te) noexcept { return static_cast<T&&>(te.value); }
+    T && tuple_member_value(tuple_member<I, T> && te) noexcept { return static_cast<T&&>(te.value); } // NOLINT(*-not-moved)
     template <std::size_t I, typename T>
     [[nodiscard]] constexpr static
     const T && tuple_member_value(const tuple_member<I, T> && te) noexcept { return static_cast<const T&&>(te.value); }
@@ -868,6 +872,7 @@ namespace csl::mp::details::concepts {
 // TODO(Guillaume): concepts::tuple<T> everywhere below ?
 namespace csl::mp {
 
+    // REFACTO: remove, just use std::tuple_element
     // type-by-index
     template <std::size_t, typename>
     struct tuple_element;
@@ -1315,12 +1320,12 @@ namespace csl::mp {
 //      A program may add a template specialization for any standard library template to namespace std
 //      only if the declaration depends on a user-defined type 
 //      and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
-#include <utility> // csl::mp::size, std::tuple_element
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
 template <csl::mp::concepts::tuple tuple_type>
 struct tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
 
+// REFACTO: plain inheritance, as already provided by https://en.cppreference.com/w/cpp/utility/tuple/tuple_element ?
 template <size_t index, csl::mp::concepts::tuple tuple_type>
 struct tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
 // NOLINTEND(cert-dcl58-cpp)

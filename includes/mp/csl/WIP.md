@@ -1,7 +1,7 @@
 # WIP
 
 - Remove all `tuple_` prefixes
-
+- trim off the excess: remote what useless after refacto
 - tuple_element_value: `decltype( get<I>(std::declval<T>()))`
   - which (if any) cvref-qualifier for T ? -> T&
 - make_from_tuple
@@ -13,6 +13,7 @@ Check:
 
 ## Test
 
+- Doxygen
 - Coverage
 - noexcept
   - construction
@@ -54,6 +55,7 @@ Check:
   - function -> get
   - type_trait -> type
 - all/any/none
+- split, chunk_by, extract
 - filter, filter_if
 - partition
 - fold_left, fold_right
