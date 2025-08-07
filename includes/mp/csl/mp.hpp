@@ -81,8 +81,8 @@ namespace csl::mp::concepts {
     // Limitation: universal template parameters (nttps, etc.)
     template <typename T, template <typename...> typename ttp>
     concept instance = requires {
-        []<typename ... Ts>(std::type_identity<ttp<Ts...>>){
-        }(std::type_identity<std::remove_cvref_t<T>>{});
+        []<typename ... Ts>(type_identity<ttp<Ts...>>){
+        }(type_identity<std::remove_cvref_t<T>>{});
     };
 }
 
@@ -157,7 +157,7 @@ namespace csl::mp::seq {
     template <typename T>
     struct reverse;
     template <concepts::sequence T>
-    struct reverse<T> : std::type_identity<
+    struct reverse<T> : type_identity<
         decltype(
             []<std::size_t ... indexes>(std::index_sequence<indexes...>){
                 return std::integer_sequence<
@@ -169,7 +169,7 @@ namespace csl::mp::seq {
         // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
     >{};
     // template <typename T, T ... values>
-    // struct reverse<std::integer_sequence<T, values...>> : std::type_identity<
+    // struct reverse<std::integer_sequence<T, values...>> : type_identity<
     //     decltype(
     //         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
     //             constexpr auto storage = std::array{ values... };
@@ -188,7 +188,7 @@ namespace csl::mp::seq {
 
     // value_type<sequence_type>
     template <typename T>
-    struct value_type : std::type_identity<typename T::value_type>{};
+    struct value_type : type_identity<typename T::value_type>{};
     template <typename T>
     using value_type_t = typename value_type<T>::type;
 
@@ -215,7 +215,7 @@ namespace csl::mp {
     template <std::size_t I, /*tuple-like*/ typename T> struct element : std::tuple_element<I, std::remove_cvref_t<T>>{};
     template <std::size_t I, /*tuple-like*/ typename T> using element_t = typename element<I, T>::type;
 
-    template <std::size_t I, /*tuple-like*/ typename T> struct member_value : std::type_identity<decltype(
+    template <std::size_t I, /*tuple-like*/ typename T> struct member_value : type_identity<decltype(
         get<I>(std::declval<T>())
     )>{};
     template <std::size_t I, /*tuple-like*/ typename T> using member_value_t = typename member_value<I, T>::type;
@@ -290,14 +290,14 @@ namespace csl::mp::inline P1450 {
     using copy_ref_t = typename copy_ref<from, to>::type;
 
     // P1450 - add cv - impl detail (also for ref-qualified types)
-    template <typename T> struct add_const : std::type_identity<const T>{};
-    template <typename T> struct add_const<T&> : std::type_identity<const T&>{};
-    template <typename T> struct add_const<T&&> : std::type_identity<const T&&>{};
+    template <typename T> struct add_const : type_identity<const T>{};
+    template <typename T> struct add_const<T&> : type_identity<const T&>{};
+    template <typename T> struct add_const<T&&> : type_identity<const T&&>{};
     template <typename T> using add_const_t = typename add_const<T>::type;
 
-    template <typename T> struct add_volatile : std::type_identity<volatile T>{};
-    template <typename T> struct add_volatile<T&> : std::type_identity<volatile T&>{};
-    template <typename T> struct add_volatile<T&&> : std::type_identity<volatile T&&>{};
+    template <typename T> struct add_volatile : type_identity<volatile T>{};
+    template <typename T> struct add_volatile<T&> : type_identity<volatile T&>{};
+    template <typename T> struct add_volatile<T&&> : type_identity<volatile T&&>{};
     template <typename T> using add_volatile_t  = typename add_volatile<T>::type;
 
     template <typename T> struct add_cv : add_const<typename add_volatile<T>::type>{};
@@ -1216,7 +1216,7 @@ namespace csl::mp {
     template <typename, typename>
     struct set_union;
     template <typename ... Ts, typename ... Us>
-    struct set_union<tuple<Ts...>, tuple<Us...>> : std::type_identity<
+    struct set_union<tuple<Ts...>, tuple<Us...>> : type_identity<
         decltype(tuple_cat(
             tuple<Ts...>{},
             std::conditional_t<
@@ -1233,7 +1233,7 @@ namespace csl::mp {
     template <typename, typename>
     struct set_intersection;
     template <typename ... Ts, typename ... Us>
-    struct set_intersection<tuple<Ts...>, tuple<Us...>> : std::type_identity<
+    struct set_intersection<tuple<Ts...>, tuple<Us...>> : type_identity<
         decltype(tuple_cat(
             std::conditional_t<
                 contains_v<Us, tuple<Ts...>>,
@@ -1629,7 +1629,7 @@ namespace csl::mp::details {
         // index-to-type mapping
         constexpr static element<I, T> deduce_type(std::integral_constant<std::size_t, I>);
         // type-to-index mapping
-        constexpr static element<I, T> deduce_index(std::type_identity<T>);
+        constexpr static element<I, T> deduce_index(type_identity<T>);
     };
 
     template <typename ... Ts>
@@ -1640,7 +1640,7 @@ namespace csl::mp::details {
         template <std::size_t I>
         using nth_ = decltype(deduce_type(std::integral_constant<std::size_t, I>{}));
         template <typename T>
-        using index_of_ = decltype(deduce_index(std::type_identity<T>{}));
+        using index_of_ = decltype(deduce_index(type_identity<T>{}));
     };
 
     template <typename ... Ts>
@@ -1670,7 +1670,7 @@ namespace csl::mp {
     template <typename>
     struct front;
     template <template <typename ...> typename pack, typename T, typename ... Ts>
-    struct front<pack<T, Ts...>> : std::type_identity<T>{};
+    struct front<pack<T, Ts...>> : type_identity<T>{};
     template <typename T>
     using front_t = typename front<T>::type;
 
@@ -1683,7 +1683,7 @@ namespace csl::mp {
     template <template <typename> typename filter_type, template <typename...> typename pack, typename ... Ts>
     requires requires { ((filter_type<Ts>::value) and ...); }
     struct filters<filter_type, pack<Ts...>>
-        : std::type_identity<decltype(std::tuple_cat(std::conditional_t< // todo : cat instead
+        : type_identity<decltype(std::tuple_cat(std::conditional_t< // todo : cat instead
             filter_type<Ts>::value,
             std::tuple<Ts>,
             std::tuple<>
@@ -1831,21 +1831,21 @@ namespace csl::mp {
         typename ... Ts,
         typename ... Us
     >
-    struct cat<pack<Ts...>, Us...> : std::type_identity<pack<Ts..., Us...>>{};
+    struct cat<pack<Ts...>, Us...> : type_identity<pack<Ts..., Us...>>{};
     template <
         template <typename...> typename pack,
         typename ... Ts,
         typename ... Us
     >
-    struct cat<pack<Ts...>, pack<Us...>> : std::type_identity<pack<Ts..., Us...>>{};
+    struct cat<pack<Ts...>, pack<Us...>> : type_identity<pack<Ts..., Us...>>{};
     template <typename pack, typename... ttps>
     using cat_t = cat<pack, ttps...>;
 
     // unfold_into
     template <template <typename...> typename destination, typename ... Ts>
-    struct unfold_into : std::type_identity<destination<Ts...>>{};
+    struct unfold_into : type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, template <typename...> typename from, typename ... Ts>
-    struct unfold_into<destination, from<Ts...>> : std::type_identity<destination<Ts...>>{};
+    struct unfold_into<destination, from<Ts...>> : type_identity<destination<Ts...>>{};
     template <template <typename...> typename destination, typename ... from>
     using unfold_into_t = typename unfold_into<destination, from...>::type;
 
@@ -1854,7 +1854,7 @@ namespace csl::mp {
     struct flat_cat;
     template <template <typename...> typename pack_type, typename ... Ts, typename ... rest>
     struct flat_cat<pack_type<Ts...>, rest...>
-    : std::type_identity<
+    : type_identity<
         unfold_into_t<pack_type, decltype(std::tuple_cat(
             std::tuple<Ts...>{},
             std::conditional_t<
@@ -1873,10 +1873,10 @@ namespace csl::mp {
     // flatten_once
     template <typename T>
     struct flatten_once
-    : std::type_identity<T>{};
+    : type_identity<T>{};
     template <template <typename ...> typename pack_type, typename ... Ts>
     struct flatten_once<pack_type<Ts...>>
-    : std::type_identity<
+    : type_identity<
         unfold_into_t<pack_type, decltype(std::tuple_cat(
             std::conditional_t<
                 is_instance_of_v<pack_type, Ts>,
@@ -1894,10 +1894,10 @@ namespace csl::mp {
     template <typename T>
     requires (std::same_as<T, flatten_once_t<T>>)
     struct flatten<T>
-    : std::type_identity<T>{};
+    : type_identity<T>{};
     template <typename T>
     struct flatten
-    : std::type_identity<typename flatten<flatten_once_t<T>>::type>{};
+    : type_identity<typename flatten<flatten_once_t<T>>::type>{};
     template <typename T>
     using flatten_t = typename flatten<T>::type;
 
@@ -1968,7 +1968,7 @@ namespace csl::mp {
     template <typename T, template <typename> typename trait>
     struct transform;
     template <typename ... Ts, template <typename> typename trait>
-    struct transform<pack<Ts...>, trait> : std::type_identity<pack<trait<Ts>...>>
+    struct transform<pack<Ts...>, trait> : type_identity<pack<trait<Ts>...>>
     {};
     template <typename T, template <typename> typename trait>
     using transform_t = typename transform<T, trait>::type;
