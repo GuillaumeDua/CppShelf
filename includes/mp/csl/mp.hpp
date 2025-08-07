@@ -1,4 +1,5 @@
 #pragma once
+
 // cpp shelf library : metaprogramming utility
 // under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
@@ -23,8 +24,7 @@
 #include <algorithm>
 #include <functional>
 
-#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
-
+#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
 #if defined(__clang__)
 #   define csl_compiler_is_clang
@@ -59,7 +59,6 @@ namespace csl::mp::inline deprecated_by_P2593R0 {
 }
 
 // --- sequence ---
-
 #include <array>
 namespace csl::mp::seq {
 
@@ -177,6 +176,8 @@ namespace csl::mp::seq {
 #include <utility>
 // WIP: integration: reverse the logic
 //  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
+//  - Need to check if worthy from performances perspective
+//    consider using https://github.com/JPenuchot/ctbench
 namespace csl::mp {
     // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
 
@@ -329,9 +330,8 @@ namespace csl::mp::inline indexing {
     }
 }
 
-#pragma region __detail::__synth3way_t
 // see https://en.cppreference.com/w/cpp/standard_library/synth-three-way
-namespace csl::mp::details::compare {
+namespace csl::mp::details::inline compare {
 
     constexpr auto synth_three_way = []<class T, class U>(const T& t, const U& u)
     requires requires
@@ -354,12 +354,11 @@ namespace csl::mp::details::compare {
     template <class T, class U = T>
     using synth_three_way_result = decltype(synth_three_way(std::declval<T&>(), std::declval<U&>()));
 }
-#pragma endregion
 
 // tuple_storage
 namespace csl::mp::details {
 
-    // Drop-in replacement for std::tuple:
+    // Drop-in replacement for std::tuple
     //  As <tuple> is -isystem, implicit casts do not produce warnings
     //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
     template <typename T>
@@ -375,8 +374,8 @@ namespace csl::mp::details {
     }
 
     // Member storage: associates an index and/or a type with a value
-    // - mp::index_t<I>         lookup by index
-    // - mp::type_identity<T>   lookup by type
+    // - mp::index_t<I>        : lookup by index
+    // - mp::type_identity<T>  : lookup by type
     template <std::size_t I, typename T>
     struct tuple_member {
         constexpr static std::size_t index = I;
@@ -384,6 +383,7 @@ namespace csl::mp::details {
 
         T value;
 
+        // TODO(Guillaume): Benchmark if worthy
         // index-to-type mapping
         constexpr static tuple_member<I, T> deduce_type(mp::index_t<I>) noexcept;
         // type-to-index mapping (repetitions: clashes are handled downstream)

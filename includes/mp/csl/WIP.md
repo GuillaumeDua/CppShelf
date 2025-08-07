@@ -10,6 +10,7 @@
 Check:
 
 - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
+  - T auto &&, &&&
 
 ## Test
 
@@ -37,6 +38,7 @@ Check:
   - Hard-code 0..8 storage, get
   - some quadtree-like composition ?
     - `tuple<Ts[1..8], Ts[9..10]>`
+- std::tuple_element already using inheritance
 
 ## Features
 
