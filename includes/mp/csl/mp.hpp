@@ -57,6 +57,16 @@ namespace csl::mp::inline deprecated_by_P2593R0 {
     template <typename ... Ts> // NOTE: for NTTP, use decltype(value)
     constexpr static auto dependent_false_v = dependent_false<Ts...>::value;
 }
+// P0887 - The identity metafunction
+namespace csl::mp::inline P0887 {
+#if defined(__cpp_lib_type_identity)
+    template <typename T>
+    using type_identity = typename std::type_identity<T>;
+#else
+    template <typename T>
+    struct type_identity{ using type = T; };
+#endif
+}
 
 namespace csl::mp::concepts::inline fake_p2481_alternative {
     // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
@@ -66,10 +76,11 @@ namespace csl::mp::concepts::inline fake_p2481_alternative {
             std::is_reference_v<T>
         and std::same_as<U, std::remove_cvref_t<T>>
     ;
-
+}
+namespace csl::mp::concepts {
     // Limitation: universal template parameters (nttps, etc.)
     template <typename T, template <typename...> typename ttp>
-    concept instance_of = requires {
+    concept instance = requires {
         []<typename ... Ts>(std::type_identity<ttp<Ts...>>){
         }(std::type_identity<std::remove_cvref_t<T>>{});
     };
@@ -175,18 +186,18 @@ namespace csl::mp::seq {
     template <std::size_t I>
     using make_reverse_index_sequence = reverse_t<std::make_index_sequence<I>>;
 
-    // type_of<values...>
-    template <auto value, auto ... values>
-    requires (std::is_same_v<decltype(value), decltype(values)> and ...)
-    struct type_of : std::type_identity<decltype(value)>{};
-    template <auto ... values>
-    using type_of_t = typename type_of<values...>::value;
-    
+    // value_type<sequence_type>
+    template <typename T>
+    struct value_type : std::type_identity<typename T::value_type>{};
+    template <typename T>
+    using value_type_t = typename value_type<T>::type;
+
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>
     constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
         return at_v<index, std::integer_sequence<T, values...>>;
     }
+    // QUESTION: tuplelike interface for integer_sequence ?
 }
 
 // --- tuple ---
@@ -264,17 +275,6 @@ namespace csl::mp::concepts {
     concept tuple_sized = tuple_like<T> and csl::mp::size_v<T> == N;
     template <typename T, std::size_t N>
     concept tuple_sized_at_least = tuple_like<T> and csl::mp::size_v<T> >= N;
-}
-
-// P0887 - The identity metafunction
-namespace csl::mp::inline P0887 {
-#if defined(__cpp_lib_type_identity)
-    template <typename T>
-    using type_identity = typename std::type_identity<T>;
-#else
-    template <typename T>
-    struct type_identity{ using type = T; };
-#endif
 }
 
 // P1450 - Enriching type modification traits https://github.com/cplusplus/papers/issues/216
@@ -425,8 +425,10 @@ namespace csl::mp::details {
         concept tuple_member = is_tuple_member_v<std::remove_cvref_t<T>>;
     }
 
+    // Limitation: csl::mp::concepts::instance nttps
+    //
     // [[nodiscard]] constexpr static
-    // auto tuple_member_value(/*constrained: instance_of<tuple_member>*/ auto && te) noexcept -> decltype(auto) {
+    // auto tuple_member_value(csl::mp::concepts::instance<tuple_member> auto && te) noexcept -> decltype(auto) {
     //     using result_type = copy_cvref_t<
     //         decltype(te),
     //         typename std::remove_cvref_t<decltype(te)>::type
