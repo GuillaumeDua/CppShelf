@@ -212,8 +212,8 @@ namespace csl::mp::seq {
 namespace csl::mp {
     // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
 
-    template <typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
-    template <typename T> constexpr auto size_v = size<T>::value;
+    template </*tuple-like*/ typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
+    template </*tuple-like*/ typename T> constexpr auto size_v = size<T>::value;
 
     template <std::size_t I, /*tuple-like*/ typename T> struct element : std::tuple_element<I, std::remove_cvref_t<T>>{};
     template <std::size_t I, /*tuple-like*/ typename T> using element_t = typename element<I, T>::type;
@@ -254,7 +254,7 @@ namespace csl::mp::concepts::P2165 {
         and details::valid_tuple_elements_v<T>
         // and []<std::size_t... I>(std::index_sequence<I...>) constexpr {
         //     return (tuple_element<T, I> && ...);
-        // }(std::make_index_sequence<std::tuple_size_v<T>>{})
+        // }(std::make_index_sequence<std::size_v<T>>{})
     ;
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
@@ -565,14 +565,14 @@ namespace csl::mp {
     // as it's already done for STL interops afterward
 
     // tuple_size
-    template <typename>
-    struct tuple_size;
-    template <typename ... Ts>
-    struct tuple_size<tuple<Ts...>> : std::integral_constant<
-        std::size_t, sizeof...(Ts)
-    >{};
-    template <typename tuple_type>
-    constexpr std::size_t tuple_size_v = tuple_size<tuple_type>::value;
+    // template <typename>
+    // struct tuple_size;
+    // template <typename ... Ts>
+    // struct tuple_size<tuple<Ts...>> : std::integral_constant<
+    //     std::size_t, sizeof...(Ts)
+    // >{};
+    // template <typename tuple_type>
+    // constexpr std::size_t size_v = tuple_size<tuple_type>::value;
 
     namespace details {
         constexpr static std::size_t npos = static_cast<std::size_t>(-1);
@@ -618,7 +618,7 @@ namespace csl::mp {
     requires (concepts::tuple<T> or concepts::tuple<U>)
     and std::same_as<T, std::remove_cvref_t<T>>
     and std::same_as<U, std::remove_cvref_t<U>>
-    and (tuple_size_v<T> == tuple_size_v<U>)
+    and (std::tuple_size_v<T> == std::tuple_size_v<U>)
     using tuple_common_reference_t = typename tuple_common_reference<
         T, U,
         TQual, UQual
@@ -1051,7 +1051,7 @@ namespace csl::mp {
     constexpr auto tuple_cat(/* TODO: tuplelike */ auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
-        constexpr auto size = (... + csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>);
+        constexpr auto size = (... + size_v<decltype(tuples)>);
 
         if constexpr (size == 0)
             return csl::mp::tuple<>{};
@@ -1099,7 +1099,7 @@ namespace csl::mp {
 
                 // create indexes for each tuple
                 ((create_indexes_for(std::make_index_sequence<
-                    csl::mp::tuple_size_v<std::remove_cvref_t<decltype(tuples)>>
+                    size_v<decltype(tuples)>
                 >{})), ...);
 
                 return mapped_indexes;
@@ -1181,7 +1181,7 @@ namespace csl::mp {
     struct rfirst_index_of;
     template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
     struct rfirst_index_of<T, tuple_type> : std::bool_constant<
-        tuple_size_v<tuple_type> - 1 - index_of_v<T, tuple_type>
+        size_v<tuple_type> - 1 - index_of_v<T, tuple_type>
     >{};
     template <typename T, typename ... Ts>
     requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
@@ -1300,7 +1300,7 @@ namespace csl::mp {
                 tuple<Ts>, tuple<>
             >...
         >{};
-    }(std::make_index_sequence<tuple_size_v<tuple<Ts...>>>{})){};
+    }(std::make_index_sequence<sizeof...(Ts)>{})){};
     template <concepts::tuple tuple_type>
     using deduplicate_t = typename deduplicate<tuple_type>::type;
 
@@ -1360,9 +1360,10 @@ namespace csl::mp {
 //      and the specialization meets the standard library requirements for the original template and is not explicitly prohibited.
 namespace std {
 // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
-template <csl::mp::concepts::tuple tuple_type>
-struct tuple_size<tuple_type> : csl::mp::tuple_size<tuple_type>{};
+template <typename ... Ts>
+struct tuple_size<csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
 
+// WIP
 // REFACTO: plain inheritance, as already provided by https://en.cppreference.com/w/cpp/utility/tuple/tuple_element ?
 template <size_t index, csl::mp::concepts::tuple tuple_type>
 struct tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
@@ -1375,7 +1376,7 @@ namespace csl::mp::algorithm {
 
     // QUESTION: primitive for
     // auto ??? (concepts::tuple auto && value, auto f){
-    //     constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+    //     constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
     //     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
     //         ((
     //             // arg<indexes...>(std::get<indexes>(csl_fwd(values))))
@@ -1383,9 +1384,10 @@ namespace csl::mp::algorithm {
     //     }(std::make_index_sequence<size>{});
     // }
 
+    // TODO(Guillaume) noexcept clauses
     // foreach
     auto for_each(concepts::tuple auto && value, auto f){
-        constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
                 std::invoke(f, std::get<indexes>(csl_fwd(value)))
@@ -1396,7 +1398,7 @@ namespace csl::mp::algorithm {
 
     // QUESTION: what for f<indexes>(element) ?
     auto for_each_enumerate(concepts::tuple auto && value, auto f){
-        constexpr auto size = csl::mp::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
                 std::invoke(f, indexes, std::get<indexes>(csl_fwd(value)))
@@ -1426,13 +1428,13 @@ namespace csl::mp::algorithm {
     noexcept(noexcept(
         details::exposition_only::apply(
             csl_fwd(f), csl_fwd(value),
-            std::make_index_sequence<tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
+            std::make_index_sequence<size_v<std::remove_cvref_t<decltype(value)>>>{}
         )
     ))
     {
         return details::exposition_only::apply(
             csl_fwd(f), csl_fwd(value),
-            std::make_index_sequence<tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
+            std::make_index_sequence<size_v<std::remove_cvref_t<decltype(value)>>>{}
         );
     }
 
@@ -1503,14 +1505,14 @@ namespace csl::mp::algorithm {
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::invoke(p, get<indexes>(value)));
-        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
+        }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
     template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto any_of(const T & value, std::predicate auto && p){
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (false or ... or std::invoke(p, get<indexes>(value)));
-        }(std::make_index_sequence<csl::mp::tuple_size_v<T>>{});
+        }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
     template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto none_of(const T & value, std::predicate auto && p){

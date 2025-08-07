@@ -101,12 +101,12 @@ namespace test::tuples::size {
     static_assert(2 == csl::mp::tuple<int, int>::size);
 }
 namespace test::tuples::size {
-    static_assert(0 == csl::mp::tuple_size_v<csl::mp::tuple<>>);
-    static_assert(1 == csl::mp::tuple_size_v<csl::mp::tuple<int>>);
-    static_assert(2 == csl::mp::tuple_size_v<csl::mp::tuple<int, char>>);
-    static_assert(3 == csl::mp::tuple_size_v<csl::mp::tuple<int, char, bool>>);
+    static_assert(0 == csl::mp::size_v<csl::mp::tuple<>>);
+    static_assert(1 == csl::mp::size_v<csl::mp::tuple<int>>);
+    static_assert(2 == csl::mp::size_v<csl::mp::tuple<int, char>>);
+    static_assert(3 == csl::mp::size_v<csl::mp::tuple<int, char, bool>>);
     // duplicates
-    static_assert(2 == csl::mp::tuple_size_v<csl::mp::tuple<int, int>>);
+    static_assert(2 == csl::mp::size_v<csl::mp::tuple<int, int>>);
 }
 namespace test::tuples::empty {
     static_assert(csl::mp::empty_v<csl::mp::tuple<>>);
