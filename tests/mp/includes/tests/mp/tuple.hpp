@@ -179,12 +179,12 @@ namespace test::tuples::compare::tuple {
             >,
             csl::mp::tuple<
                 std::common_reference_t<
-                    csl::mp::tuple_element_t<0, lhs_t>,
-                    csl::mp::tuple_element_t<0, rhs_t>
+                    std::tuple_element_t<0, lhs_t>,
+                    std::tuple_element_t<0, rhs_t>
                 >,
                 std::common_reference_t<
-                    csl::mp::tuple_element_t<1, lhs_t>,
-                    csl::mp::tuple_element_t<1, rhs_t>
+                    std::tuple_element_t<1, lhs_t>,
+                    std::tuple_element_t<1, rhs_t>
                 >
             >
         >);
@@ -408,7 +408,7 @@ namespace test::tuples::get {
 }
 namespace test::tuples::get::cvref {
 
-    using tuple_element_t = csl::mp::tuple_element_t<0, type>;
+    using tuple_element_t = csl::mp::element_t<0, type>;
 
     using expecting_lvalue = decltype(std::declval<type &>().get<0>());
     static_assert(std::same_as<tuple_element_t &, expecting_lvalue>);

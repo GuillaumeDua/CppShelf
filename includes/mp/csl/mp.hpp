@@ -713,7 +713,7 @@ namespace csl::mp {
         and (true and ... and std::is_assignable_v<Ts, Us&&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-                return ((get<indexes>() = csl_fwd(other).template get<indexes>()), ...);
+                return ((get<indexes>() = std::move(other).template get<indexes>()), ...);
             }(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }
@@ -761,7 +761,7 @@ namespace csl::mp {
         requires 
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::constructible_from<Ts, Us&&>)
-        : storage{ std::move(other.storage) }
+        : storage{ std::move(std::move(other).storage) }
         {}
         // Constructor: converting copy
         template <typename ... Us>
@@ -862,10 +862,8 @@ namespace csl::mp {
     #pragma endregion
     #pragma endregion
 
-    // WIP ...
-
-    // storage accessors
-        // WIP: use tuple_member_value ?
+    // QUESTION: storage accessors
+        // use tuple_member_value ?
         // get/at/operator[] -> cvref qualifiers matrix
         // - index
         // index_of<T>
@@ -910,17 +908,8 @@ namespace csl::mp::details::concepts {
 // TODO(Guillaume): concepts::tuple<T> everywhere below ?
 namespace csl::mp {
 
-    // REFACTO: remove, just use std::tuple_element
-    // type-by-index
-    template <std::size_t, typename>
-    struct tuple_element;
-    template <std::size_t index, typename ... Ts>
-    struct tuple_element<index, tuple<Ts...>> : tuple<Ts...>::storage_type::template by_index_<index>{};
-    template <std::size_t index, concepts::tuple tuple_type>
-    using tuple_element_t = typename tuple_element<index, tuple_type>::type;
-
     template <std::size_t index, concepts::tuple T>
-    using nth = tuple_element_t<index, T>;
+    using nth = std::tuple_element_t<index, T>;
 
     // is_valid_tuple
     template <typename>
@@ -1109,9 +1098,9 @@ namespace csl::mp {
             return []<std::size_t ... indexes>(tuple_of_tuples_t && tuple_of_tuples, std::index_sequence<indexes...>){
 
                 using type = csl::mp::tuple<
-                    csl::mp::tuple_element_t<
+                    element_t<
                         indexes_map.element_index[indexes],
-                        std::remove_cvref_t<csl::mp::tuple_element_t<
+                        std::remove_cvref_t<element_t<
                             indexes_map.tuple_index[indexes],
                             tuple_of_tuples_t
                         >>
@@ -1337,12 +1326,6 @@ namespace csl::mp {
 // tuple: API
 namespace csl::mp {
 
-    // size
-    // - tuple<...>::size
-    // - tuple_size
-
-    // tuple_element
-
     template <std::size_t index>
     [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
         return csl_fwd(value).template get<index>();
@@ -1350,6 +1333,7 @@ namespace csl::mp {
     // WIP
 
     // make_tuple
+
     // forward_as_tuple
 }
 
@@ -1363,10 +1347,10 @@ namespace std {
 template <typename ... Ts>
 struct tuple_size<csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)>{};
 
-// WIP
-// REFACTO: plain inheritance, as already provided by https://en.cppreference.com/w/cpp/utility/tuple/tuple_element ?
-template <size_t index, csl::mp::concepts::tuple tuple_type>
-struct tuple_element<index, tuple_type> : csl::mp::tuple_element<index, tuple_type>{};
+// QUESTION: perfs vs. plain recursive inheritance,
+//  as already provided by https://en.cppreference.com/w/cpp/utility/tuple/tuple_element ?
+template <size_t index, typename ... Ts>
+struct tuple_element<index, csl::mp::tuple<Ts...>> : csl::mp::tuple<Ts...>::storage_type::template by_index_<index>{};
 // NOLINTEND(cert-dcl58-cpp)
 }
 
