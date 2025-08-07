@@ -12,9 +12,13 @@ Check:
 - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
   - T auto &&, &&&
 
+## Documentation
+
+- README
+- Doxygen
+
 ## Test
 
-- Doxygen
 - Coverage
 - noexcept
   - construction

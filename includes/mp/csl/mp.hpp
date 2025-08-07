@@ -58,6 +58,23 @@ namespace csl::mp::inline deprecated_by_P2593R0 {
     constexpr static auto dependent_false_v = dependent_false<Ts...>::value;
 }
 
+namespace csl::mp::concepts::inline fake_p2481_alternative {
+    // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
+    //  rather than T auto && or auto &&&, this will do the job for now
+    template <typename T, typename U>
+    concept fwd_ref =
+            std::is_reference_v<T>
+        and std::same_as<U, std::remove_cvref_t<T>>
+    ;
+
+    // Limitation: universal template parameters (nttps, etc.)
+    template <typename T, template <typename...> typename ttp>
+    concept instance_of = requires {
+        []<typename ... Ts>(std::type_identity<ttp<Ts...>>){
+        }(std::type_identity<std::remove_cvref_t<T>>{});
+    };
+}
+
 // --- sequence ---
 #include <array>
 namespace csl::mp::seq {
@@ -177,19 +194,20 @@ namespace csl::mp::seq {
 // WIP: integration: reverse the logic
 //  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
 //  - Need to check if worthy from performances perspective
-//    consider using https://github.com/JPenuchot/ctbench
+//    consider using https://github.com/JPenuchot/ctbench, and https://build-bench.com
 namespace csl::mp {
     // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
 
     template <typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
     template <typename T> constexpr auto size_v = size<T>::value;
-    template <std::size_t N, typename T> struct element : std::tuple_element<N, std::remove_cvref_t<T>>{};
-    template <std::size_t N, typename T> using element_t = typename element<N, T>::type;
-    // [naming] (tuple_)element_value ?
-    template <std::size_t N, typename T> struct member : std::type_identity<decltype(
-        get<N>(std::declval<T>())
+
+    template <std::size_t I, /*tuple-like*/ typename T> struct element : std::tuple_element<I, std::remove_cvref_t<T>>{};
+    template <std::size_t I, /*tuple-like*/ typename T> using element_t = typename element<I, T>::type;
+
+    template <std::size_t I, /*tuple-like*/ typename T> struct member_value : std::type_identity<decltype(
+        get<I>(std::declval<T>())
     )>{};
-    template <std::size_t N, typename T> using member_t = typename member<N, T>::type;
+    template <std::size_t I, /*tuple-like*/ typename T> using member_value_t = typename member_value<I, T>::type;
 }
 
 // P2165 - tuple-like
@@ -378,7 +396,8 @@ namespace csl::mp::details {
     // - mp::type_identity<T>  : lookup by type
     template <std::size_t I, typename T>
     struct tuple_member {
-        constexpr static std::size_t index = I;
+
+        constexpr static auto index = I;
         using type = T;
 
         T value;
@@ -390,7 +409,21 @@ namespace csl::mp::details {
         constexpr static tuple_member<I, T> deduce_index(mp::type_identity<T>) noexcept;
     };
     template <std::size_t I, typename T>
-    constexpr static auto tuple_element_index = tuple_member<I, T>::index;
+    constexpr static auto tuple_member_index = tuple_member<I, T>::index;
+    template <std::size_t I, typename T>
+    using tuple_member_type = typename tuple_member<I, T>::type;
+
+    template <typename T>
+    struct is_tuple_member : std::false_type{};
+    template <std::size_t I, typename T>
+    struct is_tuple_member<tuple_member<I, T>> : std::true_type{};
+    template <typename T>
+    constexpr static auto is_tuple_member_v = is_tuple_member<T>::value;
+
+    namespace concepts {
+        template <typename T>
+        concept tuple_member = is_tuple_member_v<std::remove_cvref_t<T>>;
+    }
 
     // [[nodiscard]] constexpr static
     // auto tuple_member_value(/*constrained: instance_of<tuple_member>*/ auto && te) noexcept -> decltype(auto) {
