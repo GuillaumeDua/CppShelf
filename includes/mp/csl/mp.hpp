@@ -85,6 +85,15 @@ namespace csl::mp::concepts {
         }(type_identity<std::remove_cvref_t<T>>{});
     };
 }
+namespace csl::mp {
+    // value_type<sequence_type>
+    template <typename T>
+    struct value_type : type_identity<typename T::value_type>{};
+    template <typename T, std::size_t N>
+    struct value_type<T[N]>: type_identity<T>{}; // NOLINT(*-c-arrays)
+    template <typename T>
+    using value_type_t = typename value_type<T>::type;
+}
 
 // --- sequence ---
 #include <array>
@@ -185,12 +194,6 @@ namespace csl::mp::seq {
     using reverse_t = reverse<T>::type;
     template <std::size_t I>
     using make_reverse_index_sequence = reverse_t<std::make_index_sequence<I>>;
-
-    // value_type<sequence_type>
-    template <typename T>
-    struct value_type : type_identity<typename T::value_type>{};
-    template <typename T>
-    using value_type_t = typename value_type<T>::type;
 
     // get<index>(seq)
     template <std::size_t index, typename T, T ... values>
