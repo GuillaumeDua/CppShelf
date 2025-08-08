@@ -50,7 +50,7 @@ Check:
   - compare
   - conversion from/to std::tuple ? tuplelikes ?
     - make_from, convert_to ?
-- foreach
+- for_each, `| indexed` ?
 - apply
 - make_from
 

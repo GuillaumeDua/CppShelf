@@ -1,12 +1,39 @@
 #pragma once
 
-// cpp shelf library : metaprogramming utility
-// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
-// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
+// [Cpp Shelf Library] mp - metaprogramming utility
+// under MIT License - Copyright (c) 2021-2025 Guillaume Dua
+// see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 // About [tuple]:
 //  A given tuple T is considered valid if csl::mp::concepts::tuple<T> evaluates to true (csl::mp::is_tuple is std::true_type), and contains no duplicates.
 //  If a given tuple type T instanciation is not valid, less performant algorithms may be selected to provide similar functionalities, as a best-effort.
+
+// About [conversion]: using [csl::mp::tuple] as a drop-in replacement for [std::tuple]
+//  As <tuple> is -isystem, implicit members conversions do not produce warnings
+//  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off,
+//  if two values are allowed:
+//
+//  - SAFE   : let the compiler warn/error narrowing conversions
+//  - UNSAFE : drop-in replacement for [std::tuple], silent all conversions
+//
+//  Given two different [tuple] instance T1 and T2
+//  - std::common_reference_t<T1, T2>
+//  - std::equality_comparable_with<T1, T2>
+//  - std::three_way_comparable_with<T1, T2>
+//  - Any construction of T1 from a possibly-cvref-qualified T2 value
+
+#if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+# define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
+#elif (CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq DISABLED \
+   and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq SAFE     \
+   and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq UNSAFE)
+# define XSTRINGIFY(x) #x
+# define STRINGIFY(x)  XSTRINGIFY(x)
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION TOTO
+# error "PP-options: Unknown value for CSL_MP_TUPLE__IMPLICIT_CONVERSION" CSL_MP_TUPLE__IMPLICIT_CONVERSION
+# undef STRINGIFY
+# undef XSTRINGIFY
+#endif
 
 // About [algorithms]:
 //  All algorithms are partitioned in two groups:
@@ -380,13 +407,12 @@ namespace csl::mp::details::inline compare {
 namespace csl::mp::details {
 
     // Drop-in replacement for std::tuple
-    //  As <tuple> is -isystem, implicit casts do not produce warnings
+    //  As <tuple> is -isystem, implicit members conversions do not produce warnings
     //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
     template <typename T>
     [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) {
         return static_cast<
-            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
-                    and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+            #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
                 T
             #else
                 decltype(value)
@@ -638,29 +664,26 @@ namespace csl::mp {
 // See https://eel.is/c++draft/meta.trans.other#1
 //
 // TODO(Guillaume) Make sure it does not clash with std::tuple when both <csl/mp.hpp> and <tuple> are included
-namespace std {
-
-    template <
-        typename ... Ts,
-        typename ... Us,
-        template <typename> class TQual,
-        template <typename> class UQual
-    >
-    requires
-        (sizeof...(Ts) == sizeof...(Us))
-    and (true and ... and common_reference_with<Ts, Us>)
-    struct basic_common_reference< // NOLINT(cert-dcl58-cpp)
-        csl::mp::tuple<Ts...>,
-        csl::mp::tuple<Us...>,
-        TQual, UQual
-    >
-    : csl::mp::tuple_common_reference<
-        csl::mp::tuple<Ts...>,
-        csl::mp::tuple<Us...>,
-        TQual, UQual
-    >
-    {};
-}
+template <
+    typename ... Ts,
+    typename ... Us,
+    template <typename> class TQual,
+    template <typename> class UQual
+>
+requires
+    (sizeof...(Ts) == sizeof...(Us))
+and (true and ... and std::common_reference_with<Ts, Us>)
+struct std::basic_common_reference< // NOLINT(cert-dcl58-cpp)
+    csl::mp::tuple<Ts...>,
+    csl::mp::tuple<Us...>,
+    TQual, UQual
+>
+: csl::mp::tuple_common_reference<
+    csl::mp::tuple<Ts...>,
+    csl::mp::tuple<Us...>,
+    TQual, UQual
+>
+{};
 
 // tuple
 namespace csl::mp {
@@ -668,8 +691,6 @@ namespace csl::mp {
     template <typename ... Ts>
     struct tuple
     {
-        template <typename ... Us> friend struct tuple;
-
         using type = tuple<Ts...>;
         constexpr static auto size = sizeof...(Ts);
         using storage_type = details::make_tuple_storage_t<std::make_index_sequence<size>, Ts...>;
@@ -745,7 +766,7 @@ namespace csl::mp {
         // Constructor: converting (values...)
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
-        tuple(Us && ... args)
+        tuple(Us && ... args) // NOLINT(*-forward)
         noexcept((std::is_nothrow_constructible_v<Ts, Us&&> and ...))
         requires
             (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
@@ -753,6 +774,11 @@ namespace csl::mp {
         and (std::constructible_from<Ts, Us&&> and ...)
         : storage{ csl_fwd(args)... }
         {}
+
+        // Converting constructors: unsafe use are handled by the compiler
+        #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
+        template <typename ...> friend struct tuple;
+
         // Constructor: converting move
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
@@ -771,6 +797,7 @@ namespace csl::mp {
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ other.storage }
         {}
+        #endif
         // NOLINTEND(*explicit-constructor)
 
         // compare

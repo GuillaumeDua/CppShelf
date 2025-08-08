@@ -164,84 +164,96 @@ namespace testi::tuples::is_valid_tuple {
 }
 namespace test::tuples::compare::tuple {
 
+    template <
+        csl::mp::concepts::tuple_like lhs_t,
+        csl::mp::concepts::tuple_like rhs_t
+    >
+    struct impl {
+        constexpr static void common_reference() {
+
+            static_assert(requires{ std::common_reference_t<lhs_t>{}; });
+            static_assert(requires{ std::common_reference_t<rhs_t>{}; });
+
+            static_assert(std::same_as<
+                csl::mp::tuple_common_reference_t<
+                    lhs_t, rhs_t,
+                    std::type_identity_t, std::type_identity_t
+                >,
+                csl::mp::tuple<
+                    std::common_reference_t<
+                        std::tuple_element_t<0, lhs_t>,
+                        std::tuple_element_t<0, rhs_t>
+                    >,
+                    std::common_reference_t<
+                        std::tuple_element_t<1, lhs_t>,
+                        std::tuple_element_t<1, rhs_t>
+                    >
+                >
+            >);
+
+            static_assert(
+                requires {
+                    typename csl::mp::tuple_common_reference_t<
+                        lhs_t, rhs_t,
+                        std::type_identity_t,
+                        std::type_identity_t
+                    >;
+                }
+            );
+
+            static_assert(std::common_reference_with<
+                lhs_t, rhs_t
+            >);
+        }
+
+        constexpr static void equality() {
+            static_assert(std::equality_comparable<lhs_t>);
+            static_assert(std::equality_comparable<rhs_t>);
+            static_assert(requires{
+                lhs_t{} == rhs_t{};
+            });
+
+            static_assert(lhs_t{} == lhs_t{});
+            static_assert(lhs_t{ {}, {} } == lhs_t{ {}, {} });
+            static_assert(lhs_t{ {}, 'a' } != lhs_t{ 1.F, 'a'});
+            static_assert(lhs_t{ 42, {}  } != lhs_t{ 42.F, 'a'});
+
+            // NOTE: C++23
+            static_assert(std::equality_comparable_with<
+                lhs_t, rhs_t
+            >);
+
+            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+                    and CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+            [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
+            static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
+            static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
+            static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
+            #endif
+        }
+
+        constexpr static void three_way() {
+            static_assert(std::three_way_comparable<lhs_t>);
+            static_assert(std::three_way_comparable<rhs_t>);
+            static_assert(requires{
+                lhs_t{} <=> rhs_t{};
+            });
+            static_assert(std::three_way_comparable_with<
+                lhs_t, rhs_t
+            >);
+            static_assert(lhs_t{ 0.F, {} } < rhs_t{1.F, {} });
+            static_assert(lhs_t{ 0.F, {} } < rhs_t{0.F, 1});
+        }
+    };
+
     using lhs_t = csl::mp::tuple<float, char>;
     using rhs_t = csl::mp::tuple<double, int>;
 
-    namespace common_reference {
-
-        static_assert(requires{ std::common_reference_t<lhs_t>{}; });
-        static_assert(requires{ std::common_reference_t<rhs_t>{}; });
-
-        static_assert(std::same_as<
-            csl::mp::tuple_common_reference_t<
-                lhs_t, rhs_t,
-                std::type_identity_t, std::type_identity_t
-            >,
-            csl::mp::tuple<
-                std::common_reference_t<
-                    std::tuple_element_t<0, lhs_t>,
-                    std::tuple_element_t<0, rhs_t>
-                >,
-                std::common_reference_t<
-                    std::tuple_element_t<1, lhs_t>,
-                    std::tuple_element_t<1, rhs_t>
-                >
-            >
-        >);
-
-        static_assert(
-            requires {
-                typename csl::mp::tuple_common_reference_t<
-                    lhs_t, rhs_t,
-                    std::type_identity_t,
-                    std::type_identity_t
-                >;
-            }
-        );
-
-        static_assert(std::common_reference_with<
-            lhs_t, rhs_t
-        >);
-    }
-
-    namespace equality {
-        static_assert(std::equality_comparable<lhs_t>);
-        static_assert(std::equality_comparable<rhs_t>);
-        static_assert(requires{
-            lhs_t{} == rhs_t{};
-        });
-
-        static_assert(lhs_t{} == lhs_t{});
-        static_assert(lhs_t{ {}, {} } == lhs_t{ {}, {} });
-        static_assert(lhs_t{ {}, 'a' } != lhs_t{ 1.F, 'a'});
-        static_assert(lhs_t{ 42, {}  } != lhs_t{ 42.F, 'a'});
-
-        // NOTE: C++23
-        static_assert(std::equality_comparable_with<
-            lhs_t, rhs_t
-        >);
-
-        #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
-            and CSL_MP_TUPLE__IMPLICIT_CONVERSION
-        [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
-        static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
-        static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
-        static_assert(lhs_t{ 42, {}  } != lhs_t{ 42, 'a'});
-        #endif
-    }
-
-    namespace three_way {
-        static_assert(std::three_way_comparable<lhs_t>);
-        static_assert(std::three_way_comparable<rhs_t>);
-        static_assert(requires{
-            lhs_t{} <=> rhs_t{};
-        });
-        static_assert(std::three_way_comparable_with<
-            lhs_t, rhs_t
-        >);
-        static_assert(lhs_t{ 0.F, {} } < rhs_t{1.F, {} });
-        static_assert(lhs_t{ 0.F, {} } < rhs_t{0.F, 1});
-    }
+    using symetrical_ok  = impl<lhs_t, lhs_t>;
+    // #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+    //             and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    using asymetrical_ok = impl<lhs_t, lhs_t>;
+    // #endif
 }
 namespace test::tuples::compare::tuplelikes {
     // TODO(Guillaume)
@@ -380,14 +392,17 @@ namespace test::tuples::storage::constructors::move {
 }
 namespace test::tuples::storage::constructors::convertion {
     #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
-            and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+            and CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 d = csl::mp::tuple<std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   e = csl::mp::tuple<std::int8_t, std::int8_t>{};
+    [[maybe_unused]] constexpr csl::mp::tuple<double>                       f { float{} };
+    #endif
+    #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+            and CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .0 , 0 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .0F };
     [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };
     #endif
-    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 d = csl::mp::tuple<std::int8_t>{};
-    [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   e = csl::mp::tuple<std::int8_t, std::int8_t>{};
-    [[maybe_unused]] constexpr csl::mp::tuple<double>                       f { float{} };
 }
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<
