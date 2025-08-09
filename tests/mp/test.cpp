@@ -4,7 +4,7 @@
 # undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
 #endif
 #include <csl/mp.hpp>
-#if not CSL_MP_TUPLE__IMPLICIT_CONVERSION == DISABLED
+#if not CSL_MP_TUPLE__IMPLICIT_CONVERSION == NONE
 # error "[Test] csl::ag : expect CSL_MP_TUPLE__IMPLICIT_CONVERSION=OFF"
 #endif
 

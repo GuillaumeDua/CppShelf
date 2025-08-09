@@ -198,7 +198,7 @@ jobs:
             --build ${{ github.workspace }}/out/build/${{ env.toolchain_path }} \
             --config ${{ matrix.CMAKE_BUILD_TYPE }} \
             --target all
-      # --target ${{ matrix.CSL_component }}_build_all_tests
+      # --target csl_${{ matrix.CSL_component }}_build_all_tests
 
     - name: 🧪 CTest - (${{ env.toolchain_path }})
       working-directory: ${{ github.workspace }}/out/build/${{ env.toolchain_path }}

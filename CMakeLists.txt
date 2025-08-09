@@ -35,7 +35,6 @@ list(APPEND CMAKE_MESSAGE_INDENT "   ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
     option(CSL_BUILD_${component_name} "CSL: Build ${component_name}" ${CSL_BUILD_ALL})
-    message(VERBOSE "[${PROJECT_NAME}]: [CSL_BUILD_${component_name}] set to ${CSL_BUILD_${component_name}}")
 
     message(CHECK_START "CSL_BUILD_${component_name}")
     if (${CSL_BUILD_${component_name}})
@@ -138,8 +137,12 @@ function(csl_add)
     # test
     option(CSL_TEST_${csl_add_COMPONENT} "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)" ${CSL_TEST_ALL})
     if (CSL_TEST_${csl_add_COMPONENT})
+        enable_testing()
         message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (tests)")
+
+        list(APPEND CMAKE_MESSAGE_INDENT "   ")
         add_subdirectory(${PROJECT_SOURCE_DIR}/tests/${csl_add_COMPONENT})
+        list(POP_BACK CMAKE_MESSAGE_INDENT)
     endif()
 
     # example
@@ -149,7 +152,10 @@ function(csl_add)
             # message(AUTHOR_WARNING "[${PROJECT_NAME}] : csl::${csl_add_COMPONENT} has no examples available, skipping ...")
         else()
             message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} (example)")
+
+            list(APPEND CMAKE_MESSAGE_INDENT "   ")
             add_subdirectory(${PROJECT_SOURCE_DIR}/examples/${csl_add_COMPONENT})
+            list(POP_BACK CMAKE_MESSAGE_INDENT)
         endif()
     endif()
 

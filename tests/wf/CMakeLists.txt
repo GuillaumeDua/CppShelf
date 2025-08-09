@@ -21,6 +21,6 @@ add_test(
 )
 
 # Tests: all
-add_custom_target("${component_name}_build_all_tests"
+add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests
 	DEPENDS ${TEST_LIST}
 )

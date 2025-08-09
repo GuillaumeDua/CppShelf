@@ -2,11 +2,11 @@
 option(CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: drop-in replace for std::tuple" OFF)
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT set to [${CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT}]")
 
-# opt-in: CSL_MP_TUPLE__IMPLICIT_CONVERSION: DISABLED|SAFE|UNSAFE
+# opt-in: CSL_MP_TUPLE__IMPLICIT_CONVERSION: NONE|SAFE|UNSAFE
 if (${CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT})
     set(CSL_MP_TUPLE__IMPLICIT_CONVERSION__default_value "UNSAFE")
 else()
-    set(CSL_MP_TUPLE__IMPLICIT_CONVERSION__default_value "DISABLED")
+    set(CSL_MP_TUPLE__IMPLICIT_CONVERSION__default_value "NONE")
 endif()
 
 set(
@@ -15,6 +15,6 @@ set(
     "[${CMAKE_PROJECT_NAME}] csl::${component_name}: allow implicit conversions"
 )
 message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_MP_TUPLE__IMPLICIT_CONVERSION set to [${CSL_MP_TUPLE__IMPLICIT_CONVERSION}]")
-if (${CSL_MP_TUPLE__IMPLICIT_CONVERSION} AND NOT "${CSL_MP_TUPLE__IMPLICIT_CONVERSION}" STREQUAL "DISABLED")
+if (${CSL_MP_TUPLE__IMPLICIT_CONVERSION} AND NOT "${CSL_MP_TUPLE__IMPLICIT_CONVERSION}" STREQUAL "NONE")
     target_compile_definitions(csl_${component_name} INTERFACE CSL_MP_TUPLE__IMPLICIT_CONVERSION)
 endif()
