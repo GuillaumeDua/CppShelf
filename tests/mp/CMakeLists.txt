@@ -3,7 +3,7 @@ set(component_name mp)
 function(csl_mp_make_test_target)
     
 	set(options)
-    set(oneValueArgs)
+    set(oneValueArgs   RESULT)
     set(multiValueArgs DEFINITIONS)
 
     cmake_parse_arguments(arg
@@ -44,21 +44,24 @@ function(csl_mp_make_test_target)
         COMMAND $<TARGET_FILE:${target_name}>
     )
 
-	set(csl_mp_make_test_target_name "${target_name}" PARENT_SCOPE)
+
 	message(VERBOSE "[csl_mp_make_test_target] Generated ${target_name}")
 
-endfunction()
+	if (arg_RESULT)
+		set(${arg_RESULT} ${target_name} PARENT_SCOPE)
+	endif()
 
+endfunction()
 
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
 set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants NONE SAFE UNSAFE)
 foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants)
 	csl_mp_make_test_target(
-		DEFINITIONS
-			CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value}
+		DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value}
+		RESULT      target_name
 	)
 	add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests
-		${csl_mp_make_test_target_name}
+		${target_name}
 	)
 endforeach()

@@ -15,6 +15,14 @@ Check:
 ## Documentation
 
 - README
+  - Design manifesto
+    - tuple
+      - no recursion (tuple_cat, etc.)
+      - decoupled from `<tuple>`
+      - drop-in replacement for `<tuple>`
+      - `std::` interops
+      - `O(N)` access, lookup
+      - IDEA: if quadtree-like composition, then minimalistic footprint and faster access ?
 - Doxygen
 
 ## Test

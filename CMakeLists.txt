@@ -18,6 +18,8 @@ endif()
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
+# WIP: integration
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/print_option.cmake)
 ## Components - detection, list
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/make_subdirectory_list.cmake)
 MAKE_SUBDIRECTORY_LIST(
@@ -36,12 +38,9 @@ foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
     option(CSL_BUILD_${component_name} "CSL: Build ${component_name}" ${CSL_BUILD_ALL})
 
-    message(CHECK_START "CSL_BUILD_${component_name}")
+    print_aligned(VERBOSE CSL_BUILD_${component_name})
     if (${CSL_BUILD_${component_name}})
-        message(CHECK_PASS "enabled")
         list(APPEND CSL_ENABLED_COMPONENTS_LIST ${component_name})
-    else()
-        message(CHECK_FAIL "disabled")
     endif()
 
 endforeach()
