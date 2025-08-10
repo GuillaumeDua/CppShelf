@@ -30,22 +30,20 @@ message(STATUS "[${PROJECT_NAME}] available components: [${CSL_COMPONENTS_LIST}]
 
 ### Components - build
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
-message(VERBOSE "[${PROJECT_NAME}] CSL_BUILD_ALL set to ${CSL_BUILD_ALL}")
+message(VERBOSE "[${PROJECT_NAME}] CSL_BUILD_ALL set to [${CSL_BUILD_ALL}]")
 
-message(CHECK_START "[${PROJECT_NAME}] enabled components")
-list(APPEND CMAKE_MESSAGE_INDENT "   ")
+list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
     option(CSL_BUILD_${component_name} "CSL: Build ${component_name}" ${CSL_BUILD_ALL})
+    print_aligned(STATUS CSL_BUILD_${component_name})
 
-    print_aligned(VERBOSE CSL_BUILD_${component_name})
     if (${CSL_BUILD_${component_name}})
         list(APPEND CSL_ENABLED_COMPONENTS_LIST ${component_name})
     endif()
 
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
-message(CHECK_PASS "done")
 
 #### Warn for empty CSL_ENABLED_COMPONENTS_LIST
 list(LENGTH CSL_ENABLED_COMPONENTS_LIST CSL_ENABLED_COMPONENTS_LIST_length)
@@ -69,9 +67,7 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
         option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}_ALL})
-        if (NOT ${CSL_${option_name}_${component_name}} STREQUAL ${CSL_${option_name}_ALL})
-            message(STATUS "[${PROJECT_NAME}] CSL_${option_name}_${component_name} set to [${CSL_${option_name}_${component_name}}]")
-        endif()
+        print_aligned(VERBOSE CSL_${option_name}_${component_name})
     endforeach()
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()

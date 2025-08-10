@@ -33,11 +33,10 @@ function(print_aligned log_level variable)
     endif()
 
     string(LENGTH "${variable}" name_length)
+    math(EXPR padding_length "${arg_width} - ${name_length}")
 
-    math(EXPR pad_len "${arg_width} - ${name_length}")
-
-    if (pad_len GREATER 0)
-        string(REPEAT "${arg_filler_char}" ${pad_len} padding)
+    if (padding_length GREATER 0)
+        string(REPEAT "${arg_filler_char}" ${padding_length} padding)
     else()
         set(padding " ")
     endif()
