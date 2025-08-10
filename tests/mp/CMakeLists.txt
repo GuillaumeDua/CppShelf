@@ -18,7 +18,7 @@ function(csl_mp_make_test_target)
 
 	set(target_name_prefix test.${PROJECT_NAME}_${component_name}.compile_time)
 	list(JOIN arg_DEFINITIONS "." arg_DEFINITIONS_joined)
-	string(REPLACE "=" "_" arg_DEFINITIONS_joined "${arg_DEFINITIONS_joined}")
+	string(REPLACE "=" "-" arg_DEFINITIONS_joined "${arg_DEFINITIONS_joined}")
     set(target_name "${target_name_prefix}.${arg_DEFINITIONS_joined}")
 
     add_executable(${target_name} ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp)

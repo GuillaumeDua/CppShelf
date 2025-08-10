@@ -1,13 +1,13 @@
 # opt-in: CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT
 option(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable iostream support" OFF)
-message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT set to [${CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT}]")
+print_aligned(STATUS CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
 if (${CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT})
     target_compile_definitions(csl_${component_name} INTERFACE CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
 endif()
 
 # opt-in: CSL_ENSURE__ENABLE_FMT_SUPPORT
 option(CSL_ENSURE__ENABLE_FMT_SUPPORT "[${CMAKE_PROJECT_NAME}] csl::${component_name}: enable fmt support" OFF)
-message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name}: CSL_ENSURE__ENABLE_FMT_SUPPORT set to [${CSL_ENSURE__ENABLE_FMT_SUPPORT}]")
+print_aligned(STATUS CSL_ENSURE__ENABLE_FMT_SUPPORT)
 if (${CSL_ENSURE__ENABLE_FMT_SUPPORT})
 
     # REFACTO: use CPM

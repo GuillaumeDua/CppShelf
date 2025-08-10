@@ -119,7 +119,7 @@ function(csl_add)
     # check if component has a custom cmake file to inject
     set(maybe_${csl_add_COMPONENT}_custom_cmake_path "${PROJECT_SOURCE_DIR}/cmake/custom/${csl_add_COMPONENT}.cmake")
     if (EXISTS "${maybe_${csl_add_COMPONENT}_custom_cmake_path}")
-        message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} : custom cmake rules detected in [${maybe_${csl_add_COMPONENT}_custom_cmake_path}]")
+        message(VERBOSE "[${PROJECT_NAME}] csl::${csl_add_COMPONENT} : custom cmake rules detected in [ ${maybe_${csl_add_COMPONENT}_custom_cmake_path} ]")
         list(APPEND CMAKE_MESSAGE_INDENT "  ")
         include("${maybe_${csl_add_COMPONENT}_custom_cmake_path}")
         list(POP_BACK CMAKE_MESSAGE_INDENT)

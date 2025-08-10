@@ -17,7 +17,7 @@ function(print_aligned log_level variable)
     cmake_parse_arguments(PARSE_ARGV 3 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     if (NOT DEFINED arg_width OR arg_width STREQUAL "")
-        set(arg_width 30)
+        set(arg_width 40)
     endif()
 
     if (NOT DEFINED arg_filler_char OR arg_filler_char STREQUAL "")
