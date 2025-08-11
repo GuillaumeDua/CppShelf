@@ -12,7 +12,7 @@ set(PROJECT_VERSION 0.3.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
-  message(FATAL_ERROR "[${PROJECT_NAME}] : In-source build not recommended")
+    message(FATAL_ERROR "[${PROJECT_NAME}] : In-source build not recommended")
 endif()
 
 include(CMakeDependentOption)
@@ -29,13 +29,15 @@ message(STATUS "[${PROJECT_NAME}] available components: [${CSL_COMPONENTS_LIST}]
 
 ### Components - build
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
-message(VERBOSE "[${PROJECT_NAME}] CSL_BUILD_ALL set to [${CSL_BUILD_ALL}]")
+message(STATUS "[${PROJECT_NAME}] CSL_BUILD_ALL set to [${CSL_BUILD_ALL}]")
 
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
     option(CSL_BUILD_${component_name} "CSL: Build ${component_name}" ${CSL_BUILD_ALL})
-    print_aligned(STATUS CSL_BUILD_${component_name})
+    print_aligned(STATUS CSL_BUILD_${component_name}
+        depends CSL_BUILD_ALL
+    )
 
     if (${CSL_BUILD_${component_name}})
         list(APPEND CSL_ENABLED_COMPONENTS_LIST ${component_name})
@@ -66,7 +68,9 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
         option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}_ALL})
-        print_aligned(VERBOSE CSL_${option_name}_${component_name})
+        print_aligned(STATUS CSL_${option_name}_${component_name}
+            depends CSL_${option_name}_ALL
+        )
     endforeach()
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()

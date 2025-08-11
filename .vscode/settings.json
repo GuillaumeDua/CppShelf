@@ -21,7 +21,7 @@
     "cmake.configureOnOpen": true,
     "cmake.generator": "Ninja",
     "cmake.configureSettings": {
-        "CMAKE_MESSAGE_LOG_LEVEL": "VERBOSE",
+        "CMAKE_MESSAGE_LOG_LEVEL": "STATUS",
         "CMAKE_GENERATOR": "Ninja",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CSL_STRICT_WARNINGS": true,
