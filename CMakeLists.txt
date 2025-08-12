@@ -77,7 +77,7 @@ endforeach()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/csl_add.cmake)
 
-message(STATUS "[${PROJECT_NAME}] meta-target ...")
+message(STATUS "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
 add_library(${PROJECT_NAME} INTERFACE)
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
