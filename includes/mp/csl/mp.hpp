@@ -22,24 +22,25 @@
 //  - std::three_way_comparable_with<T1, T2>
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
-#if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
-# define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
-#elif (CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq NONE \
+#define STRINGIFY_DETAIL(x) #x
+#define STRINGIFY(x) STRINGIFY_DETAIL(x)
+
+# if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#   define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
+# elif (CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq NONE \
    and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq SAFE     \
    and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq UNSAFE)
-# define XSTRINGIFY(x) #x
-# define STRINGIFY(x)  XSTRINGIFY(x)
-#define CSL_MP_TUPLE__IMPLICIT_CONVERSION TOTO // WIP
-# error "PP-options: Unknown value for CSL_MP_TUPLE__IMPLICIT_CONVERSION" CSL_MP_TUPLE__IMPLICIT_CONVERSION
-# undef STRINGIFY
-# undef XSTRINGIFY
-#endif
+#   error "PP-options: Unknown value for CSL_MP_TUPLE__IMPLICIT_CONVERSION" CSL_MP_TUPLE__IMPLICIT_CONVERSION
+# endif
+# pragma message("CSL_MP_TUPLE__IMPLICIT_CONVERSION = " STRINGIFY(CSL_MP_TUPLE__IMPLICIT_CONVERSION))
+
+#undef STRINGIFY_DETAIL
+#undef STRINGIFY
 
 // About [algorithms]:
 //  All algorithms are partitioned in two groups:
 //      [type-traits]: contains, count/count_if, find/find_if, etc.
 //      [functions]: tuple_cat, etc.
-
 
 #if not __cplusplus >= 202002L
 # error "csl/mp.hpp requires C++20 or greater"

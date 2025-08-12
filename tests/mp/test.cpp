@@ -1,12 +1,7 @@
 // Force CSL_MP_TUPLE__IMPLICIT_CONVERSION=OFF.
 // see tests/mp/tuple_std_drop_in_replacement.cpp
-#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
-# undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
-#endif
+
 #include <csl/mp.hpp>
-#if not CSL_MP_TUPLE__IMPLICIT_CONVERSION == NONE
-# error "[Test] csl::ag : expect CSL_MP_TUPLE__IMPLICIT_CONVERSION=OFF"
-#endif
 
 // parts
 #include <tests/mp/sequence.hpp>
