@@ -8,6 +8,11 @@
 //  A given tuple T is considered valid if csl::mp::concepts::tuple<T> evaluates to true (csl::mp::is_tuple is std::true_type), and contains no duplicates.
 //  If a given tuple type T instanciation is not valid, less performant algorithms may be selected to provide similar functionalities, as a best-effort.
 
+// About [algorithms]:
+//  All algorithms are partitioned in two groups:
+//      [type-traits]: contains, count/count_if, find/find_if, etc.
+//      [functions]: tuple_cat, etc.
+
 // About [conversion]: using [csl::mp::tuple] as a drop-in replacement for [std::tuple]
 //  As <tuple> is -isystem, implicit members conversions do not produce warnings
 //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off,
@@ -16,31 +21,56 @@
 //  - SAFE   : let the compiler warn/error narrowing conversions
 //  - UNSAFE : drop-in replacement for [std::tuple], silent all conversions
 //
-//  Given two different [tuple] instance T1 and T2
+//  Given two different [tuple] instances T1 and T2
 //  - std::common_reference_t<T1, T2>
 //  - std::equality_comparable_with<T1, T2>
 //  - std::three_way_comparable_with<T1, T2>
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
+// --- check preprocessor options ---
+//  if CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT is enabled, force CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE
+//  otherwise, ensure that CSL_MP_TUPLE__IMPLICIT_CONVERSION is [NONE|SAFE(default)|UNSAFE]
+
 #define STRINGIFY_DETAIL(x) #x
 #define STRINGIFY(x) STRINGIFY_DETAIL(x)
 
-# if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
-#   define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
-# elif (CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq NONE \
-   and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq SAFE     \
-   and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq UNSAFE)
-#   error "PP-options: Unknown value for CSL_MP_TUPLE__IMPLICIT_CONVERSION" CSL_MP_TUPLE__IMPLICIT_CONVERSION
-# endif
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE    1
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE    2
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE  3
+#define CSL_CAT(a,b) a##b
+#define CSL_CAT_EXPAND(a,b) CSL_CAT(a,b)
+
+#if defined(CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT) and CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT
+
+#   if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#       define CSL_MP_TUPLE__IMPLICIT_CONVERSION UNSAFE
+#   endif
+
+#   if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
+       and CSL_CAT_EXPAND(CSL_MP_TUPLE__IMPLICIT_CONVERSION_, CSL_MP_TUPLE__IMPLICIT_CONVERSION) != 3
+#       error "Invalid value for CSL_MP_TUPLE__IMPLICIT_CONVERSION, as CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT is enabled: " STRINGIFY(CSL_MP_TUPLE__IMPLICIT_CONVERSION) ". Allowed: [UNSAFE(default)]"
+#   endif
+#endif
+
+#if ! defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#  pragma message("CSL_MP_TUPLE__IMPLICIT_CONVERSION not defined, forcing value to [SAFE]")
+#  define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
+#endif
+
 # pragma message("CSL_MP_TUPLE__IMPLICIT_CONVERSION = " STRINGIFY(CSL_MP_TUPLE__IMPLICIT_CONVERSION))
 
-#undef STRINGIFY_DETAIL
-#undef STRINGIFY
+#if CSL_CAT_EXPAND(CSL_MP_TUPLE__IMPLICIT_CONVERSION_, CSL_MP_TUPLE__IMPLICIT_CONVERSION) == 0
+#  error "Invalid value for CSL_MP_TUPLE__IMPLICIT_CONVERSION: " STRINGIFY(CSL_MP_TUPLE__IMPLICIT_CONVERSION) ". Allowed: [NONE|SAFE(default)|UNSAFE]"
+# endif
 
-// About [algorithms]:
-//  All algorithms are partitioned in two groups:
-//      [type-traits]: contains, count/count_if, find/find_if, etc.
-//      [functions]: tuple_cat, etc.
+#undef CSL_CAT_EXPAND
+#undef CSL_CAT
+#undef CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
+#undef CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+#undef CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE
+#undef STRINGIFY
+#undef STRINGIFY_DETAIL
+
 
 #if not __cplusplus >= 202002L
 # error "csl/mp.hpp requires C++20 or greater"
@@ -409,15 +439,15 @@ namespace csl::mp::details {
 
     // Drop-in replacement for std::tuple
     //  As <tuple> is -isystem, implicit members conversions do not produce warnings
-    //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off
+    //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE` toggles this behavior on/off
     template <typename T>
     [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) {
         return static_cast<
-            #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
-                T
-            #else
-                decltype(value)
-            #endif
+        #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+            T
+        #else
+            decltype(value)
+        #endif
         >(value);
     }
 
@@ -777,7 +807,7 @@ namespace csl::mp {
         {}
 
         // Converting constructors: unsafe use are handled by the compiler
-        #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
         template <typename ...> friend struct tuple;
 
         // Constructor: converting move
@@ -798,7 +828,7 @@ namespace csl::mp {
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ other.storage }
         {}
-        #endif
+    #endif
         // NOLINTEND(*explicit-constructor)
 
         // compare
