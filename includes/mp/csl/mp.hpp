@@ -27,7 +27,7 @@
 //  - std::three_way_comparable_with<T1, T2>
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
-// --- check preprocessor options ---
+// --- Handle preprocessor options ---
 //  if CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT is enabled, force CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE
 //  otherwise, ensure that CSL_MP_TUPLE__IMPLICIT_CONVERSION is [NONE|SAFE(default)|UNSAFE]
 
@@ -40,19 +40,26 @@
 #define CSL_CAT(a,b) a##b
 #define CSL_CAT_EXPAND(a,b) CSL_CAT(a,b)
 
-#if defined(CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT) and CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT
+#if defined(CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT) && CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT
 
 #   if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
 #       define CSL_MP_TUPLE__IMPLICIT_CONVERSION UNSAFE
 #   endif
 
 #   if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
-       and CSL_CAT_EXPAND(CSL_MP_TUPLE__IMPLICIT_CONVERSION_, CSL_MP_TUPLE__IMPLICIT_CONVERSION) != 3
+       and CSL_CAT_EXPAND(CSL_MP_TUPLE__IMPLICIT_CONVERSION_, CSL_MP_TUPLE__IMPLICIT_CONVERSION) != CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
 #       error "Invalid value for CSL_MP_TUPLE__IMPLICIT_CONVERSION, as CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT is enabled: " STRINGIFY(CSL_MP_TUPLE__IMPLICIT_CONVERSION) ". Allowed: [UNSAFE(default)]"
 #   endif
+
 #endif
 
-#if ! defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#   if CSL_CAT_EXPAND(CSL_MP_TUPLE__IMPLICIT_CONVERSION_, CSL_MP_TUPLE__IMPLICIT_CONVERSION) == 0
+#       pragma message("CSL_MP_TUPLE__IMPLICIT_CONVERSION is defined but empty, forcing value to [SAFE]")
+#       undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#       define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
+#   endif
+#else
 #  pragma message("CSL_MP_TUPLE__IMPLICIT_CONVERSION not defined, forcing value to [SAFE]")
 #  define CSL_MP_TUPLE__IMPLICIT_CONVERSION SAFE
 #endif

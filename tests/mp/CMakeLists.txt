@@ -55,10 +55,17 @@ endfunction()
 
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
-set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants NONE SAFE UNSAFE)
+set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants "" NONE SAFE UNSAFE)
 foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants)
+
+	if ("${value}" STREQUAL "")
+		set(DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+	else()
+		set(DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value})
+	endif()
+
 	csl_mp_make_test_target(
-		DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value}
+		DEFINITIONS ${DEFINITIONS}
 		RESULT      target_name
 	)
 	add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests
