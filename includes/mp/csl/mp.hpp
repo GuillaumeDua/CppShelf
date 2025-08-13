@@ -27,7 +27,7 @@
 //  - std::three_way_comparable_with<T1, T2>
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
-// --- Handle preprocessor options ---
+// --- Handle preprocessor options
 //  if CSL_MP_TUPLE__STD_DROP_IN_REPLACEMENT is enabled, force CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE
 //  otherwise, ensure that CSL_MP_TUPLE__IMPLICIT_CONVERSION is [NONE|SAFE(default)|UNSAFE]
 
@@ -78,6 +78,7 @@
 #undef STRINGIFY
 #undef STRINGIFY_DETAIL
 
+// ---
 
 #if not __cplusplus >= 202002L
 # error "csl/mp.hpp requires C++20 or greater"
@@ -160,9 +161,47 @@ namespace csl::mp {
     using value_type_t = typename value_type<T>::type;
 }
 
-// --- sequence ---
+#include <utility>
+// WIP: integration: reverse the logic
+//  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
+//  - Need to check if worthy from performances perspective
+//    consider using https://github.com/JPenuchot/ctbench, and https://build-bench.com
+namespace csl::mp {
+    // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
+
+    template </*tuple-like*/ typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
+    template </*tuple-like*/ typename T> constexpr auto size_v = size<T>::value;
+
+    template <std::size_t I, /*tuple-like*/ typename T> struct element : std::tuple_element<I, std::remove_cvref_t<T>>{};
+    template <std::size_t I, /*tuple-like*/ typename T> using element_t = typename element<I, T>::type;
+
+    template <std::size_t I, /*tuple-like*/ typename T> struct member_value : type_identity<decltype(
+        get<I>(std::declval<T>())
+    )>{};
+    template <std::size_t I, /*tuple-like*/ typename T> using member_value_t = typename member_value<I, T>::type;
+}
+
 #include <array>
-namespace csl::mp::seq {
+// --- sequence ---
+namespace csl::mp {
+
+    // size
+    template <typename T, T ... values>
+    struct size<std::integer_sequence<T, values...>>
+    : std::integral_constant<std::size_t, sizeof...(values)> // ::size()
+    {};
+
+    // element
+    template <std::size_t I, typename T, T ... values>
+    struct element<I, std::integer_sequence<T, values...>>
+    : std::type_identity<T>
+    {};
+
+    // member_value
+    template <std::size_t I, typename T, T ... values>
+    struct member_value<I, std::integer_sequence<T, values...>>
+    : std::type_identity<T>
+    {};
 
     // is_sequence
     template <typename T>
@@ -171,32 +210,6 @@ namespace csl::mp::seq {
     struct is_sequence<std::integer_sequence<T, values...>> : std::true_type{};
     template <typename T>
     constexpr static inline auto is_sequence_v = is_sequence<T>::value;
-
-    namespace concepts {
-        template <typename T>
-        concept sequence = is_sequence_v<std::remove_cvref_t<T>>;
-    }
-
-    // size | pref. seq::size()
-    template <typename T>
-    struct size;
-    template <typename T, T ... values>
-    struct size<std::integer_sequence<T, values...>>
-    : std::integral_constant<std::size_t, sizeof...(values)>
-    {};
-    template <typename T>
-    constexpr auto size_v = size<T>::value;
-
-    namespace concepts {
-        template <typename T>
-        concept empty = sequence<T> and std::remove_cvref_t<T>::size() == 0;
-        template <typename T>
-        concept not_empty = sequence<T> and std::remove_cvref_t<T>::size() not_eq 0;
-        template <typename T, std::size_t N>
-        concept sized = sequence<T> and std::remove_cvref_t<T>::size() == N;
-        template <typename T, std::size_t N>
-        concept sized_at_least = sequence<T> and std::remove_cvref_t<T>::size() >= N;
-    }
 
     // to_tuplelike
     template <
@@ -227,10 +240,25 @@ namespace csl::mp::seq {
     template <std::size_t index, typename T>
     constexpr static inline auto at_v = at<index, T>::value;
 
+    namespace seq::concepts {
+        template <typename T>
+        concept sequence = is_sequence_v<std::remove_cvref_t<T>>;
+
+        template <typename T>
+        concept empty = sequence<T> and std::remove_cvref_t<T>::size() == 0;
+        template <typename T>
+        concept not_empty = sequence<T> and std::remove_cvref_t<T>::size() not_eq 0;
+        template <typename T, std::size_t N>
+        concept sized = sequence<T> and std::remove_cvref_t<T>::size() == N;
+        template <typename T, std::size_t N>
+        concept sized_at_least = sequence<T> and std::remove_cvref_t<T>::size() >= N;
+    }
+
     // reverse
     template <typename T>
     struct reverse;
-    template <concepts::sequence T>
+    // Assuming 0..N : std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    template <seq::concepts::sequence T>
     struct reverse<T> : type_identity<
         decltype(
             []<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -240,21 +268,8 @@ namespace csl::mp::seq {
                 >{};
             }(std::make_index_sequence<T::size()>{})
         )
-        // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
     >{};
-    // template <typename T, T ... values>
-    // struct reverse<std::integer_sequence<T, values...>> : type_identity<
-    //     decltype(
-    //         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    //             constexpr auto storage = std::array{ values... };
-    //             return std::integer_sequence<
-    //                 T,
-    //                 std::get<(sizeof...(values) - 1 - indexes)>(storage)...
-    //             >{};
-    //         }(std::make_index_sequence<sizeof...(values)>{})
-    //     )
-    //     // if 0..N: std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
-    // >{};
+
     template <typename T>
     using reverse_t = reverse<T>::type;
     template <std::size_t I>
@@ -265,28 +280,6 @@ namespace csl::mp::seq {
     constexpr decltype(auto) get(std::integer_sequence<T, values...>) noexcept {
         return at_v<index, std::integer_sequence<T, values...>>;
     }
-    // QUESTION: tuplelike interface for integer_sequence ?
-}
-
-// --- tuple ---
-#include <utility>
-// WIP: integration: reverse the logic
-//  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
-//  - Need to check if worthy from performances perspective
-//    consider using https://github.com/JPenuchot/ctbench, and https://build-bench.com
-namespace csl::mp {
-    // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
-
-    template </*tuple-like*/ typename T> struct size : std::tuple_size<std::remove_cvref_t<T>>{};
-    template </*tuple-like*/ typename T> constexpr auto size_v = size<T>::value;
-
-    template <std::size_t I, /*tuple-like*/ typename T> struct element : std::tuple_element<I, std::remove_cvref_t<T>>{};
-    template <std::size_t I, /*tuple-like*/ typename T> using element_t = typename element<I, T>::type;
-
-    template <std::size_t I, /*tuple-like*/ typename T> struct member_value : type_identity<decltype(
-        get<I>(std::declval<T>())
-    )>{};
-    template <std::size_t I, /*tuple-like*/ typename T> using member_value_t = typename member_value<I, T>::type;
 }
 
 // P2165 - tuple-like
@@ -1244,7 +1237,7 @@ namespace csl::mp {
             std::size_t pos = details::npos;
             (void)((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
             return pos;
-        }(csl::mp::seq::make_reverse_index_sequence<sizeof...(Ts)>{});
+        }(csl::mp::make_reverse_index_sequence<sizeof...(Ts)>{});
         static_assert(value not_eq details::npos, "rfirst_index_of : not found");
     };
     template <typename T, typename tuple_type>
