@@ -165,7 +165,7 @@ namespace csl::mp {
 // WIP: integration: reverse the logic
 //  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
 //  - Need to check if worthy from performances perspective
-//    consider using https://github.com/JPenuchot/ctbench, and https://build-bench.com
+//    consider using https://github.com/JPenuchot/ctbench, and/or https://build-bench.com
 namespace csl::mp {
     // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
 
@@ -1413,8 +1413,8 @@ struct tuple_element<index, csl::mp::tuple<Ts...>> : csl::mp::tuple<Ts...>::stor
 }
 
 // tuple algorithms
-// REFACTO: concepts::tuple -> tuple_like
-namespace csl::mp::algorithm {
+//  REFACTO: concepts::tuple -> tuple_like
+namespace csl::mp {
 
     // QUESTION: primitive for
     // auto ??? (concepts::tuple auto && value, auto f){
@@ -1454,7 +1454,7 @@ namespace csl::mp::algorithm {
         template <std::size_t... indexes>
         constexpr decltype(auto) apply(
             auto && f,
-            concepts::tuple_like auto && value,
+            csl::mp::concepts::tuple_like auto && value,
             std::index_sequence<indexes...>
         )
         noexcept(std::is_nothrow_invocable_v<decltype(f), decltype(get<indexes>(csl_fwd(value)))...>)
@@ -1489,7 +1489,6 @@ namespace csl::mp::algorithm {
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
-    // WIP: folder with operator overload -> handle heterogeneous result types
     // WIP: non-mandatory init: split, head is init
 
     namespace details {
@@ -1571,7 +1570,7 @@ namespace csl::mp::algorithm {
 //     using namespace csl::mp::functions;
 // }
 
-#if defined CSL_MP_TUPLE_EXPERIMENTALE
+#if defined CSL_MP_TUPLE__EXPERIMENTALE
 #include <execution>
 #include <future>
 namespace csl::mp::inline functions::experimentale {
@@ -1625,7 +1624,7 @@ namespace csl::mp::inline type_traits {
 // -- OLD, to refactor
 // ===================
 
-#if defined(CSL_MP__LEGACY) and CSL_MP__LEGACY
+#if defined(CSL_MP__LEGACY) && CSL_MP__LEGACY
 
 namespace csl::mp {
     // pack
