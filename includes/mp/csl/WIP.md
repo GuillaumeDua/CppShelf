@@ -14,6 +14,7 @@ Check:
 
 ## Documentation
 
+- Better logo ?
 - README
   - Design manifesto
     - tuple

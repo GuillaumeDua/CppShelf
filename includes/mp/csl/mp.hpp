@@ -159,6 +159,17 @@ namespace csl::mp {
     struct value_type<T[N]>: type_identity<T>{}; // NOLINT(*-c-arrays)
     template <typename T>
     using value_type_t = typename value_type<T>::type;
+
+    template <template <typename ...> typename trait, typename ... Ts>
+    struct bind_front {
+        template <typename ... Us>
+        using type = trait<Ts..., Us...>;
+    };
+    template <template <typename ...> typename trait, typename ... Ts>
+    struct bind_back {
+        template <typename ... Us>
+        using type = trait<Us..., Ts...>;
+    };
 }
 
 #include <utility>
@@ -1262,19 +1273,31 @@ namespace csl::mp {
     template <typename T, typename tuple_type>
     constexpr std::size_t last_index_of_v = last_index_of<T, tuple_type>::value;
 
+    // filter<trait>
+    template <typename, template <typename...> typename>
+    struct filter;
+    template <typename ... Ts, template <typename...> typename predicate>
+    struct filter<tuple<Ts...>, predicate> : tuple_cat_result<
+        std::conditional_t<
+            predicate<Ts>::value,
+            tuple<Ts>,
+            tuple<>
+        >...
+    >{};
+    template <concepts::tuple tuple_type, template <typename...> typename predicate>
+    using filter_t = typename filter<tuple_type, predicate>::type;
+
     // set_union
     template <typename, typename>
     struct set_union;
     template <typename ... Ts, typename ... Us>
-    struct set_union<tuple<Ts...>, tuple<Us...>> : type_identity<
-        decltype(tuple_cat(
-            tuple<Ts...>{},
-            std::conditional_t<
-                contains_v<Us, tuple<Ts...>>,
-                tuple<>,
-                tuple<Us>
-            >{}...
-        ))
+    struct set_union<tuple<Ts...>, tuple<Us...>> : tuple_cat_result<
+        tuple<Ts...>,
+        std::conditional_t<
+            contains_v<Us, tuple<Ts...>>,
+            tuple<>,
+            tuple<Us>
+        >...
     >{};
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
@@ -1283,14 +1306,12 @@ namespace csl::mp {
     template <typename, typename>
     struct set_intersection;
     template <typename ... Ts, typename ... Us>
-    struct set_intersection<tuple<Ts...>, tuple<Us...>> : type_identity<
-        decltype(tuple_cat(
-            std::conditional_t<
-                contains_v<Us, tuple<Ts...>>,
-                tuple<Us>,
-                tuple<>
-            >{}...
-        ))
+    struct set_intersection<tuple<Ts...>, tuple<Us...>> : tuple_cat_result<
+        std::conditional_t<
+            contains_v<Us, tuple<Ts...>>,
+            tuple<Us>,
+            tuple<>
+        >...
     >{};
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
@@ -1309,19 +1330,6 @@ namespace csl::mp {
     >{};
     template <typename T, typename tuple_type>
     constexpr bool is_unique_v = is_unique<T, tuple_type>::value;
-
-    // filter<trait>
-    template <typename, template <typename...> typename>
-    struct filter;
-    template <typename ... Ts, template <typename...> typename predicate>
-    struct filter<tuple<Ts...>, predicate> : tuple_cat_result<
-        std::conditional_t<
-            predicate<Ts>::value,
-            tuple<Ts>, tuple<>
-        >...
-    >{};
-    template <concepts::tuple tuple_type, template <typename...> typename predicate>
-    using filter_t = typename filter<tuple_type, predicate>::type;
 
     // deduplicate / make_valid
     // TODO(Guss): reverse prior to filtering, to preserve order
@@ -1539,6 +1547,24 @@ namespace csl::mp {
             ).value;
         }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }
+
+    template <csl::mp::concepts::tuple_like T, typename F, typename init>
+    struct fold_left_result : type_identity<decltype(
+        fold_left(
+            std::declval<T>(),
+            std::declval<F>(),
+            std::declval<init>()
+        )   
+    )>{};
+    template <csl::mp::concepts::tuple_like T, typename F, typename init>
+    struct fold_right_result : type_identity<decltype(
+        fold_left(
+            std::declval<T>(),
+            std::declval<F>(),
+            std::declval<init>()
+        )   
+    )>{};
+
     #pragma endregion
 
     template <csl::mp::concepts::tuple T>
@@ -1565,10 +1591,6 @@ namespace csl::mp {
     // split
     // chunk_by: <N>, predicate
 }
-
-// namespace csl::mp {
-//     using namespace csl::mp::functions;
-// }
 
 #if defined CSL_MP_TUPLE__EXPERIMENTALE
 #include <execution>
@@ -1602,19 +1624,6 @@ namespace csl::mp::inline functions::experimentale {
     }
 }
 #endif
-
-namespace csl::mp::inline type_traits {
-    template <template <typename ...> typename trait, typename ... Ts>
-    struct bind_front {
-        template <typename ... Us>
-        using type = trait<Ts..., Us...>;
-    };
-    template <template <typename ...> typename trait, typename ... Ts>
-    struct bind_back {
-        template <typename ... Us>
-        using type = trait<Us..., Ts...>;
-    };
-}
 
 // TODO(@Guss): fmt, std formatter
 

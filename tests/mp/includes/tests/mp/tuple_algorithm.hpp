@@ -25,21 +25,24 @@ namespace test::tuples::algorithm::apply_ {
     }
 }
 // TODO: static_assert result type
-namespace test::tuples::algorithm::fold {
+namespace test::tuples::algorithm::fold::homogeneous {
 
     static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
     static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
 
+    constexpr auto expected_sum = 15;
     static_assert(csl::mp::fold_left(
         std::array{ 0, 1, 2, 3, 4, 5 },
         std::plus<void>{},
         int{}
-    ) == 15);
+    ) == expected_sum);
     static_assert(csl::mp::fold_right(
         std::array{ 0, 1, 2, 3, 4, 5 },
         std::plus<void>{},
         int{}
-    ) == 15);
+    ) == expected_sum);
+}
+namespace test::tuples::algorithm::fold::heterogeneous {
 
     static_assert(std::invocable<std::plus<void>, std::string, char>);
     static_assert(std::invocable<std::plus<void>, std::string, std::string>);
@@ -59,14 +62,19 @@ namespace test::tuples::algorithm::fold {
         #endif
     };
 
-    static_assert(csl::mp::fold_left(
+    constexpr auto fold_left_result = csl::mp::fold_left(
         value,
         std::plus<void>{},
         std::string{}
-    ) == "abcdefg");
-    static_assert(csl::mp::fold_right(
+    );
+    static_assert(std::same_as<decltype(fold_left_result), const std::string>);
+    static_assert(fold_left_result == "abcdefg");
+
+    constexpr auto fold_right_result = csl::mp::fold_right(
         value,
         std::plus<void>{},
         std::string{}
-    ) == "fgdebca");
+    );
+    static_assert(std::same_as<decltype(fold_right_result), const std::string>);
+    static_assert(fold_right_result == "fgdebca");
 }
