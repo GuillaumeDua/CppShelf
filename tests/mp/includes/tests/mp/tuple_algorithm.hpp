@@ -67,6 +67,10 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         std::plus<void>{},
         std::string{}
     );
+    static_assert(std::same_as<
+        std::remove_cvref_t<decltype(fold_left_result)>,
+        csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>
+    >);
     static_assert(std::same_as<decltype(fold_left_result), const std::string>);
     static_assert(fold_left_result == "abcdefg");
 
@@ -75,6 +79,10 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         std::plus<void>{},
         std::string{}
     );
+    static_assert(std::same_as<
+        std::remove_cvref_t<decltype(fold_right_result)>,
+        csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>
+    >);
     static_assert(std::same_as<decltype(fold_right_result), const std::string>);
     static_assert(fold_right_result == "fgdebca");
 }

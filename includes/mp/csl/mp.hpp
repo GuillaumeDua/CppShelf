@@ -1557,13 +1557,18 @@ namespace csl::mp {
         )   
     )>{};
     template <csl::mp::concepts::tuple_like T, typename F, typename init>
+    using fold_left_result_t = typename fold_left_result<T, F, init>::type;
+
+    template <csl::mp::concepts::tuple_like T, typename F, typename init>
     struct fold_right_result : type_identity<decltype(
-        fold_left(
+        fold_right(
             std::declval<T>(),
             std::declval<F>(),
             std::declval<init>()
         )   
     )>{};
+    template <csl::mp::concepts::tuple_like T, typename F, typename init>
+    using fold_right_result_t = typename fold_right_result<T, F, init>::type;
 
     #pragma endregion
 

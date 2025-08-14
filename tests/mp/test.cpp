@@ -4,6 +4,7 @@
 #include <csl/mp.hpp>
 
 // parts
+#include <tests/mp/primitive.hpp>
 #include <tests/mp/sequence.hpp>
 #include <tests/mp/tuple.hpp>
 #include <tests/mp/tuple_algorithm.hpp>
