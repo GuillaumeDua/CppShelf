@@ -453,6 +453,7 @@ namespace csl::mp::details {
     //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE` toggles this behavior on/off
     template <typename T>
     [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) {
+
         return static_cast<
         #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
             T
@@ -1104,9 +1105,14 @@ namespace csl::mp {
     template <template <typename> typename trait, typename tuple_type>
     using transform_t = typename transform<trait, tuple_type>::type;
 
+    // forward_as_tuple
+    constexpr auto forward_as_tuple(auto && ... values) -> csl::mp::tuple<decltype(values)...> {
+        return { csl_fwd(values)... };
+    }
+
     // tuple_cat
-    constexpr auto tuple_cat(){ return csl::mp::tuple{}; }
-    constexpr auto tuple_cat(/* TODO: tuplelike */ auto && ... tuples)
+    constexpr auto cat(){ return csl::mp::tuple{}; }
+    constexpr auto cat(/* TODO: tuplelike */ auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
         constexpr auto size = (... + size_v<decltype(tuples)>);
@@ -1181,7 +1187,7 @@ namespace csl::mp {
                     )...
                 };
             }(
-                tuple_of_tuples_t{ csl_fwd(tuples)... },
+                forward_as_tuple(csl_fwd(tuples)...),
                 std::make_index_sequence<size>{}
             );
         }
@@ -1189,11 +1195,11 @@ namespace csl::mp {
 
     // tuple_cat_result
     template <typename ... tuple_types>
-    struct tuple_cat_result : csl::mp::type_identity<
-        decltype(tuple_cat(std::declval<tuple_types>()...))
+    struct cat_result : csl::mp::type_identity<
+        decltype(cat(std::declval<tuple_types>()...))
     >{};
     template <typename ... tuple_types>
-    using tuple_cat_result_t = typename tuple_cat_result<tuple_types...>::type;
+    using cat_result_t = typename cat_result<tuple_types...>::type;
 
     // contains
     template <typename, typename>
@@ -1277,7 +1283,7 @@ namespace csl::mp {
     template <typename, template <typename...> typename>
     struct filter;
     template <typename ... Ts, template <typename...> typename predicate>
-    struct filter<tuple<Ts...>, predicate> : tuple_cat_result<
+    struct filter<tuple<Ts...>, predicate> : cat_result<
         std::conditional_t<
             predicate<Ts>::value,
             tuple<Ts>,
@@ -1291,7 +1297,7 @@ namespace csl::mp {
     template <typename, typename>
     struct set_union;
     template <typename ... Ts, typename ... Us>
-    struct set_union<tuple<Ts...>, tuple<Us...>> : tuple_cat_result<
+    struct set_union<tuple<Ts...>, tuple<Us...>> : cat_result<
         tuple<Ts...>,
         std::conditional_t<
             contains_v<Us, tuple<Ts...>>,
@@ -1306,7 +1312,7 @@ namespace csl::mp {
     template <typename, typename>
     struct set_intersection;
     template <typename ... Ts, typename ... Us>
-    struct set_intersection<tuple<Ts...>, tuple<Us...>> : tuple_cat_result<
+    struct set_intersection<tuple<Ts...>, tuple<Us...>> : cat_result<
         std::conditional_t<
             contains_v<Us, tuple<Ts...>>,
             tuple<Us>,
@@ -1341,14 +1347,14 @@ namespace csl::mp {
     struct deduplicate<tuple<Ts...>> : 
     // equivalent to filter<tuple<Ts...>, bind_back<is_unique, tuple<Ts...>>::type>{};
     //
-    //  tuple_cat_result<
+    //  cat_result<
     //     std::conditional_t<
     //         is_unique_v<Ts, tuple<Ts...>>,
     //         tuple<Ts>, tuple<>
     //     >...
     // >{};
     decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        return tuple_cat_result<
+        return cat_result<
             std::conditional_t<
                 details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>
                 or indexes == first_index_of_v<Ts, tuple<Ts...>>,
@@ -1399,8 +1405,6 @@ namespace csl::mp {
     // WIP
 
     // make_tuple
-
-    // forward_as_tuple
 }
 
 // std inter-operatiblity, structured binding

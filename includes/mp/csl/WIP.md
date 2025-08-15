@@ -26,6 +26,12 @@ Check:
       - IDEA: if quadtree-like composition, then minimalistic footprint and faster access ?
 - Doxygen
 
+## Support
+
+- cxx standard: 20
+- MSVC
+- gcc, clang min versions
+
 ## Test
 
 - Coverage
@@ -35,11 +41,12 @@ Check:
 
 ## Refacto
 
-- naming: `csl::mp::tpl` (after merge into `mp-tuple-storage`)
+- naming: avoid redundancies
+  - naming: `csl::mp::tpl` (after merge into `mp-tuple-storage`)
   - remove all `tuple_` prefix, but in `std` namespace
-  - size
-  - element
-  - etc.
+  - naming clash for algorithms
+    - function vs. type_traits
+  - remove all `_result` -> dedicated namespace
 
 - piecewise: constructible, convertible
   - use in conversion, etc.

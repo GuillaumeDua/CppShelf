@@ -258,33 +258,33 @@ namespace test::tuples::compare::tuple {
 namespace test::tuples::compare::tuplelikes {
     // TODO(Guillaume)
 }
-namespace test::tuples::tuple_cat {
+namespace test::tuples::cat {
 
     // empty
     static_assert(std::is_same_v<
         csl::mp::tuple<>,
-        csl::mp::tuple_cat_result_t<>
+        csl::mp::cat_result_t<>
     >);
     static_assert(std::is_same_v<
         csl::mp::tuple<>,
-        csl::mp::tuple_cat_result_t<csl::mp::tuple<>>
+        csl::mp::cat_result_t<csl::mp::tuple<>>
     >);
     static_assert(std::is_same_v<
         csl::mp::tuple<>,
-        csl::mp::tuple_cat_result_t<csl::mp::tuple<>, csl::mp::tuple<>>
+        csl::mp::cat_result_t<csl::mp::tuple<>, csl::mp::tuple<>>
     >);
 
     // type
     static_assert(std::is_same_v<
         csl::mp::tuple<int, char, double, float>,
-        csl::mp::tuple_cat_result_t<
+        csl::mp::cat_result_t<
             csl::mp::tuple<int, char>,
             csl::mp::tuple<double, float>
         >
     >);
     static_assert(std::is_same_v<
         csl::mp::tuple<int, char, double, float>,
-        csl::mp::tuple_cat_result_t<
+        csl::mp::cat_result_t<
             csl::mp::tuple<>,
             csl::mp::tuple<int>,
             csl::mp::tuple<>,
@@ -297,7 +297,7 @@ namespace test::tuples::tuple_cat {
     // value
     static_assert(
         csl::mp::tuple<char, int>{'a', 42}
-    ==  csl::mp::tuple_cat(
+    ==  csl::mp::cat(
             csl::mp::tuple<char>{'a'},
             csl::mp::tuple<int>{42}
         )
