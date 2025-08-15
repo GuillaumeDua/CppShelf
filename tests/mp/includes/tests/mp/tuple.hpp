@@ -258,6 +258,18 @@ namespace test::tuples::compare::tuple {
 namespace test::tuples::compare::tuplelikes {
     // TODO(Guillaume)
 }
+namespace test::tuples::fwd_as_tuple {
+
+    constexpr auto c = 'a';
+    static_assert(std::is_same_v<
+        csl::mp::tuple<int&&, const char&>,
+        decltype(csl::mp::forward_as_tuple(42, c))
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::tuple<csl::mp::tuple<int>&&>,
+        decltype(csl::mp::forward_as_tuple(csl::mp::tuple{42}))
+    >);
+}
 namespace test::tuples::cat {
 
     // empty
