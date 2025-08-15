@@ -393,6 +393,7 @@ namespace test::tuples::storage::constructors::copy {
     [[maybe_unused]] constexpr auto copy = value;
     static_assert(value == copy);
 }
+
 #include <string_view>
 namespace test::tuples::storage::constructors::move {
     using type = csl::mp::tuple<int, char, std::string_view>;
@@ -416,6 +417,16 @@ namespace test::tuples::storage::constructors::convertion {
     [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };
     #endif
 }
+namespace test::tuples::storage::of_refs {
+    using type = csl::mp::tuple<int&&, const char &>;
+
+    void impl() {
+        const auto c = 'a';
+        auto i = 42;
+        [[maybe_unused]] auto value = type{ std::move(i), c };
+    }
+}
+
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<
         csl::mp::tuple<>,
