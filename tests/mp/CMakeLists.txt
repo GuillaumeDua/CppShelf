@@ -33,9 +33,6 @@ function(csl_mp_make_test_target)
     )
 
 	foreach(definition IN LISTS arg_DEFINITIONS)
-
-		string(REGEX MATCH "^[^=]+" key "${definition}")
-
 		target_compile_definitions(${target_name}
 			PUBLIC
 				${definition}

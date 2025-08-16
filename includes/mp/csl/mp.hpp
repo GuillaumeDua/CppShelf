@@ -32,7 +32,7 @@
 #   define CSL_MP_TUPLE__IMPLICIT_CONVERSION 0
 #elif CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq 0 \
   and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq 1
-#   error "CSL_MP_TUPLE__IMPLICIT_CONVERSION: expect <0(off)/1(on)>"
+#   error "CSL_MP_TUPLE__IMPLICIT_CONVERSION: expect either 0 (off, allow only safe ops) or 1 (on, allow unsafe)"
 #endif
 
 #define STRINGIFY_DETAIL(x) #x
@@ -53,7 +53,28 @@
 #include <algorithm>
 #include <functional>
 
-#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
+#define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(*-macro-*)
+
+// Drop-in replacement for std::tuple
+//  As <tuple> is -isystem, implicit members conversions do not produce warnings
+//  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0/1` toggles this behavior off/on
+#if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#  define csl_fwd_maybe_cast(T, value) static_cast<T&&>(value) // NOLINT(*-macro-*)
+#else
+#  define csl_fwd_maybe_cast(T, value) static_cast<decltype(value)&&>(value)  // NOLINT(*-macro-*)
+#endif
+// NOTE: Implement such a macro as a function would return a ref on a temporary
+//
+// template <typename T>
+// [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
+//     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+//         return static_cast<T&&>(value);
+//     // QUESTION: if SAFE, then safe_cast<T>(value) to prevent narrowing conversions ?
+//     //   But costly: check value against numeric_limits min/max, etc. -> out of scope
+//     #else
+//         return std::forward<decltype(value)>(value);
+//     #endif
+// }
 
 #if defined(__clang__)
 #   define csl_compiler_is_clang
@@ -437,27 +458,6 @@ namespace csl::mp::details::inline compare {
 // tuple_storage
 namespace csl::mp::details {
 
-    // Drop-in replacement for std::tuple
-    //  As <tuple> is -isystem, implicit members conversions do not produce warnings
-    //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0/1` toggles this behavior off/on
-    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
-    #  define csl_fwd_maybe_cast(T, value) static_cast<T&&>(value)
-    #else
-    #  define csl_fwd_maybe_cast(T, value) static_cast<decltype(value)&&>(value)
-    #endif
-
-    // template <typename T>
-    // [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
-
-    //     // QUESTION: std::forward_like ?
-    //     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
-    //         return forward_like<T>(value);
-    //     // QUESTION: if SAFE, then safe_cast<T>(value) to prevent narrowing conversions ?
-    //     #else
-    //         return std::forward<decltype(value)>(value);
-    //     #endif
-    // }
-
     // Member storage: associates an index and/or a type with a value
     // - mp::index_t<I>        : lookup by index
     // - mp::type_identity<T>  : lookup by type
@@ -543,21 +543,12 @@ namespace csl::mp::details {
             and (true and ... and std::constructible_from<Ts, Us&&>)
         )
         : tuple_member<indexes, Ts>{
-            // WIP
-            //
+
             // Drop-in replacement for std::tuple
             //  As <tuple> is -isystem, implicit members conversions do not produce warnings
             //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0|1` toggles this behavior off/on
             //
-            // csl_fwd_maybe_cast(Ts, args)
-            //
-            // fwd_maybe_cast<Ts>(csl_fwd(args))
-            //
-            #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
-            static_cast<Ts&&>(args)
-            #else
-            csl_fwd(args)
-            #endif
+            fwd_maybe_cast<Ts>(csl_fwd(args))
         }...
         {}
 
@@ -827,7 +818,8 @@ namespace csl::mp {
         : storage{ csl_fwd(args)... }
         {}
 
-        // Converting constructors: unsafe use are handled by the compiler
+        // Converting constructors: unsafe use are handled by the compiler -Wconversion
+    // WIP: allow only if safe ? "none" would disable such code ?
     // #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
         template <typename ...> friend struct tuple;
 
