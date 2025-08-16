@@ -828,7 +828,7 @@ namespace csl::mp {
         {}
 
         // Converting constructors: unsafe use are handled by the compiler
-    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    // #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
         template <typename ...> friend struct tuple;
 
         // Constructor: converting move
@@ -849,7 +849,7 @@ namespace csl::mp {
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ other.storage }
         {}
-    #endif
+    // #endif
         // NOLINTEND(*explicit-constructor)
 
         // compare

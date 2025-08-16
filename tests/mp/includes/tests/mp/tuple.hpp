@@ -402,17 +402,18 @@ namespace test::tuples::storage::constructors::move {
         return value;
     }();
 }
-namespace test::tuples::storage::constructors::convertion {
-    //#if CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
+namespace test::tuples::storage::constructors::conversion::safe {
+
     [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 d = csl::mp::tuple<std::int8_t>{};
     [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   e = csl::mp::tuple<std::int8_t, std::int8_t>{};
     [[maybe_unused]] constexpr csl::mp::tuple<double>                       f { float{} };
-    // #endif
-    // #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+}
+namespace test::tuples::storage::constructors::conversion::unsafe {
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .0 , 0 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .0F };
     [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };
-    // #endif
+    #endif
 }
 namespace test::tuples::storage::of_refs {
     using type = csl::mp::tuple<int&&, const char &>;
