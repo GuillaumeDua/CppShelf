@@ -33,6 +33,9 @@ function(csl_mp_make_test_target)
     )
 
 	foreach(definition IN LISTS arg_DEFINITIONS)
+
+		string(REGEX MATCH "^[^=]+" key "${definition}")
+
 		target_compile_definitions(${target_name}
 			PUBLIC
 				${definition}
@@ -44,7 +47,6 @@ function(csl_mp_make_test_target)
         COMMAND $<TARGET_FILE:${target_name}>
     )
 
-
 	message(VERBOSE "[csl_mp_make_test_target] Generated ${target_name}")
 
 	if (arg_RESULT)
@@ -55,13 +57,13 @@ endfunction()
 
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
-set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants "" NONE SAFE UNSAFE)
+set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants 0 1)
 foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants)
 
 	if ("${value}" STREQUAL "")
-		set(DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+		set(DEFINITIONS "")
 	else()
-		set(DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value})
+		set(DEFINITIONS FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value})
 	endif()
 
 	csl_mp_make_test_target(

@@ -1,5 +1,10 @@
-// Force CSL_MP_TUPLE__IMPLICIT_CONVERSION=OFF.
-// see tests/mp/tuple_std_drop_in_replacement.cpp
+#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#   undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#   if not defined(FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#       error "FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION is not set"
+#   endif
+#   define CSL_MP_TUPLE__IMPLICIT_CONVERSION FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#endif
 
 #include <csl/mp.hpp>
 

@@ -223,8 +223,7 @@ namespace test::tuples::compare::tuple {
                 lhs_t, rhs_t
             >);
 
-            #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
-                    and CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+            #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
             [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
             static_assert(lhs_t{ 42, 'a' } == lhs_t{ 42, 'a'});
             static_assert(lhs_t{ {}, 'a' } != lhs_t{ 42, 'a'});
@@ -421,7 +420,7 @@ namespace test::tuples::storage::of_refs {
     [[maybe_unused]] static void impl() {
         const auto c = 'a';
         auto i = 42;
-        [[maybe_unused]] auto value = type{ std::move(i), c };
+        [[maybe_unused]] auto value = type{ std::move(i), c }; // NOLINT(performance-move-*)
     }
 }
 
