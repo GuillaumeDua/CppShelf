@@ -395,6 +395,32 @@ namespace csl::mp::inline P1450 {
     template <typename from, typename to>
     using copy_cvref_t = typename copy_cvref<from, to>::type;
 }
+namespace csl::mp::inline P2445 {
+
+    // #if defined(__cpp_lib_forward_like) && __cpp_lib_forward_like >= 202207L
+    // using std::forward_like;
+    // #else
+    template<class T, class U>
+    constexpr auto && forward_like(U&& x) noexcept
+    {
+        constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
+        if constexpr (std::is_lvalue_reference_v<T&&>)
+        {
+            if constexpr (is_adding_const)
+                return std::as_const(x);
+            else
+                return static_cast<U&>(x);
+        }
+        else
+        {
+            if constexpr (is_adding_const)
+                return std::move(std::as_const(x));
+            else
+                return std::move(x);
+        }
+    }
+    // #endif
+}
 
 namespace csl::mp::inline indexing {
 
@@ -452,12 +478,13 @@ namespace csl::mp::details {
     //  As <tuple> is -isystem, implicit members conversions do not produce warnings
     //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE` toggles this behavior on/off
     template <typename T>
-    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T&&> auto && value) noexcept -> decltype(auto) {
+    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
 
         #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
-        return static_cast<T&&>(value);
+            return forward_like<T>(value);
+        // QUESTION: if SAFE, then safe_cast<T>(value) to prevent narrowing conversions ?
         #else
-        return csl_fwd(value);
+            return std::forward<decltype(value)>(value);
         #endif
     }
 
