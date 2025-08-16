@@ -404,21 +404,21 @@ namespace test::tuples::storage::constructors::move {
     }();
 }
 namespace test::tuples::storage::constructors::convertion {
-    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
+    //#if CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE
     [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 d = csl::mp::tuple<std::int8_t>{};
     [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   e = csl::mp::tuple<std::int8_t, std::int8_t>{};
     [[maybe_unused]] constexpr csl::mp::tuple<double>                       f { float{} };
-    #endif
-    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+    // #endif
+    // #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .0 , 0 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .0F };
     [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };
-    #endif
+    // #endif
 }
 namespace test::tuples::storage::of_refs {
     using type = csl::mp::tuple<int&&, const char &>;
 
-    void impl() {
+    [[maybe_unused]] static void impl() {
         const auto c = 'a';
         auto i = 42;
         [[maybe_unused]] auto value = type{ std::move(i), c };

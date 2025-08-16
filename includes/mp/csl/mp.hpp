@@ -477,16 +477,23 @@ namespace csl::mp::details {
     // Drop-in replacement for std::tuple
     //  As <tuple> is -isystem, implicit members conversions do not produce warnings
     //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE` toggles this behavior on/off
-    template <typename T>
-    [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+    #  define csl_fwd_maybe_cast(T, value) static_cast<T&&>(value)
+    #else
+    #  define csl_fwd_maybe_cast(T, value) static_cast<decltype(value)&&>(value)
+    #endif
 
-        #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
-            return forward_like<T>(value);
-        // QUESTION: if SAFE, then safe_cast<T>(value) to prevent narrowing conversions ?
-        #else
-            return std::forward<decltype(value)>(value);
-        #endif
-    }
+    // template <typename T>
+    // [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
+
+    //     // QUESTION: std::forward_like ?
+    //     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+    //         return forward_like<T>(value);
+    //     // QUESTION: if SAFE, then safe_cast<T>(value) to prevent narrowing conversions ?
+    //     #else
+    //         return std::forward<decltype(value)>(value);
+    //     #endif
+    // }
 
     // Member storage: associates an index and/or a type with a value
     // - mp::index_t<I>        : lookup by index
@@ -573,10 +580,16 @@ namespace csl::mp::details {
             and (true and ... and std::constructible_from<Ts, Us&&>)
         )
         : tuple_member<indexes, Ts>{
+            // !!! BUG: REGRESSION !!!
+            //
             // Drop-in replacement for std::tuple
             //  As <tuple> is -isystem, implicit members conversions do not produce warnings
             //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=UNSAFE` toggles this behavior on/off
+            //
+            // csl_fwd_maybe_cast(Ts, args)
+            //
             // fwd_maybe_cast<Ts>(csl_fwd(args))
+            //
             #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
             static_cast<Ts&&>(args)
             #else
