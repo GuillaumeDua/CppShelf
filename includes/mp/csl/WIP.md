@@ -68,7 +68,13 @@ Check:
     - make_from, convert_to ?
 - for_each, `| indexed` ?
 - apply
+  - operator()
+  - with detect/opt-in csl::functional arguments ?
 - make_from
+- print
+  - `std::formatter`
+  - `fmt::formatter`
+  - `std::ostream<<`
 
 ### Algorithms
 

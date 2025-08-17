@@ -1,12 +1,75 @@
-# opt-in: CSL_MP_TUPLE__IMPLICIT_CONVERSION
-option(CSL_MP_TUPLE__IMPLICIT_CONVERSION FALSE
-    "[${CMAKE_PROJECT_NAME}] csl::${component_name}: allow implicit conversions"
+# opt-in: CSL_MP_TUPLE__IMPLICIT_CONVERSION (NONE, SAFE, UNSAFE)
+set(CSL_MP_TUPLE__IMPLICIT_CONVERSION "NONE"
+    CACHE STRING
+    "[${CMAKE_PROJECT_NAME}] csl::${component_name}: implicit conversion mode (NONE, SAFE, UNSAFE)"
 )
 print_aligned(STATUS CSL_MP_TUPLE__IMPLICIT_CONVERSION)
 
-if (CSL_MP_TUPLE__IMPLICIT_CONVERSION)
-    set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_value 1)
-else()
-    set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_value 0)
-endif()
-target_compile_definitions(csl_${component_name} INTERFACE CSL_MP_TUPLE__IMPLICIT_CONVERSION=${CSL_MP_TUPLE__IMPLICIT_CONVERSION_value})
+set(CSL_MP_TUPLE__IMPLICIT_CONVERSION__allowed_values
+    NONE
+    SAFE
+    UNSAFE # Drop-in replacement for <tuple>, as -isystem
+)
+
+# TODO: move elsewhere
+function(cache_entry_to_int)
+
+    set(options)
+    set(one_value_args
+        ID
+        OUT_VAR
+        FORCE_VALUE # for test purposes
+    )
+    set(multi_value_args)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${one_value_args}" "${multi_value_args}")
+
+    if(NOT DEFINED arg_ID)
+        message(FATAL_ERROR "cache_entry_to_int: ID argument is required")
+    endif()
+    if(NOT DEFINED arg_OUT_VAR)
+        message(FATAL_ERROR "cache_entry_to_int: OUT_VAR argument is required")
+    endif()
+
+    if(DEFINED arg_FORCE_VALUE)
+        set(${arg_ID} "${arg_FORCE_VALUE}")
+    endif()
+
+    # default is always 0
+    if("${${arg_ID}}" STREQUAL "")
+        set(${arg_OUT_VAR} 0 PARENT_SCOPE)
+        return()
+    endif()
+
+    # numeric
+    if("${${arg_ID}}" MATCHES "^[0-9]+$")
+        set(${arg_OUT_VAR} ${${arg_ID}} PARENT_SCOPE)
+        return()
+    endif()
+    
+    # boolean
+    if  ("${${arg_ID}}" STREQUAL "ON"
+      OR "${${arg_ID}}" STREQUAL "TRUE")
+        set(${arg_OUT_VAR} 1 PARENT_SCOPE)
+        return()
+    elseif("${${arg_ID}}" STREQUAL "OFF"
+        OR "${${arg_ID}}" STREQUAL "FALSE")
+        set(${arg_OUT_VAR} 0 PARENT_SCOPE)
+        return()
+    endif()
+
+    list(FIND ${arg_ID}__allowed_values "${${arg_ID}}" index)
+    if (index EQUAL -1)
+        message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}] csl::${component_name}: Invalid value for ${arg_ID}: ${${arg_ID}}")
+    endif()
+    set(${arg_OUT_VAR} ${index} PARENT_SCOPE)
+endfunction()
+
+cache_entry_to_int(
+    ID      CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    OUT_VAR CSL_MP_TUPLE__IMPLICIT_CONVERSION_value
+)
+
+target_compile_definitions(
+    csl_${component_name} INTERFACE
+    CSL_MP_TUPLE__IMPLICIT_CONVERSION=${CSL_MP_TUPLE__IMPLICIT_CONVERSION_value}
+)

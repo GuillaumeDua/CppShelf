@@ -32,12 +32,26 @@ function(csl_mp_make_test_target)
             ${CMAKE_CURRENT_SOURCE_DIR}/includes
     )
 
+	list(APPEND CMAKE_MESSAGE_INDENT "  ")
 	foreach(definition IN LISTS arg_DEFINITIONS)
+
+		string(REPLACE "=" ";" definition_pair "${definition}")
+    	list(GET definition_pair 0 key)
+    	list(GET definition_pair 1 value)
+
+		cache_entry_to_int(
+			ID 			${key}
+			OUT_VAR 	value_as_int
+			FORCE_VALUE ${value}
+		)
+		message(VERBOSE "[csl_mp_make_test_target] Setting compile definition: ${key}=${value} (${value_as_int})")
+
 		target_compile_definitions(${target_name}
 			PUBLIC
-				${definition}
+				FORCE_${key}=${value_as_int} # handled on the C++ side, overrides ${key}
 		)		
 	endforeach(definition IN LISTS arg_DEFINITIONS)
+	list(POP_BACK CMAKE_MESSAGE_INDENT)
 
     add_test(
         NAME    ${PROJECT_NAME}_test_${component_name}.${arg_DEFINITIONS_joined}
@@ -54,14 +68,9 @@ endfunction()
 
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
-set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants 0 1)
-foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION_variants)
+foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION__allowed_values)
 
-	if ("${value}" STREQUAL "")
-		set(DEFINITIONS "")
-	else()
-		set(DEFINITIONS FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value})
-	endif()
+	set(DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value})
 
 	csl_mp_make_test_target(
 		DEFINITIONS ${DEFINITIONS}

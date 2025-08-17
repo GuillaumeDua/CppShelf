@@ -28,11 +28,16 @@
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
 // --- Handle preprocessor options
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE      0
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE      1
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE    2
+
 #if not defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
-#   define CSL_MP_TUPLE__IMPLICIT_CONVERSION 0
-#elif CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq 0 \
-  and CSL_MP_TUPLE__IMPLICIT_CONVERSION not_eq 1
-#   error "CSL_MP_TUPLE__IMPLICIT_CONVERSION: expect either 0 (off, allow only safe ops) or 1 (on, allow unsafe)"
+#   define CSL_MP_TUPLE__IMPLICIT_CONVERSION CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE
+#elif CSL_MP_TUPLE__IMPLICIT_CONVERSION != CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE \
+  && CSL_MP_TUPLE__IMPLICIT_CONVERSION != CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE \
+  && CSL_MP_TUPLE__IMPLICIT_CONVERSION != CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
+#   error "CSL_MP_TUPLE__IMPLICIT_CONVERSION: expect either 0 (none), 1 (allow only safe ops), or 2 (on, allow unsafe)"
 #endif
 
 #define STRINGIFY_DETAIL(x) #x
@@ -548,12 +553,12 @@ namespace csl::mp::details {
             //  As <tuple> is -isystem, implicit members conversions do not produce warnings
             //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0|1` toggles this behavior off/on
             //
-            fwd_maybe_cast<Ts>(csl_fwd(args))
+            csl_fwd_maybe_cast(Ts, csl_fwd(args))
         }...
         {}
 
     #if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
-        // quick-fix: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
+        // QUICK-FIX: for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
         //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t ... indexes_, typename ... Us>
         constexpr explicit
