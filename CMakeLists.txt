@@ -18,9 +18,12 @@ endif()
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/print_option.cmake)
-## Components - detection, list
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/print_aligned.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/cache_entry_to_int.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/csl_add.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/make_subdirectory_list.cmake)
+
+## Components - detection, list
 MAKE_SUBDIRECTORY_LIST(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/includes
     RESULT      CSL_COMPONENTS_LIST
@@ -74,8 +77,6 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     endforeach()
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/csl_add.cmake)
 
 message(STATUS "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
