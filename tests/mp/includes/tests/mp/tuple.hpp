@@ -404,12 +404,14 @@ namespace test::tuples::storage::constructors::move {
 }
 namespace test::tuples::storage::constructors::conversion::safe {
 
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION >= CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
     [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t>                 d = csl::mp::tuple<std::int8_t>{};
     [[maybe_unused]] constexpr csl::mp::tuple<std::int32_t, std::int64_t>   e = csl::mp::tuple<std::int8_t, std::int8_t>{};
     [[maybe_unused]] constexpr csl::mp::tuple<double>                       f { float{} };
+    #endif
 }
 namespace test::tuples::storage::constructors::conversion::unsafe {
-    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
     [[maybe_unused]] constexpr csl::mp::tuple<int, char>    a = csl::mp::tuple<double, int>{ .0 , 0 };
     [[maybe_unused]] constexpr csl::mp::tuple<int>          b { .0F };
     [[maybe_unused]] constexpr csl::mp::tuple<float>        c { .0 };

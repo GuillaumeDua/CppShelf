@@ -6,6 +6,7 @@
   - which (if any) cvref-qualifier for T ? -> T&
 - make_from_tuple
   - std::reference_constructs_from_temporary
+- CSL_MP_TUPLE__IMPLICIT_CONVERSION and/vs. `cast<tuplelike>(tuplike auto &&)`
 
 Check:
 
@@ -21,6 +22,7 @@ Check:
       - no recursion (tuple_cat, etc.)
       - decoupled from `<tuple>`
       - drop-in replacement for `<tuple>`
+        - And CSL_MP_TUPLE__IMPLICIT_CONVERSION values
       - `std::` interops
       - `O(N)` access, lookup
       - IDEA: if quadtree-like composition, then minimalistic footprint and faster access ?
@@ -59,6 +61,9 @@ Check:
   - some quadtree-like composition ?
     - `tuple<Ts[1..8], Ts[9..10]>`
 - std::tuple_element already using inheritance
+- Consider only using aggregate initialization
+  - no constructors for tuple
+  - no constructors for details::storage
 
 ## Features
 

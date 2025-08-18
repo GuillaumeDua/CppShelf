@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # top-level project
 project(csl LANGUAGES CXX)
-set(PROJECT_VERSION 0.3.0)
+set(PROJECT_VERSION 0.3.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
@@ -18,9 +18,9 @@ endif()
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/csl_add.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/print_aligned.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/cache_entry_to_int.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/csl_add.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/make_subdirectory_list.cmake)
 
 ## Components - detection, list

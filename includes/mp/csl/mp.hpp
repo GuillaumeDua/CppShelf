@@ -63,13 +63,8 @@
 // Drop-in replacement for std::tuple
 //  As <tuple> is -isystem, implicit members conversions do not produce warnings
 //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0/1` toggles this behavior off/on
-#if CSL_MP_TUPLE__IMPLICIT_CONVERSION
-#  define csl_fwd_maybe_cast(T, value) static_cast<T&&>(value) // NOLINT(*-macro-*)
-#else
-#  define csl_fwd_maybe_cast(T, value) static_cast<decltype(value)&&>(value)  // NOLINT(*-macro-*)
-#endif
-// NOTE: Implement such a macro as a function would return a ref on a temporary
 //
+// NOTE: Implement such a macro as a function would return a ref on a temporary
 // template <typename T>
 // [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
 //     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
@@ -80,6 +75,11 @@
 //         return std::forward<decltype(value)>(value);
 //     #endif
 // }
+#if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#  define csl_fwd_maybe_cast(T, value) static_cast<T&&>(value) // NOLINT(*-macro-*)
+#else
+#  define csl_fwd_maybe_cast(T, value) static_cast<decltype(value)&&>(value)  // NOLINT(*-macro-*)
+#endif
 
 #if defined(__clang__)
 #   define csl_compiler_is_clang
@@ -537,9 +537,11 @@ namespace csl::mp::details {
         template <typename T>
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
 
-    // conversion support
+    // Conversion support: unsafe use are handled by the compiler -Wconversion
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
         template <typename ...>
         friend struct tuple_storage;
+    #endif
 
         template <typename ... Us>
         constexpr explicit tuple_storage(Us && ... args) // NOLINT(*-missing-std-forward)
@@ -772,6 +774,8 @@ namespace csl::mp {
         = default;
         constexpr ~tuple() = default;
 
+    // WIP: CSL_MP_TUPLE__IMPLICIT_CONVERSION
+
     // operator=
     // storage conversion
         template <std::convertible_to<Ts> ... Us>
@@ -801,16 +805,28 @@ namespace csl::mp {
 
         // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
 
+        // WIP: CSL_MP_TUPLE__IMPLICIT_CONVERSION
+
         // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
         // Constructor: direct
         constexpr explicit
         tuple(const Ts & ... args)
-        noexcept((std::is_nothrow_constructible_v<Ts, const Ts &> and ...))
+        noexcept((std::is_nothrow_constructible_v<Ts, decltype(args)> and ...))
         requires
             (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
-        and (std::constructible_from<Ts, const Ts &> and ...)
+        and (std::constructible_from<Ts, decltype(args)> and ...)
         : storage{ csl_fwd(args)... }
         {}
+        constexpr explicit
+        tuple(Ts && ... args)
+        noexcept((std::is_nothrow_constructible_v<Ts, decltype(args)> and ...))
+        requires
+            (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
+        and (std::constructible_from<Ts, decltype(args)> and ...)
+        : storage{ csl_fwd(args)... }
+        {}
+
+        // WIP: CSL_MP_TUPLE__IMPLICIT_CONVERSION
         // Constructor: converting (values...)
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
@@ -823,9 +839,8 @@ namespace csl::mp {
         : storage{ csl_fwd(args)... }
         {}
 
-        // Converting constructors: unsafe use are handled by the compiler -Wconversion
-    // WIP: allow only if safe ? "none" would disable such code ?
-    // #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    // Converting constructors: unsafe use are handled by the compiler -Wconversion
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
         template <typename ...> friend struct tuple;
 
         // Constructor: converting move
@@ -833,7 +848,7 @@ namespace csl::mp {
         constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
         tuple(tuple<Us...> && other)
         noexcept(std::is_nothrow_constructible_v<decltype(storage), decltype(std::move(other.storage))>)
-        requires 
+        requires
             (sizeof...(Ts) == sizeof...(Us))
         and (true and ... and std::constructible_from<Ts, Us&&>)
         : storage{ std::move(std::move(other).storage) }
@@ -846,7 +861,7 @@ namespace csl::mp {
         requires (true and ... and std::constructible_from<Ts, const Us&>)
         : storage{ other.storage }
         {}
-    // #endif
+    #endif
         // NOLINTEND(*explicit-constructor)
 
         // compare
@@ -1111,9 +1126,13 @@ namespace csl::mp {
     template <template <typename> typename trait, typename tuple_type>
     using transform_t = typename transform<trait, tuple_type>::type;
 
-    // forward_as_tuple
-    constexpr auto forward_as_tuple(auto && ... values) -> csl::mp::tuple<decltype(values)...> {
-        return { csl_fwd(values)... };
+    // TODO(Guillaume) tests
+    constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
+        return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
+    }
+
+    constexpr auto forward_as_tuple(auto && ... values) -> csl::mp::tuple<decltype(values)...>{
+        return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
 
     // tuple_cat
