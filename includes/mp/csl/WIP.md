@@ -45,7 +45,7 @@ Check:
 
 - naming: avoid redundancies
   - naming: `csl::mp::tpl` (after merge into `mp-tuple-storage`)
-  - remove all `tuple_` prefix, but in `std` namespace
+  - remove all `tuple_` prefix/suffix, but in `std` namespace
   - naming clash for algorithms
     - function vs. type_traits
   - remove all `_result` -> dedicated namespace

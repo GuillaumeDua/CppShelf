@@ -16,10 +16,11 @@
 // About [conversion]: using [csl::mp::tuple] as a drop-in replacement for [std::tuple]
 //  As <tuple> is -isystem, implicit members conversions do not produce warnings
 //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION` toggles this behavior on/off,
-//  if two values are allowed:
+//  if three values are allowed:
 //
-//  - SAFE   : let the compiler warn/error narrowing conversions
-//  - UNSAFE : drop-in replacement for [std::tuple], silent all conversions
+//  - NONE (or undefined)   : no conversion allowed
+//  - SAFE                  : let the compiler warn/error on narrowing conversions
+//  - UNSAFE                : drop-in replacement for [std::tuple], silent all conversions
 //
 //  Given two different [tuple] instances T1 and T2
 //  - std::common_reference_t<T1, T2>
@@ -162,7 +163,6 @@ namespace csl::mp {
 }
 
 #include <utility>
-// WIP: integration: reverse the logic
 //  csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
 //  - Need to check if worthy from performances perspective
 //    consider using https://github.com/JPenuchot/ctbench, and/or https://build-bench.com
@@ -329,13 +329,13 @@ namespace csl::mp::concepts {
     concept pair_like = P2165::pair_like<std::remove_cvref_t<T>>;
 
     template <typename T>
-    concept tuple_empty = tuple_like<T> and csl::mp::size_v<T> == 0;
+    concept empty = tuple_like<T> and csl::mp::size_v<T> == 0;
     template <typename T>
-    concept tuple_not_empty = tuple_like<T> and not tuple_empty<T>;
+    concept not_empty = tuple_like<T> and not empty<T>;
     template <typename T, std::size_t N>
-    concept tuple_sized = tuple_like<T> and csl::mp::size_v<T> == N;
+    concept sized = tuple_like<T> and csl::mp::size_v<T> == N;
     template <typename T, std::size_t N>
-    concept tuple_sized_at_least = tuple_like<T> and csl::mp::size_v<T> >= N;
+    concept sized_at_least = tuple_like<T> and csl::mp::size_v<T> >= N;
 }
 
 // P1450 - Enriching type modification traits https://github.com/cplusplus/papers/issues/216
@@ -995,61 +995,43 @@ namespace csl::mp::details::concepts {
     ;
 }
 
-// tuple_element, convenient API
-// TODO(Guillaume): concepts::tuple<T> everywhere below ?
-namespace csl::mp {
-
-    template <std::size_t index, concepts::tuple T>
-    using nth = std::tuple_element_t<index, T>;
-
-    // is_valid_tuple
-    template <typename>
-    struct is_valid_tuple : std::false_type{};
-    template <typename ... Ts>
-    struct is_valid_tuple<tuple<Ts...>> : std::bool_constant<
-    // no duplicates types
-        (true and ... and details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>)
-    >{};
-    template <typename T>
-    constexpr bool is_valid_tuple_v = is_valid_tuple<T>::value;
-
-    namespace concepts {
-        template <typename T> concept valid_tuple = is_valid_tuple_v<T>;
-    }
-}
-
 // mp algorithms
 namespace csl::mp {
 
+    template <std::size_t index, concepts::tuple_like T>
+    using nth = std::tuple_element_t<index, T>;
+
     // is_homogeneous
     template <typename T>
-    struct is_homogeneous_tuple : std::false_type{};
-    template <typename T0, typename ... Ts>
-    struct is_homogeneous_tuple<tuple<T0, Ts...>> : std::bool_constant<(
-        true and ... and std::same_as<T0, Ts>
-    )>{};
+    struct is_homogeneous : std::false_type{};
+    template <concepts::tuple_like T>
+    struct is_homogeneous<T> : std::bool_constant<
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::same_as<element<0, T>, element<indexes, T>>);
+        }(std::make_index_sequence<size_v<T>>{})
+    >{};
     template <typename T>
-    constexpr bool is_homogeneous_tuple_v = is_homogeneous_tuple<T>::value;
+    constexpr bool is_homogeneous_v = is_homogeneous<T>::value;
 
     namespace concepts {
-        template <typename T> concept homogeneous_tuple = is_homogeneous_tuple_v<T>;
+        template <typename T> concept homogeneous = concepts::tuple_like<T> and is_homogeneous_v<std::remove_cvref_t<T>>;
     }
 
-    // is_constrained_by_tuple
+    // is_constrained_by
     template <typename, template <typename> typename>
-    struct is_constrained_by_tuple : std::false_type{};
-    template <template <typename> typename predicate>
-    struct is_constrained_by_tuple<tuple<>, predicate> : std::false_type{};
-    template <template <typename> typename predicate, typename ... Ts>
-    struct is_constrained_by_tuple<tuple<Ts...>, predicate> : std::bool_constant<
-        (true and ... and predicate<Ts>::value)
+    struct is_constrained_by : std::false_type{};
+    template <concepts::tuple_like T, template <typename> typename predicate>
+    struct is_constrained_by<T, predicate> : std::bool_constant<
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and predicate<element<indexes, T>>::value);
+        }(std::make_index_sequence<size_v<T>>{})
     >{};
     template <typename T, template <typename> typename predicate>
-    constexpr auto is_constrained_by_tuple_v = is_constrained_by_tuple<T, predicate>::value;
+    constexpr auto is_constrained_by_v = is_constrained_by<T, predicate>::value;
 
     namespace concepts {
         template <typename T, template <typename> typename predicate>
-        concept constrained_by_tuple = concepts::tuple<T> and is_constrained_by_tuple_v<T, predicate>;
+        concept constrained_by = concepts::tuple_like<T> and is_constrained_by_v<std::remove_cvref_t<T>, predicate>;
     }
 
     // predicate: TTP to std::predicate adapter
@@ -1067,18 +1049,15 @@ namespace csl::mp {
 
     // empty
     template <typename>
-    struct empty;
-    template <>
-    struct empty<tuple<>> : std::true_type{};
-    template <typename T0, typename ... Ts>
-    struct empty<tuple<T0, Ts...>> : std::false_type{};
+    struct empty : std::false_type{};
+    template <concepts::tuple_like T>
+    struct empty<T> : std::integral_constant<bool, (size_v<T> == 0)>{};
     template <typename T>
     constexpr bool empty_v = empty<T>::value;
 
-    namespace concepts {
-        template <typename T>
-        concept empty_tuple = tuple<T> and empty_v<T>;
-    }
+    // WIP/REFACTO: tuple_like
+
+    // REFACTO: first arg is tuplelike, then the rest.
 
     // count
     template <typename, typename>
@@ -1089,6 +1068,27 @@ namespace csl::mp {
     >{};
     template <typename T, typename tuple_type>
     constexpr std::size_t count_v = count<T, tuple_type>::value;
+
+    // is_valid (has no duplicate type): std::get<T>(tuple-like) would be legal and not error-prone
+    template <typename>
+    struct is_valid : std::false_type{};
+    template <typename ... Ts>
+    struct is_valid<tuple<Ts...>> : std::bool_constant<
+        (true and ... and details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>)
+    >{};
+    template <typename ... Ts>
+    struct is_valid<std::tuple<Ts...>> : std::bool_constant<
+        (true and ... and (count_v<Ts, std::tuple<Ts...>> == 1))
+    >{};
+    template <typename T, std::size_t N>
+    struct is_valid<std::array<T, N>> : std::true_type
+    {};
+    template <typename T>
+    constexpr bool is_valid_v = is_valid<T>::value;
+
+    namespace concepts {
+        template <typename T> concept valid = is_valid_v<std::remove_cvref_t<T>>;
+    }
 
     // count_if
     template <template <typename...> typename, typename>
@@ -1105,7 +1105,7 @@ namespace csl::mp {
     struct index_of : std::integral_constant<std::size_t,
         tuple_type::storage_type::template by_type_<T>::index
     >{};
-    template <typename T, concepts::valid_tuple tuple_type>
+    template <typename T, concepts::valid tuple_type>
     constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
 
     // unfold_into
@@ -1244,7 +1244,7 @@ namespace csl::mp {
     template <typename>
     struct has_duplicates;
     template <typename ... Ts>
-    struct has_duplicates<tuple<Ts...>> : std::negation<is_valid_tuple<tuple<Ts...>>>{};
+    struct has_duplicates<tuple<Ts...>> : std::negation<is_valid<tuple<Ts...>>>{};
     template <typename tuple_type>
     constexpr bool has_duplicates_v = has_duplicates<tuple_type>::value;
 
@@ -1367,7 +1367,7 @@ namespace csl::mp {
     // TODO(Guss): reverse prior to filtering, to preserve order
     template <typename>
     struct deduplicate;
-    template <concepts::valid_tuple T>
+    template <concepts::valid T>
     struct deduplicate<T> : type_identity<T>{};
     template <typename ... Ts>
     struct deduplicate<tuple<Ts...>> : 

@@ -39,22 +39,22 @@ namespace test::tuples::concepts::pair_like {
 namespace test::tuples::concepts::sized {
 
     // empty
-    static_assert(csl::mp::concepts::tuple_empty<csl::mp::tuple<>>);
-    static_assert(csl::mp::concepts::tuple_empty<std::tuple<>>);
-    static_assert(csl::mp::concepts::tuple_empty<std::array<int, 0>>);
+    static_assert(csl::mp::concepts::empty<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::empty<std::tuple<>>);
+    static_assert(csl::mp::concepts::empty<std::array<int, 0>>);
 
     // not_empty
-    static_assert(not csl::mp::concepts::tuple_empty<std::pair<int, char>>);
-    static_assert(csl::mp::concepts::tuple_not_empty<std::pair<int, char>>);
-    static_assert(not csl::mp::concepts::tuple_empty<std::tuple<int>>);
-    static_assert(csl::mp::concepts::tuple_not_empty<std::tuple<int>>);
+    static_assert(not csl::mp::concepts::empty<std::pair<int, char>>);
+    static_assert(csl::mp::concepts::not_empty<std::pair<int, char>>);
+    static_assert(not csl::mp::concepts::empty<std::tuple<int>>);
+    static_assert(csl::mp::concepts::not_empty<std::tuple<int>>);
 
     // sized, at_least
-    static_assert(csl::mp::concepts::tuple_sized<csl::mp::tuple<>, 0>);
-    static_assert(csl::mp::concepts::tuple_sized<csl::mp::tuple<int>, 1>);
-    static_assert(csl::mp::concepts::tuple_sized_at_least<csl::mp::tuple<int>, 1>);
-    static_assert(not csl::mp::concepts::tuple_sized_at_least<csl::mp::tuple<int>, 2>);
-    static_assert(csl::mp::concepts::tuple_sized<std::pair<int, char>, 2>);
+    static_assert(csl::mp::concepts::sized<csl::mp::tuple<>, 0>);
+    static_assert(csl::mp::concepts::sized<csl::mp::tuple<int>, 1>);
+    static_assert(csl::mp::concepts::sized_at_least<csl::mp::tuple<int>, 1>);
+    static_assert(not csl::mp::concepts::sized_at_least<csl::mp::tuple<int>, 2>);
+    static_assert(csl::mp::concepts::sized<std::pair<int, char>, 2>);
 }
 namespace test::tuples::concepts::tuple_element {
 
@@ -112,8 +112,8 @@ namespace test::tuples::empty {
     static_assert(csl::mp::empty_v<csl::mp::tuple<>>);
     static_assert(not csl::mp::empty_v<csl::mp::tuple<int>>);
 
-    static_assert(csl::mp::concepts::empty_tuple<csl::mp::tuple<>>);
-    static_assert(not csl::mp::concepts::empty_tuple<csl::mp::tuple<int>>);
+    static_assert(csl::mp::concepts::empty<csl::mp::tuple<>>);
+    static_assert(not csl::mp::concepts::empty<csl::mp::tuple<int>>);
 }
 // TODO(Guillaume): revert API so it looks like std::ranges
 namespace test::tuples::algorithm::count {
@@ -153,14 +153,14 @@ namespace test::tuples::algorithm::has_duplicates {
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<>>);
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
 }
-namespace testi::tuples::is_valid_tuple {
+namespace testi::tuples::is_valid {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
-    static_assert(not csl::mp::is_valid_tuple_v<with_duplicates>);
-    static_assert(csl::mp::is_valid_tuple_v<without_duplicates>);
-    static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<>>);
-    static_assert(csl::mp::is_valid_tuple_v<csl::mp::tuple<int>>);
+    static_assert(not csl::mp::is_valid_v<with_duplicates>);
+    static_assert(csl::mp::is_valid_v<without_duplicates>);
+    static_assert(csl::mp::is_valid_v<csl::mp::tuple<>>);
+    static_assert(csl::mp::is_valid_v<csl::mp::tuple<int>>);
 }
 namespace test::tuples::compare::tuple {
 
