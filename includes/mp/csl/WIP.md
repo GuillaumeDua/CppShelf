@@ -53,6 +53,12 @@ Check:
 - piecewise: constructible, convertible
   - use in conversion, etc.
 
+- have constructors, assign, destructors behave well by default,  
+  so I don't need to implement each and every case
+  - But what about conversions then ?
+    - `std::tuple` drop-in replacement: Still don't wanna force conversions to be on the caller site
+    - Yet, is the consumer responsible to `-w` or `-isystem` such a header ?
+
 ## Optimisation
 
 - homogeneous layout -> array as storage

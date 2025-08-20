@@ -738,6 +738,11 @@ struct std::basic_common_reference< // NOLINT(cert-dcl58-cpp)
 // tuple
 namespace csl::mp {
 
+    // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
+    // - construction
+    // - assign
+    // - as/cast/convert
+
     template <typename ... Ts>
     struct tuple
     {
@@ -774,7 +779,8 @@ namespace csl::mp {
         = default;
         constexpr ~tuple() = default;
 
-    // WIP: CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    // Converting constructors: safe use are handled by the compiler -Wconversion
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
 
     // operator=
     // storage conversion
@@ -803,9 +809,7 @@ namespace csl::mp {
             return *this;
         }
 
-        // TODO(Guillaume): #285 - interop with other tuple-like (pair, array, etc.)
-
-        // WIP: CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    #endif
 
         // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
         // Constructor: direct
@@ -826,7 +830,6 @@ namespace csl::mp {
         : storage{ csl_fwd(args)... }
         {}
 
-        // WIP: CSL_MP_TUPLE__IMPLICIT_CONVERSION
         // Constructor: converting (values...)
         template <typename ... Us>
         constexpr explicit(not (true and ... and std::convertible_to<Ts, Us&&>))
@@ -839,7 +842,7 @@ namespace csl::mp {
         : storage{ csl_fwd(args)... }
         {}
 
-    // Converting constructors: unsafe use are handled by the compiler -Wconversion
+    // Converting constructors: safe use are handled by the compiler -Wconversion
     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
         template <typename ...> friend struct tuple;
 
