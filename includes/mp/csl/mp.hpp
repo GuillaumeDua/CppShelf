@@ -538,10 +538,20 @@ namespace csl::mp::details {
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
 
     // Conversion support: unsafe use are handled by the compiler -Wconversion
-    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    #if not CSL_MP_TUPLE__IMPLICIT_CONVERSION
+        constexpr explicit tuple_storage(std::convertible_to<Ts> auto && ... args) // NOLINT(*-missing-std-forward)
+        noexcept((true and ... and std::is_nothrow_constructible_v<Ts, decltype(args)>))
+        requires (sizeof...(Ts) == sizeof...(args)
+            and (true and ... and std::constructible_from<Ts, decltype(args)>)
+        )
+        : tuple_member<indexes, Ts>{
+            csl_fwd(args)
+        }...
+        {}
+    #else
         template <typename ...>
         friend struct tuple_storage;
-    #endif
+    // #endif
 
         template <typename ... Us>
         constexpr explicit tuple_storage(Us && ... args) // NOLINT(*-missing-std-forward)
@@ -555,7 +565,8 @@ namespace csl::mp::details {
             //  As <tuple> is -isystem, implicit members conversions do not produce warnings
             //  The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0|1` toggles this behavior off/on
             //
-            csl_fwd_maybe_cast(Ts, csl_fwd(args))
+            // csl_fwd_maybe_cast(Ts, csl_fwd(args))
+            static_cast<copy_cvref_t<decltype(args), Ts>>(args)
         }...
         {}
 
@@ -591,6 +602,7 @@ namespace csl::mp::details {
             static_cast<const tuple_member<indexes, Us>&>(other).value...
         }
         {}
+    #endif
 
         constexpr tuple_storage() = default;
         constexpr ~tuple_storage() = default;

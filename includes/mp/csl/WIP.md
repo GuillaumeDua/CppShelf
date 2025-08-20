@@ -102,3 +102,10 @@ Check:
 - flatten -> see POC
 - Cartesian product ? (motivation: matrixes)
 - Sorting ?
+
+### Tests
+
+- tuple
+  - Check value semantic -> cvref qualifiers, unwanted copies, etc.
+    - construct, assign, convert
+  - Check conversions
