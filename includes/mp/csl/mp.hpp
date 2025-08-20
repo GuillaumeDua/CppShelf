@@ -570,17 +570,17 @@ namespace csl::mp::details {
         }...
         {}
 
-    #if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
+    # if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
         // QUICK-FIX: for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
         //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t ... indexes_, typename ... Us>
         constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes_, Us>...> && other)
-    #else
+    # else
         template <typename ... Us>
         constexpr explicit
         tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
-    #endif
+    # endif
         noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us &&>))
         requires (
             sizeof...(Ts) == sizeof...(Us)
