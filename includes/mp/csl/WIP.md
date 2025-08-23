@@ -6,7 +6,9 @@
   - which (if any) cvref-qualifier for T ? -> T&
 - make_from_tuple
   - std::reference_constructs_from_temporary
-- CSL_MP_TUPLE__IMPLICIT_CONVERSION and/vs. `cast<tuplelike>(tuplike auto &&)`
+- tuple: construct, assign from tuple-like
+  - add some `from_tuple` tag to disambiguate constructions, with a specific user-defined deduction guide ?
+    - What about `<tuple>` consistency then ?
 
 Check:
 
@@ -19,6 +21,9 @@ Check:
 - README
   - Design manifesto
     - coupled with `<utility>` as minimalistic impact
+    - interops with STL's tuplelikes
+      - `cat(tuple<>, std::tuple<>, std::array<>, std::pair<>)`
+      - construct, assign, etc.
     - tuple
       - no recursion (tuple_cat, etc.)
       - decoupled from `<tuple>`
@@ -101,6 +106,7 @@ Check:
     - `filter_if_t<tuple<float, int, double, char>, is_integral>` -> `tuple<int, char>`
   - vs.? consteval ranges-like algo `op(tuple-like &&, args&&...)`
     - `filter_if(tuple{A, B, C}, is_alive)` -> `tuple<A, C>`
+    - `cat(tuple-like &&...)`
 - Reverse API so it looks like ranges: tuple as first arg
 
 - Which algorithms ? -> WIP: which ct (`name_t<tuple-like>`), which rt (`name(tuple-like &&, args...)`)

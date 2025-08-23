@@ -92,20 +92,6 @@
 #   define csl_compiler_is_unknown
 #endif
 
-// WIP refactoring => reorder/sort
-//  sequences::* : op on sequences
-//  seq types    : sequences definitions
-//  tuple
-//  mp::pack::* : ttps...| tttp<ttps...> -> only mp::*<tttp<ttps...>>
-//
-// WIP range-like API for sequence, tuple
-//  views: std::make_index_sequence<4> | reverse | drop(1) | take(2) => std::integer_sequence<std::size_t, 3, 2>
-//  ranges: flatten, partition, split, etc.
-//
-// TODO: range-like tuple ? operator[], size, empty, etc.
-//
-// TODO: decouple-from/remove std::index_sequence, std::make_sequence
-
 // deprecated by P2593R0 - Allowing static_assert(false)
 namespace csl::mp::inline deprecated_by_P2593R0 {
     template <typename ...>
@@ -1060,7 +1046,10 @@ namespace csl::mp {
         [[nodiscard]] constexpr static auto operator()(const T &) noexcept { return P<T>::value; }
     };
 
-    // TODO(Guillaume) naming: namespace tuple_traits::is_valid, etc. ? ⬆️⬇️
+    // TODO(Guillaume) naming: namespace ? ⬆️⬇️
+    //  - csl::mp::tuple_traits::is_valid
+    //  - csl::mp::traits::is_valid
+    //  - csl::mp::tt::is_valid
 
     // empty
     template <typename>
@@ -1077,14 +1066,16 @@ namespace csl::mp {
     // count
     template <typename, typename>
     struct count;
-    template <typename T, typename ... Ts>
-    struct count<T, tuple<Ts...>> : std::integral_constant<std::size_t,
-        (0 + ... + std::is_same_v<T, Ts>)
+    template <concepts::tuple_like T, typename needle>
+    struct count<T, needle> : std::integral_constant<std::size_t,
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (0 + ... + std::is_same_v<needle, element_t<indexes, T>>);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{})
     >{};
-    template <typename T, typename tuple_type>
-    constexpr std::size_t count_v = count<T, tuple_type>::value;
+    template <typename T, typename needle>
+    constexpr std::size_t count_v = count<T, needle>::value;
 
-    // is_valid (has no duplicate type): std::get<T>(tuple-like) would be legal and not error-prone
+    // is_valid (has no duplicate type): get<T>(tuple-like) would be legal and not error-prone
     template <typename>
     struct is_valid : std::false_type{};
     template <typename ... Ts>

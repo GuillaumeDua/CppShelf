@@ -115,16 +115,16 @@ namespace test::tuples::empty {
     static_assert(csl::mp::concepts::empty<csl::mp::tuple<>>);
     static_assert(not csl::mp::concepts::empty<csl::mp::tuple<int>>);
 }
-// TODO(Guillaume): revert API so it looks like std::ranges
 namespace test::tuples::algorithm::count {
     using t = csl::mp::tuple<int, char, bool, int, double>;
-    static_assert(0 == csl::mp::count_v<float, t>);
-    static_assert(1 == csl::mp::count_v<char, t>);
-    static_assert(2 == csl::mp::count_v<int, t>);
+    static_assert(0 == csl::mp::count_v<t, float>);
+    static_assert(1 == csl::mp::count_v<t, char>);
+    static_assert(2 == csl::mp::count_v<t, int>);
 
     // empty tuple
-    static_assert(0 == csl::mp::count_v<int, csl::mp::tuple<>>);
+    static_assert(0 == csl::mp::count_v<csl::mp::tuple<>, int>);
 }
+// WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::count_if {
     using t = csl::mp::tuple<int, char, bool, double, float>;
     static_assert(3 == csl::mp::count_if_v<std::is_integral, t>);
