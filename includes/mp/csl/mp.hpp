@@ -474,7 +474,7 @@ namespace csl::mp::details {
 
         T value;
 
-        // TODO(Guillaume): Benchmark if worthy
+        // TODO(Guillaume): Benchmark if worthy vs. plain static_cast
         // index-to-type mapping
         constexpr static tuple_member<I, T> deduce_type(mp::index_t<I>) noexcept;
         // type-to-index mapping (repetitions: clashes are handled downstream)

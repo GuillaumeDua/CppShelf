@@ -18,14 +18,19 @@ Check:
 - Better logo ?
 - README
   - Design manifesto
+    - coupled with `<utility>` as minimalistic impact
     - tuple
       - no recursion (tuple_cat, etc.)
       - decoupled from `<tuple>`
-      - drop-in replacement for `<tuple>`
-        - And CSL_MP_TUPLE__IMPLICIT_CONVERSION values
+      - drop-in replacement for `<tuple>` with CSL_MP_TUPLE__IMPLICIT_CONVERSION == UNSAFE
+        - CSL_MP_TUPLE__IMPLICIT_CONVERSION == SAFE -> `-Wconversion`
+        - CSL_MP_TUPLE__IMPLICIT_CONVERSION == NONE -> strict, user-side conversions - if any
       - `std::` interops
       - `O(N)` access, lookup
       - IDEA: if quadtree-like composition, then minimalistic footprint and faster access ?
+    - ttps mp algos on `tuple<ttps...>` vs. `mp::pack<ttps...>`
+      - Better lookup perfs in some cases
+      - same perfs for other cases ?
 - Doxygen
 
 ## Support
@@ -89,19 +94,28 @@ Check:
 
 ### Algorithms
 
+- range-like API for sequence, tuple
+  - views-like composition: `std::make_index_sequence<4> | reverse | drop(1) | take(2)` => `std::integer_sequence<std::size_t, 3, 2>`
+  - ranges-like mp algo `op<tuple-like, args...>`
+    - `flatten_t<tuple<int>, tuple<tuple<char>>>` -> `tuple<int, char>`
+    - `filter_if_t<tuple<float, int, double, char>, is_integral>` -> `tuple<int, char>`
+  - vs.? consteval ranges-like algo `op(tuple-like &&, args&&...)`
+    - `filter_if(tuple{A, B, C}, is_alive)` -> `tuple<A, C>`
 - Reverse API so it looks like ranges: tuple as first arg
-- front, back
-  - function -> get
-  - type_trait -> type
-- all/any/none
-- split, chunk_by, extract
-- filter, filter_if
-- partition
-- fold_left, fold_right
-- zip(tuplelikes...)
-- flatten -> see POC
-- Cartesian product ? (motivation: matrixes)
-- Sorting ?
+
+- Which algorithms ? -> WIP: which ct (`name_t<tuple-like>`), which rt (`name(tuple-like &&, args...)`)
+  - front, back
+    - function -> get
+    - type_trait -> type
+  - all/any/none
+  - split, chunk_by, extract
+  - filter, filter_if
+  - partition
+  - fold_left, fold_right
+  - zip(tuplelikes...)
+  - flatten -> see POC
+  - Cartesian product ? (motivation: matrixes)
+  - Sorting ?
 
 ### Tests
 
