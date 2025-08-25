@@ -119,11 +119,19 @@ namespace csl::mp::concepts::inline fake_p2481_alternative {
         and std::same_as<U, std::remove_cvref_t<T>>
     ;
 }
+
+#include <array>
 namespace csl::mp::concepts {
-    // Limitation: universal template parameters (nttps, etc.)
+    // Limitation: universal template parameters (nttps, etc.) -> std::array, std::integer_sequence, etc.
     template <typename T, template <typename...> typename ttp>
     concept instance = requires {
         []<typename ... Ts>(type_identity<ttp<Ts...>>){
+        }(type_identity<std::remove_cvref_t<T>>{});
+    };
+
+    template <typename T>
+    concept std_array = requires {
+        []<typename value_type, std::size_t N>(type_identity<std::array<value_type, N>>){
         }(type_identity<std::remove_cvref_t<T>>{});
     };
 }
@@ -167,7 +175,6 @@ namespace csl::mp {
     template <std::size_t I, /*tuple-like*/ typename T> using member_value_t = typename member_value<I, T>::type;
 }
 
-#include <array>
 // --- sequence ---
 namespace csl::mp {
 
@@ -1059,6 +1066,15 @@ namespace csl::mp {
     template <typename T>
     constexpr bool empty_v = empty<T>::value;
 
+    // WIP: refacto, make count depends on it -> index == npos or detect invalid ?
+    // index-by-type
+    // template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
+    // struct index_of : std::integral_constant<std::size_t,
+    //     tuple_type::storage_type::template by_type_<T>::index
+    // >{};
+    // template <typename T, concepts::valid tuple_type>
+    // constexpr std::size_t index_of_v = index_of<T, tuple_type>::value;
+
     // WIP/REFACTO: tuple_like
 
     // REFACTO: first arg is tuplelike, then the rest.
@@ -1075,6 +1091,8 @@ namespace csl::mp {
     template <typename T, typename needle>
     constexpr std::size_t count_v = count<T, needle>::value;
 
+    // REFACTO: rename gettable_by_type ?
+    // REFACTO: hetero
     // is_valid (has no duplicate type): get<T>(tuple-like) would be legal and not error-prone
     template <typename>
     struct is_valid : std::false_type{};
@@ -1082,13 +1100,17 @@ namespace csl::mp {
     struct is_valid<tuple<Ts...>> : std::bool_constant<
         (true and ... and details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>)
     >{};
-    template <typename ... Ts>
-    struct is_valid<std::tuple<Ts...>> : std::bool_constant<
-        (true and ... and (count_v<Ts, std::tuple<Ts...>> == 1))
+    template <concepts::tuple_like T>
+    requires (not concepts::std_array<T>)
+    struct is_valid<T> : std::bool_constant<
+        // refacto: detect if index_of legal
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and (count_v<
+                std::remove_cvref_t<T>,
+                std::tuple_element_t<indexes, std::remove_cvref_t<T>>> == 1
+            ));
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{})
     >{};
-    template <typename T, std::size_t N>
-    struct is_valid<std::array<T, N>> : std::true_type
-    {};
     template <typename T>
     constexpr bool is_valid_v = is_valid<T>::value;
 
@@ -1434,7 +1456,8 @@ namespace csl::mp {
     [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
         return csl_fwd(value).template get<index>();
     }
-    // WIP
+    // TODO(Guillaume) get<T>
+    //  
 
     // make_tuple
 }

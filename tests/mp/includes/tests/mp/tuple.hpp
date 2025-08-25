@@ -154,6 +154,11 @@ namespace test::tuples::algorithm::has_duplicates {
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
 }
 namespace testi::tuples::is_valid {
+
+    static_assert(not csl::mp::is_valid_v<std::array<int, 1>>);
+    static_assert(not csl::mp::is_valid_v<std::tuple<int, int>>);
+    static_assert(csl::mp::is_valid_v<std::tuple<int, char>>);
+
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
