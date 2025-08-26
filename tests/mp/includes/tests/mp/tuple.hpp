@@ -344,19 +344,19 @@ namespace test::tuples::indexes {
     static_assert(csl::mp::last_index_of_v<int, invalid_tuple> == 4);
 
     using valid_tuple = csl::mp::tuple<char, double, float, int>;
-    static_assert(csl::mp::index_of_v<int, valid_tuple> == 3);
-    static_assert(csl::mp::first_index_of_v<int, valid_tuple> == 3);
-    static_assert(csl::mp::rfirst_index_of_v<int, valid_tuple> == 0);
-    static_assert(csl::mp::last_index_of_v<int, valid_tuple> == 3);
+    static_assert(csl::mp::index_of_v<valid_tuple, int> == 3);
+    static_assert(csl::mp::first_index_of_v<valid_tuple, int> == 3);
+    static_assert(csl::mp::rfirst_index_of_v<valid_tuple, int> == 0);
+    static_assert(csl::mp::last_index_of_v<valid_tuple, int> == 3);
 }
 namespace test::tuples::is_unique {
     using valid_tuple = csl::mp::tuple<int, char>;
-    static_assert(csl::mp::is_unique_v<int, valid_tuple>);
-    static_assert(csl::mp::is_unique_v<char, valid_tuple>);
+    static_assert(csl::mp::is_unique_v<valid_tuple, int>);
+    static_assert(csl::mp::is_unique_v<valid_tuple, char>);
 
     using invalid_tuple = csl::mp::tuple<int, char, int>;
-    static_assert(not csl::mp::is_unique_v<int, invalid_tuple>);
-    static_assert(csl::mp::is_unique_v<char, invalid_tuple>);
+    static_assert(not csl::mp::is_unique_v<invalid_tuple, int>);
+    static_assert(csl::mp::is_unique_v<invalid_tuple, char>);
 }
 namespace test::tuples::filter {
     using T1 = csl::mp::tuple<int, double, char, float>;
