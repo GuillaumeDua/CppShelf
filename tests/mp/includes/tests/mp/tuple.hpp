@@ -339,14 +339,11 @@ namespace test::tuples::set_intersection {
 }
 namespace test::tuples::indexes {
     using invalid_tuple = csl::mp::tuple<char, double, float, int, int>;
-    static_assert(csl::mp::first_index_of_v<int, invalid_tuple> == 3);
-    static_assert(csl::mp::rfirst_index_of_v<int, invalid_tuple> == 1);
+    static_assert(csl::mp::index_of_v<int, invalid_tuple> == 3);
     static_assert(csl::mp::last_index_of_v<int, invalid_tuple> == 4);
 
     using valid_tuple = csl::mp::tuple<char, double, float, int>;
     static_assert(csl::mp::index_of_v<valid_tuple, int> == 3);
-    static_assert(csl::mp::first_index_of_v<valid_tuple, int> == 3);
-    static_assert(csl::mp::rfirst_index_of_v<valid_tuple, int> == 0);
     static_assert(csl::mp::last_index_of_v<valid_tuple, int> == 3);
 }
 namespace test::tuples::is_unique {

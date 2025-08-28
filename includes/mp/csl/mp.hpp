@@ -1073,9 +1073,8 @@ namespace csl::mp {
     // WIP
 
 
-    // REFACTO: rename find ?
-    // index-by-type
-    template <typename, typename T>
+    // index-by-type: index of the first occurence of T, if any, and tuple_size otherwise
+    template <typename, typename>
     struct index_of{};
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
@@ -1087,72 +1086,48 @@ namespace csl::mp {
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct index_of<tuple_type, T> : std::integral_constant<std::size_t,
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            constexpr bool matches[] = {std::is_same_v<T, std::tuple_element<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
+            constexpr bool matches[] = { std::is_same_v<T, std::tuple_element<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
             for (std::size_t i = 0; i < sizeof...(indexes); ++i)
                 if (matches[i])
                     return i;
             return sizeof...(indexes);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
+    // struct index_of<tuple<Ts...>, T> {
+    //     constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //         std::size_t pos = details::npos;
+    //         (void)((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
+    //         return pos;
+    //     }(std::make_index_sequence<sizeof...(Ts)>{});
+    //     static_assert(value not_eq details::npos, "first_index_of : not found");
+    // };
     template <concepts::tuple_like tuple_type, typename T>
     constexpr std::size_t index_of_v = index_of<tuple_type, T>::value;
 
-    // first_index_of
-    template <typename, typename>
-    struct first_index_of;
-    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
-    struct first_index_of<T, tuple_type> : index_of<T, tuple_type>{};
-    template <typename T, typename ... Ts>
-    requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
-    struct first_index_of<T, tuple<Ts...>> {
-        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = details::npos;
-            (void)((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
-            return pos;
-        }(std::make_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq details::npos, "first_index_of : not found");
-    };
-    template <typename T, typename tuple_type>
-    constexpr std::size_t first_index_of_v = first_index_of<T, tuple_type>::value;
-
-    // rfirst_index_of
-    template <typename, typename>
-    struct rfirst_index_of;
-    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
-    struct rfirst_index_of<T, tuple_type> : std::bool_constant<
-        size_v<tuple_type> - 1 - index_of_v<T, tuple_type>
-    >{};
-    template <typename T, typename ... Ts>
-    requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
-    struct rfirst_index_of<T, tuple<Ts...>> {
-        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = details::npos;
-            (void)((pos = (pos == details::npos and std::is_same_v<T, Ts> ? indexes : pos)), ...);
-            return pos;
-        }(csl::mp::make_reverse_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq details::npos, "rfirst_index_of : not found");
-    };
-    template <typename T, typename tuple_type>
-    constexpr std::size_t rfirst_index_of_v = rfirst_index_of<T, tuple_type>::value;
-
     // last_index_of
-    //  equivalent to (sizeof...(Ts) - rfirst_index_of<T, tuple<Ts...>>)
+    //  equivalent to (sizeof...(Ts) - index_of<T, reverse<tuple<Ts...>>>)
     template <typename, typename>
-    struct last_index_of;
-    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
-    struct last_index_of<T, tuple_type> : index_of<T, tuple_type>{};
-    template <typename T, typename ... Ts>
-    requires (not details::concepts::can_deduce_by_type<tuple<Ts...>, T>)
-    struct last_index_of<T, tuple<Ts...>> {
-        constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = details::npos;
-            (void)((pos = std::is_same_v<T, Ts> ? indexes : pos), ...);
+    struct last_index_of{};
+
+    template <typename tuple_type, typename T>
+    requires details::concepts::can_deduce_by_type<tuple_type, T>
+    struct last_index_of<tuple_type, T> : index_of<tuple_type, T>{};
+
+    template <concepts::tuple_like tuple_type, typename T>
+    requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
+    struct last_index_of<tuple_type, T> : std::integral_constant<std::size_t, 
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            std::size_t pos = sizeof...(indexes);
+            (void)((pos = std::is_same_v<T, std::tuple_element<indexes, std::remove_cvref_t<tuple_type>>>
+                        ? indexes
+                        : pos
+            ), ...);
             return pos;
-        }(std::make_index_sequence<sizeof...(Ts)>{});
-        static_assert(value not_eq details::npos, "last_index_of : not found");
-    };
-    template <typename T, typename tuple_type>
-    constexpr std::size_t last_index_of_v = last_index_of<T, tuple_type>::value;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    >
+    {};
+    template <typename tuple_type, typename T>
+    constexpr std::size_t last_index_of_v = last_index_of<tuple_type, T>::value;
 
     // count
     template <typename, typename>
