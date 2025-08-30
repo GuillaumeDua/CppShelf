@@ -339,21 +339,21 @@ namespace test::tuples::set_intersection {
 }
 namespace test::tuples::indexes {
     using invalid_tuple = csl::mp::tuple<char, double, float, int, int>;
-    static_assert(csl::mp::index_of_v<int, invalid_tuple> == 3);
-    static_assert(csl::mp::last_index_of_v<int, invalid_tuple> == 4);
+    static_assert(csl::mp::index_of_v<invalid_tuple, int> == 3);
+    static_assert(csl::mp::last_index_of_v<invalid_tuple, int> == 4);
 
     using valid_tuple = csl::mp::tuple<char, double, float, int>;
     static_assert(csl::mp::index_of_v<valid_tuple, int> == 3);
     static_assert(csl::mp::last_index_of_v<valid_tuple, int> == 3);
 }
-namespace test::tuples::is_unique {
+// TODO(Guillaume) sort, is_sorted
+// TODO(Guillaume) unique/deduplicate
+namespace test::tuples::is_uniqued {
     using valid_tuple = csl::mp::tuple<int, char>;
-    static_assert(csl::mp::is_unique_v<valid_tuple, int>);
-    static_assert(csl::mp::is_unique_v<valid_tuple, char>);
+    static_assert(csl::mp::is_uniqued_v<valid_tuple>);
 
     using invalid_tuple = csl::mp::tuple<int, char, int>;
-    static_assert(not csl::mp::is_unique_v<invalid_tuple, int>);
-    static_assert(csl::mp::is_unique_v<invalid_tuple, char>);
+    static_assert(not csl::mp::is_uniqued_v<invalid_tuple>);
 }
 namespace test::tuples::filter {
     using T1 = csl::mp::tuple<int, double, char, float>;

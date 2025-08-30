@@ -1070,6 +1070,10 @@ namespace csl::mp {
     // REFACTO: first arg is tuplelike, then the rest.
     //  QUESTION: specialize for tuple<Ts...>, then other tuplelikes ?
     //      and/or rebind any tuplelike into tuple<...> for simplier impls. ?
+    // REFACTO: apply/apply_with_index instead of IILEs + index_seq
+    // FEATURE: 1 type-trait -> 1 concept
+    //  type_trait -> T
+    //  concepts -> maybe-cvref-qualified T
     // WIP
 
 
@@ -1086,7 +1090,7 @@ namespace csl::mp {
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct index_of<tuple_type, T> : std::integral_constant<std::size_t,
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            constexpr bool matches[] = { std::is_same_v<T, std::tuple_element<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
+            constexpr bool matches[] = { std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
             for (std::size_t i = 0; i < sizeof...(indexes); ++i)
                 if (matches[i])
                     return i;
@@ -1118,7 +1122,7 @@ namespace csl::mp {
     struct last_index_of<tuple_type, T> : std::integral_constant<std::size_t, 
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             std::size_t pos = sizeof...(indexes);
-            (void)((pos = std::is_same_v<T, std::tuple_element<indexes, std::remove_cvref_t<tuple_type>>>
+            (void)((pos = std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
                         ? indexes
                         : pos
             ), ...);
@@ -1132,14 +1136,18 @@ namespace csl::mp {
     // count
     template <typename, typename>
     struct count;
-    template <concepts::tuple_like T, typename needle>
-    struct count<T, needle> : std::integral_constant<std::size_t,
+    template <typename tuple_type, typename T>
+    requires details::concepts::can_deduce_by_type<tuple_type, T>
+    struct count<tuple_type, T> : std::integral_constant<std::size_t, 1>{};
+    template <concepts::tuple_like tuple_type, typename T>
+    requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
+    struct count<tuple_type, T> : std::integral_constant<std::size_t,
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (0 + ... + std::is_same_v<needle, element_t<indexes, T>>);
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{})
+            return (0 + ... + std::is_same_v<T, std::tuple_element_t<indexes, tuple_type>>);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
-    template <concepts::tuple_like T, typename needle>
-    constexpr std::size_t count_v = count<T, needle>::value;
+    template <concepts::tuple_like tuple_type, typename T>
+    constexpr std::size_t count_v = count<tuple_type, T>::value;
 
     // REFACTO: rename gettable_by_type ? has_duplicate won't fit as one cannot `get<int>(std::array{1})`
     // is_valid (has no duplicate type): get<T>(tuple-like) would be legal and not error-prone
@@ -1360,20 +1368,22 @@ namespace csl::mp {
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
 
-    // is_unique
-    template <typename, typename>
-    struct is_unique;
-    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
-    struct is_unique<T, tuple_type> : std::true_type{};
-    template <typename T, typename ... Ts>
-    requires (not contains_v<T, tuple<Ts...>>)
-    struct is_unique<T, tuple<Ts...>> : std::false_type{};
-    template <typename T, typename ... Ts>
-    struct is_unique<T, tuple<Ts...>> : std::bool_constant<
-        (first_index_of_v<T, tuple<Ts...>> == last_index_of_v<T, tuple<Ts...>>)
+    // is_uniqued
+    // similar to P2848 - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2848r1.html
+    template <typename>
+    struct is_uniqued;
+    template <concepts::tuple_like tuple_type>
+    struct is_uniqued<tuple_type> : std::bool_constant<
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            using tuple_type_t = std::remove_cvref_t<tuple_type>;
+            return (true and ... and (
+                     index_of_v<tuple_type_t, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+            ==  last_index_of_v<tuple_type_t, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+        ));
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
-    template <typename T, typename tuple_type>
-    constexpr bool is_unique_v = is_unique<T, tuple_type>::value;
+    template <typename tuple_type>
+    constexpr bool is_uniqued_v = is_uniqued<tuple_type>::value;
 
     // deduplicate / make_valid
     // TODO(Guss): reverse prior to filtering, to preserve order
@@ -1395,7 +1405,7 @@ namespace csl::mp {
         return cat_result<
             std::conditional_t<
                 details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>
-                or indexes == first_index_of_v<Ts, tuple<Ts...>>,
+                or indexes == index_of_v<tuple<Ts...>, Ts>,
                 tuple<Ts>, tuple<>
             >...
         >{};

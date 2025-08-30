@@ -122,6 +122,8 @@ Check:
   - flatten -> see POC
   - Cartesian product ? (motivation: matrixes)
   - Sorting ?
+    - is_sorted -> `comparator<L, R>`
+      - `sort_t<tuplelike, per_typename_demangled_length>`
 
 ### Tests
 
