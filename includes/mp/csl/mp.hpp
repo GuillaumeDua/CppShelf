@@ -1215,6 +1215,10 @@ namespace csl::mp {
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
 
+    [[nodiscard]] constexpr auto make_tuple(auto && ... args) -> tuple<std::remove_cvref_t<decltype(args)>...> {
+        return { csl_fwd(args)... };
+    }
+
     constexpr auto forward_as_tuple(auto && ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
@@ -1459,8 +1463,6 @@ namespace csl::mp {
     }
     // TODO(Guillaume) get<T>
     //  
-
-    // make_tuple
 }
 
 // std inter-operatiblity, structured binding
