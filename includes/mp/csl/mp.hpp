@@ -119,6 +119,35 @@ namespace csl::mp::concepts::inline fake_p2481_alternative {
         and std::same_as<U, std::remove_cvref_t<T>>
     ;
 }
+namespace csl::mp::inline P0318 {
+#if defined(__cpp_lib_unwrap_ref)
+    
+    template <class T>
+    using unwrap_reference = std::unwrap_reference<T>;
+    template <class T>
+    using unwrap_reference_t = std::unwrap_reference_t<T>;
+
+    template <class T>
+    using unwrap_ref_decay = std::unwrap_ref_decay<T>;
+    template <class T>
+    using unwrap_ref_decay_t = std::unwrap_ref_decay_t<T>;
+
+#else
+
+    template <class T>
+    struct unwrap_reference { using type = T; };
+    template <class T>
+    struct unwrap_reference<std::reference_wrapper<T>> { using type = T&; };
+    template <class T>
+    using unwrap_reference_t = unwrap_reference<T>::type;
+
+    template<class T>
+    struct unwrap_ref_decay : unwrap_reference<std::decay_t<T>> {};
+    template <class T>
+    using unwrap_ref_decay_t = typename unwrap_ref_decay<T>::type;
+
+#endif
+}
 
 #include <array>
 namespace csl::mp::concepts {
@@ -1215,7 +1244,7 @@ namespace csl::mp {
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
 
-    [[nodiscard]] constexpr auto make_tuple(auto && ... args) -> tuple<std::remove_cvref_t<decltype(args)>...> {
+    [[nodiscard]] constexpr auto make_tuple(auto && ... args) -> tuple<unwrap_ref_decay_t<decltype(args)>...> {
         return { csl_fwd(args)... };
     }
 
