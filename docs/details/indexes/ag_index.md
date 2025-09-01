@@ -110,7 +110,7 @@ The key idea of this library is to ease iterations over aggregates's member-vari
 which is especially convenient when dealing with **reflection** and **serialization**.
 
 - `csl::ag::size<T>` gives the fields count in a given aggregate type type  
-  (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `as_tuple` or `as_tuple_view` conversion)
+  (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `to_tuple` or `to_tuple_view` conversion)
 - `csl::ag::get<size_t N>(aggregate auto value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
 
 ---
@@ -140,6 +140,8 @@ Then use the `csl::ag` target.
 
 ### Configuration
 
+This project can be configured using the following cmake cache entries, grouped by categories:
+
 #### Bitfields support
 
 ⚠️ By default, bitfields support is **disabled**.  
@@ -157,11 +159,11 @@ static_assert(csl::ag::size_v<S> == 5); // ☣️ UB by default
 
 If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :
 
-- Using `CMake`, edit the cache to set the `CSL_AG_ENABLE_BITFIELDS_SUPPORT` option to `on`.  
+- Using `CMake`, edit the cache to set the `CSL_AG__ENABLE_BITFIELDS_SUPPORT` option to `on`.  
   or
-- Using plain **C++**, define the preprocessor variable `CSL_AG_ENABLE_BITFIELDS_SUPPORT`.
+- Using plain **C++**, define the preprocessor variable `CSL_AG__ENABLE_BITFIELDS_SUPPORT`.
   ```cpp
-  #define CSL_AG_ENABLE_BITFIELDS_SUPPORT true
+  #define CSL_AG__ENABLE_BITFIELDS_SUPPORT true
   ```
 
 > ❔ **Question** : Why such option exists ?
@@ -171,11 +173,11 @@ If you plan to use features of this library with aggregate types containing bitf
 
 #### Highier limit for aggregate field count
 
-This library relies on a **CMake** cache variable `CSL_AG_MAX_FIELDS_COUNT_OPTION` to generate code in order to properly handle aggregate types with fields up to this value.
+This library relies on a **CMake** cache variable `CSL_AG__MAX_FIELDS_SUPPORTED_COUNT` to generate code in order to properly handle aggregate types with fields up to this value.
 
-By default, `CSL_AG_MAX_FIELDS_COUNT_OPTION` is set to `128`, meaning the library supports aggregate types with up to 128 fields.
+By default, `CSL_AG__MAX_FIELDS_SUPPORTED_COUNT` is set to `128`, meaning the library supports aggregate types with up to 128 fields.
 
-To extend such support, edit your **CMake** cache to set `CSL_AG_MAX_FIELDS_COUNT_OPTION` to a greater integral value.
+To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_FIELDS_SUPPORTED_COUNT` to a greater integral value.
 
 > ❔ **Question** : What if I don't use **CMake** ?
 > 
@@ -188,6 +190,65 @@ To extend such support, edit your **CMake** cache to set `CSL_AG_MAX_FIELDS_COUN
 > The choice here to use **CMake** in order to generate C++ code **upstream** is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).
 > 
 > 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
+
+#### Formatting and printing (experimentale, WIP)
+
+⚠️ This section is **experimentale**, and **SHOULD NOT** be used in production.  
+Breaking changes are very likely, as the API is instable **for now**.
+
+All options in this section are opt-ins *(`OFF` by default)*
+
+- `CSL_AG__ENABLE_FORMAT_SUPPORT`: add `std::formatter<csl::ag::aggregate T>`
+
+  ```cpp
+  const auto formatted = std::format("my aggregate = {}", my_aggregate{});
+  std::print("{}", my_aggregate_value);   // default presentation (compact)
+  std::print("{:c}", my_aggregate_value); // compact presentation
+  std::print("{:p}", my_aggregate_value); // pretty  presentation
+  ```
+
+- `CSL_AG__ENABLE_FMTLIB_SUPPORT`: makes `csl::ag` depends on the `fmt` library, and add `fmt::formatter<csl::ag::aggregate T>`.
+
+  > If [fmtlib](https://github.com/fmtlib/fmt)'s `cmake` target `fmt::fmt-header-only` is not available when building `csl::ag` with `CSL_AG__ENABLE_FMTLIB_SUPPORT` set to `ON`, then such a dependency will be injected using `cmake FetchContent`.
+
+  ```cpp
+  const auto formatted = fmt::format("my aggregate = {}", my_aggregate{});
+  fmt::print("{}", my_aggregate_value);   // default presentation (compact)
+  fmt::print("{:c}", my_aggregate_value); // compact presentation
+  fmt::print("{:p}", my_aggregate_value); // pretty  presentation
+  ```
+
+- `CSL_AG__ENABLE_IOSTREAM_SUPPORT`: add `csl::ag::io::operator<<(const csl::io::indented_ostream os, csl::ag::concepts::structured_bindable auto && value)`
+
+  ```cpp
+  using namespace csl::ag::io;
+  std::cout << my_aggregate{}; // equivalent to: `indented_ostream{std::cout} << my_aggregate{};`
+  indented_ostream{std::cout, 2} << my_aggregate{}; // explicit indentation
+  ```
+
+About compact vs. pretty presentations:
+
+```cpp
+struct A{ int i{}; };
+struct my_aggregate{ char c = 'a'; A a = A{ .i = 13} };
+```
+
+- Compact presentation:
+
+```
+my_aggregate: { char: 'c', A: { int: 13 } }
+```
+
+- Pretty presentation:
+
+```
+my_aggregate: {
+    char: 'c',
+    A: {
+        int: 13
+    }
+}
+```
 
 ## Content
 
@@ -257,7 +318,7 @@ Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed u
 
 ```cpp
 template <csl::ag::concepts::aggregate T>
-constexpr auto size_v = size<T>::value;
+constexpr inline static auto size_v = size<T>::value;
 ```
 
 #### csl::ag::element<std::size_t, concepts::aggregate>
@@ -346,7 +407,7 @@ while using a `rvalue-reference` will results in a perfect-forwarding that membe
 struct A{ int i; float f; };
 
 constexpr auto value = A{ .i = 42, .f = 0.13f };
-constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
+constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
 
 [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
     static_assert((std::same_as<
@@ -378,10 +439,10 @@ static_assert(std::same_as<
 
 static_assert(std::same_as<int, csl::ag::element_t<0, A>>);
 static_assert(std::same_as<int, std::tuple_element_t<0, csl::ag::to_tuple_t<A>>>);
-static_assert(std::same_as<int, std::tuple_element_t<0,decltype(csl::ag::as_tuple(A{}))>>);
+static_assert(std::same_as<int, std::tuple_element_t<0,decltype(csl::ag::to_tuple(A{}))>>);
 
 constexpr auto value = A{ .i = 42, .f = 0.13f };
-constexpr auto value_as_tuple = csl::ag::as_tuple(std::move(value));
+constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
 
 static_assert(42    == std::get<0>(value_as_tuple));
 static_assert(0.13f == std::get<1>(value_as_tuple));
@@ -404,7 +465,7 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
   
   ```cpp
   struct A{ int i; float f; };
-  constexpr auto value = csl::ag::as_tuple(A{ .i = 42, .f = 0.13f });
+  constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
 
   [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
       ((std::cout << std::get<indexes>(value) << ' '), ...);
@@ -442,7 +503,7 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
   ```cpp
   struct A{ int & i; float && f; };
   int i = 42; float f = .13f;
-  /* not constexpr */ auto value = csl::ag::as_tuple(A{ .i = i, .f = std::move(f) });
+  /* not constexpr */ auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
 
   [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
       ((std::cout << std::get<indexes>(value) << ' '), ...);
@@ -481,7 +542,7 @@ struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue
 int i = 42;
 
 { // using a rvalue
-    [[maybe_unused]] auto view = csl::ag::as_tuple_view(type{ i, i, i, std::move(i) });
+    [[maybe_unused]] auto view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });
 
     static_assert(std::same_as<
         decltype(view),
@@ -496,7 +557,7 @@ int i = 42;
 
 { // using a const-lvalue
     const auto & value = type{ i, i, i, std::move(i) };
-    [[maybe_unused]] auto view = csl::ag::as_tuple_view(value);
+    [[maybe_unused]] auto view = csl::ag::to_tuple_view(value);
 
     static_assert(std::same_as<
         decltype(view),

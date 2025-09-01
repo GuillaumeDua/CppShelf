@@ -1,20 +1,23 @@
-# Still waiting for https://reviews.llvm.org/D33029 ...
-
+# WIP: format
+#
+# Under MIT License
+# Copyright (c) 2021 Guillaume Dua "Guss"
+# Source: https://github.com/GuillaumeDua/CppShelf/blob/main/.clang-format
+# ---
 BasedOnStyle                                  : Microsoft
 Language                                      : Cpp
 Standard                                      : Latest
-
-IncludeBlocks                                 : Regroup
-SortIncludes                                  : 'true' # CaseInsensitive
-
-AlignAfterOpenBracket                         : AlwaysBreak
-AlignArrayOfStructures                        : Right # to be tested
-AlignOperands                                 : AlignAfterOperator
-AlignConsecutiveAssignments                   : None # AcrossEmptyLinesAndComments => dirty with using-alias directives followed by declaration(s)
-BreakBeforeBinaryOperators                    : NonAssignment
+AlignAfterOpenBracket                         : BlockIndent # AlwayBreak
+BracedInitializerIndentWidth                  : 4
+AlignArrayOfStructures                        : Right # TODO: test
+AlignOperands                                 : false #AlignAfterOperator
+AlignConsecutiveAssignments                   : Consecutive # None # AcrossEmptyLinesAndComments => dirty with using-alias directives followed by declaration(s)
 AlignConsecutiveDeclarations                  : 'true'
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
 AlignTrailingComments                         : 'true'
-
 AllowShortCaseLabelsOnASingleLine             : 'false'
 AllowShortEnumsOnASingleLine                  : 'true'
 AllowShortFunctionsOnASingleLine              : InlineOnly # Empty
@@ -23,74 +26,87 @@ AllowShortLambdasOnASingleLine                : All
 AllowShortLoopsOnASingleLine                  : 'false'
 AlwaysBreakAfterReturnType                    : None
 AlwaysBreakBeforeMultilineStrings             : 'false' # true
-AlwaysBreakTemplateDeclarations               : Yes
+AlwaysBreakTemplateDeclarations               : 'Yes'
+BreakAfterAttributes                          : Never
 BinPackArguments                              : 'false'
 BinPackParameters                             : 'false'
 ExperimentalAutoDetectBinPacking              : 'false'
 BreakBeforeConceptDeclarations                : 'true'
-# IndentRequires                              : 'true'
+BreakBeforeBinaryOperators                    : All # NonAssignment
 BreakBeforeBraces                             : Custom
 BraceWrapping:
     AfterCaseLabel          : 'false'
-    AfterClass: 'false'
-    AfterStruct: 'false'
-    AfterControlStatement : Never #MultiLine
-    AfterEnum: 'false'
-    AfterFunction: 'false'
-    AfterNamespace: 'false'
-    AfterUnion: 'false'
-    AfterExternBlock: 'false'
-    BeforeCatch: 'true'
-    BeforeElse: 'true'
-    BeforeWhile: 'true'
-    # IndentBraces: 'true' # to test
-    BeforeLambdaBody      : 'false'
-    SplitEmptyFunction    : 'false'
-    SplitEmptyRecord      : 'false'
-    SplitEmptyNamespace   : 'false'
+    AfterClass              : 'false'
+    AfterStruct             : 'false'
+    AfterControlStatement   : Never #MultiLine
+    AfterEnum               : 'false'
+    AfterFunction           : 'false'
+    AfterNamespace          : 'false'
+    AfterUnion              : 'false'
+    AfterExternBlock        : 'false'
+    BeforeCatch             : 'true'
+    BeforeElse              : 'true'
+    BeforeWhile             : 'true'
+    IndentBraces            : 'false'
+    BeforeLambdaBody        : 'false'
+    SplitEmptyFunction      : 'false'
+    SplitEmptyRecord        : 'false'
+    SplitEmptyNamespace     : 'false'
 BreakBeforeTernaryOperators   : 'true'
-BreakConstructorInitializers  : 'BeforeComma'
-BreakInheritanceList          : 'BeforeComma'
+BreakConstructorInitializers  : BeforeComma
+BreakInheritanceList          : BeforeComma
 BreakStringLiterals           : 'false'
-NamespaceIndentation          : 'All'
-FixNamespaceComments          : 'false'
-ColumnLimit                   : '0'
-IndentWidth                   : '4'
-PPIndentWidth                 : '-1' # == IndentWidth
-TabWidth                      : '4'
+NamespaceIndentation          : Inner # Inner
+FixNamespaceComments          : 'true'
+ColumnLimit                   : 0
 UseTab                        : Never
+IndentWidth                   : 4
+TabWidth                      : 4
+PPIndentWidth                 : '1' # == IndentWidth
+PackConstructorInitializers   : Never
 UseCRLF                       : 'false'
 CompactNamespaces             : 'true'
-AllowAllArgumentsOnNextLine   : 'true'
+AllowAllArgumentsOnNextLine   : 'false'
 AllowAllParametersOfDeclarationOnNextLine : 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine : 'true'
 ConstructorInitializerIndentWidth : '4'
-ContinuationIndentWidth       : '4'
-Cpp11BracedListStyle          : 'false' # true
-EmptyLineAfterAccessModifier  : Always 
+ContinuationIndentWidth       : 4
+Cpp11BracedListStyle          : true
+AccessModifierOffset          : -4
+EmptyLineAfterAccessModifier  : Always
 EmptyLineBeforeAccessModifier : Always
-IndentAccessModifiers         : 'false' 
+IncludeBlocks                 : Regroup
+IndentAccessModifiers         : 'false'
 IndentCaseBlocks              : 'false'
 IndentCaseLabels              : 'true'
 IndentExternBlock             : Indent
 IndentGotoLabels              : 'false'
 IndentPPDirectives            : BeforeHash
-IndentRequires                : 'false' # true ?
+IndentRequiresClause          : 'false' # formely clang<14, IndentRequires
 IndentWrappedFunctionNames    : 'false'
 InsertTrailingCommas          : Wrapped
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
-LambdaBodyIndentation         : Signature 
+LambdaBodyIndentation         : Signature
 MaxEmptyLinesToKeep           : '1'
-PointerAlignment              : Middle # or left
-ReferenceAlignment            : 'Middle' 
-ReflowComments                : 'false'
-# ShortNamespaceLines 
+PointerAlignment              : Middle # Left
+QualifierAlignment            : Left # Leave
+# QualifierOrder               : [ 'inline', 'friend', 'constexpr', 'static', 'type', 'const', 'volatile', 'restrict' ]
+ReferenceAlignment            : Middle
+ReflowComments                : 'true'
+RequiresClausePosition        : OwnLine
+RequiresExpressionIndentation : OuterScope
+# ShortNamespaceLines
+SeparateDefinitionBlocks      : Leave
+SortIncludes                  : Never
+SortUsingDeclarations         : Never
+SpaceAfterCStyleCast          : false
 SpaceAfterLogicalNot          : 'false'
 SpaceAfterTemplateKeyword     : 'true'
-SpaceAroundPointerQualifiers  : 'Both'
+SpaceAroundPointerQualifiers  : Both
 SpaceBeforeAssignmentOperators: 'true'
 SpaceBeforeCaseColon          : 'true'
 SpaceBeforeCpp11BracedList    : 'false'
+# SpaceBeforeJsonColon          : 'false' # TODO: clang-format-17
 SpacesInContainerLiterals     : 'false'
 SpaceBeforeCtorInitializerColon: 'true'
 SpaceBeforeInheritanceColon   : 'true'
@@ -99,10 +115,13 @@ SpaceBeforeRangeBasedForLoopColon : 'true'
 SpaceBeforeSquareBrackets     : 'false'
 SpaceInEmptyBlock             : 'false'
 SpaceInEmptyParentheses       : 'false'
-SpacesBeforeTrailingComments  : '1'
-SpacesInAngles                : Never # previously, 'false'
+SpacesBeforeTrailingComments  : 1
+SpacesInAngles                : Never
 SpacesInCStyleCastParentheses : 'false'
-SpacesInConditionalStatement  : 'false'
-# SpacesInLineCommentPrefix
+# SpacesInConditionalStatement  : 'false'
+SpacesInLineCommentPrefix:
+    Minimum : 1
+    Maximum : 1
 SpacesInParentheses           : 'false'
 SpacesInSquareBrackets        : 'false'
+# VerilogBreakBetweenInstancePorts: 'true' # clang-format-17

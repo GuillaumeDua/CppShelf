@@ -1,0 +1,215 @@
+name: csl CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+
+jobs:
+  build_and_test:
+
+    name: ${{ format('{0}{1} ({3}, {4}-{5}, {6}) [{2}]', matrix.enable_sanitizer && '(sanitize) ' || '', matrix.CSL_component, matrix.CMAKE_BUILD_TYPE, matrix.configuration.OS, matrix.configuration.CMAKE_C_COMPILER, matrix.configuration.version, matrix.configuration.libcxx && 'libcxx' || 'libstdcxx') }}
+
+    runs-on: ${{ matrix.configuration.OS }}
+    timeout-minutes: 15
+    # continue-on-error: true
+
+    strategy:
+        fail-fast: false
+        matrix:
+
+            CMAKE_BUILD_TYPE: [ Debug, Release ]
+            CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
+            configuration:
+            # TODO: ARM once it's not public preview (ubuntu-24.04-arm)
+            # TODO: clang, gcc -> only minimum supported and latest-stable ?
+            #
+            # clang-19
+            - {
+              OS: ubuntu-latest,
+              CMAKE_C_COMPILER: clang,
+              CMAKE_CXX_COMPILER: clang++,
+              version: 19,
+              libcxx: true
+            }
+            - {
+              OS: ubuntu-latest,
+              CMAKE_C_COMPILER: clang,
+              CMAKE_CXX_COMPILER: clang++,
+              version: 19
+            }
+            # clang-18
+            - {
+              OS: ubuntu-latest,
+              CMAKE_C_COMPILER: clang,
+              CMAKE_CXX_COMPILER: clang++,
+              version: 18,
+              libcxx: true
+            }
+            - {
+              OS: ubuntu-latest,
+              CMAKE_C_COMPILER: clang,
+              CMAKE_CXX_COMPILER: clang++,
+              version: 18
+            }
+            # gcc-14
+            - {
+              OS: ubuntu-latest,
+              CMAKE_C_COMPILER: gcc,
+              CMAKE_CXX_COMPILER: g++,
+              version: 14
+            }
+            # gcc-13
+            - {
+              OS: ubuntu-latest,
+              CMAKE_C_COMPILER: gcc,
+              CMAKE_CXX_COMPILER: g++,
+              version: 13
+            }
+            # TODO: Windows and msvc-cl support
+            # msvc-cl
+            # - {
+            #   OS: windows-latest,
+            #   CMAKE_C_COMPILER: cl,
+            #   CMAKE_CXX_COMPILER: cl,
+            #   version: 13
+            # }
+            # TODO: Apple and apple-clang support
+            # Apple clang
+            # - {
+            #   OS: macos-latest,
+            #   CMAKE_C_COMPILER: clang,
+            #   CMAKE_CXX_COMPILER: clang++,
+            #   version: 19
+            # }
+            # WIP: sanitizers:
+            # asan: -fsanitize=address -fno-omit-frame-pointer
+            # usan: -fsanitize=undefined -fno-sanitize-recover=undefined
+            # msan: -fsanitize=memory -fno-omit-frame-pointer -fsanitize-memory-track-origins
+            # tsan: -fsanitize=thread
+
+            # -fsanitize=cfi -fsanitize-cfi-cross-dso -fno-sanitize-trap=cfi -flto -fno-omit-frame-pointer -fvisibility=hidden
+            #     -fsanitize=cfi-icall
+            #     -fsanitize=cfi-vcall
+            #     -fsanitize=cfi-derived-cast
+            #     -fsanitize=cfi-unrelated-cast
+
+            # -fsanitize=dataflow -fno-omit-frame-pointer
+
+            include:
+            - CMAKE_BUILD_TYPE: Debug
+              CSL_component: ALL
+              configuration:
+                OS: ubuntu-latest
+                CMAKE_C_COMPILER: clang
+                CMAKE_CXX_COMPILER: clang++
+                version: latest-stable
+                libcxx: true
+              enable_sanitizer: true
+
+    env:
+      toolchain_path: "${{ matrix.CMAKE_BUILD_TYPE }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}/${{ matrix.CSL_component }}"
+      # ${{ format('{0}/{1}/{2}-{3}-{4}{5}/{6})',
+      # matrix.configuration.OS,
+      # matrix.CMAKE_BUILD_TYPE,
+      # matrix.configuration.CMAKE_C_COMPILER,
+      # matrix.configuration.version,
+      # matrix.configuration.libcxx && 'libcxx ' || 'libstdcxx') }}
+      # matrix.enable_sanitizer && '/sanitize' || '',
+      # matrix.CSL_component,
+    steps:
+    - uses: actions/checkout@v4
+   
+    # TECH-DEBT: Less matrix entries: only once for each plateform - one cache per OS, compiler, STL
+    # - subaction to build + test a specific cache entry, using a toolchain as argument
+
+    # QUESTION: cross-build ?
+    #   - Windows: x86_64-w64-mingw32-gcc
+    #   - MacOS: nope
+    #   - ARM, AMD, etc.
+    
+    - name: Set cxx and linker flags
+      if: matrix.configuration.libcxx && matrix.configuration.CMAKE_C_COMPILER == 'clang'
+      run: |
+        echo "CMAKE_CXX_FLAGS=-stdlib=libc++" >> "$GITHUB_ENV"
+        echo "CMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -lc++abi" >> "$GITHUB_ENV"
+
+    - name: Install clang
+      if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'clang' }}
+      run: |
+          sudo apt update -qqy
+          script_name="${{ github.workspace }}/.devcontainer/scripts/llvm.sh"
+          sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.configuration.version }}"
+
+    - name: Install gcc
+      if: ${{ startsWith(matrix.configuration.OS, 'ubuntu') && matrix.configuration.CMAKE_C_COMPILER == 'gcc' }}
+      run: |
+          sudo apt update -qqy
+          script_name="${{ github.workspace }}/.devcontainer/scripts/gcc.sh"
+          sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
+
+    - name: 💡 Compiler informations
+      run: |
+        ${{ matrix.configuration.CMAKE_C_COMPILER }} --version
+
+    - name: CMake create destination directories (${{ env.toolchain_path }})
+      run: |
+        cmake -E make_directory ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
+        cmake -E make_directory ${{ github.workspace }}/out/install/${{ env.toolchain_path }}
+      
+    - name: 📦 CMake configure (${{ env.toolchain_path }})
+      run: |
+        cmake \
+              -DCSL_STRICT_WARNINGS:BOOL=ON       \
+            \
+              -DCSL_BUILD_ALL:BOOL=OFF            \
+              -DCSL_BENCHMARK_ALL:BOOL=OFF        \
+              -DCSL_DOC_ALL:BOOL=OFF              \
+              -DCSL_EXAMPLE_ALL:BOOL=OFF          \
+              -DCSL_TEST_ALL:BOOL=OFF             \
+            \
+              -DCSL_BUILD_${{ matrix.CSL_component }}:BOOL=TRUE      \
+              -DCSL_BENCHMARK_${{ matrix.CSL_component }}:BOOL=TRUE  \
+              -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
+              -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE       \
+            \
+              -DCMAKE_C_COMPILER=${{matrix.configuration.CMAKE_C_COMPILER}}                                       \
+              -DCMAKE_CXX_COMPILER=${{matrix.configuration.CMAKE_CXX_COMPILER}}                                   \
+              -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS ${{matrix.configuration.CMAKE_CXX_FLAGS}}"                      \
+              -DCMAKE_EXE_LINKER_FLAGS="$CMAKE_EXE_LINKER_FLAGS ${{matrix.configuration.CMAKE_EXE_LINKER_FLAGS}}" \
+              -DCMAKE_BUILD_TYPE:STRING=${{ matrix.CMAKE_BUILD_TYPE }}                                            \
+              -DCMAKE_INSTALL_PREFIX:PATH=${{ github.workspace }}/out/install/${{ env.toolchain_path }}           \
+              -DCMAKE_GENERATOR:STRING=Ninja                                                                      \
+              -G Ninja                                                                                            \
+              -S ${{ github.workspace }}                                                                          \
+              -B ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
+
+    # WIP: build the target, its tests, then use ctest filter to run only the targets tests (or all, as there are the only one which should be builded)
+    #   rename tests: test_csl_${{ matrix.CSL_component }}_*
+
+    - name: 🏗️ CMake build - (${{ env.toolchain_path }})
+      run: |
+        cmake \
+            --build ${{ github.workspace }}/out/build/${{ env.toolchain_path }} \
+            --config ${{ matrix.CMAKE_BUILD_TYPE }} \
+            --target all
+      # --target csl_${{ matrix.CSL_component }}_build_all_tests
+
+    - name: 🧪 CTest - (${{ env.toolchain_path }})
+      working-directory: ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
+      run: |
+        ctest --parallel 10 \
+        --output-on-failure \
+        --test-dir ${{ github.workspace }}/out/build/${{ env.toolchain_path }}
+      # --no-tests=error
+      # -R csl_test_${{ matrix.CSL_component }}
+      # --tests-regex '^csl_test_${{ matrix.CSL_component }}*$'
+
+      # TECH-DEBT: check examples (run as tests)
+      # TECH-DEBT: check installation
+

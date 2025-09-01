@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "CppShelf",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.h": "cpp",
+			"*.hpp": "cpp",
+			"*.cpp": "cpp",
+		},
+		"C_Cpp.errorSquiggles": "disabled",
+		"debug.terminal.clearBeforeReusing": true
+	}
+}

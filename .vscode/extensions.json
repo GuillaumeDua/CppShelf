@@ -4,7 +4,6 @@
         "jeff-hykin.better-cpp-syntax",
         "ibm.output-colorizer",
         "ms-vscode.cpptools",
-        "twxs.cmake",
         "ms-vscode.cmake-tools",
         "cschlosser.doxdocgen",
         "yzhang.markdown-all-in-one",
@@ -13,6 +12,14 @@
         "hbenl.vscode-test-explorer",
         "ms-vscode.test-adapter-converter",
         "fredericbonnet.cmake-test-adapter",
-        "ms-vscode.cpptools-extension-pack"
-    ]
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "ms-vscode.remote-server",
+        "ms-vscode-remote.remote-ssh-edit",
+        "ms-vscode.remote-explorer",
+        "ms-azuretools.vscode-docker",
+        "gruntfuggly.todo-tree"
+    ],
+    "unwantedRecommendations": []
 }
