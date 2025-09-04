@@ -20,6 +20,7 @@ function(print_aligned log_level variable)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
+    # Only print if defers from depends
     if (DEFINED ${arg_depends})
         # Boolean normalisation (so TRUE == ON, etc.)
         if ((${${variable}} AND ${${arg_depends}})
@@ -45,8 +46,15 @@ function(print_aligned log_level variable)
         message(FATAL_ERROR "[print_aligned] argument [arg_width] must be a non-negative integer, got [${arg_width}]")
     endif()
 
+    if ("${CMAKE_MESSAGE_INDENT}" STREQUAL "")
+        set(label "[${PROJECT_NAME}] ")
+    else()
+        set(label "")
+    endif()
+
+    string(LENGTH "${label}" label_length)
     string(LENGTH "${variable}" name_length)
-    math(EXPR padding_length "${arg_width} - ${name_length}")
+    math(EXPR padding_length "${arg_width} - ${name_length} - ${label_length}")
 
     if (padding_length GREATER 0)
         string(REPEAT "${arg_filler_char}" ${padding_length} padding)
@@ -54,6 +62,8 @@ function(print_aligned log_level variable)
         set(padding " ")
     endif()
 
-    message(${log_level} "${variable} ${padding} ${${variable}}")
+
+
+    message(${log_level} "${label}${variable} ${padding} ${${variable}}")
 endfunction()
 

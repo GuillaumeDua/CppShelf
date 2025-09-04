@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # top-level project
 project(csl LANGUAGES CXX)
-set(PROJECT_VERSION 0.3.1)
+set(PROJECT_VERSION 0.3.1) # not relying on latest tag to avoid stale target
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
@@ -32,7 +32,7 @@ message(STATUS "[${PROJECT_NAME}] available components: [${CSL_COMPONENTS_LIST}]
 
 ### Components - build
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
-message(STATUS "[${PROJECT_NAME}] CSL_BUILD_ALL set to [${CSL_BUILD_ALL}]")
+print_aligned(STATUS CSL_BUILD_ALL)
 
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
@@ -66,7 +66,7 @@ set(CSL_OPTIONS_LIST
 )
 foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" ON)
-    message(STATUS "[${PROJECT_NAME}] CSL_${option_name}_ALL set to [${CSL_${option_name}_ALL}]")
+    print_aligned(STATUS CSL_${option_name}_ALL)
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
