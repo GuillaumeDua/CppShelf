@@ -28,7 +28,9 @@ MAKE_SUBDIRECTORY_LIST(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/includes
     RESULT      CSL_COMPONENTS_LIST
 )
-message(STATUS "[${PROJECT_NAME}] available components: [${CSL_COMPONENTS_LIST}]")
+message(VERBOSE "[${PROJECT_NAME}] Available components: [${CSL_COMPONENTS_LIST}]")
+message(STATUS "[${PROJECT_NAME}] Global configuration")
+list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
 ### Components - build
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
@@ -77,8 +79,10 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     endforeach()
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
 
-message(STATUS "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
+message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
+message(STATUS "[${PROJECT_NAME}] Adding components ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
 add_library(${PROJECT_NAME} INTERFACE)
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)

@@ -1,6 +1,7 @@
 option(CSL_STRICT_WARNINGS "[${PROJECT_NAME}] strict warnings" OFF)
 
 include(CMakeParseArguments)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/print_aligned.cmake)
 
 ### Components - Targets - csl_lib::<name>
 function(csl_add)
@@ -22,7 +23,7 @@ function(csl_add)
         message(FATAL_ERROR "[csl_add] error: KEYWORDS_MISSING_VALUES = [${csl_add_KEYWORDS_MISSING_VALUES}]")
     endif()
 
-    message(STATUS "[${PROJECT_NAME}] csl::${csl_add_COMPONENT}")
+    message(STATUS "[${PROJECT_NAME}::${csl_add_COMPONENT}]")
 
     add_library(${PROJECT_NAME}_${csl_add_COMPONENT} INTERFACE)
     add_library(${PROJECT_NAME}::${csl_add_COMPONENT} ALIAS ${PROJECT_NAME}_${csl_add_COMPONENT})

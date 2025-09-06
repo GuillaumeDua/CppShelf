@@ -1,7 +1,7 @@
 # opt-in: CSL_MP_TUPLE__IMPLICIT_CONVERSION (NONE, SAFE, UNSAFE)
 set(CSL_MP_TUPLE__IMPLICIT_CONVERSION "NONE"
     CACHE STRING
-    "[${CMAKE_PROJECT_NAME}] csl::${component_name}: implicit conversion mode (NONE, SAFE, UNSAFE)"
+    "[${CMAKE_PROJECT_NAME}::${component_name}]: implicit conversion mode (NONE, SAFE, UNSAFE)"
 )
 print_aligned(STATUS CSL_MP_TUPLE__IMPLICIT_CONVERSION)
 

@@ -45,7 +45,7 @@ function(cache_entry_to_int)
 
     list(FIND ${arg_ID}__allowed_values "${${arg_ID}}" index)
     if (index EQUAL -1)
-        message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}] csl::${component_name}: Invalid value for ${arg_ID}: ${${arg_ID}}")
+        message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}::${component_name}]: Invalid value for ${arg_ID}: ${${arg_ID}}")
     endif()
     set(${arg_OUT_VAR} ${index} PARENT_SCOPE)
 endfunction()
