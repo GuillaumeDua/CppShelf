@@ -1,8 +1,4 @@
 #pragma once
-// cpp shelf library : metaprogramming utility
-// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
-// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
-
 // [Cpp Shelf Library] mp - metaprogramming utility
 // under MIT License - Copyright (c) 2021-2025 Guillaume Dua
 // see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
@@ -111,6 +107,8 @@ namespace csl::mp::inline P0887 {
     template <typename T>
     struct type_identity{ using type = T; };
 #endif
+    template <typename T>
+    using type_identity_t = typename type_identity<T>::type;
 }
 
 namespace csl::mp::concepts::inline fake_p2481_alternative {
