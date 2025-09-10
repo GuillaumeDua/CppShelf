@@ -30,7 +30,10 @@ namespace test::concepts::instance {
     static_assert(csl::mp::concepts::instance<std::string, std::basic_string>);
     static_assert(csl::mp::concepts::instance<const std::string &, std::basic_string>);
 }
-
+namespace test::concepts::std_array {
+    static_assert(csl::mp::concepts::std_array<std::array<int, 1>>);
+    static_assert(not csl::mp::concepts::std_array<char[1]>); // NOLINT(*-c-arrays)
+}
 
 namespace test::primitives::value_type {
 }
