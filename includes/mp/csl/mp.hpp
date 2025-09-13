@@ -1034,6 +1034,7 @@ namespace csl::mp::details::concepts {
 }
 
 // mp algorithms
+// REFACTO: naming: algos as type-traits using mp/ttp vs. functions using values
 namespace csl::mp {
 
     template <std::size_t index, concepts::tuple_like T>
@@ -1175,11 +1176,37 @@ namespace csl::mp {
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct count<tuple_type, T> : std::integral_constant<std::size_t,
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (0 + ... + std::is_same_v<T, std::tuple_element_t<indexes, tuple_type>>);
+            return (0 + ... + 
+                std::is_same_v<T, std::tuple_element_t<indexes, tuple_type>>
+            );
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
     template <concepts::tuple_like tuple_type, typename T>
     constexpr std::size_t count_v = count<tuple_type, T>::value;
+
+    // WIP: predicate wrapper ?
+
+    template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
+    struct count_if : std::integral_constant<std::size_t,
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (0 + ... + 
+                predicate<std::tuple_element_t<indexes, tuple_type>>::value
+            );
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    >{};
+    // QUESTION: using csl::mp::predicate ?
+    // template <concepts::tuple_like tuple_type, template <typename> class P>
+    // struct count_if<tuple_type, predicate<P>> : std::integral_constant<std::size_t,
+    //     []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //         return (0 + ... + 
+    //             predicate<P>::template operator()<std::tuple_element_t<indexes, tuple_type>>()
+    //         );
+    //     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    // >{};
+    template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
+    constexpr std::size_t count_if_v = count_if<tuple_type, predicate>::value;
+
+
 
     // is_valid (has no duplicate type): get<T>(tuple-like) would be legal and not error-prone
     //
@@ -1211,16 +1238,6 @@ namespace csl::mp {
     }
 
     // 🏗️ --- WIP ---
-
-    // count_if
-    template <template <typename...> typename, typename>
-    struct count_if;
-    template <template <typename...> typename trait, typename ... Ts>
-    struct count_if<trait, csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t,
-        (0 + ... + trait<Ts>::value)
-    >{};
-    template <template <typename...> typename trait, typename tuple_type>
-    constexpr std::size_t count_if_v = count_if<trait, tuple_type>::value;
 
     // unfold_into
     template <template <typename...> typename, typename>

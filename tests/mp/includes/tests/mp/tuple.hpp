@@ -124,16 +124,16 @@ namespace test::tuples::algorithm::count {
     // empty tuple
     static_assert(0 == csl::mp::count_v<csl::mp::tuple<>, int>);
 }
-// WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::count_if {
     using t = csl::mp::tuple<int, char, bool, double, float>;
-    static_assert(3 == csl::mp::count_if_v<std::is_integral, t>);
-    static_assert(2 == csl::mp::count_if_v<std::is_floating_point, t>);
+    static_assert(3 == csl::mp::count_if_v<t, std::is_integral>);
+    static_assert(2 == csl::mp::count_if_v<t, std::is_floating_point>);
 
     // empty tuple
     using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
-    static_assert(0 == csl::mp::count_if_v<is_int64_t::type, t>);
+    static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
 }
+// WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
