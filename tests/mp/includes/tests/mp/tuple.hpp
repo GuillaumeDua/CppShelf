@@ -123,6 +123,8 @@ namespace test::tuples::algorithm::count {
 
     // empty tuple
     static_assert(0 == csl::mp::count_v<csl::mp::tuple<>, int>);
+
+    static_assert(1 == csl::mp::count_v<std::tuple<int, char>, char>);
 }
 namespace test::tuples::algorithm::count_if {
     using t = csl::mp::tuple<int, char, bool, double, float>;
@@ -133,17 +135,31 @@ namespace test::tuples::algorithm::count_if {
     using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
     static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
 }
-// WIP: revert API so it looks like std::ranges
-namespace test::tuples::algorithm::contains {
+namespace test::tuples::type_gettable {
+    static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int>, int>);
+    static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int, char>, int>);
+    static_assert(csl::mp::is_type_gettable_v<std::tuple<int>, int>);
+    static_assert(csl::mp::is_type_gettable_v<std::tuple<int, char>, int>);
+    static_assert(not csl::mp::is_type_gettable_v<csl::mp::tuple<int, int>, int>);
+    static_assert(not csl::mp::is_type_gettable_v<std::array<int, 1>, int>);
+}
+namespace test::tuples::support_get_by_type {
+
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
-    static_assert(csl::mp::contains_v<int, with_duplicates>);
-    static_assert(csl::mp::contains_v<int, without_duplicates>);
+    static_assert(not csl::mp::support_get_by_type_v<with_duplicates>);
+    static_assert(csl::mp::support_get_by_type_v<without_duplicates>);
+    static_assert(csl::mp::support_get_by_type_v<csl::mp::tuple<int>>);
 
-    static_assert(not csl::mp::contains_v<double, with_duplicates>);
-    static_assert(not csl::mp::contains_v<double, without_duplicates>);
+    static_assert(csl::mp::support_get_by_type_v<std::tuple<>>);
+    static_assert(csl::mp::support_get_by_type_v<csl::mp::tuple<>>);
+    static_assert(not csl::mp::support_get_by_type_v<std::array<int, 1>>);
+    static_assert(not csl::mp::support_get_by_type_v<std::tuple<int, int>>);
+    static_assert(csl::mp::support_get_by_type_v<std::tuple<int, char>>);
+
 }
+// WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::has_duplicates {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
@@ -153,19 +169,15 @@ namespace test::tuples::algorithm::has_duplicates {
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<>>);
     static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
 }
-namespace testi::tuples::is_valid {
-
-    static_assert(not csl::mp::is_valid_v<std::array<int, 1>>);
-    static_assert(not csl::mp::is_valid_v<std::tuple<int, int>>);
-    static_assert(csl::mp::is_valid_v<std::tuple<int, char>>);
-
+namespace test::tuples::algorithm::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
-    static_assert(not csl::mp::is_valid_v<with_duplicates>);
-    static_assert(csl::mp::is_valid_v<without_duplicates>);
-    static_assert(csl::mp::is_valid_v<csl::mp::tuple<>>);
-    static_assert(csl::mp::is_valid_v<csl::mp::tuple<int>>);
+    static_assert(csl::mp::contains_v<int, with_duplicates>);
+    static_assert(csl::mp::contains_v<int, without_duplicates>);
+
+    static_assert(not csl::mp::contains_v<double, with_duplicates>);
+    static_assert(not csl::mp::contains_v<double, without_duplicates>);
 }
 namespace test::tuples::compare::tuple {
 

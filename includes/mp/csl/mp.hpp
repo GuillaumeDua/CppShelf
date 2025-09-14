@@ -1033,6 +1033,20 @@ namespace csl::mp::details::concepts {
     ;
 }
 
+// REFACTO: move into function algos
+namespace csl::mp {
+    // predicate: TTP to std::predicate adapter
+    template <template <typename> class P>
+    struct predicate {
+        // std::predicate
+        template <typename T>
+        [[nodiscard]] constexpr static auto operator()()          noexcept { return P<T>::value; }
+        // deduced T
+        template <typename T>
+        [[nodiscard]] constexpr static auto operator()(const T &) noexcept { return P<T>::value; }
+    };
+}
+
 // mp algorithms
 // REFACTO: naming: algos as type-traits using mp/ttp vs. functions using values
 namespace csl::mp {
@@ -1072,17 +1086,6 @@ namespace csl::mp {
         template <typename T, template <typename> typename predicate>
         concept constrained_by = concepts::tuple_like<T> and is_constrained_by_v<std::remove_cvref_t<T>, predicate>;
     }
-
-    // predicate: TTP to std::predicate adapter
-    template <template <typename> class P>
-    struct predicate {
-        // std::predicate
-        template <typename T>
-        [[nodiscard]] constexpr static auto operator()()          noexcept { return P<T>::value; }
-        // deduced T
-        template <typename T>
-        [[nodiscard]] constexpr static auto operator()(const T &) noexcept { return P<T>::value; }
-    };
 
     // TODO(Guillaume) naming: namespace ? ⬆️⬇️
     //  - csl::mp::tuple_traits::is_valid
@@ -1184,8 +1187,6 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename T>
     constexpr std::size_t count_v = count<tuple_type, T>::value;
 
-    // WIP: predicate wrapper ?
-
     template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
     struct count_if : std::integral_constant<std::size_t,
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -1194,48 +1195,65 @@ namespace csl::mp {
             );
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
-    // QUESTION: using csl::mp::predicate ?
-    // template <concepts::tuple_like tuple_type, template <typename> class P>
-    // struct count_if<tuple_type, predicate<P>> : std::integral_constant<std::size_t,
-    //     []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    //         return (0 + ... + 
+    // QUESTION: using csl::mp::predicate<P> ? template vs. non-template wrapper for better semantic ?
     //             predicate<P>::template operator()<std::tuple_element_t<indexes, tuple_type>>()
-    //         );
-    //     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
-    // >{};
     template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
     constexpr std::size_t count_if_v = count_if<tuple_type, predicate>::value;
 
-
-
-    // is_valid (has no duplicate type): get<T>(tuple-like) would be legal and not error-prone
+    // is_type_gettable: get<T>(tuple-like) would be legal and not error-prone
+    //  NOTE(design) cannot detect get<T>(tuple-like): https://godbolt.org/z/vqvMYf7zc as error is handled by static-assert
+    //  NOTE(naming) has_duplicate/is_unique won't fit as one cannot `get<int>(std::array{1})` anyway
     //
-    // REFACTO: Better naming: can_get_by_type/support_get_by_type ?
-    //  has_duplicate/is_unique won't fit as one cannot `get<int>(std::array{1})` anyway
-    //
-    template <typename>
-    struct is_valid : std::false_type{};
-    template <typename ... Ts>
-    struct is_valid<tuple<Ts...>> : std::bool_constant<
-        (true and ... and details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>)
+    template <typename, typename>
+    struct is_type_gettable : std::false_type{};
+    template <typename T, typename ... Ts>
+    struct is_type_gettable<tuple<Ts...>, T> : std::bool_constant<
+        details::concepts::can_deduce_by_type<tuple<Ts...>, T>
     >{};
+    template <concepts::tuple_like tuple_type, typename T>
+    requires (not concepts::std_array<tuple_type>)
+    struct is_type_gettable<tuple_type, T> : std::bool_constant<
+        count_v<std::remove_cvref_t<tuple_type>, T> == 1
+    >{};
+    template <concepts::tuple_like tuple_type, typename T>
+    constexpr bool is_type_gettable_v = is_type_gettable<tuple_type, T>::value;
+
+    namespace concepts {
+        template <typename tuple_type, typename T>
+        concept type_gettable = is_type_gettable_v<tuple_type, std::remove_cvref_t<T>>;
+    }
+
+    // is_type_gettable: conjunction<is_type_gettable<tuple-like, tuple-elements>...>
+    template <typename>
+    struct support_get_by_type : std::false_type{};
     template <concepts::tuple_like T>
     requires (not concepts::std_array<T>)
-    struct is_valid<T> : std::bool_constant<
-        // refacto: detect if index_of legal
+    struct support_get_by_type<T> : std::bool_constant<
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and (count_v<
+            return (true and ... and is_type_gettable_v<
                 std::remove_cvref_t<T>,
-                std::tuple_element_t<indexes, std::remove_cvref_t<T>>> == 1
-            ));
+                std::tuple_element_t<indexes, std::remove_cvref_t<T>>
+            >);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{})
     >{};
     template <concepts::tuple_like T>
-    constexpr bool is_valid_v = is_valid<T>::value;
+    constexpr bool support_get_by_type_v = support_get_by_type<T>::value;
 
     namespace concepts {
-        template <typename T> concept valid = is_valid_v<std::remove_cvref_t<T>>;
+        template <typename T> concept support_get_by_type = support_get_by_type_v<std::remove_cvref_t<T>>;
     }
+
+    // TODO(Guillaume) is_index_gettable -> index < size, exclude std::array ?
+
+    // has_duplicates
+    template <typename>
+    struct has_duplicates;
+    // template <concepts::std_array tuple_type> requires concepts::not_empty<tuple_type>
+    // struct has_duplicates;
+    template <typename ... Ts>
+    struct has_duplicates<tuple<Ts...>> : std::negation<support_get_by_type<tuple<Ts...>>>{};
+    template <typename tuple_type>
+    constexpr bool has_duplicates_v = has_duplicates<tuple_type>::value;
 
     // 🏗️ --- WIP ---
 
@@ -1375,14 +1393,6 @@ namespace csl::mp {
     template <typename T, typename tuple_type>
     constexpr bool contains_v = contains<T, tuple_type>::value;
 
-    // has_duplicates
-    template <typename>
-    struct has_duplicates;
-    template <typename ... Ts>
-    struct has_duplicates<tuple<Ts...>> : std::negation<is_valid<tuple<Ts...>>>{};
-    template <typename tuple_type>
-    constexpr bool has_duplicates_v = has_duplicates<tuple_type>::value;
-
     // filter<trait>
     template <typename, template <typename...> typename>
     struct filter;
@@ -1445,9 +1455,10 @@ namespace csl::mp {
 
     // deduplicate / make_valid
     // TODO(Guss): reverse prior to filtering, to preserve order
+    // TODO(Guss): How to handle std::array ?
     template <typename>
     struct deduplicate;
-    template <concepts::valid T>
+    template <concepts::support_get_by_type T>
     struct deduplicate<T> : type_identity<T>{};
     template <typename ... Ts>
     struct deduplicate<tuple<Ts...>> : 
