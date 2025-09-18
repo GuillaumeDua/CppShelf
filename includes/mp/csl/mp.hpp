@@ -1202,7 +1202,7 @@ namespace csl::mp {
 
     // is_type_gettable: get<T>(tuple-like) would be legal and not error-prone
     //  NOTE(design) cannot detect get<T>(tuple-like): https://godbolt.org/z/vqvMYf7zc as error is handled by static-assert
-    //  NOTE(naming) has_duplicate/is_unique won't fit as one cannot `get<int>(std::array{1})` anyway
+    //  NOTE(naming) has_duplicate/is_uniqued won't fit as one cannot `get<int>(std::array{1})` anyway
     //
     template <typename, typename>
     struct is_type_gettable : std::false_type{};
@@ -1243,6 +1243,7 @@ namespace csl::mp {
         template <typename T> concept support_get_by_type = support_get_by_type_v<std::remove_cvref_t<T>>;
     }
 
+    // NOTE: pref. concepts::sized_at_least in most cases
     template <typename, std::size_t>
     struct is_index_gettable : std::false_type{};
     template <concepts::tuple_like tuple_type, std::size_t N>
@@ -1251,18 +1252,35 @@ namespace csl::mp {
     constexpr auto is_index_gettable_v = is_index_gettable<tuple_type, N>::value;
 
     namespace concepts {
-        template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<T, N>;
+        template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<std::remove_cvref_t<T>, N>;
     }
 
-    // has_duplicates
+    // is_uniqued -> has no duplicate
+    //  mp equivalent of P2848 - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2848r1.html
     template <typename>
-    struct has_duplicates;
-    // template <concepts::std_array tuple_type> requires concepts::not_empty<tuple_type>
-    // struct has_duplicates;
-    template <typename ... Ts>
-    struct has_duplicates<tuple<Ts...>> : std::negation<support_get_by_type<tuple<Ts...>>>{};
+    struct is_uniqued;
+    template <typename T, std::size_t N>
+    struct is_uniqued<std::array<T, N>> : std::bool_constant<(N > 1)>{};
+    template <concepts::tuple_like tuple_type>
+    struct is_uniqued<tuple_type> : support_get_by_type<tuple_type>{};
     template <typename tuple_type>
-    constexpr bool has_duplicates_v = has_duplicates<tuple_type>::value;
+    constexpr bool is_uniqued_v = is_uniqued<tuple_type>::value;
+
+    // template <concepts::tuple_like tuple_type>
+    // struct is_uniqued<tuple_type> : std::bool_constant<
+    //     []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+    //         using tuple_type_t = std::remove_cvref_t<tuple_type>;
+    //         return (true and ... and (
+    //                  index_of_v<tuple_type_t, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+    //         ==  last_index_of_v<tuple_type_t, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+    //     ));
+    //     }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    // >{};
+
+    namespace concepts {
+        template <typename T>
+        concept uniqued = is_uniqued_v<std::remove_cvref_t<T>>;
+    }
 
     // 🏗️ --- WIP ---
 
@@ -1444,23 +1462,6 @@ namespace csl::mp {
     >{};
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
-
-    // is_uniqued
-    // similar to P2848 - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2848r1.html
-    template <typename>
-    struct is_uniqued;
-    template <concepts::tuple_like tuple_type>
-    struct is_uniqued<tuple_type> : std::bool_constant<
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            using tuple_type_t = std::remove_cvref_t<tuple_type>;
-            return (true and ... and (
-                     index_of_v<tuple_type_t, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
-            ==  last_index_of_v<tuple_type_t, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
-        ));
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
-    >{};
-    template <typename tuple_type>
-    constexpr bool is_uniqued_v = is_uniqued<tuple_type>::value;
 
     // deduplicate / make_valid
     // TODO(Guss): reverse prior to filtering, to preserve order

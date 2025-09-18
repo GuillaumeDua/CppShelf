@@ -165,14 +165,14 @@ namespace test::tuples::type_gettable {
 }
 
 // WIP: revert API so it looks like std::ranges
-namespace test::tuples::algorithm::has_duplicates {
+namespace test::tuples::algorithm::uniqued {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
-    static_assert(csl::mp::has_duplicates_v<with_duplicates>);
-    static_assert(not csl::mp::has_duplicates_v<without_duplicates>);
-    static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<>>);
-    static_assert(not csl::mp::has_duplicates_v<csl::mp::tuple<int>>);
+    static_assert(not csl::mp::concepts::uniqued<with_duplicates>);
+    static_assert(csl::mp::concepts::uniqued<without_duplicates>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
 }
 namespace test::tuples::algorithm::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
