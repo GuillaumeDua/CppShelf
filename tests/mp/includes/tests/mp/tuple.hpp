@@ -157,8 +157,13 @@ namespace test::tuples::support_get_by_type {
     static_assert(not csl::mp::support_get_by_type_v<std::array<int, 1>>);
     static_assert(not csl::mp::support_get_by_type_v<std::tuple<int, int>>);
     static_assert(csl::mp::support_get_by_type_v<std::tuple<int, char>>);
-
 }
+namespace test::tuples::type_gettable {
+
+    static_assert(csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 0>);
+    static_assert(not csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 1>);
+}
+
 // WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::has_duplicates {
     using without_duplicates = csl::mp::tuple<int, char, bool>;

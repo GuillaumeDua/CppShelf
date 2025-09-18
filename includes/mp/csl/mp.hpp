@@ -1243,7 +1243,16 @@ namespace csl::mp {
         template <typename T> concept support_get_by_type = support_get_by_type_v<std::remove_cvref_t<T>>;
     }
 
-    // TODO(Guillaume) is_index_gettable -> index < size, exclude std::array ?
+    template <typename, std::size_t>
+    struct is_index_gettable : std::false_type{};
+    template <concepts::tuple_like tuple_type, std::size_t N>
+    struct is_index_gettable<tuple_type, N> : std::integral_constant<bool, (N < std::tuple_size_v<tuple_type>)>{};
+    template <concepts::tuple_like tuple_type, std::size_t N>
+    constexpr auto is_index_gettable_v = is_index_gettable<tuple_type, N>::value;
+
+    namespace concepts {
+        template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<T, N>;
+    }
 
     // has_duplicates
     template <typename>
