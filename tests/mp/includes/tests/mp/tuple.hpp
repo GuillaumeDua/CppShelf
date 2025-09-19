@@ -15,6 +15,11 @@ namespace test::tuples::concepts::tuple_like {
     static_assert(csl::mp::concepts::tuple_like<std::array<int, 2>>);
     static_assert(csl::mp::concepts::tuple_like<std::pair<int, float>>);
 
+    static_assert(csl::mp::concepts::tuple_like<std::tuple<>>);
+    static_assert(csl::mp::concepts::tuple_like<std::tuple<int> &>);
+    static_assert(csl::mp::concepts::tuple_like<std::tuple<int, int> &&>);
+    static_assert(csl::mp::concepts::tuple_like<const std::tuple<int, float> &>);
+
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<>>);
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int> &>);
     static_assert(csl::mp::concepts::tuple_like<csl::mp::tuple<int, int> &&>);
@@ -29,6 +34,12 @@ namespace test::tuples::concepts::pair_like {
 
     // std::pair
     static_assert(csl::mp::concepts::pair_like<std::pair<int, float>>);
+
+    // std::tuple
+    static_assert(not csl::mp::concepts::pair_like<std::tuple<>>);
+    static_assert(not csl::mp::concepts::pair_like<std::tuple<int>>);
+    static_assert(csl::mp::concepts::pair_like<std::tuple<int, int>>);
+    static_assert(csl::mp::concepts::pair_like<std::tuple<int, float>>);
 
     // tuple
     static_assert(not csl::mp::concepts::pair_like<csl::mp::tuple<>>);
@@ -163,8 +174,6 @@ namespace test::tuples::type_gettable {
     static_assert(csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 0>);
     static_assert(not csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 1>);
 }
-
-// WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::uniqued {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
@@ -174,6 +183,27 @@ namespace test::tuples::algorithm::uniqued {
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
 }
+namespace test::tuples::algorithm::unfold {
+    
+    static_assert(std::same_as<
+        csl::mp::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
+        csl::mp::tuple<int, char>
+    >);
+    static_assert(std::same_as<
+        csl::mp::unfold_t<std::array<int, 2>, csl::mp::tuple>,
+        csl::mp::tuple<int, int>
+    >);
+    static_assert(std::same_as<
+        csl::mp::unfold_t<std::array<int, 2>, std::tuple>,
+        std::tuple<int, int>
+    >);
+    static_assert(std::same_as<
+        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
+        std::tuple<int, char>
+    >);
+}
+
+// WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;

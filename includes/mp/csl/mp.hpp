@@ -1255,8 +1255,8 @@ namespace csl::mp {
         template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<std::remove_cvref_t<T>, N>;
     }
 
-    // is_uniqued -> has no duplicate
-    //  mp equivalent of P2848 - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2848r1.html
+    // is_uniqued: has no duplicate (don't matter if sorted or not)
+    //  named after P2848 - std::uniqued - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2848r1.html
     template <typename>
     struct is_uniqued;
     template <typename T, std::size_t N>
@@ -1282,15 +1282,24 @@ namespace csl::mp {
         concept uniqued = is_uniqued_v<std::remove_cvref_t<T>>;
     }
 
-    // 🏗️ --- WIP ---
 
-    // unfold_into
-    template <template <typename...> typename, typename>
-    struct unfold_into;
-    template <template <typename...> typename destination, typename ... Ts>
-    struct unfold_into<destination, tuple<Ts...>> : type_identity<destination<Ts...>>{};
-    template <template <typename...> typename destination, typename tuple_type>
-    using unfold_into_t = typename unfold_into<destination, tuple_type>::type;
+    // unfold
+    //  REFACTO: universal ttps
+    template <typename, template <typename...> typename>
+    class unfold;
+    // REFACTO: for_each_index ?
+    template <concepts::tuple_like tuple_type, template <typename...> typename destination>
+    class unfold<tuple_type, destination> {
+        // NOTE: using lambdas here mess up with ADL, dependent-name and the closure-types
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>) -> destination<std::tuple_element_t<Is, tuple_type>...>;
+    public:
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
+    };
+    template <typename tuple_type, template <typename...> typename destination>
+    using unfold_t = typename unfold<tuple_type, destination>::type;
+
+    // 🏗️ --- WIP ---
 
     // transform
     template <template <typename> typename, typename>
