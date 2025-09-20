@@ -202,6 +202,27 @@ namespace test::tuples::algorithm::unfold {
         std::tuple<int, char>
     >);
 }
+namespace test::tuples::algorithm::rebind {
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::tuple<int>, char>,
+        std::tuple<char>
+    >);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<csl::mp::tuple<int>, char>,
+        csl::mp::tuple<char>
+    >);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::pair<int, char>, bool, double>,
+        std::pair<bool, double>
+    >);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::array<int, 4>, char>,
+        std::array<char, 4>
+    >);
+}
+namespace test::tuples::algorithm::transform {
+
+}
 
 // WIP: revert API so it looks like std::ranges
 namespace test::tuples::algorithm::contains {

@@ -1290,7 +1290,7 @@ namespace csl::mp {
     // REFACTO: for_each_index ?
     template <concepts::tuple_like tuple_type, template <typename...> typename destination>
     class unfold<tuple_type, destination> {
-        // NOTE: using lambdas here mess up with ADL, dependent-name and the closure-types
+        // NOTE: using lambdas here (dependent-name and the closure-types) mess up with ADL
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>) -> destination<std::tuple_element_t<Is, tuple_type>...>;
     public:
@@ -1299,17 +1299,35 @@ namespace csl::mp {
     template <typename tuple_type, template <typename...> typename destination>
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
+    // rebind
+    template <typename tuple_type, typename... Ts>
+    struct rebind;
+    template <typename ... Us, typename... Ts>
+    struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
+    template <typename T0, typename T1, typename U0, typename U1>
+    struct rebind<std::pair<T0, T1>, U0, U1> : std::type_identity<std::pair<U0, U1>>{};
+    template <typename T, std::size_t N, typename U>
+    struct rebind<std::array<T,N>, U> : std::type_identity<std::array<U,N>>{};
+    template <typename... Us, typename... Ts>
+    struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
+    template <concepts::tuple_like tuple_type, typename ... Ts>
+    using rebind_t = typename rebind<tuple_type, Ts...>::type;
+
     // 🏗️ --- WIP ---
 
     // transform
-    template <template <typename> typename, typename>
-    struct transform;
-    template <template <typename> typename trait, typename ... Ts>
-    struct transform<trait, csl::mp::tuple<Ts...>> : type_identity<
-        typename csl::mp::tuple<typename trait<Ts>::type...>
-    >{};
-    template <template <typename> typename trait, typename tuple_type>
-    using transform_t = typename transform<trait, tuple_type>::type;
+    // template <typename, template <typename> typename>
+    // struct transform;
+    // template <concepts::tuple_like tuple_type, template <typename...> typename trait>
+    // struct transform<tuple_type, trait> : type_identity<
+    //     // typename csl::mp::tuple<typename trait<Ts>::type...>
+    //     template <std::size_t... Is>
+    //     constexpr static auto helper(std::index_sequence<Is...>) -> destination<std::tuple_element_t<Is, tuple_type>...>;
+    // public:
+    //     using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
+    // >{};
+    // template <typename tuple_type, template <typename> typename trait>
+    // using transform_t = typename transform<tuple_type, trait>::type;
 
     // TODO(Guillaume) tests
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
