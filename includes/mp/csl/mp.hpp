@@ -1,16 +1,24 @@
 #pragma once
+
 // [Cpp Shelf Library] mp - metaprogramming utility
 // under MIT License - Copyright (c) 2021-2025 Guillaume Dua
 // see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
-// About [tuple]:
-//  A given tuple T is considered valid if csl::mp::concepts::tuple<T> evaluates to true (csl::mp::is_tuple is std::true_type), and contains no duplicates.
-//  If a given tuple type T instanciation is not valid, less performant algorithms may be selected to provide similar functionalities, as a best-effort.
+// About [tuple-like]:
+//  A given tuple-like type T is considered valid if the following concepts evaluate to true
+//  - csl::mp::concepts::tuple_like<T> evaluates to true (based on P2165).
+//  - csl::mp::concepts::uniqued<T> -> tuple_element<indexes, T>... contains no duplicates
+//  If a given tuple-like type T instanciation is considered not valid,
+//  then LESS performant algorithms implementations may be selected to provide similar functionalities, as a best-effort.
+
+// About [csl::mp::tuple] vs. other [tuple-like]
+//  For a given type T, if csl::mp::concepts::tuple evaluates to true (csl::mp::is_tuple is std::true_type)
+//  then MORE performant algorithms implementation may be selected.
 
 // About [algorithms]:
 //  All algorithms are partitioned in two groups:
 //      [type-traits]: contains, count/count_if, find/find_if, etc.
-//      [functions]: tuple_cat, etc.
+//      [functions]: cat, tie, apply, for_each, etc.
 
 // About [conversion]: using [csl::mp::tuple] as a drop-in replacement for [std::tuple]
 //  As <tuple> is -isystem, implicit members conversions do not produce warnings
@@ -1292,7 +1300,8 @@ namespace csl::mp {
     class unfold<tuple_type, destination> {
         // NOTE: using lambdas here (dependent-name and the closure-types) mess up with ADL
         template <std::size_t... Is>
-        constexpr static auto helper(std::index_sequence<Is...>) -> destination<std::tuple_element_t<Is, tuple_type>...>;
+        constexpr static auto helper(std::index_sequence<Is...>)
+            -> destination<std::tuple_element_t<Is, tuple_type>...>;
     public:
         using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
     };
@@ -1313,21 +1322,25 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename ... Ts>
     using rebind_t = typename rebind<tuple_type, Ts...>::type;
 
-    // 🏗️ --- WIP ---
+    template <concepts::tuple_like tuple_type, template <typename> typename transformation>
+    class transform {
+        
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+            -> rebind_t<tuple_type, transformation<std::tuple_element_t<Is, tuple_type>>...>;
+    public:
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
+    };
+    
+    // QUESTION: DRY vs. perfs. vs. API ?
+    template <template <typename> typename transformation, typename ... Ts>
+    struct transform<csl::mp::tuple<Ts...>, transformation>
+        : std::type_identity<csl::mp::tuple<transformation<Ts>...>>{};
 
-    // transform
-    // template <typename, template <typename> typename>
-    // struct transform;
-    // template <concepts::tuple_like tuple_type, template <typename...> typename trait>
-    // struct transform<tuple_type, trait> : type_identity<
-    //     // typename csl::mp::tuple<typename trait<Ts>::type...>
-    //     template <std::size_t... Is>
-    //     constexpr static auto helper(std::index_sequence<Is...>) -> destination<std::tuple_element_t<Is, tuple_type>...>;
-    // public:
-    //     using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
-    // >{};
-    // template <typename tuple_type, template <typename> typename trait>
-    // using transform_t = typename transform<tuple_type, trait>::type;
+    template <typename Tuple, template <typename> typename Transformation>
+    using transform_t = typename transform<Tuple, Transformation>::type;
+
+    // WIP --- 🏗️ --- revert API so it looks like std::ranges
 
     // TODO(Guillaume) tests
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{

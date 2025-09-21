@@ -221,10 +221,27 @@ namespace test::tuples::algorithm::rebind {
     >);
 }
 namespace test::tuples::algorithm::transform {
-
+    static_assert(std::same_as<
+        csl::mp::transform_t<csl::mp::tuple<int, char>, std::add_lvalue_reference_t>,
+        csl::mp::tuple<int&, char&>
+    >);
+    static_assert(std::same_as<
+        csl::mp::transform_t<std::tuple<int, char>, std::add_lvalue_reference_t>,
+        std::tuple<int&, char&>
+    >);
+    static_assert(std::same_as<
+        csl::mp::transform_t<std::pair<int, char>, std::add_lvalue_reference_t>,
+        std::pair<int&, char&>
+    >);
+    static_assert(std::same_as<
+        csl::mp::transform_t<std::array<int, 1>, std::add_lvalue_reference_t>,
+        std::array<int&, 1>
+    >);
+    
 }
 
-// WIP: revert API so it looks like std::ranges
+// WIP --- 🏗️ --- revert API so it looks like std::ranges
+
 namespace test::tuples::algorithm::contains {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
