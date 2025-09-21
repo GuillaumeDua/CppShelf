@@ -5,6 +5,7 @@
 // see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
 // About [tuple-like]:
+//
 //  A given tuple-like type T is considered valid if the following concepts evaluate to true
 //  - csl::mp::concepts::tuple_like<T> evaluates to true (based on P2165).
 //  - csl::mp::concepts::uniqued<T> -> tuple_element<indexes, T>... contains no duplicates
@@ -12,13 +13,18 @@
 //  then LESS performant algorithms implementations may be selected to provide similar functionalities, as a best-effort.
 
 // About [csl::mp::tuple] vs. other [tuple-like]
+//
 //  For a given type T, if csl::mp::concepts::tuple evaluates to true (csl::mp::is_tuple is std::true_type)
 //  then MORE performant algorithms implementation may be selected.
 
 // About [algorithms]:
+//
 //  All algorithms are partitioned in two groups:
 //      [type-traits]: contains, count/count_if, find/find_if, etc.
 //      [functions]: cat, tie, apply, for_each, etc.
+//
+//  Known limitation:
+//      [rebind] and other algorithms relying on it only supports a restricted set of tuple-likes types ([std] and [csl::mp] ones)
 
 // About [conversion]: using [csl::mp::tuple] as a drop-in replacement for [std::tuple]
 //  As <tuple> is -isystem, implicit members conversions do not produce warnings
@@ -1290,7 +1296,6 @@ namespace csl::mp {
         concept uniqued = is_uniqued_v<std::remove_cvref_t<T>>;
     }
 
-
     // unfold
     //  REFACTO: universal ttps
     template <typename, template <typename...> typename>
@@ -1309,6 +1314,7 @@ namespace csl::mp {
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
     // rebind
+    //  NOTE(Limitation): does not supports others tuple-likes than the one with explicit specialization here.
     template <typename tuple_type, typename... Ts>
     struct rebind;
     template <typename ... Us, typename... Ts>
@@ -1322,6 +1328,8 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename ... Ts>
     using rebind_t = typename rebind<tuple_type, Ts...>::type;
 
+    // transform
+    //  QUESTION: DRY vs. perfs. vs. API, scalability ?
     template <concepts::tuple_like tuple_type, template <typename> typename transformation>
     class transform {
         
@@ -1331,8 +1339,6 @@ namespace csl::mp {
     public:
         using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
     };
-    
-    // QUESTION: DRY vs. perfs. vs. API ?
     template <template <typename> typename transformation, typename ... Ts>
     struct transform<csl::mp::tuple<Ts...>, transformation>
         : std::type_identity<csl::mp::tuple<transformation<Ts>...>>{};
