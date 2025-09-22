@@ -174,6 +174,8 @@ namespace test::tuples::type_gettable {
     static_assert(csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 0>);
     static_assert(not csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 1>);
 }
+
+// REFACTO: move to tests/mp/tuple_algorthms.hpp
 namespace test::tuples::algorithm::uniqued {
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
@@ -469,9 +471,82 @@ namespace test::tuples::storage::constructors::default_ {
     using type = csl::mp::tuple<int, char>;
     [[maybe_unused]] constexpr auto value = type{};
 }
-namespace test::tuples::storage::constructors::value {
-    using type = csl::mp::tuple<int, char>;
-    [[maybe_unused]] constexpr auto value = type{ 42, 'a' };
+namespace test::tuples::storage::constructors::value::no_cvref {
+
+    static_assert(std::constructible_from<
+        std::tuple<int, char>,
+        int, char
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<int, char>,
+        int&, char&
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<int, char>,
+        const int&, const char&
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<int, char>,
+        int&&, char&&
+    >);
+    [[maybe_unused]] constexpr auto v1 = csl::mp::tuple<int, char>{ 42, 'a' };
+}
+namespace test::tuples::storage::constructors::value::lvalue_ref {
+
+    static_assert(not std::constructible_from<
+        std::tuple<int&, char&>,
+        int, char
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<int&, char&>,
+        int&, char&
+    >);
+    static_assert(not std::constructible_from<
+        std::tuple<int&, char&>,
+        const int&, const char&
+    >);
+    static_assert(not std::constructible_from<
+        std::tuple<int&, char&>,
+        int&&, char&&
+    >);
+}
+namespace test::tuples::storage::constructors::value::const_lvalue_ref {
+
+    static_assert(std::constructible_from<
+        std::tuple<const int&, const char&>,
+        int, char
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<const int&, const char&>,
+        int&, char&
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<const int&, const char&>,
+        const int&, const char&
+    >);
+    static_assert(not std::constructible_from<
+        std::tuple<int&, const char&>,
+        int&&, char&&
+    >);
+}
+namespace test::tuples::storage::constructors::value::rvalue_ref {
+
+    static_assert(std::constructible_from<
+        std::tuple<int&&, char&&>,
+        int, char
+    >);
+    static_assert(not std::constructible_from<
+        std::tuple<int&&, char&&>,
+        int&, char&
+    >);
+    static_assert(not std::constructible_from<
+        std::tuple<int&&, char&&>,
+        const int&, const char&
+    >);
+    static_assert(std::constructible_from<
+        std::tuple<int&&, char&&>,
+        int&&, char&&
+    >);
 }
 namespace test::tuples::storage::constructors::copy {
     using type = csl::mp::tuple<int, char>;

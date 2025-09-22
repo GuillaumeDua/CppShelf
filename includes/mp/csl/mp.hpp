@@ -862,14 +862,15 @@ namespace csl::mp {
 
         // NOLINTBEGIN(*explicit-constructor) conditionaly explicit
         // Constructor: direct
-        constexpr explicit
-        tuple(const Ts & ... args)
-        noexcept((std::is_nothrow_constructible_v<Ts, decltype(args)> and ...))
-        requires
-            (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
-        and (std::constructible_from<Ts, decltype(args)> and ...)
-        : storage{ csl_fwd(args)... }
-        {}
+        // NOTE: ambiguous with tuple(Ts && ... args) on tuple<const int &, const char &>
+        // constexpr explicit
+        // tuple(const Ts & ... args)
+        // noexcept((std::is_nothrow_constructible_v<Ts, decltype(args)> and ...))
+        // requires
+        //     (sizeof...(Ts) not_eq 0) // disambiguate with default constructor
+        // and (std::constructible_from<Ts, decltype(args)> and ...)
+        // : storage{ csl_fwd(args)... }
+        // {}
         constexpr explicit
         tuple(Ts && ... args)
         noexcept((std::is_nothrow_constructible_v<Ts, decltype(args)> and ...))
@@ -1332,7 +1333,6 @@ namespace csl::mp {
     //  QUESTION: DRY vs. perfs. vs. API, scalability ?
     template <concepts::tuple_like tuple_type, template <typename> typename transformation>
     class transform {
-        
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> rebind_t<tuple_type, transformation<std::tuple_element_t<Is, tuple_type>>...>;
@@ -1352,14 +1352,17 @@ namespace csl::mp {
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
+    // tie_result
 
     [[nodiscard]] constexpr auto make_tuple(auto && ... args) -> tuple<unwrap_ref_decay_t<decltype(args)>...> {
         return { csl_fwd(args)... };
     }
+    // make_tuple_result
 
     constexpr auto forward_as_tuple(auto && ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
+    // forward_as_tuple_result
 
     // tuple_cat
     constexpr auto cat(){ return csl::mp::tuple{}; }
