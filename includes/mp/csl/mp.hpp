@@ -1346,23 +1346,23 @@ namespace csl::mp {
     template <typename Tuple, template <typename> typename Transformation>
     using transform_t = typename transform<Tuple, Transformation>::type;
 
-    // WIP --- 🏗️ --- revert API so it looks like std::ranges
-
-    // TODO(Guillaume) tests
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
-    // tie_result
+    // tie_result ?
 
     [[nodiscard]] constexpr auto make_tuple(auto && ... args) -> tuple<unwrap_ref_decay_t<decltype(args)>...> {
-        return { csl_fwd(args)... };
+        return tuple<unwrap_ref_decay_t<decltype(args)>...>{ csl_fwd(args)... };
     }
-    // make_tuple_result
+    // make_tuple_result ?
 
     constexpr auto forward_as_tuple(auto && ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
-    // forward_as_tuple_result
+    // forward_as_tuple_result ?
+
+    // WIP --- 🏗️ --- revert API so it looks like std::ranges
+    // WIP(Guillaume) tests
 
     // tuple_cat
     constexpr auto cat(){ return csl::mp::tuple{}; }
@@ -1613,6 +1613,7 @@ namespace csl::mp {
     //     }(std::make_index_sequence<size>{});
     // }
 
+    // REFACTO: for_each(F, tuple-likes...)
     // TODO(Guillaume) noexcept clauses
     // foreach
     auto for_each(concepts::tuple auto && value, auto f){
