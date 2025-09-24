@@ -1425,6 +1425,7 @@ namespace csl::mp {
 
             return []<std::size_t ... indexes>(auto && tuple_of_tuples, std::index_sequence<indexes...>){
 
+                // FEATURE: if only `std::` tuplelike, consider std::tuple ?
                 using type = csl::mp::tuple<
                     std::tuple_element_t<
                         indexes_map.element_index[indexes],
@@ -1442,7 +1443,7 @@ namespace csl::mp {
                     )...
                 };
             }(
-                forward_as_tuple(csl_fwd(tuples)...),
+                csl::mp::forward_as_tuple(csl_fwd(tuples)...),
                 std::make_index_sequence<size>{}
             );
         }

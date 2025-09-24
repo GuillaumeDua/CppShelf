@@ -45,7 +45,28 @@ namespace test::function::factory::forward_as_tuple {
         >);
     }
 }
-namespace test::function::factory::cat {
+namespace test::function::factory::cat_result {
+    using empty = csl::mp::tuple<>;
+
+    static_assert(std::same_as<empty, csl::mp::cat_result_t<>>);
+    static_assert(std::same_as<empty, csl::mp::cat_result_t<empty>>);
+    static_assert(std::same_as<empty, csl::mp::cat_result_t<empty, empty>>);
+
+    static_assert(std::same_as<
+        csl::mp::tuple<int, char, double>,
+        csl::mp::cat_result_t<
+            csl::mp::tuple<int>,
+            csl::mp::tuple<char, double>
+        >
+    >);
+    static_assert(std::same_as<
+        csl::mp::tuple<int, char, double, bool>,
+        csl::mp::cat_result_t<
+            csl::mp::tuple<int>,
+            std::pair<char, double>,
+            std::tuple<bool>
+        >
+    >);
 }
 // for_each
 // for_each_enumerate
