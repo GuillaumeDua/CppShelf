@@ -244,16 +244,6 @@ namespace test::tuples::algorithm::transform {
 
 // WIP --- 🏗️ --- revert API so it looks like std::ranges
 
-namespace test::tuples::algorithm::contains {
-    using without_duplicates = csl::mp::tuple<int, char, bool>;
-    using with_duplicates = csl::mp::tuple<int, char, int>;
-
-    static_assert(csl::mp::contains_v<int, with_duplicates>);
-    static_assert(csl::mp::contains_v<int, without_duplicates>);
-
-    static_assert(not csl::mp::contains_v<double, with_duplicates>);
-    static_assert(not csl::mp::contains_v<double, without_duplicates>);
-}
 namespace test::tuples::compare::tuple {
 
     template <

@@ -1458,17 +1458,28 @@ namespace csl::mp {
     using cat_result_t = typename cat_result<tuple_types...>::type;
 
     // contains
-    template <typename, typename>
-    struct contains;
     // build benchmark (~ +20% perfs): https://build-bench.com/b/Ir0K0cw2wfFLyRYPYYIMVASDYQU
-    template <typename T, details::concepts::can_deduce_by_type<T> tuple_type>
-    struct contains<T, tuple_type> : std::true_type{};
+    template <typename tuple_type, typename T>
+    struct contains;
+    template <concepts::tuple_like tuple_type, typename T>
+    struct contains<tuple_type, T> {
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+            -> std::disjunction<std::is_same<T, std::tuple_element_t<Is, tuple_type>>...>;
+    public:
+        constexpr static auto value = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::value;
+    };
+    template <typename tuple_type, typename T>
+    requires details::concepts::can_deduce_by_type<tuple_type, T>
+    struct contains<tuple_type, T> : std::true_type{};
     template <typename T, typename ... Ts>
-    struct contains<T, tuple<Ts...>> : std::bool_constant<
-        (std::same_as<T, Ts> or ...)
+    struct contains<tuple<Ts...>, T> : std::bool_constant<
+        (false or ... or std::same_as<T, Ts>)
     >{};
-    template <typename T, typename tuple_type>
-    constexpr bool contains_v = contains<T, tuple_type>::value;
+    template <typename T, typename value_type, std::size_t N>
+    struct contains<std::array<value_type, N>, T> : std::is_same<T, value_type>{};
+    template <typename tuple_type, typename T>
+    constexpr bool contains_v = contains<tuple_type, T>::value;
 
     // filter<trait>
     template <typename, template <typename...> typename>
@@ -1491,7 +1502,7 @@ namespace csl::mp {
     struct set_union<tuple<Ts...>, tuple<Us...>> : cat_result<
         tuple<Ts...>,
         std::conditional_t<
-            contains_v<Us, tuple<Ts...>>,
+            contains_v<tuple<Ts...>, Us>,
             tuple<>,
             tuple<Us>
         >...
@@ -1505,7 +1516,7 @@ namespace csl::mp {
     template <typename ... Ts, typename ... Us>
     struct set_intersection<tuple<Ts...>, tuple<Us...>> : cat_result<
         std::conditional_t<
-            contains_v<Us, tuple<Ts...>>,
+            contains_v<tuple<Ts...>, Us>,
             tuple<Us>,
             tuple<>
         >...
