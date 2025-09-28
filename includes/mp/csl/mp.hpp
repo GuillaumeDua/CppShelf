@@ -1331,7 +1331,7 @@ namespace csl::mp {
 
     // transform
     //  QUESTION: DRY vs. perfs. vs. API, scalability ?
-    template <concepts::tuple_like tuple_type, template <typename> typename transformation>
+    template <concepts::tuple_like tuple_type, template <typename...> typename transformation>
     class transform {
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
@@ -1339,12 +1339,12 @@ namespace csl::mp {
     public:
         using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
     };
-    template <template <typename> typename transformation, typename ... Ts>
+    template <template <typename...> typename transformation, typename ... Ts>
     struct transform<csl::mp::tuple<Ts...>, transformation>
         : std::type_identity<csl::mp::tuple<transformation<Ts>...>>{};
 
-    template <typename Tuple, template <typename> typename Transformation>
-    using transform_t = typename transform<Tuple, Transformation>::type;
+    template <typename tuple_type, template <typename...> typename Transformation>
+    using transform_t = typename transform<tuple_type, Transformation>::type;
 
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
@@ -1482,6 +1482,7 @@ namespace csl::mp {
     constexpr bool contains_v = contains<tuple_type, T>::value;
 
     // filter<trait>
+    //  Supports only csl::mp::tuple and std::tuple, as array, pair, etc. won't make much sens
     template <typename, template <typename...> typename>
     struct filter;
     template <typename ... Ts, template <typename...> typename predicate>
@@ -1492,7 +1493,13 @@ namespace csl::mp {
             tuple<>
         >...
     >{};
-    template <concepts::tuple tuple_type, template <typename...> typename predicate>
+    //  Limitation: less performant algorithm
+    template <typename ... Ts, template <typename> typename predicate>
+    struct filter<std::tuple<Ts...>, predicate> : unfold<
+        typename filter<csl::mp::tuple<Ts...>, predicate>::type,
+        std::tuple
+    >{};
+    template <typename tuple_type, template <typename...> typename predicate>
     using filter_t = typename filter<tuple_type, predicate>::type;
 
     // set_union

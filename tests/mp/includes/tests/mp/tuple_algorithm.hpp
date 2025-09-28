@@ -81,3 +81,19 @@ namespace test::tuples::algorithm::contains {
     static_assert(csl::mp::contains_v<csl::mp::tuple<int, char, int>, int>);
     static_assert(csl::mp::contains_v<    std::tuple<int, char, int>, int>);
 }
+namespace test::tuples::algorithm::filter {
+    static_assert(std::same_as<
+        csl::mp::filter_t<
+            csl::mp::tuple<int, double, float, char>,
+            std::is_integral
+        >,
+        csl::mp::tuple<int, char>
+    >);
+    static_assert(std::same_as<
+        csl::mp::filter_t<
+            std::tuple<int, double, float, char>,
+            std::is_integral
+        >,
+        std::tuple<int, char>
+    >);
+}
