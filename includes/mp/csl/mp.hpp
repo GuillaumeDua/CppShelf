@@ -1555,7 +1555,12 @@ namespace csl::mp {
     public:
         using type = decltype(helper(std::make_index_sequence<sizeof...(Ts)>{}));
     };
-    template <concepts::tuple tuple_type>
+    template <typename ... Ts>
+    struct deduplicate<std::tuple<Ts...>> : unfold<
+        typename deduplicate<csl::mp::tuple<Ts...>>::type,
+        std::tuple
+    >{};
+    template <typename tuple_type>
     using deduplicate_t = typename deduplicate<tuple_type>::type;
 
     // flatten_once

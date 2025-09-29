@@ -125,17 +125,30 @@ namespace test::tuples::algorithm::set_intersection {
     >);
 }
 namespace test::tuples::algorithm::deduplicate {
-    using valid_tuple = csl::mp::tuple<int, char, double>;
-    using invalid_tuple = csl::mp::tuple<int, char, int, char, double, int>;
+    using csl_tuple_valid   = csl::mp::tuple<int, char, double>;
+    using csl_tuple_invalid = csl::mp::tuple<int, char, int, char, double, int>;
     
     static_assert(std::is_same_v<
-        valid_tuple,
-        csl::mp::deduplicate_t<valid_tuple>
+        csl_tuple_valid,
+        csl::mp::deduplicate_t<csl_tuple_valid>
     >);
     static_assert(std::is_same_v<
-        valid_tuple,
-        csl::mp::deduplicate_t<invalid_tuple>
+        csl_tuple_valid,
+        csl::mp::deduplicate_t<csl_tuple_invalid>
     >);
+
+    using std_tuple_valid   = csl::mp::unfold_t<csl::mp::tuple<int, char, double>, std::tuple>;
+    using std_tuple_invalid = csl::mp::unfold_t<csl::mp::tuple<int, char, int, char, double, int>, std::tuple>;
+
+    static_assert(std::is_same_v<
+        std_tuple_valid,
+        csl::mp::deduplicate_t<std_tuple_valid>
+    >);
+    static_assert(std::is_same_v<
+        std_tuple_valid,
+        csl::mp::deduplicate_t<std_tuple_invalid>
+    >);
+
 }
 
 

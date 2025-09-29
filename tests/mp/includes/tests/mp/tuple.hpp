@@ -405,8 +405,6 @@ namespace test::tuples::indexes {
     static_assert(csl::mp::index_of_v<valid_tuple, int> == 3);
     static_assert(csl::mp::last_index_of_v<valid_tuple, int> == 3);
 }
-// TODO(Guillaume) sort, is_sorted
-
 // construction
 namespace test::tuples::storage::constructors::default_ {
     using type = csl::mp::tuple<int, char>;
