@@ -396,24 +396,6 @@ namespace test::tuples::cat {
         )
     );
 }
-namespace test::tuples::set_union {
-    using T0 = csl::mp::tuple<int, char>;
-    using T1 = csl::mp::tuple<int, double>;
-    
-    static_assert(std::is_same_v<
-        csl::mp::set_union_t<T0, T1>,
-        csl::mp::tuple<int, char, double>
-    >);
-}
-namespace test::tuples::set_intersection {
-    using T0 = csl::mp::tuple<int, char>;
-    using T1 = csl::mp::tuple<int, double>;
-    
-    static_assert(std::is_same_v<
-        csl::mp::set_intersection_t<T0, T1>,
-        csl::mp::tuple<int>
-    >);
-}
 namespace test::tuples::indexes {
     using invalid_tuple = csl::mp::tuple<char, double, float, int, int>;
     static_assert(csl::mp::index_of_v<invalid_tuple, int> == 3);
@@ -424,37 +406,6 @@ namespace test::tuples::indexes {
     static_assert(csl::mp::last_index_of_v<valid_tuple, int> == 3);
 }
 // TODO(Guillaume) sort, is_sorted
-// TODO(Guillaume) unique/deduplicate
-namespace test::tuples::is_uniqued {
-    using valid_tuple = csl::mp::tuple<int, char>;
-    static_assert(csl::mp::is_uniqued_v<valid_tuple>);
-
-    using invalid_tuple = csl::mp::tuple<int, char, int>;
-    static_assert(not csl::mp::is_uniqued_v<invalid_tuple>);
-}
-namespace test::tuples::filter {
-    using T1 = csl::mp::tuple<int, double, char, float>;
-    using filtered_integrals = csl::mp::filter_t<T1, std::is_integral>;
-    using filtered_floating = csl::mp::filter_t<T1, std::is_floating_point>;
-
-    using expected_integrals = csl::mp::tuple<int, char>;
-    using expected_floating = csl::mp::tuple<double, float>;
-
-    static_assert(std::is_same_v<filtered_integrals, expected_integrals>);
-    static_assert(std::is_same_v<filtered_floating, expected_floating>);
-}
-namespace test::tuples::deduplicate {
-    using valid_tuple = csl::mp::tuple<int, char>;
-    using invalid_tuple = csl::mp::tuple<int, char, int>;
-    
-    static_assert(std::is_same_v<valid_tuple,
-        csl::mp::deduplicate_t<valid_tuple>
-    >);
-    static_assert(std::is_same_v<
-        valid_tuple,
-        csl::mp::deduplicate_t<invalid_tuple>
-    >);
-}
 
 // construction
 namespace test::tuples::storage::constructors::default_ {

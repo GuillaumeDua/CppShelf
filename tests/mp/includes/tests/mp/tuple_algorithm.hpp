@@ -66,6 +66,13 @@ namespace test::tuples::algorithm::fold::heterogeneous {
     static_assert(fold_right_result == "fgdebca");
 }
 
+namespace test::tuples::algorithm::is_uniqued {
+    using valid_tuple = csl::mp::tuple<int, char>;
+    static_assert(csl::mp::is_uniqued_v<valid_tuple>);
+
+    using invalid_tuple = csl::mp::tuple<int, char, int>;
+    static_assert(not csl::mp::is_uniqued_v<invalid_tuple>);
+}
 namespace test::tuples::algorithm::contains {
     static_assert(not csl::mp::contains_v<csl::mp::tuple<>, int>);
     static_assert(csl::mp::contains_v<csl::mp::tuple<int>, int>);
@@ -82,18 +89,54 @@ namespace test::tuples::algorithm::contains {
     static_assert(csl::mp::contains_v<    std::tuple<int, char, int>, int>);
 }
 namespace test::tuples::algorithm::filter {
+
+    using csl_tuple = csl::mp::tuple<int, double, float, char>;
+    using std_tuple = csl::mp::unfold_t<csl_tuple, std::tuple>;
+
     static_assert(std::same_as<
-        csl::mp::filter_t<
-            csl::mp::tuple<int, double, float, char>,
-            std::is_integral
-        >,
+        csl::mp::filter_t<csl_tuple, std::is_integral>,
         csl::mp::tuple<int, char>
     >);
     static_assert(std::same_as<
-        csl::mp::filter_t<
-            std::tuple<int, double, float, char>,
-            std::is_integral
-        >,
+        csl::mp::filter_t<std_tuple, std::is_integral >,
         std::tuple<int, char>
     >);
+    static_assert(std::same_as<
+        csl::mp::filter_t<csl_tuple, std::is_floating_point>,
+        csl::mp::tuple<double, float>
+    >);
 }
+namespace test::tuples::algorithm::set_union {
+    using T0 = csl::mp::tuple<int, char>;
+    using T1 = csl::mp::tuple<int, double>;
+    
+    static_assert(std::is_same_v<
+        csl::mp::set_union_t<T0, T1>,
+        csl::mp::tuple<int, char, double>
+    >);
+}
+namespace test::tuples::algorithm::set_intersection {
+    using T0 = csl::mp::tuple<int, char>;
+    using T1 = csl::mp::tuple<int, double>;
+    
+    static_assert(std::is_same_v<
+        csl::mp::set_intersection_t<T0, T1>,
+        csl::mp::tuple<int>
+    >);
+}
+namespace test::tuples::algorithm::deduplicate {
+    using valid_tuple = csl::mp::tuple<int, char, double>;
+    using invalid_tuple = csl::mp::tuple<int, char, int, char, double, int>;
+    
+    static_assert(std::is_same_v<
+        valid_tuple,
+        csl::mp::deduplicate_t<valid_tuple>
+    >);
+    static_assert(std::is_same_v<
+        valid_tuple,
+        csl::mp::deduplicate_t<invalid_tuple>
+    >);
+}
+
+
+// TODO(Guillaume) sort, is_sorted

@@ -1332,7 +1332,8 @@ namespace csl::mp {
     // transform
     //  QUESTION: DRY vs. perfs. vs. API, scalability ?
     template <concepts::tuple_like tuple_type, template <typename...> typename transformation>
-    class transform {
+    struct transform {
+    private:
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> rebind_t<tuple_type, transformation<std::tuple_element_t<Is, tuple_type>>...>;
@@ -1463,6 +1464,7 @@ namespace csl::mp {
     struct contains;
     template <concepts::tuple_like tuple_type, typename T>
     struct contains<tuple_type, T> {
+    private:
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> std::disjunction<std::is_same<T, std::tuple_element_t<Is, tuple_type>>...>;
@@ -1493,7 +1495,7 @@ namespace csl::mp {
             tuple<>
         >...
     >{};
-    //  Limitation: less performant algorithm
+    //  Limitation: less performant implementation
     template <typename ... Ts, template <typename> typename predicate>
     struct filter<std::tuple<Ts...>, predicate> : unfold<
         typename filter<csl::mp::tuple<Ts...>, predicate>::type,
@@ -1531,32 +1533,28 @@ namespace csl::mp {
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
 
-    // deduplicate / make_valid
-    // TODO(Guss): reverse prior to filtering, to preserve order
-    // TODO(Guss): How to handle std::array ?
+    // deduplicate / make_valid / make_unique
     template <typename>
     struct deduplicate;
     template <concepts::support_get_by_type T>
     struct deduplicate<T> : type_identity<T>{};
     template <typename ... Ts>
-    struct deduplicate<tuple<Ts...>> : 
-    // equivalent to filter<tuple<Ts...>, bind_back<is_unique, tuple<Ts...>>::type>{};
-    //
-    //  cat_result<
-    //     std::conditional_t<
-    //         is_unique_v<Ts, tuple<Ts...>>,
-    //         tuple<Ts>, tuple<>
-    //     >...
-    // >{};
-    decltype([]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        return cat_result<
-            std::conditional_t<
-                details::concepts::can_deduce_by_type<tuple<Ts...>, Ts>
-                or indexes == index_of_v<tuple<Ts...>, Ts>,
-                tuple<Ts>, tuple<>
-            >...
-        >{};
-    }(std::make_index_sequence<sizeof...(Ts)>{})){};
+    struct deduplicate<csl::mp::tuple<Ts...>> {
+    private:
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+            -> cat_result_t<
+                std::conditional_t<
+                    details::concepts::can_deduce_by_type<tuple<Ts...>, Ts> // not unique
+                        or Is == index_of_v<tuple<Ts...>, Ts>,              // first occurence
+                    tuple<Ts>,
+                    tuple<>
+                >...
+            >
+        ;
+    public:
+        using type = decltype(helper(std::make_index_sequence<sizeof...(Ts)>{}));
+    };
     template <concepts::tuple tuple_type>
     using deduplicate_t = typename deduplicate<tuple_type>::type;
 
