@@ -106,12 +106,17 @@ namespace test::tuples::algorithm::filter {
         csl::mp::tuple<double, float>
     >);
 }
+// WIP: std::tuple support
 namespace test::tuples::algorithm::set_union {
     using T0 = csl::mp::tuple<int, char>;
     using T1 = csl::mp::tuple<int, double>;
     
     static_assert(std::is_same_v<
         csl::mp::set_union_t<T0, T1>,
+        csl::mp::tuple<int, char, double>
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
         csl::mp::tuple<int, char, double>
     >);
 }

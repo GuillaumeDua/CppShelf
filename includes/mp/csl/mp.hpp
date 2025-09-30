@@ -1300,10 +1300,13 @@ namespace csl::mp {
     // unfold
     //  REFACTO: universal ttps
     template <typename, template <typename...> typename>
-    class unfold;
+    struct unfold;
+    template <typename ... Ts, template <typename...> typename destination>
+    struct unfold<destination<Ts...>, destination> : std::type_identity<destination<Ts...>>{};
     // REFACTO: for_each_index ?
     template <concepts::tuple_like tuple_type, template <typename...> typename destination>
-    class unfold<tuple_type, destination> {
+    struct unfold<tuple_type, destination> {
+    private:
         // NOTE: using lambdas here (dependent-name and the closure-types) mess up with ADL
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
@@ -1315,7 +1318,7 @@ namespace csl::mp {
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
     // rebind
-    //  NOTE(Limitation): does not supports others tuple-likes than the one with explicit specialization here.
+    //  NOTE(Limitation): does not supports others tuple-likes than explicit specialization here.
     template <typename tuple_type, typename... Ts>
     struct rebind;
     template <typename ... Us, typename... Ts>
@@ -1507,15 +1510,36 @@ namespace csl::mp {
     // set_union
     template <typename, typename>
     struct set_union;
-    template <typename ... Ts, typename ... Us>
-    struct set_union<tuple<Ts...>, tuple<Us...>> : cat_result<
-        tuple<Ts...>,
-        std::conditional_t<
-            contains_v<tuple<Ts...>, Us>,
-            tuple<>,
-            tuple<Us>
-        >...
-    >{};
+    template <concepts::tuple_like t1, concepts::tuple_like t2>
+    struct set_union<t1, t2>{
+    private:
+
+        // REFACTO: cat_result<t1, filter_t<bind_front<contains, t1>::type>
+
+        template <std::size_t... t2_Is>
+        constexpr static auto helper(std::index_sequence<t2_Is...>)
+            -> cat_result<
+                t1,
+                std::conditional_t<
+                    contains_v<t1, std::tuple_element_t<t2_Is, t2>>,
+                    tuple<>,
+                    tuple<std::tuple_element_t<t2_Is, t2>>
+                >...
+            >;
+        // QUESTION(design) rebind as t1 ?
+    public:
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<t2>>{}))::type;
+    };
+
+    // template <typename ... Ts, typename ... Us>
+    // struct set_union<tuple<Ts...>, tuple<Us...>> : cat_result<
+    //     tuple<Ts...>,
+    //     std::conditional_t<
+    //         contains_v<tuple<Ts...>, Us>,
+    //         tuple<>,
+    //         tuple<Us>
+    //     >...
+    // >{};
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
 

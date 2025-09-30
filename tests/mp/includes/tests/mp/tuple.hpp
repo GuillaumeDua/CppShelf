@@ -188,6 +188,10 @@ namespace test::tuples::algorithm::uniqued {
 namespace test::tuples::algorithm::unfold {
     
     static_assert(std::same_as<
+        csl::mp::unfold_t<csl::mp::tuple<int, char>, csl::mp::tuple>,
+        csl::mp::tuple<int, char>
+    >);
+    static_assert(std::same_as<
         csl::mp::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
         csl::mp::tuple<int, char>
     >);
