@@ -141,21 +141,21 @@ namespace test::tuples::algorithm::set_intersection {
 }
 namespace test::tuples::algorithm::set_difference {
     
-    // static_assert(std::is_same_v<
-    //     csl::mp::set_difference_t<
-    //         csl::mp::tuple<int, char>,
-    //         csl::mp::tuple<int, double>
-    //     >,
-    //     csl::mp::tuple<char>
-    // >);
+    static_assert(std::is_same_v<
+        csl::mp::set_difference_t<
+            csl::mp::tuple<int, char>,
+            csl::mp::tuple<int, double>
+        >,
+        csl::mp::tuple<char>
+    >);
 
-    // static_assert(std::is_same_v<
-    //     csl::mp::set_difference_t<
-    //         csl::mp::tuple<A,B,D,D,D,G>,
-    //         csl::mp::tuple<B,D,F>
-    //     >,
-    //     csl::mp::tuple<A,D,D,G>
-    // >);
+    static_assert(std::is_same_v<
+        csl::mp::set_difference_t<
+            csl::mp::tuple<A,B,D,D,D,G>,
+            csl::mp::tuple<B,D,F>
+        >,
+        csl::mp::tuple<A,D,D,G>
+    >);
 }
 namespace test::tuples::algorithm::deduplicate {
     using csl_tuple_valid   = csl::mp::tuple<int, char, double>;

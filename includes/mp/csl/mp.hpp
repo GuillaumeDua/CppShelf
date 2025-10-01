@@ -1555,33 +1555,62 @@ namespace csl::mp {
 
     // set_difference
     //  Result in the elements from (sorted) input tuplelike T1 which are NOT found in the (sorted) tuplelike T2
-    //  FIXME(?) How to track state ?
     template <typename, typename>
     struct set_difference;
-    template <concepts::tuple_like t1, concepts::tuple_like t2>
-    struct set_difference<t1, t2>{
+    template <concepts::tuple_like T1, concepts::tuple_like T2>
+    struct set_difference<T1, T2>{
     private:
-        static_assert(false, "FIXME");
+        template <std::size_t ... T1_Is, std::size_t ... T2_Is>
+        static consteval auto make_mask(
+            std::index_sequence<T1_Is...>,
+            std::index_sequence<T2_Is...>
+        ) {
 
-        template <std::size_t... t1_Is>
-        constexpr static auto helper(std::index_sequence<t1_Is...>)
+            auto should_keep = [
+                used = std::array<bool, std::tuple_size_v<T2>>{}
+            ]<typename T1_element>() mutable{
+
+                std::optional<std::size_t> index;
+                (
+                    (
+                        std::is_same_v<T1_element, std::tuple_element_t<T2_Is, T2>>
+                        and not used[T2_Is]
+                        and not index
+                        ? index = T2_Is
+                        : index
+                    ), ...
+                );
+                if (index){
+                    used[index.value()] = true;
+                    return false;
+                }
+                return true;
+            };
+
+            std::array<bool, std::tuple_size_v<T1>> result{};
+            ((result[T1_Is] = should_keep.template operator()<std::tuple_element_t<T1_Is, T1>>()), ...);
+            return result;
+        }
+
+        static constexpr auto mask = make_mask(
+            std::make_index_sequence<std::tuple_size_v<T1>>{},
+            std::make_index_sequence<std::tuple_size_v<T2>>{}
+        );
+
+        template <std::size_t... Is>
+        static consteval auto helper(std::index_sequence<Is...>)
             -> cat_result<
                 std::conditional_t<
-                    contains_v<t2, std::tuple_element_t<t1_Is, t1>>,
-                    tuple<>,
-                    tuple<std::tuple_element_t<t1_Is, t1>>
+                    mask[Is],
+                    tuple<std::tuple_element_t<Is, T1>>,
+                    tuple<>
                 >...
             >;
-
     public:
-        using type = typename decltype(helper(
-            std::make_index_sequence<std::tuple_size_v<t1>>{}
-        ))::type;
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type;
     };
     template <typename T, typename U>
     using set_difference_t = typename set_difference<T, U>::type;
-
-    // set_intersection
 
     // deduplicate / make_valid / make_unique
     template <typename>
