@@ -3,6 +3,16 @@
 #include <string>
 #include <cstdint>
 
+namespace test::tuples::algorithm {
+    struct A{};
+    struct B{};
+    struct C{};
+    struct D{};
+    struct E{};
+    struct F{};
+    struct G{};
+}
+
 // TODO: static_assert result type
 namespace test::tuples::algorithm::fold::homogeneous {
 
@@ -128,6 +138,24 @@ namespace test::tuples::algorithm::set_intersection {
         csl::mp::set_intersection_t<T0, T1>,
         csl::mp::tuple<int>
     >);
+}
+namespace test::tuples::algorithm::set_difference {
+    
+    // static_assert(std::is_same_v<
+    //     csl::mp::set_difference_t<
+    //         csl::mp::tuple<int, char>,
+    //         csl::mp::tuple<int, double>
+    //     >,
+    //     csl::mp::tuple<char>
+    // >);
+
+    // static_assert(std::is_same_v<
+    //     csl::mp::set_difference_t<
+    //         csl::mp::tuple<A,B,D,D,D,G>,
+    //         csl::mp::tuple<B,D,F>
+    //     >,
+    //     csl::mp::tuple<A,D,D,G>
+    // >);
 }
 namespace test::tuples::algorithm::deduplicate {
     using csl_tuple_valid   = csl::mp::tuple<int, char, double>;

@@ -1515,7 +1515,6 @@ namespace csl::mp {
     private:
 
         // REFACTO: cat_result<t1, filter_t<bind_front<contains, t1>::type>
-
         template <std::size_t... t2_Is>
         constexpr static auto helper(std::index_sequence<t2_Is...>)
             -> cat_result<
@@ -1530,32 +1529,59 @@ namespace csl::mp {
     public:
         using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<t2>>{}))::type;
     };
-
-    // template <typename ... Ts, typename ... Us>
-    // struct set_union<tuple<Ts...>, tuple<Us...>> : cat_result<
-    //     tuple<Ts...>,
-    //     std::conditional_t<
-    //         contains_v<tuple<Ts...>, Us>,
-    //         tuple<>,
-    //         tuple<Us>
-    //     >...
-    // >{};
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
 
     // set_intersection
     template <typename, typename>
     struct set_intersection;
-    template <typename ... Ts, typename ... Us>
-    struct set_intersection<tuple<Ts...>, tuple<Us...>> : cat_result<
-        std::conditional_t<
-            contains_v<tuple<Ts...>, Us>,
-            tuple<Us>,
-            tuple<>
-        >...
-    >{};
+    template <concepts::tuple_like t1, concepts::tuple_like t2>
+    struct set_intersection<t1, t2> {
+    private:
+        template <std::size_t... t1_Is>
+        constexpr static auto helper(std::index_sequence<t1_Is...>)
+            -> cat_result<
+                std::conditional_t<
+                    contains_v<t2, std::tuple_element_t<t1_Is, t1>>,
+                    tuple<std::tuple_element_t<t1_Is, t1>>,
+                    tuple<>
+                >...
+            >;
+    public:
+        using type = typename decltype(helper(std::make_index_sequence<std::tuple_size_v<t1>>{}))::type;
+    };
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
+
+    // set_difference
+    //  Result in the elements from (sorted) input tuplelike T1 which are NOT found in the (sorted) tuplelike T2
+    //  FIXME(?) How to track state ?
+    template <typename, typename>
+    struct set_difference;
+    template <concepts::tuple_like t1, concepts::tuple_like t2>
+    struct set_difference<t1, t2>{
+    private:
+        static_assert(false, "FIXME");
+
+        template <std::size_t... t1_Is>
+        constexpr static auto helper(std::index_sequence<t1_Is...>)
+            -> cat_result<
+                std::conditional_t<
+                    contains_v<t2, std::tuple_element_t<t1_Is, t1>>,
+                    tuple<>,
+                    tuple<std::tuple_element_t<t1_Is, t1>>
+                >...
+            >;
+
+    public:
+        using type = typename decltype(helper(
+            std::make_index_sequence<std::tuple_size_v<t1>>{}
+        ))::type;
+    };
+    template <typename T, typename U>
+    using set_difference_t = typename set_difference<T, U>::type;
+
+    // set_intersection
 
     // deduplicate / make_valid / make_unique
     template <typename>

@@ -38,7 +38,7 @@ namespace test::concepts::std_array {
 namespace test::primitives::value_type {
 }
 namespace test::primitives::bind_front {
-    
+    // WIP -> +_t
 }
 namespace test::primitives::bind_back {
 
