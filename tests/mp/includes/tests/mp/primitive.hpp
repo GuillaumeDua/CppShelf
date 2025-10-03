@@ -36,6 +36,9 @@ namespace test::concepts::std_array {
 }
 
 namespace test::primitives::value_type {
+    static_assert(std::same_as<char, csl::mp::value_type_t<std::string>>);
+    static_assert(std::same_as<char, csl::mp::value_type_t<std::array<char, 1>>>);
+    static_assert(std::same_as<char, csl::mp::value_type_t<char[1]>>); // NOLINT(*-c-arrays)
 }
 namespace test::primitives::bind_front {
     // WIP -> +_t

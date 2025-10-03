@@ -1555,13 +1555,14 @@ namespace csl::mp {
 
     // set_difference
     //  Result in the elements from (sorted) input tuplelike T1 which are NOT found in the (sorted) tuplelike T2
+    //  REFACTO: simplier, better perfs
     template <typename, typename>
     struct set_difference;
     template <concepts::tuple_like T1, concepts::tuple_like T2>
     struct set_difference<T1, T2>{
     private:
         template <std::size_t ... T1_Is, std::size_t ... T2_Is>
-        static consteval auto make_mask(
+        consteval static auto make_mask(
             std::index_sequence<T1_Is...>,
             std::index_sequence<T2_Is...>
         ) {
@@ -1592,13 +1593,13 @@ namespace csl::mp {
             return result;
         }
 
-        static constexpr auto mask = make_mask(
+        constexpr static auto mask = make_mask(
             std::make_index_sequence<std::tuple_size_v<T1>>{},
             std::make_index_sequence<std::tuple_size_v<T2>>{}
         );
 
         template <std::size_t... Is>
-        static consteval auto helper(std::index_sequence<Is...>)
+        consteval static auto helper(std::index_sequence<Is...>)
             -> cat_result<
                 std::conditional_t<
                     mask[Is],
