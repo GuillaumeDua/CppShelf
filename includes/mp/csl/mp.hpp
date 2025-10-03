@@ -188,15 +188,20 @@ namespace csl::mp {
     template <typename T>
     using value_type_t = typename value_type<T>::type;
 
+    //  example: csl::mp::bind_front<std::is_same, int>::value<int> == true
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_front {
         template <typename ... Us>
-        using type = trait<Ts..., Us...>;
+        using type = trait<Ts..., Us...>::type;
+        template <typename ... Us>
+        constexpr static auto value = trait<Ts..., Us...>::value;
     };
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_back {
         template <typename ... Us>
-        using type = trait<Us..., Ts...>;
+        using type = trait<Us..., Ts...>::type;
+        template <typename ... Us>
+        constexpr static auto value = trait<Us..., Ts...>::value;
     };
 }
 

@@ -39,9 +39,17 @@ namespace test::primitives::value_type {
     static_assert(std::same_as<char, csl::mp::value_type_t<std::string>>);
     static_assert(std::same_as<char, csl::mp::value_type_t<std::array<char, 1>>>);
     static_assert(std::same_as<char, csl::mp::value_type_t<char[1]>>); // NOLINT(*-c-arrays)
+    static_assert(std::same_as<bool, csl::mp::value_type_t<std::is_same<int, char>>>);
 }
 namespace test::primitives::bind_front {
-    // WIP -> +_t
+    using same_as_int = csl::mp::bind_front<std::is_same, int>;
+    static_assert(same_as_int::value<int>);
+
+    using tuple_starting_with_int = csl::mp::bind_front<csl::mp::tuple, int>;
+    static_assert(std::same_as<
+        tuple_starting_with_int::type<char>,
+        csl::mp::tuple<int, char>
+    >);
 }
 namespace test::primitives::bind_back {
 
