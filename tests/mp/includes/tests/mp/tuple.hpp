@@ -126,31 +126,12 @@ namespace test::tuples::empty {
     static_assert(csl::mp::concepts::empty<csl::mp::tuple<>>);
     static_assert(not csl::mp::concepts::empty<csl::mp::tuple<int>>);
 }
-namespace test::tuples::algorithm::count {
-    using t = csl::mp::tuple<int, char, bool, int, double>;
-    static_assert(0 == csl::mp::count_v<t, float>);
-    static_assert(1 == csl::mp::count_v<t, char>);
-    static_assert(2 == csl::mp::count_v<t, int>);
-
-    // empty tuple
-    static_assert(0 == csl::mp::count_v<csl::mp::tuple<>, int>);
-
-    static_assert(1 == csl::mp::count_v<std::tuple<int, char>, char>);
-}
-namespace test::tuples::algorithm::count_if {
-    using t = csl::mp::tuple<int, char, bool, double, float>;
-    static_assert(3 == csl::mp::count_if_v<t, std::is_integral>);
-    static_assert(2 == csl::mp::count_if_v<t, std::is_floating_point>);
-
-    // empty tuple
-    using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
-    static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
-}
 namespace test::tuples::type_gettable {
     static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int>, int>);
     static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int, char>, int>);
     static_assert(csl::mp::is_type_gettable_v<std::tuple<int>, int>);
     static_assert(csl::mp::is_type_gettable_v<std::tuple<int, char>, int>);
+    
     static_assert(not csl::mp::is_type_gettable_v<csl::mp::tuple<int, int>, int>);
     static_assert(not csl::mp::is_type_gettable_v<std::array<int, 1>, int>);
 }
@@ -173,77 +154,6 @@ namespace test::tuples::type_gettable {
 
     static_assert(csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 0>);
     static_assert(not csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 1>);
-}
-
-// REFACTO: move to tests/mp/tuple_algorthms.hpp
-namespace test::tuples::algorithm::uniqued {
-    using without_duplicates = csl::mp::tuple<int, char, bool>;
-    using with_duplicates = csl::mp::tuple<int, char, int>;
-
-    static_assert(not csl::mp::concepts::uniqued<with_duplicates>);
-    static_assert(csl::mp::concepts::uniqued<without_duplicates>);
-    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
-    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
-}
-namespace test::tuples::algorithm::unfold {
-    
-    static_assert(std::same_as<
-        csl::mp::unfold_t<csl::mp::tuple<int, char>, csl::mp::tuple>,
-        csl::mp::tuple<int, char>
-    >);
-    static_assert(std::same_as<
-        csl::mp::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
-        csl::mp::tuple<int, char>
-    >);
-    static_assert(std::same_as<
-        csl::mp::unfold_t<std::array<int, 2>, csl::mp::tuple>,
-        csl::mp::tuple<int, int>
-    >);
-    static_assert(std::same_as<
-        csl::mp::unfold_t<std::array<int, 2>, std::tuple>,
-        std::tuple<int, int>
-    >);
-    static_assert(std::same_as<
-        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
-        std::tuple<int, char>
-    >);
-}
-namespace test::tuples::algorithm::rebind {
-    static_assert(std::same_as<
-        csl::mp::rebind_t<std::tuple<int>, char>,
-        std::tuple<char>
-    >);
-    static_assert(std::same_as<
-        csl::mp::rebind_t<csl::mp::tuple<int>, char>,
-        csl::mp::tuple<char>
-    >);
-    static_assert(std::same_as<
-        csl::mp::rebind_t<std::pair<int, char>, bool, double>,
-        std::pair<bool, double>
-    >);
-    static_assert(std::same_as<
-        csl::mp::rebind_t<std::array<int, 4>, char>,
-        std::array<char, 4>
-    >);
-}
-namespace test::tuples::algorithm::transform {
-    static_assert(std::same_as<
-        csl::mp::transform_t<csl::mp::tuple<int, char>, std::add_lvalue_reference_t>,
-        csl::mp::tuple<int&, char&>
-    >);
-    static_assert(std::same_as<
-        csl::mp::transform_t<std::tuple<int, char>, std::add_lvalue_reference_t>,
-        std::tuple<int&, char&>
-    >);
-    static_assert(std::same_as<
-        csl::mp::transform_t<std::pair<int, char>, std::add_lvalue_reference_t>,
-        std::pair<int&, char&>
-    >);
-    static_assert(std::same_as<
-        csl::mp::transform_t<std::array<int, 1>, std::add_lvalue_reference_t>,
-        std::array<int&, 1>
-    >);
-    
 }
 
 // WIP --- 🏗️ --- revert API so it looks like std::ranges

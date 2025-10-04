@@ -13,77 +13,109 @@ namespace test::tuples::algorithm {
     struct G{};
 }
 
-// TODO: static_assert result type
-namespace test::tuples::algorithm::fold::homogeneous {
+namespace test::tuples::algorithm::count {
+    using t = csl::mp::tuple<int, char, bool, int, double>;
+    static_assert(0 == csl::mp::count_v<t, float>);
+    static_assert(1 == csl::mp::count_v<t, char>);
+    static_assert(2 == csl::mp::count_v<t, int>);
 
-    static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
+    // empty tuple
+    static_assert(0 == csl::mp::count_v<csl::mp::tuple<>, int>);
 
-    constexpr auto expected_sum = 15;
-    static_assert(csl::mp::fold_left(
-        std::array{ 0, 1, 2, 3, 4, 5 },
-        std::plus<void>{},
-        int{}
-    ) == expected_sum);
-    static_assert(csl::mp::fold_right(
-        std::array{ 0, 1, 2, 3, 4, 5 },
-        std::plus<void>{},
-        int{}
-    ) == expected_sum);
+    static_assert(1 == csl::mp::count_v<std::tuple<int, char>, char>);
 }
-namespace test::tuples::algorithm::fold::heterogeneous {
+namespace test::tuples::algorithm::count_if {
+    using t = csl::mp::tuple<int, char, bool, double, float>;
+    static_assert(3 == csl::mp::count_if_v<t, std::is_integral>);
+    static_assert(2 == csl::mp::count_if_v<t, std::is_floating_point>);
 
-    static_assert(std::invocable<std::plus<void>, std::string, char>);
-    static_assert(std::invocable<std::plus<void>, std::string, std::string>);
-    static_assert(std::invocable<std::plus<void>, std::string, const char *>);
-    #if __cpp_lib_string_view >= 202403
-    static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // requires C++26 - P2591
-    #endif
+    // empty tuple
+    using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
+    static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
+}
+
+// WIP -> to primitives
+namespace test::tuples::algorithm::unfold {
     
-    constexpr auto value = std::tuple{
-            'a',
-            std::string{ "bc" },
-            "de",
-        #if __cpp_lib_string_view >= 202403
-            std::string_view{ "fg" }
-        #else
-            "fg"
-        #endif
-    };
-
-    constexpr auto fold_left_result = csl::mp::fold_left(
-        value,
-        std::plus<void>{},
-        std::string{}
-    );
     static_assert(std::same_as<
-        std::remove_cvref_t<decltype(fold_left_result)>,
-        csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>
+        csl::mp::unfold_t<csl::mp::tuple<int, char>, csl::mp::tuple>,
+        csl::mp::tuple<int, char>
     >);
-    static_assert(std::same_as<decltype(fold_left_result), const std::string>);
-    static_assert(fold_left_result == "abcdefg");
-
-    constexpr auto fold_right_result = csl::mp::fold_right(
-        value,
-        std::plus<void>{},
-        std::string{}
-    );
     static_assert(std::same_as<
-        std::remove_cvref_t<decltype(fold_right_result)>,
-        csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>
+        csl::mp::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
+        csl::mp::tuple<int, char>
     >);
-    static_assert(std::same_as<decltype(fold_right_result), const std::string>);
-    static_assert(fold_right_result == "fgdebca");
+    static_assert(std::same_as<
+        csl::mp::unfold_t<std::array<int, 2>, csl::mp::tuple>,
+        csl::mp::tuple<int, int>
+    >);
+    static_assert(std::same_as<
+        csl::mp::unfold_t<std::array<int, 2>, std::tuple>,
+        std::tuple<int, int>
+    >);
+    static_assert(std::same_as<
+        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
+        std::tuple<int, char>
+    >);
+}
+namespace test::tuples::algorithm::rebind {
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::tuple<int>, char>,
+        std::tuple<char>
+    >);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<csl::mp::tuple<int>, char>,
+        csl::mp::tuple<char>
+    >);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::pair<int, char>, bool, double>,
+        std::pair<bool, double>
+    >);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::array<int, 4>, char>,
+        std::array<char, 4>
+    >);
 }
 
-namespace test::tuples::algorithm::is_uniqued {
-    using valid_tuple = csl::mp::tuple<int, char>;
-    static_assert(csl::mp::is_uniqued_v<valid_tuple>);
+// WIP: reoder in tests/mp/includes/tests/mp/tuple.hpp if no dependent-code comes right after
+namespace test::tuples::algorithm::uniqued {
 
-    using invalid_tuple = csl::mp::tuple<int, char, int>;
-    static_assert(not csl::mp::is_uniqued_v<invalid_tuple>);
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    static_assert(csl::mp::is_uniqued_v<without_duplicates>);
+    static_assert(not csl::mp::is_uniqued_v<with_duplicates>);
+
+    static_assert(not csl::mp::concepts::uniqued<with_duplicates>);
+    static_assert(csl::mp::concepts::uniqued<without_duplicates>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
+
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&&>);
+    static_assert(csl::mp::concepts::uniqued<const csl::mp::tuple<int>&>);
+}
+namespace test::tuples::algorithm::transform {
+
+    static_assert(std::same_as<
+        csl::mp::transform_t<csl::mp::tuple<int, char>, std::add_lvalue_reference_t>,
+        csl::mp::tuple<int&, char&>
+    >);
+    static_assert(std::same_as<
+        csl::mp::transform_t<std::tuple<int, char>, std::add_lvalue_reference_t>,
+        std::tuple<int&, char&>
+    >);
+    static_assert(std::same_as<
+        csl::mp::transform_t<std::pair<int, char>, std::add_lvalue_reference_t>,
+        std::pair<int&, char&>
+    >);
+    static_assert(std::same_as<
+        csl::mp::transform_t<std::array<int, 1>, std::add_lvalue_reference_t>,
+        std::array<int&, 1>
+    >);
 }
 namespace test::tuples::algorithm::contains {
+
     static_assert(not csl::mp::contains_v<csl::mp::tuple<>, int>);
     static_assert(csl::mp::contains_v<csl::mp::tuple<int>, int>);
     static_assert(csl::mp::contains_v<csl::mp::tuple<int, char>, int>);
@@ -182,6 +214,68 @@ namespace test::tuples::algorithm::deduplicate {
         csl::mp::deduplicate_t<std_tuple_invalid>
     >);
 
+}
+// TODO: static_assert result type
+namespace test::tuples::algorithm::fold::homogeneous {
+
+    static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
+
+    constexpr auto expected_sum = 15;
+    static_assert(csl::mp::fold_left(
+        std::array{ 0, 1, 2, 3, 4, 5 },
+        std::plus<void>{},
+        int{}
+    ) == expected_sum);
+    static_assert(csl::mp::fold_right(
+        std::array{ 0, 1, 2, 3, 4, 5 },
+        std::plus<void>{},
+        int{}
+    ) == expected_sum);
+}
+namespace test::tuples::algorithm::fold::heterogeneous {
+
+    static_assert(std::invocable<std::plus<void>, std::string, char>);
+    static_assert(std::invocable<std::plus<void>, std::string, std::string>);
+    static_assert(std::invocable<std::plus<void>, std::string, const char *>);
+    #if __cpp_lib_string_view >= 202403
+    static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // requires C++26 - P2591
+    #endif
+    
+    constexpr auto value = std::tuple{
+            'a',
+            std::string{ "bc" },
+            "de",
+        #if __cpp_lib_string_view >= 202403
+            std::string_view{ "fg" }
+        #else
+            "fg"
+        #endif
+    };
+
+    constexpr auto fold_left_result = csl::mp::fold_left(
+        value,
+        std::plus<void>{},
+        std::string{}
+    );
+    static_assert(std::same_as<
+        std::remove_cvref_t<decltype(fold_left_result)>,
+        csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>
+    >);
+    static_assert(std::same_as<decltype(fold_left_result), const std::string>);
+    static_assert(fold_left_result == "abcdefg");
+
+    constexpr auto fold_right_result = csl::mp::fold_right(
+        value,
+        std::plus<void>{},
+        std::string{}
+    );
+    static_assert(std::same_as<
+        std::remove_cvref_t<decltype(fold_right_result)>,
+        csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>
+    >);
+    static_assert(std::same_as<decltype(fold_right_result), const std::string>);
+    static_assert(fold_right_result == "fgdebca");
 }
 
 
