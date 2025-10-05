@@ -1286,6 +1286,8 @@ namespace csl::mp {
     template <typename tuple_type>
     constexpr bool is_uniqued_v = is_uniqued<tuple_type>::value;
 
+    // QUESTION(perf.) faster ? array{ index_of_v<tuple_type, index>... } == array{ last_index_of_v<tuple_type, index>... }
+    //
     // template <concepts::tuple_like tuple_type>
     // struct is_uniqued<tuple_type> : std::bool_constant<
     //     []<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -1312,7 +1314,7 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, template <typename...> typename destination>
     struct unfold<tuple_type, destination> {
     private:
-        // NOTE: using lambdas here (dependent-name and the closure-types) mess up with ADL
+        // NOTE(impl.): using lambdas here (dependent-name and the closure-types) mess up with ADL
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> destination<std::tuple_element_t<Is, tuple_type>...>;
@@ -1323,19 +1325,26 @@ namespace csl::mp {
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
     // rebind
-    //  NOTE(Limitation): does not supports others tuple-likes than explicit specialization here.
-    template <typename tuple_type, typename... Ts>
-    struct rebind;
-    template <typename ... Us, typename... Ts>
-    struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
-    template <typename T0, typename T1, typename U0, typename U1>
-    struct rebind<std::pair<T0, T1>, U0, U1> : std::type_identity<std::pair<U0, U1>>{};
+    template <typename T, typename... Us>
+    struct rebind{
+    private:
+        template <template <typename ...> typename ttp, typename ... Ts>
+        constexpr static auto helper(ttp<Ts...>&&) -> ttp<Us...>;
+    public:
+        using type = decltype(helper(
+            std::declval<T>()
+        ));
+    };
     template <typename T, std::size_t N, typename U>
     struct rebind<std::array<T,N>, U> : std::type_identity<std::array<U,N>>{};
     template <typename... Us, typename... Ts>
     struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
-    template <concepts::tuple_like tuple_type, typename ... Ts>
-    using rebind_t = typename rebind<tuple_type, Ts...>::type;
+    template <typename ... Us, typename... Ts>
+    struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
+    template <typename T0, typename T1, typename U0, typename U1>
+    struct rebind<std::pair<T0, T1>, U0, U1> : std::type_identity<std::pair<U0, U1>>{};
+    template <typename ttp, typename ... Ts>
+    using rebind_t = typename rebind<ttp, Ts...>::type;
 
     // transform
     //  QUESTION: DRY vs. perfs. vs. API, scalability ?
@@ -1355,6 +1364,7 @@ namespace csl::mp {
     template <typename tuple_type, template <typename...> typename Transformation>
     using transform_t = typename transform<tuple_type, Transformation>::type;
 
+    // TODO(Guillaume) regroup/move functions, partition from traits -> dedicated namespace ?
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }

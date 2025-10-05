@@ -34,7 +34,24 @@ namespace test::tuples::algorithm::count_if {
     static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
 }
 
-// WIP -> to primitives
+// WIP: reorder in tests/mp/includes/tests/mp/tuple.hpp if no dependent-code comes right after
+namespace test::tuples::algorithm::uniqued {
+
+    using without_duplicates = csl::mp::tuple<int, char, bool>;
+    using with_duplicates = csl::mp::tuple<int, char, int>;
+
+    static_assert(csl::mp::is_uniqued_v<without_duplicates>);
+    static_assert(not csl::mp::is_uniqued_v<with_duplicates>);
+
+    static_assert(not csl::mp::concepts::uniqued<with_duplicates>);
+    static_assert(csl::mp::concepts::uniqued<without_duplicates>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
+
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&>);
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&&>);
+    static_assert(csl::mp::concepts::uniqued<const csl::mp::tuple<int>&>);
+}
 namespace test::tuples::algorithm::unfold {
     
     static_assert(std::same_as<
@@ -57,6 +74,15 @@ namespace test::tuples::algorithm::unfold {
         csl::mp::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
         std::tuple<int, char>
     >);
+    static_assert(std::same_as<
+        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::pair>,
+        std::pair<int, char>
+    >);
+
+    static_assert(std::same_as<
+        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::is_same>,
+        std::is_same<int, char>
+    >);
 }
 namespace test::tuples::algorithm::rebind {
     static_assert(std::same_as<
@@ -75,25 +101,11 @@ namespace test::tuples::algorithm::rebind {
         csl::mp::rebind_t<std::array<int, 4>, char>,
         std::array<char, 4>
     >);
-}
 
-// WIP: reoder in tests/mp/includes/tests/mp/tuple.hpp if no dependent-code comes right after
-namespace test::tuples::algorithm::uniqued {
-
-    using without_duplicates = csl::mp::tuple<int, char, bool>;
-    using with_duplicates = csl::mp::tuple<int, char, int>;
-
-    static_assert(csl::mp::is_uniqued_v<without_duplicates>);
-    static_assert(not csl::mp::is_uniqued_v<with_duplicates>);
-
-    static_assert(not csl::mp::concepts::uniqued<with_duplicates>);
-    static_assert(csl::mp::concepts::uniqued<without_duplicates>);
-    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
-    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
-
-    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&>);
-    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&&>);
-    static_assert(csl::mp::concepts::uniqued<const csl::mp::tuple<int>&>);
+    static_assert(std::same_as<
+        csl::mp::rebind_t<std::is_same<int, char>, bool, double>,
+        std::is_same<bool, double>
+    >);
 }
 namespace test::tuples::algorithm::transform {
 
