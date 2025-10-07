@@ -227,7 +227,6 @@ namespace test::tuples::algorithm::deduplicate {
     >);
 
 }
-// TODO: static_assert result type
 namespace test::tuples::algorithm::fold::homogeneous {
 
     static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
@@ -235,15 +234,25 @@ namespace test::tuples::algorithm::fold::homogeneous {
 
     constexpr auto expected_sum = 15;
     static_assert(csl::mp::fold_left(
-        std::array{ 0, 1, 2, 3, 4, 5 },
+        std::array{ 0, 1, 2, 3, 4, 5 }, // NOLINT(*-magic-numbers)
         std::plus<void>{},
         int{}
     ) == expected_sum);
     static_assert(csl::mp::fold_right(
-        std::array{ 0, 1, 2, 3, 4, 5 },
+        std::array{ 0, 1, 2, 3, 4, 5 }, // NOLINT(*-magic-numbers)
         std::plus<void>{},
         int{}
     ) == expected_sum);
+
+    // result_type
+    static_assert(std::is_same_v<
+        csl::mp::fold_left_result_t<std::array<int, 2>, std::plus<void>, int>,
+        int
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::fold_right_result_t<std::array<int, 2>, std::plus<void>, int>,
+        int
+    >);
 }
 namespace test::tuples::algorithm::fold::heterogeneous {
 
@@ -286,9 +295,20 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         std::remove_cvref_t<decltype(fold_right_result)>,
         csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>
     >);
+    static_assert(std::same_as<
+        csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>,
+        std::string
+    >);
+
     static_assert(std::same_as<decltype(fold_right_result), const std::string>);
     static_assert(fold_right_result == "fgdebca");
 }
 
-
 // TODO(Guillaume) sort, is_sorted
+
+namespace test::tuples::algorithm::functions::all_any_none_of {
+    constexpr auto value = csl::mp::tuple{ 42, .42f, 'a' };
+    static_assert(csl::mp::all_of(value, [](const auto & element){ return element > 0; }));
+    static_assert(csl::mp::any_of(value, [](const auto & element){ return element < 1; }));
+    static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
+}

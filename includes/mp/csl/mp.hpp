@@ -1866,25 +1866,25 @@ namespace csl::mp {
     )>{};
     template <csl::mp::concepts::tuple_like T, typename F, typename init>
     using fold_right_result_t = typename fold_right_result<T, F, init>::type;
-
     #pragma endregion
 
     template <csl::mp::concepts::tuple T>
-    [[nodiscard]] constexpr auto all_of(const T & value, std::predicate auto && p){
+    [[nodiscard]] constexpr auto all_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p)
+    {
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
     template <csl::mp::concepts::tuple T>
-    [[nodiscard]] constexpr auto any_of(const T & value, std::predicate auto && p){
+    [[nodiscard]] constexpr auto any_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p){
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (false or ... or std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
     template <csl::mp::concepts::tuple T>
-    [[nodiscard]] constexpr auto none_of(const T & value, std::predicate auto && p){
+    [[nodiscard]] constexpr auto none_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p){
         // REFACTO: reduce
         // return all_of(value, std::not_fn(csl_fwd(p)));
         return not all_of(value, csl_fwd(p));
