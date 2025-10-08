@@ -213,7 +213,7 @@ struct some_model {
 auto main() -> int {
     std::cout
         << csl::typeinfo::type_name_v<
-            csl::ag::element_t<0, some_model> // "char"
+            csl::ag::element_t<0, some_model> // char
            >
     ;
     return csl::ag::get<1>(some_model{}); // 42
@@ -222,10 +222,88 @@ auto main() -> int {
 
 Possible output:
 
-```
+```log
 Program returned: 42
 Program stdout
 char
+```
+
+### Advanced examples
+
+#### Aggregate: print type-value pairs
+
+```cpp
+#include <csl/ag.hpp>
+
+template <csl::ag::concepts::aggregate type>
+void print(const type & value){
+    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        ((
+            std::cout
+                << csl::typeinfo::type_name_v<csl::ag::element_t<0, type>>
+                << ": "
+                << csl::ag::get<indexes>(value)
+                << '\n'
+           >
+        ), ...);
+    ;
+    }(std::make_index_sequence<csl::ag::size_v<type>>{});
+}
+
+auto main() -> int { print(some_model{}); }
+```
+
+Possible output:
+
+```log
+char: 'A'
+int: 42
+```
+
+#### All: pretty-printing
+
+```cpp
+#include <csl/typeinfo.hpp>
+#include <csl/cxx20/ensure.hpp> // with CSL_ENSURE__ENABLE_FMT_SUPPORT enable from CMake cache
+#include <csl/ag.hpp> // with CSL_AG__ENABLE_FMT_SUPPORT enable from CMake cache
+
+struct A { char c = 'c'; };
+using meters = csl::ensure::strong_type<int, struct meter_tag>;
+struct B {
+    meters i = 42;
+    A a;
+};
+struct C {
+    std::array<float> range = { .1F, .2F };
+    B b;
+    csl::mp::tuple<bool>{ true }
+};
+
+auto main() -> int {
+    fmt::print("{}\n",              A{});
+    fmt::print("\nindented:\n{}\n", A{} | csl::ag::io::indented);
+}
+```
+
+Possible output:
+
+```log
+{ [ .1F, .2F ], { 42, { 'c' } } , ( true ) }
+
+indented:
+{
+    [
+        .1F,
+        .2F
+    ],
+    {
+        42,
+        { 'c' }
+    },
+    (
+        true
+    )
+}
 ```
 
 ---
