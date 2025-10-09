@@ -70,8 +70,24 @@ namespace test::function::factory::cat_result {
     >);
 }
 // for_each
-// for_each_enumerate
-namespace test::tuples::algorithm::apply {
+namespace test::tuples::function::for_each {
+
+    constexpr auto my_reduce(csl::mp::concepts::tuple_like auto && values){
+        int reduced{};
+        csl::mp::for_each(values, [&reduced](const auto & value){ reduced += value; });
+        return reduced;
+    }
+
+    constexpr auto expected = 6;
+    static_assert(expected == my_reduce(csl::mp::tuple{1,2,3}));
+    static_assert(expected == my_reduce(std::tuple{1,2,3}));
+    static_assert(expected == my_reduce(std::array{1,2,3}));
+    static_assert(expected == my_reduce(std::pair{2,4}));
+}
+namespace test::tuples::function::for_each_enumerate {
+
+}
+namespace test::tuples::function::apply {
     using tuple_type = csl::mp::tuple<std::size_t, std::string>;
 
     constexpr auto f_lvalue = [](std::size_t i, std::string &  str){ return i + str.length(); };

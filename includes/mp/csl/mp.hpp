@@ -1733,18 +1733,18 @@ namespace csl::mp {
     // REFACTO: for_each(F, tuple-likes...)
     // TODO(Guillaume) noexcept clauses
     // foreach
-    auto for_each(concepts::tuple auto && value, auto f){
-        constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
+    constexpr auto for_each(concepts::tuple_like auto && value, auto f){
+        constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
-                std::invoke(f, std::get<indexes>(csl_fwd(value)))
+                std::invoke(f, get<indexes>(csl_fwd(value)))
             ), ...);
         }(std::make_index_sequence<size>{});
         return f;
     }
 
     // QUESTION: what for f<indexes>(element) ?
-    auto for_each_enumerate(concepts::tuple auto && value, auto f){
+    constexpr auto for_each_enumerate(concepts::tuple auto && value, auto f){
         constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
