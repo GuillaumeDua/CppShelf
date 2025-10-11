@@ -100,7 +100,8 @@
         "QUESTION",
         "NOTE",
         "DESIGN",
-        "TECH-DEBT"
+        "TECH-DEBT",
+        "KNOWN-ISSUE"
     ],
     "todo-tree.highlights.useColourScheme": true,
     "todo-tree.highlights.customHighlight": {
@@ -165,6 +166,11 @@
             "background": "#e94242",
             "foreground": "#1a1b26"
         },
+        "KNOWN-ISSUE": {
+            "icon": "issue-draft",
+            "iconColour": "#6f3780",
+            "background": "#6f3780",
+        }
     },
     "files.associations": {
         "*.md": "markdown",
