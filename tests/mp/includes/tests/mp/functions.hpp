@@ -69,7 +69,6 @@ namespace test::function::factory::cat_result {
         >
     >);
 }
-// for_each
 namespace test::tuples::function::for_each {
 
     constexpr auto my_reduce(csl::mp::concepts::tuple_like auto && values){
@@ -109,24 +108,29 @@ namespace test::tuples::function::for_each_enumerate {
     static_assert(expected == my_indexed_reduce(std::array{2,3}));
     static_assert(expected == my_indexed_reduce(std::pair{2,3}));
 }
+// WIP -> std::invoke to expand API for F, elements... -> see https://godbolt.org/z/Ej3sz35GT
+namespace test::tuples::function::apply::concepts {
+
+    using throw_f_t = decltype([](int, int){});
+    using nothrow_f_t = decltype([](int, int) noexcept {});
+
+    // can_apply
+    static_assert(csl::mp::concepts::can_apply<throw_f_t, csl::mp::tuple<int, int>>);
+    static_assert(csl::mp::concepts::can_apply<throw_f_t, std::tuple<int, int>>);
+    static_assert(csl::mp::concepts::can_apply<throw_f_t, std::array<int, 2>>);
+
+    // can_nothrow_apply
+    static_assert(not csl::mp::concepts::can_nothrow_apply<throw_f_t, csl::mp::tuple<int, int>>);
+    static_assert(not csl::mp::concepts::can_nothrow_apply<throw_f_t, std::tuple<int, int>>);
+    static_assert(not csl::mp::concepts::can_nothrow_apply<throw_f_t, std::array<int, 2>>);
+    static_assert(csl::mp::concepts::can_nothrow_apply<nothrow_f_t, csl::mp::tuple<int, int>>);
+    static_assert(csl::mp::concepts::can_nothrow_apply<nothrow_f_t, std::tuple<int, int>>);
+    static_assert(csl::mp::concepts::can_nothrow_apply<nothrow_f_t, std::array<int, 2>>);
+}
 namespace test::tuples::function::apply {
-    using tuple_type = csl::mp::tuple<std::size_t, std::string>;
 
-    constexpr auto f_lvalue = [](std::size_t i, std::string &  str){ return i + str.length(); };
-    constexpr auto f_rvalue = [](std::size_t i, std::string && str){ return i + str.length(); }; // NOLINT(*-not-moved)
-    constexpr auto f_const_lvalue = [](std::size_t i, const std::string &  str){ return i + str.length(); };
-    constexpr auto f_const_rvalue = [](std::size_t i, const std::string && str){ return i + str.length(); };
+    // WIP: simplier with some reduce = apply([](auto ... args){ return 0 + ... + args; })
 
-    static_assert(csl::mp::concepts::can_apply<decltype(f_lvalue), tuple_type&>);
-    static_assert(csl::mp::concepts::can_apply<decltype(f_rvalue), tuple_type&&>);
-    static_assert(csl::mp::concepts::can_apply<decltype(f_const_lvalue), const tuple_type &>);
-    static_assert(csl::mp::concepts::can_apply<decltype(f_const_rvalue), const tuple_type &&>);
+    constexpr auto reduce = [](auto ... values){ return (0 + ... + values); };
 
-    constexpr void impl(){
-        auto value = tuple_type{};
-        static_assert(requires { csl::mp::apply(f_lvalue, value); });
-        static_assert(requires { csl::mp::apply(f_rvalue, std::move(value)); });
-        static_assert(requires { csl::mp::apply(f_const_lvalue, std::as_const(value)); });
-        static_assert(requires { csl::mp::apply(f_const_rvalue, static_cast<const tuple_type &&>(value)); });
-    }
 }

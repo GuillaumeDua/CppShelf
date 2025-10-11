@@ -1755,7 +1755,13 @@ namespace csl::mp {
     }
 
     // apply
-    namespace details::exposition_only {
+    //
+    //  KNOWN-ISSUE: Should detect unqualified apply so std-tuplelikes<T> resolves with std::apply
+    //      But inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
+    //      csl::mp::apply(F, std-tuplelike) should wraps to std::apply is the behavior is consistent,
+    //      and the current impl of csl::mp::apply should be restricted to csl::mp::concepts::tuple
+    //
+    namespace details {
         template <std::size_t... indexes>
         constexpr decltype(auto) apply(
             auto && f,
@@ -1773,23 +1779,32 @@ namespace csl::mp {
     }
     constexpr decltype(auto) apply(auto && f, concepts::tuple_like auto && value)
     noexcept(noexcept(
-        details::exposition_only::apply(
+        details::apply(
             csl_fwd(f), csl_fwd(value),
-            std::make_index_sequence<size_v<std::remove_cvref_t<decltype(value)>>>{}
+            std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
         )
     ))
     {
-        return details::exposition_only::apply(
+        return details::apply(
             csl_fwd(f), csl_fwd(value),
-            std::make_index_sequence<size_v<std::remove_cvref_t<decltype(value)>>>{}
+            std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
         );
     }
 
+    // WIP(Guillaume) apply_result_type
     namespace concepts {
+
         template <typename F, typename T>
         concept can_apply = requires {
+            csl::mp:: // QUICK-FIX: inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
             apply(std::declval<F>(), std::declval<T>());
         };
+        template <typename F, typename T>
+        concept can_nothrow_apply = can_apply<F,T>
+            and noexcept(
+                csl::mp:: // QUICK-FIX: 
+                apply(std::declval<F>(), std::declval<T>())
+            );
     }
 
     #pragma region fold
