@@ -85,7 +85,29 @@ namespace test::tuples::function::for_each {
     static_assert(expected == my_reduce(std::pair{2,4}));
 }
 namespace test::tuples::function::for_each_enumerate {
+    struct result_type {
+        std::size_t index{};
+        int value{};
 
+        constexpr bool operator==(const result_type &) const noexcept = default;
+    };
+    constexpr auto my_indexed_reduce(csl::mp::concepts::tuple_like auto && values){
+        result_type result{};
+        csl::mp::for_each_enumerate(
+            values,
+             [&result](std::size_t i, const auto & value) {
+                result.index += i;
+                result.value += value;
+            }
+        );
+        return result;
+    }
+
+    constexpr auto expected = result_type{ .index = 1, .value = 5 };
+    static_assert(expected == my_indexed_reduce(csl::mp::tuple{2,3}));
+    static_assert(expected == my_indexed_reduce(std::tuple{2,3}));
+    static_assert(expected == my_indexed_reduce(std::array{2,3}));
+    static_assert(expected == my_indexed_reduce(std::pair{2,3}));
 }
 namespace test::tuples::function::apply {
     using tuple_type = csl::mp::tuple<std::size_t, std::string>;

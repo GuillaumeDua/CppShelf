@@ -1744,11 +1744,11 @@ namespace csl::mp {
     }
 
     // QUESTION: what for f<indexes>(element) ?
-    constexpr auto for_each_enumerate(concepts::tuple auto && value, auto f){
-        constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
+    constexpr auto for_each_enumerate(concepts::tuple_like auto && value, auto f){
+        constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
-                std::invoke(f, indexes, std::get<indexes>(csl_fwd(value)))
+                std::invoke(f, indexes, get<indexes>(csl_fwd(value)))
             ), ...);
         }(std::make_index_sequence<size>{});
         return f;
