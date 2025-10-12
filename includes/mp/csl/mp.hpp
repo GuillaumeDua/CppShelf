@@ -1757,9 +1757,14 @@ namespace csl::mp {
     // apply
     //
     //  KNOWN-ISSUE: Should detect unqualified apply so std-tuplelikes<T> resolves with std::apply
-    //      But inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
-    //      csl::mp::apply(F, std-tuplelike) should wraps to std::apply is the behavior is consistent,
-    //      and the current impl of csl::mp::apply should be restricted to csl::mp::concepts::tuple
+    //      But libstdc++ implementation of `noexcept(apply(std-tuplelike))` produce inconsistent results.
+    //         See https://godbolt.org/z/vYsn66jd8
+    //
+    //      Either
+    //      - Promote unqualified apply ? Just like get
+    //      or
+    //      - csl::mp::apply(F, std-tuplelike) should wraps to std::apply is the behavior is consistent,
+    //        and the current impl of csl::mp::apply should be restricted to csl::mp::concepts::tuple
     //
     namespace details {
         template <std::size_t... indexes>
@@ -1792,17 +1797,20 @@ namespace csl::mp {
     }
 
     // WIP(Guillaume) apply_result_type
+
+    // QUESTION: proactive vs. reactif concepts -> check perfs
+    //  proactive -> std::(is_nothrow_)invocable<F, elements...>, use in apply
     namespace concepts {
 
         template <typename F, typename T>
         concept can_apply = requires {
-            csl::mp:: // QUICK-FIX: inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
+            csl::mp:: // QUICK-FIX: libstdc++ issue - inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
             apply(std::declval<F>(), std::declval<T>());
         };
         template <typename F, typename T>
         concept can_nothrow_apply = can_apply<F,T>
             and noexcept(
-                csl::mp:: // QUICK-FIX: 
+                csl::mp:: // QUICK-FIX(can_apply)
                 apply(std::declval<F>(), std::declval<T>())
             );
     }

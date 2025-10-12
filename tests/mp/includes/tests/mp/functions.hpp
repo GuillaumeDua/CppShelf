@@ -129,8 +129,11 @@ namespace test::tuples::function::apply::concepts {
 }
 namespace test::tuples::function::apply {
 
-    // WIP: simplier with some reduce = apply([](auto ... args){ return 0 + ... + args; })
+    constexpr auto my_reduce = [](auto ... values){ return (0 + ... + values); };
 
-    constexpr auto reduce = [](auto ... values){ return (0 + ... + values); };
-
+    constexpr auto expected = 6;
+    static_assert(expected == csl::mp::apply(my_reduce, csl::mp::tuple{1,2,3}));
+    static_assert(expected == csl::mp::apply(my_reduce, std::tuple{1,2,3}));
+    static_assert(expected == csl::mp::apply(my_reduce, std::array{1,2,3}));
+    static_assert(expected == csl::mp::apply(my_reduce, std::pair{2,4}));
 }
