@@ -4,7 +4,6 @@
 #endif
 #define CSL_MP_TUPLE__IMPLICIT_CONVERSION FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION
 
-#include <bits/utility.h>
 #include <csl/mp.hpp>
 
 // parts
