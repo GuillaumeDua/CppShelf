@@ -1818,7 +1818,7 @@ namespace csl::mp {
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
-    // WIP: non-mandatory init: split, head is init
+    // TODO(Guillaume) non-mandatory init: split, head is init
 
     namespace details {
         template <typename F, typename T>
@@ -1848,7 +1848,7 @@ namespace csl::mp {
     {
         if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return (
                 details::folder{ f, get<indexes>(csl_fwd(value)) }
                 << ...
@@ -1860,7 +1860,7 @@ namespace csl::mp {
     {
         if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
-        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return (
                 details::folder{ f, init }
                 >> ...

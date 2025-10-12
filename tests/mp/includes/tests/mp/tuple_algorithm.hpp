@@ -259,15 +259,19 @@ namespace test::tuples::algorithm::fold::heterogeneous {
     static_assert(std::invocable<std::plus<void>, std::string, char>);
     static_assert(std::invocable<std::plus<void>, std::string, std::string>);
     static_assert(std::invocable<std::plus<void>, std::string, const char *>);
-    #if __cpp_lib_string_view >= 202403
+    #if __cpp_lib_string_view >= 202403L
     static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // requires C++26 - P2591
     #endif
     
     constexpr auto value = std::tuple{
             'a',
+        #if __cpp_lib_constexpr_string >= 201907L // P0980R1 support
             std::string{ "bc" },
+        #else
+            "bc"
+        #endif
             "de",
-        #if __cpp_lib_string_view >= 202403
+        #if __cpp_lib_string_view >= 202403L
             std::string_view{ "fg" }
         #else
             "fg"
@@ -284,7 +288,10 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>
     >);
     static_assert(std::same_as<decltype(fold_left_result), const std::string>);
-    static_assert(fold_left_result == "abcdefg");
+
+    // WIP(GCC investigation) non-constant condition for static assertion https://godbolt.org/z/ona1111az
+    constexpr auto expected_fold_left_result = std::string_view{"abcdefg"};
+    static_assert(fold_left_result == expected_fold_left_result);
 
     constexpr auto fold_right_result = csl::mp::fold_right(
         value,
