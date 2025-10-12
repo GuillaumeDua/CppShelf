@@ -110,7 +110,8 @@ namespace csl::mp::inline deprecated_by_P2593R0 {
     template <typename ...>
     struct [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]] dependent_false : std::false_type{};
     template <typename ... Ts> // NOTE: for NTTP, use decltype(value)
-    constexpr static auto dependent_false_v = dependent_false<Ts...>::value;
+    [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]]
+    constexpr static auto dependent_false_v = false; // NOTE: no odr-use of dependent_false, to avoid GCC warning
 }
 // P0887 - The identity metafunction
 namespace csl::mp::inline P0887 {

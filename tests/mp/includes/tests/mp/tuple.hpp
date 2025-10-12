@@ -245,8 +245,7 @@ namespace test::tuples::compare::tuple {
     using rhs_t = csl::mp::tuple<double, int>;
 
     using symetrical_ok  = impl<lhs_t, lhs_t>;
-    // #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) \
-    //             and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    // #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
     using asymetrical_ok = impl<lhs_t, lhs_t>;
     // #endif
 }
