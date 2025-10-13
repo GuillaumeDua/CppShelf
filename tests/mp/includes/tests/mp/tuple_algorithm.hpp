@@ -278,6 +278,7 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         #endif
     };
 
+    // fold_left
     constexpr auto fold_left_result = csl::mp::fold_left(
         value,
         std::plus<void>{},
@@ -289,10 +290,16 @@ namespace test::tuples::algorithm::fold::heterogeneous {
     >);
     static_assert(std::same_as<decltype(fold_left_result), const std::string>);
 
-    // WIP(GCC investigation) non-constant condition for static assertion https://godbolt.org/z/ona1111az
-    constexpr auto expected_fold_left_result = std::string_view{"abcdefg"};
-    static_assert(fold_left_result == expected_fold_left_result);
+    static_assert(
+        // NOTE: GCC complains about `fold_left_result’ is not usable in a constant expression` because of basic_string `{ return _M_string_length; }`
+        csl::mp::fold_left(
+            value,
+            std::plus<void>{},
+            std::string{}
+        ) == "abcdefg"
+    );
 
+    // fold_right
     constexpr auto fold_right_result = csl::mp::fold_right(
         value,
         std::plus<void>{},
@@ -308,7 +315,14 @@ namespace test::tuples::algorithm::fold::heterogeneous {
     >);
 
     static_assert(std::same_as<decltype(fold_right_result), const std::string>);
-    static_assert(fold_right_result == "fgdebca");
+
+    static_assert(
+        csl::mp::fold_right(
+            value,
+            std::plus<void>{},
+            std::string{}
+        ) == "fgdebca"
+    );
 }
 
 // TODO(Guillaume) sort, is_sorted

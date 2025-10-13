@@ -1914,8 +1914,14 @@ namespace csl::mp {
         return not all_of(value, csl_fwd(p));
     }
 
-    // split
+    // push/pop front/back
+
+    // split -> result { .lhs ... .separator ... .rhs }
     // chunk_by: <N>, predicate
+
+    // generate,
+    // fill
+    // iota<N, T, tuplelike = csl::mp::tuple> -> tuplelike{ T{N + indexes}... }
 }
 
 #if defined CSL_MP_TUPLE__EXPERIMENTALE
