@@ -1231,11 +1231,21 @@ namespace csl::mp {
     struct is_type_gettable<tuple<Ts...>, T> : std::bool_constant<
         details::concepts::can_deduce_by_type<tuple<Ts...>, T>
     >{};
+
     template <concepts::tuple_like tuple_type, typename T>
+// QUICK-FIX(clang < 20) for https://godbolt.org/z/EsjE8W8rr
+#if defined(csl_compiler_is_clang) and __clang_major__ < 20
+    struct is_type_gettable<tuple_type, T> : std::bool_constant<
+        concepts::std_array<tuple_type>
+        ? false
+        : (count_v<std::remove_cvref_t<tuple_type>, T> == 1)
+#else
     requires (not concepts::std_array<tuple_type>)
     struct is_type_gettable<tuple_type, T> : std::bool_constant<
         count_v<std::remove_cvref_t<tuple_type>, T> == 1
+#endif
     >{};
+
     template <concepts::tuple_like tuple_type, typename T>
     constexpr bool is_type_gettable_v = is_type_gettable<tuple_type, T>::value;
 

@@ -47,6 +47,12 @@ namespace test::tuples::concepts::pair_like {
     static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, int>>);
     static_assert(csl::mp::concepts::pair_like<csl::mp::tuple<int, float>>);
 }
+namespace test::concepts::std_array {
+    static_assert(csl::mp::concepts::std_array<std::array<int, 1>>);
+    static_assert(not csl::mp::concepts::std_array<char[1]>); // NOLINT(*-c-arrays)
+    static_assert(not csl::mp::concepts::std_array<std::tuple<int>>);
+    static_assert(not csl::mp::concepts::std_array<csl::mp::tuple<int>>);
+}
 namespace test::tuples::concepts::sized {
 
     // empty
