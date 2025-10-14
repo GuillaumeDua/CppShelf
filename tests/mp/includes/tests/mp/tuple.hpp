@@ -135,8 +135,11 @@ namespace test::tuples::empty {
 namespace test::tuples::type_gettable {
     static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int>, int>);
     static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int, char>, int>);
+    static_assert(csl::mp::is_type_gettable_v<csl::mp::tuple<int, char>, char>);
+
     static_assert(csl::mp::is_type_gettable_v<std::tuple<int>, int>);
     static_assert(csl::mp::is_type_gettable_v<std::tuple<int, char>, int>);
+    static_assert(csl::mp::is_type_gettable_v<std::tuple<int, char>, char>);
     
     static_assert(not csl::mp::is_type_gettable_v<csl::mp::tuple<int, int>, int>);
     static_assert(not csl::mp::is_type_gettable_v<std::array<int, 1>, int>);
@@ -149,6 +152,8 @@ namespace test::tuples::support_get_by_type {
     static_assert(not csl::mp::support_get_by_type_v<with_duplicates>);
     static_assert(csl::mp::support_get_by_type_v<without_duplicates>);
     static_assert(csl::mp::support_get_by_type_v<csl::mp::tuple<int>>);
+    static_assert(csl::mp::support_get_by_type_v<csl::mp::tuple<int, char>>);
+    static_assert(csl::mp::support_get_by_type_v<csl::mp::tuple<int, char, bool>>);
 
     static_assert(csl::mp::support_get_by_type_v<std::tuple<>>);
     static_assert(csl::mp::support_get_by_type_v<csl::mp::tuple<>>);

@@ -1044,13 +1044,13 @@ namespace csl::mp::details::concepts {
 
     // deductible: type
     template <typename tuple_type, typename T>
-    concept can_deduce_by_type = is_tuple_v<tuple_type>
-        and requires { std::void_t<typename tuple_type::storage_type::template by_type_<T>>(); }
+    concept can_deduce_by_type = is_tuple_v<std::remove_cvref_t<tuple_type>>
+        and requires { std::void_t<typename std::remove_cvref_t<tuple_type>::storage_type::template by_type_<T>>(); }
     ;
     // deductible: type element
     template <typename tuple_type, std::size_t I>
-    concept can_deduce_by_index = is_tuple_v<tuple_type>
-        and requires { std::void_t<typename tuple_type::storage_type::template by_index_<I>>(); }
+    concept can_deduce_by_index = is_tuple_v<std::remove_cvref_t<tuple_type>>
+        and requires { std::void_t<typename std::remove_cvref_t<tuple_type>::storage_type::template by_index_<I>>(); }
     ;
 }
 
@@ -1199,6 +1199,10 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename T>
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct count<tuple_type, T> : std::integral_constant<std::size_t,
+
+        // TODO(Guillaume) cv std_array -> size
+        // TODO(Guillaume) cv empty tuplelike -> 0
+
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (0 + ... + 
                 std::is_same_v<T, std::tuple_element_t<indexes, tuple_type>>
@@ -1226,26 +1230,25 @@ namespace csl::mp {
     //  NOTE(naming) has_duplicate/is_uniqued won't fit as one cannot `get<int>(std::array{1})` anyway
     //
     template <typename, typename>
-    struct is_type_gettable : std::false_type{};
-    template <typename T, typename ... Ts>
-    struct is_type_gettable<tuple<Ts...>, T> : std::bool_constant<
-        details::concepts::can_deduce_by_type<tuple<Ts...>, T>
-    >{};
-
+    class is_type_gettable : public std::false_type{};
     template <concepts::tuple_like tuple_type, typename T>
-// QUICK-FIX(clang < 20) for https://godbolt.org/z/EsjE8W8rr
-#if defined(csl_compiler_is_clang) and __clang_major__ < 20
-    struct is_type_gettable<tuple_type, T> : std::bool_constant<
-        concepts::std_array<tuple_type>
-        ? false
-        : (count_v<std::remove_cvref_t<tuple_type>, T> == 1)
-#else
-    requires (not concepts::std_array<tuple_type>)
-    struct is_type_gettable<tuple_type, T> : std::bool_constant<
-        count_v<std::remove_cvref_t<tuple_type>, T> == 1
-#endif
-    >{};
+    class is_type_gettable<tuple_type, T> {
+        // QUICK-FIX(clang < 20) for https://godbolt.org/z/EsjE8W8rr
+        consteval static auto impl(){
 
+            if constexpr (concepts::std_array<tuple_type>)
+                return false;
+            else if constexpr (concepts::empty<tuple_type>)
+                return false;
+            else if constexpr (details::concepts::can_deduce_by_type<tuple_type, T>)
+                return true;
+            else
+                return count_v<std::remove_cvref_t<tuple_type>, T> == 1;
+        }
+
+        public:
+            constexpr static auto value = impl();
+    };
     template <concepts::tuple_like tuple_type, typename T>
     constexpr bool is_type_gettable_v = is_type_gettable<tuple_type, T>::value;
 
@@ -1254,19 +1257,28 @@ namespace csl::mp {
         concept type_gettable = is_type_gettable_v<tuple_type, std::remove_cvref_t<T>>;
     }
 
-    // is_type_gettable: conjunction<is_type_gettable<tuple-like, tuple-elements>...>
+    // support_get_by_type: conjunction<is_type_gettable<tuple-like, tuple-elements>...>
     template <typename>
-    struct support_get_by_type : std::false_type{};
+    class support_get_by_type : std::false_type{};
     template <concepts::tuple_like T>
-    requires (not concepts::std_array<T>)
-    struct support_get_by_type<T> : std::bool_constant<
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and is_type_gettable_v<
-                std::remove_cvref_t<T>,
-                std::tuple_element_t<indexes, std::remove_cvref_t<T>>
-            >);
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{})
-    >{};
+    class support_get_by_type<T> {
+    
+        consteval static auto impl(){
+            if constexpr (concepts::std_array<T>)
+                return false;
+            else if constexpr (concepts::empty<T>)
+                return true;
+            else
+                return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+                    return (is_type_gettable_v<
+                        std::remove_cvref_t<T>,
+                        std::tuple_element_t<indexes, std::remove_cvref_t<T>>
+                    > and ...);
+                }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+        }
+    public:
+        constexpr static auto value = impl();
+    };
     template <concepts::tuple_like T>
     constexpr bool support_get_by_type_v = support_get_by_type<T>::value;
 
