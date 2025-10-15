@@ -980,12 +980,6 @@ namespace csl::mp {
             return static_cast<accessor_t>(self.storage).value;
         }
 
-        // tuple[index<N>]...
-        //  as tuple[N]... would requires some tuple.template operator[]<N>()...
-        template <std::size_t index> requires (index < size)
-        [[nodiscard]] constexpr auto && operator[](this auto && self, index_t<index>) noexcept {
-            return csl_fwd(self).template get<index>();
-        }
     #else
     // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
@@ -1007,6 +1001,41 @@ namespace csl::mp {
         [[nodiscard]] constexpr const auto && get() const && noexcept {
             using accessor = typename storage_type::template by_index_<index>;
             return static_cast<const accessor &&>(std::move(storage)).value;
+        }
+    #endif
+
+    #pragma region operator[]
+    template <std::size_t index> requires (index >= size)
+    constexpr void operator[](index_t<index>) const & noexcept {
+        static_assert([](){ return false; }(), "csl::mp::tuple::operator[index_t<index>]: out-of-bounds");
+    }
+    // P0847R7 Explicit object parameter (deducing this)
+    #if defined(__cpp_explicit_this_parameter) \
+          and __cpp_explicit_this_parameter >= 202110L
+
+        // tuple[index<N>]...
+        //  as tuple[N]... would requires some tuple.template operator[]<N>()...
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr auto && operator[](this auto && self, index_t<index>) noexcept {
+            return csl_fwd(self).template get<index>();
+        }
+    #else
+    // clang-18.1.8 does not support __cpp_explicit_this_parameter
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr auto & operator[](index_t<index>) & noexcept {
+            return this->template get<index>(*this);
+        }
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr const auto & get(index_t<index>) const & noexcept {
+            return this->template get<index>(*this);
+        }
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr auto && get(index_t<index>) && noexcept {
+            return std::move(*this).template get<index>();
+        }
+        template <std::size_t index> requires (index < size)
+        [[nodiscard]] constexpr const auto && get(index_t<index>) const && noexcept {
+            return std::move(*this).template get<index>();
         }
     #endif
     #pragma endregion
