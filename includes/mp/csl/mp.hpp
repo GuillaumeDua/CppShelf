@@ -968,7 +968,7 @@ namespace csl::mp {
             static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
         }
 
-    // P0847R7 Explicit object parameter (deducing this)
+    // P0847R7 Explicit object parameter (deducing this) - supported by clang >= 20, gcc => 14
     #if defined(__cpp_explicit_this_parameter) \
           and __cpp_explicit_this_parameter >= 202110L
         template <std::size_t index> requires (index < size)
@@ -979,9 +979,7 @@ namespace csl::mp {
             >;
             return static_cast<accessor_t>(self.storage).value;
         }
-
     #else
-    // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & get() & noexcept {
             using accessor = typename storage_type::template by_index_<index>;
@@ -1009,7 +1007,8 @@ namespace csl::mp {
     constexpr void operator[](index_t<index>) const & noexcept {
         static_assert([](){ return false; }(), "csl::mp::tuple::operator[index_t<index>]: out-of-bounds");
     }
-    // P0847R7 Explicit object parameter (deducing this)
+    
+    // P0847R7 Explicit object parameter (deducing this) - supported by clang >= 20, gcc => 14
     #if defined(__cpp_explicit_this_parameter) \
           and __cpp_explicit_this_parameter >= 202110L
 
@@ -1020,7 +1019,6 @@ namespace csl::mp {
             return csl_fwd(self).template get<index>();
         }
     #else
-    // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & operator[](index_t<index>) & noexcept {
             return this->template get<index>();
