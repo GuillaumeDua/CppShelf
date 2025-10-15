@@ -1023,18 +1023,18 @@ namespace csl::mp {
     // clang-18.1.8 does not support __cpp_explicit_this_parameter
         template <std::size_t index> requires (index < size)
         [[nodiscard]] constexpr auto & operator[](index_t<index>) & noexcept {
-            return this->template get<index>(*this);
+            return this->template get<index>();
         }
         template <std::size_t index> requires (index < size)
-        [[nodiscard]] constexpr const auto & get(index_t<index>) const & noexcept {
-            return this->template get<index>(*this);
+        [[nodiscard]] constexpr const auto & operator[](index_t<index>) const & noexcept {
+            return this->template get<index>();
         }
         template <std::size_t index> requires (index < size)
-        [[nodiscard]] constexpr auto && get(index_t<index>) && noexcept {
+        [[nodiscard]] constexpr auto && operator[](index_t<index>) && noexcept {
             return std::move(*this).template get<index>();
         }
         template <std::size_t index> requires (index < size)
-        [[nodiscard]] constexpr const auto && get(index_t<index>) const && noexcept {
+        [[nodiscard]] constexpr const auto && operator[](index_t<index>) const && noexcept {
             return std::move(*this).template get<index>();
         }
     #endif
