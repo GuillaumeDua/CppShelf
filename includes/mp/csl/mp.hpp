@@ -1850,6 +1850,7 @@ namespace csl::mp {
 
     // QUESTION: proactive vs. reactif concepts -> check perfs
     //  proactive -> std::(is_nothrow_)invocable<F, elements...>, use in apply
+    //  Benchmark: https://www.build-bench.com/b/HfzRXC9L7fpkhIyU7ykv0fZg2Hg -> Result: it doesnt matter
     namespace concepts {
 
         template <typename F, typename T>
@@ -1860,7 +1861,7 @@ namespace csl::mp {
         template <typename F, typename T>
         concept can_nothrow_apply = can_apply<F,T>
             and noexcept(
-                csl::mp:: // QUICK-FIX(can_apply)
+                csl::mp::  // QUICK-FIX: libstdc++ issue - inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
                 apply(std::declval<F>(), std::declval<T>())
             );
     }
