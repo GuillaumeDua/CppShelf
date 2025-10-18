@@ -1806,65 +1806,49 @@ namespace csl::mp {
 
     // apply
     //
+    //  DESIGN: proactive vs. reactive concepts design: see benchmark https://www.build-bench.com/b/HfzRXC9L7fpkhIyU7ykv0fZg2Hg
+    //
     //  KNOWN-ISSUE: Should detect unqualified apply so std-tuplelikes<T> resolves with std::apply
     //      But libstdc++ implementation of `noexcept(apply(std-tuplelike))` produce inconsistent results.
     //         See https://godbolt.org/z/vYsn66jd8
     //
     //      Either
-    //      - Promote unqualified apply ? Just like get
+    //      - Promote unqualified apply (just like get)
     //      or
     //      - csl::mp::apply(F, std-tuplelike) should wraps to std::apply is the behavior is consistent,
     //        and the current impl of csl::mp::apply should be restricted to csl::mp::concepts::tuple
+    //      or
+    //      - provide an impl. for any tuple_like
     //
-    namespace details {
-        template <std::size_t... indexes>
-        constexpr decltype(auto) apply(
-            auto && f,
-            csl::mp::concepts::tuple_like auto && value,
-            std::index_sequence<indexes...>
-        )
-        noexcept(std::is_nothrow_invocable_v<decltype(f), decltype(get<indexes>(csl_fwd(value)))...>)
-        requires std::invocable<decltype(f), decltype(get<indexes>(csl_fwd(value)))...>
-        {
-            return std::invoke(
-                csl_fwd(f),
-                get<indexes>(csl_fwd(value))...
-            );
-        }
+    //  KNOWN-ISSUE: libstdc++ issue - inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
+    //
+    // QUESTION: unqualified get ?
+   namespace concepts {
+
+        template <typename F, typename T>
+        concept can_apply = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+
+        template <typename F, typename T>
+        concept can_nothrow_apply = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
+    
     constexpr decltype(auto) apply(auto && f, concepts::tuple_like auto && value)
-    noexcept(noexcept(
-        details::apply(
-            csl_fwd(f), csl_fwd(value),
-            std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
-        )
-    ))
+    noexcept(concepts::can_nothrow_apply<decltype(f), decltype(value)>)
+    requires concepts::can_apply<decltype(f), decltype(value)>
     {
-        return details::apply(
-            csl_fwd(f), csl_fwd(value),
-            std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{}
-        );
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
     }
+
 
     // WIP(Guillaume) apply_result_type
-
-    // QUESTION: proactive vs. reactif concepts -> check perfs
-    //  proactive -> std::(is_nothrow_)invocable<F, elements...>, use in apply
-    //  Benchmark: https://www.build-bench.com/b/HfzRXC9L7fpkhIyU7ykv0fZg2Hg -> Result: it doesnt matter
-    namespace concepts {
-
-        template <typename F, typename T>
-        concept can_apply = requires {
-            csl::mp:: // QUICK-FIX: libstdc++ issue - inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
-            apply(std::declval<F>(), std::declval<T>());
-        };
-        template <typename F, typename T>
-        concept can_nothrow_apply = can_apply<F,T>
-            and noexcept(
-                csl::mp::  // QUICK-FIX: libstdc++ issue - inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
-                apply(std::declval<F>(), std::declval<T>())
-            );
-    }
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
