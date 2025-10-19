@@ -1846,7 +1846,14 @@ namespace csl::mp {
     }
 
 
-    // WIP(Guillaume) apply_result_type
+    template <typename F, concepts::tuple_like tuple_type>
+    struct apply_result: std::type_identity<
+        decltype(csl::mp::apply(std::declval<F>(), std::declval<tuple_type>()))
+    >{};
+    template <typename F, concepts::tuple_like tuple_type>
+    using apply_result_t = typename apply_result<F, tuple_type>::type;
+
+    // WIP(Guillaume) 
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee

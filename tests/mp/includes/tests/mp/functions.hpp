@@ -137,3 +137,24 @@ namespace test::tuples::function::apply {
     static_assert(expected == csl::mp::apply(my_reduce, std::array{1,2,3}));
     static_assert(expected == csl::mp::apply(my_reduce, std::pair{2,4}));
 }
+namespace test::tuples::function::apply::result {
+
+    struct F {
+        constexpr int  operator()(int, int  value){ return value ; };
+        constexpr char operator()(int, char value){ return value ; };
+        constexpr bool operator()(int, bool value){ return value ; };
+    };
+
+    static_assert(std::is_same_v<
+        int,
+        csl::mp::apply_result_t<F, csl::mp::tuple<int, int>>>
+    );
+    static_assert(std::is_same_v<
+        char,
+        csl::mp::apply_result_t<F, std::tuple<int, char>>>
+    );
+    static_assert(std::is_same_v<
+        bool,
+        csl::mp::apply_result_t<F, std::pair<int, bool>>>
+    );
+}
