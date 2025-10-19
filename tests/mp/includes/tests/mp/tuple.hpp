@@ -532,6 +532,9 @@ namespace test::tuples::std_interopterability::get {
 
     static_assert(42  == get<0>(value));
     static_assert('a' == get<1>(value));
+
+    static_assert(get<0>(value) == get<int>(value));
+    static_assert(get<1>(value) == get<char>(value));
 }
 
 // ADL

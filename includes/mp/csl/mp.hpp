@@ -962,7 +962,7 @@ namespace csl::mp {
         }
 
     #pragma region accessors
-    #pragma region tuple::get
+    #pragma region tuple::get<index>
         template <std::size_t index> requires (index >= size)
         constexpr void get() const & noexcept {
             static_assert([](){ return false; }(), "csl::mp::tuple::get<size_t>: out-of-bounds");
@@ -1001,9 +1001,10 @@ namespace csl::mp {
             return static_cast<const accessor &&>(std::move(storage)).value;
         }
     #endif
+    #pragma endregion
 
-    #pragma region operator[]
-    template <std::size_t index> requires (index >= size)
+    #pragma region operator[index_t]
+    template <std::size_t index> requires (index >= size) // equivalent : not requires { std::void_t<typename storage_type::template by_index_<T>>(); }
     constexpr void operator[](index_t<index>) const & noexcept {
         static_assert([](){ return false; }(), "csl::mp::tuple::operator[index_t<index>]: out-of-bounds");
     }
@@ -1037,6 +1038,94 @@ namespace csl::mp {
         }
     #endif
     #pragma endregion
+
+    #pragma region tuple::get<T>
+        template <typename T> 
+        requires (not requires { std::void_t<typename storage_type::template by_type_<T>>(); })
+        constexpr void get() const & noexcept {
+            static_assert([](){ return false; }(), "csl::mp::tuple::get<T>: T must strictly occurs once");
+        }
+
+    // P0847R7 Explicit object parameter (deducing this) - supported by clang >= 20, gcc => 14
+    #if defined(__cpp_explicit_this_parameter) \
+          and __cpp_explicit_this_parameter >= 202110L
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr auto && get(this auto && self) noexcept {
+            using accessor_t = copy_cvref_t<
+                decltype(csl_fwd(self)),
+                typename storage_type::template by_type_<T>
+            >;
+            return static_cast<accessor_t>(self.storage).value;
+        }
+    #else
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr auto & get() & noexcept {
+            using accessor = typename storage_type::template by_type_<T>;
+            return static_cast<accessor&>(storage).value;
+        }
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr const auto & get() const & noexcept {
+            using accessor = typename storage_type::template by_type_<T>;
+            return static_cast<const accessor&>(storage).value;
+        }
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr auto && get() && noexcept {
+            using accessor = typename storage_type::template by_type_<T>;
+            return static_cast<accessor &&>(std::move(storage)).value;
+        }
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr const auto && get() const && noexcept {
+            using accessor = typename storage_type::template by_type_<T>;
+            return static_cast<const accessor &&>(std::move(storage)).value;
+        }
+    #endif
+    #pragma endregion
+
+    #pragma region operator[type_identity]
+    template <typename T>
+    requires (not requires { std::void_t<typename storage_type::template by_type_<T>>(); })
+    constexpr void operator[](type_identity<T>) const & noexcept {
+        static_assert([](){ return false; }(), "csl::mp::tuple::operator[index_t<index>]: out-of-bounds");
+    }
+
+    // P0847R7 Explicit object parameter (deducing this) - supported by clang >= 20, gcc => 14
+    #if defined(__cpp_explicit_this_parameter) \
+          and __cpp_explicit_this_parameter >= 202110L
+
+        // tuple[type_identity<T>]...
+        //  as tuple[T]... would requires some tuple.template operator[]<T>()...
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr auto && operator[](this auto && self, type_identity<T>) noexcept {
+            return csl_fwd(self).template get<T>();
+        }
+    #else
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr auto & operator[](type_identity<T>) & noexcept {
+            return this->template get<T>();
+        }
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr const auto & operator[](type_identity<T>) const & noexcept {
+            return this->template get<T>();
+        }
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr auto && operator[](type_identity<T>) && noexcept {
+            return std::move(*this).template get<T>();
+        }
+        template <typename T>
+        requires requires { std::void_t<typename storage_type::template by_type_<T>>(); }
+        [[nodiscard]] constexpr const auto && operator[](type_identity<T>) const && noexcept {
+            return std::move(*this).template get<T>();
+        }
+    #endif
     #pragma endregion
 
     // QUESTION: storage accessors
@@ -1069,15 +1158,16 @@ namespace csl::mp {
 // tuple: indexing deduction
 namespace csl::mp::details::concepts {
 
+    // deductible: index
+    template <typename tuple_type, std::size_t I>
+    concept can_deduce_by_index = is_tuple_v<std::remove_cvref_t<tuple_type>>
+        and requires { std::void_t<typename std::remove_cvref_t<tuple_type>::storage_type::template by_index_<I>>(); }
+    ;
+
     // deductible: type
     template <typename tuple_type, typename T>
     concept can_deduce_by_type = is_tuple_v<std::remove_cvref_t<tuple_type>>
         and requires { std::void_t<typename std::remove_cvref_t<tuple_type>::storage_type::template by_type_<T>>(); }
-    ;
-    // deductible: type element
-    template <typename tuple_type, std::size_t I>
-    concept can_deduce_by_index = is_tuple_v<std::remove_cvref_t<tuple_type>>
-        and requires { std::void_t<typename std::remove_cvref_t<tuple_type>::storage_type::template by_index_<I>>(); }
     ;
 }
 
@@ -1745,8 +1835,11 @@ namespace csl::mp {
     [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
         return csl_fwd(value).template get<index>();
     }
-    // TODO(Guillaume) get<T>
-    //  
+
+    template <typename T>
+    [[nodiscard]] constexpr auto get(concepts::tuple auto && value) noexcept -> decltype(auto) {
+        return csl_fwd(value).template get<T>();
+    }
 }
 
 // std inter-operatiblity, structured binding
