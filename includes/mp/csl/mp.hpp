@@ -1808,21 +1808,19 @@ namespace csl::mp {
     //
     //  DESIGN: proactive vs. reactive concepts design: see benchmark https://www.build-bench.com/b/HfzRXC9L7fpkhIyU7ykv0fZg2Hg
     //
-    //  KNOWN-ISSUE: Should detect unqualified apply so std-tuplelikes<T> resolves with std::apply
-    //      But libstdc++ implementation of `noexcept(apply(std-tuplelike))` produce inconsistent results.
-    //         See https://godbolt.org/z/vYsn66jd8
+    //      - 🟡 reactive
+    //      - ✅ [DESIGNER CHOICE] proactive
+    //
+    //  DESIGN: libstdc++ implementation of `noexcept(apply(std-tuplelike))` produce inconsistent results.
+    //
+    //      See https://godbolt.org/z/vYsn66jd8
     //
     //      Either
-    //      - Promote unqualified apply (just like get)
-    //      or
-    //      - csl::mp::apply(F, std-tuplelike) should wraps to std::apply is the behavior is consistent,
-    //        and the current impl of csl::mp::apply should be restricted to csl::mp::concepts::tuple
-    //      or
-    //      - provide an impl. for any tuple_like
+    //      - 🟡 Promote unqualified apply (just like [get])
+    //      - 🟡 csl::mp::apply(F, std-tuplelike) should redirect call to `std::apply`,  
+    //        current impl becomes csl::mp::apply(F, csl-tuple)
+    //      - ✅ [DESIGNER CHOICE] provide the same impl. for any tuple_like
     //
-    //  KNOWN-ISSUE: libstdc++ issue - inconsistent noexcept(apply(std-tuplelike)), see https://godbolt.org/z/vYsn66jd8
-    //
-    // QUESTION: unqualified get ?
    namespace concepts {
 
         template <typename F, typename T>
@@ -1837,7 +1835,7 @@ namespace csl::mp {
             return std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
-    
+
     constexpr decltype(auto) apply(auto && f, concepts::tuple_like auto && value)
     noexcept(concepts::can_nothrow_apply<decltype(f), decltype(value)>)
     requires concepts::can_apply<decltype(f), decltype(value)>
