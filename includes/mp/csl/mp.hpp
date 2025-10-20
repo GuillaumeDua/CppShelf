@@ -1860,7 +1860,6 @@ struct tuple_element<index, csl::mp::tuple<Ts...>> : csl::mp::tuple<Ts...>::stor
 }
 
 // tuple algorithms
-//  REFACTO: concepts::tuple -> tuple_like
 namespace csl::mp {
 
     // QUESTION: primitive for
@@ -1873,29 +1872,66 @@ namespace csl::mp {
     //     }(std::make_index_sequence<size>{});
     // }
 
-    // REFACTO: for_each(F, tuple-likes...)
-    // TODO(Guillaume) noexcept clauses
     // foreach
-    constexpr auto for_each(concepts::tuple_like auto && value, auto f){
+    namespace concepts {
+
+        template <typename F, typename T>
+        concept can_for_each = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+
+        template <typename F, typename T>
+        concept can_nothrow_for_each = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+    }
+
+    // TODO(Guillaume) noexcept clauses
+    constexpr auto for_each(auto && f, concepts::tuple_like auto && value)
+    noexcept(concepts::can_nothrow_for_each<decltype(f), decltype(value)>)
+    requires concepts::can_for_each<decltype(f), decltype(value)>
+    {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
-                std::invoke(f, get<indexes>(csl_fwd(value)))
+                std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value)))
             ), ...);
         }(std::make_index_sequence<size>{});
         return f;
     }
 
-    // QUESTION: what for f<indexes>(element) ?
-    constexpr auto for_each_enumerate(concepts::tuple_like auto && value, auto f){
+    // foreach_enumerate
+    namespace concepts {
+
+        template <typename F, typename T>
+        concept can_for_each_enumerate = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::is_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+
+        template <typename F, typename T>
+        concept can_nothrow_for_each_enumerate = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::is_nothrow_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+    }
+
+    constexpr auto for_each_enumerate(auto && f, concepts::tuple_like auto && value)
+    noexcept(concepts::can_nothrow_for_each_enumerate<decltype(f), decltype(value)>)
+    requires concepts::can_for_each_enumerate<decltype(f), decltype(value)>
+    {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
-                std::invoke(f, indexes, get<indexes>(csl_fwd(value)))
+                std::invoke(csl_fwd(f), indexes, get<indexes>(csl_fwd(value)))
             ), ...);
         }(std::make_index_sequence<size>{});
         return f;
     }
+
+    // QUESTION: what for f<indexes>(element) ? -> for_each_index(_constant|_nttp)
 
     // apply
     //
@@ -1946,7 +1982,7 @@ namespace csl::mp {
     template <typename F, concepts::tuple_like tuple_type>
     using apply_result_t = typename apply_result<F, tuple_type>::type;
 
-    // WIP(Guillaume) 
+    // WIP(Guillaume) - REFACTO: concepts::tuple -> tuple_like
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
