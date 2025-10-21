@@ -69,11 +69,31 @@ namespace test::function::factory::cat_result {
         >
     >);
 }
+namespace test::tuples::function::for_each::concepts {
+
+    struct f {
+        constexpr auto operator()(char value){ return value; }
+        constexpr auto operator()(int value) noexcept{ return value; }
+    };
+
+    static_assert(csl::mp::concepts::can_for_each<f, csl::mp::tuple<int, char, bool>>);
+    static_assert(csl::mp::concepts::can_for_each<f, std::tuple<int, char, bool>>);
+    static_assert(csl::mp::concepts::can_for_each<f, std::pair<int, char>>);
+    static_assert(csl::mp::concepts::can_for_each<f, std::array<int, 2>>);
+    static_assert(not csl::mp::concepts::can_for_each<f, std::pair<int, std::string>>); // no conversion from std::string to int
+
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, csl::mp::tuple<int, char, bool>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::tuple<int, char, bool>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::pair<int, char>>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::pair<int, int>>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::array<int, 2>>);
+}
+
 namespace test::tuples::function::for_each {
 
     constexpr auto my_reduce(csl::mp::concepts::tuple_like auto && values){
         int reduced{};
-        csl::mp::for_each(values, [&reduced](const auto & value){ reduced += value; });
+        csl::mp::for_each([&reduced](const auto & value){ reduced += value; }, values);
         return reduced;
     }
 
@@ -93,11 +113,11 @@ namespace test::tuples::function::for_each_enumerate {
     constexpr auto my_indexed_reduce(csl::mp::concepts::tuple_like auto && values){
         result_type result{};
         csl::mp::for_each_enumerate(
-            values,
              [&result](std::size_t i, const auto & value) {
                 result.index += i;
                 result.value += value;
-            }
+            },
+            values
         );
         return result;
     }

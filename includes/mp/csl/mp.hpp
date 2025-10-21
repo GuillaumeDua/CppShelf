@@ -1888,7 +1888,6 @@ namespace csl::mp {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
 
-    // TODO(Guillaume) noexcept clauses
     constexpr auto for_each(auto && f, concepts::tuple_like auto && value)
     noexcept(concepts::can_nothrow_for_each<decltype(f), decltype(value)>)
     requires concepts::can_for_each<decltype(f), decltype(value)>
@@ -1901,6 +1900,8 @@ namespace csl::mp {
         }(std::make_index_sequence<size>{});
         return f;
     }
+
+    // TODO(Guillaume) result_type
 
     // foreach_enumerate
     namespace concepts {
@@ -1932,6 +1933,7 @@ namespace csl::mp {
     }
 
     // QUESTION: what for f<indexes>(element) ? -> for_each_index(_constant|_nttp)
+    //  f<index>(element) vs. f.operator()<index>(element)
 
     // apply
     //
