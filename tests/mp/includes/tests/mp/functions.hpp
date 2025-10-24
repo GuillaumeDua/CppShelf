@@ -71,22 +71,25 @@ namespace test::function::factory::cat_result {
 }
 namespace test::tuples::function::for_each::concepts {
 
+    struct A{ A(bool){} }; // NOLINT(*-explicit-constructor)
+    struct B{};
+
     struct f {
-        constexpr auto operator()(char value){ return value; }
-        constexpr auto operator()(int value) noexcept{ return value; }
+        constexpr auto operator()(A value){ return value; }
+        constexpr auto operator()(B value) noexcept { return value; }
     };
 
-    static_assert(csl::mp::concepts::can_for_each<f, csl::mp::tuple<int, char, bool>>);
-    static_assert(csl::mp::concepts::can_for_each<f, std::tuple<int, char, bool>>);
-    static_assert(csl::mp::concepts::can_for_each<f, std::pair<int, char>>);
-    static_assert(csl::mp::concepts::can_for_each<f, std::array<int, 2>>);
-    static_assert(not csl::mp::concepts::can_for_each<f, std::pair<int, std::string>>); // no conversion from std::string to int
+    static_assert(csl::mp::concepts::can_for_each<f, csl::mp::tuple<B, A, bool>>);
+    static_assert(csl::mp::concepts::can_for_each<f, std::tuple<B, A, bool>>);
+    static_assert(csl::mp::concepts::can_for_each<f, std::pair<B, A>>);
+    static_assert(csl::mp::concepts::can_for_each<f, std::array<B, 2>>);
+    static_assert(not csl::mp::concepts::can_for_each<f, std::pair<B, std::string>>); // no conversion from std::string to B
 
-    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, csl::mp::tuple<int, char, bool>>);
-    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::tuple<int, char, bool>>);
-    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::pair<int, char>>);
-    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::pair<int, int>>);
-    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::array<int, 2>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, csl::mp::tuple<B, A, bool>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::tuple<B, A, bool>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::pair<B, A>>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::pair<B, B>>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::array<B, 2>>);
 }
 
 namespace test::tuples::function::for_each {
