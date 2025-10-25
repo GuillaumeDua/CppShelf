@@ -71,7 +71,7 @@ namespace test::function::factory::cat_result {
 }
 namespace test::tuples::function::for_each::concepts {
 
-    struct A{ A(bool){} }; // NOLINT(*-explicit-constructor)
+    struct A{ constexpr A(bool){} }; // NOLINT(*-explicit-constructor)
     struct B{};
 
     struct f {
