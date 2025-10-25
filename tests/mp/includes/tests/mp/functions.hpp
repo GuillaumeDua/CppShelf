@@ -160,6 +160,56 @@ namespace test::tuples::function::for_each_enumerate {
         >);
     }
 }
+
+namespace test::tuples::function::for_each_enumerate_nttp::concepts {
+    
+    struct A{};
+    struct B{};
+
+    struct functor      {
+        template <std::size_t> constexpr void operator()(A){}
+        template <> constexpr void operator()<2>(A) = delete;
+    };
+    struct functor_auto { template <std::size_t> constexpr void operator()(auto){} };
+    template <std::size_t> constexpr void f(auto){};
+    constexpr auto adapted_f = []<std::size_t i>(auto value){ return f<i>(value); };
+
+    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<functor, std::tuple<A>>);
+    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<functor_auto, std::tuple<A>>);
+    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<decltype(adapted_f), std::tuple<int>>);
+
+    struct functor_noexcept {
+        template <std::size_t> constexpr void operator()(A) noexcept {}
+        template <std::size_t> constexpr void operator()(B) {}
+    };
+
+    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor, std::tuple<A>>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<A>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<B>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<A, B>>);
+}
+
+// WIP
+namespace test::tuples::function::for_each_enumerate_nttp {
+    struct result_type {
+        std::size_t index{};
+        int value{};
+
+        constexpr bool operator==(const result_type &) const noexcept = default;
+    };
+    constexpr auto my_indexed_reduce(csl::mp::concepts::tuple_like auto && values){
+        result_type result{};
+        csl::mp::for_each_enumerate(
+             [&result]<std::size_t i>(const auto & value) {
+                result.index += i;
+                result.value += value;
+            },
+            values
+        );
+        return result;
+    }
+}
+
 // WIP -> std::invoke to expand API for F, elements... -> see https://godbolt.org/z/Ej3sz35GT
 namespace test::tuples::function::apply::concepts {
 

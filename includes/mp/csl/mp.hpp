@@ -1932,6 +1932,52 @@ namespace csl::mp {
     template <typename F, typename T>
     using for_each_enumerate_result_t = for_each_enumerate_result<F, T>::type;
 
+    // WIP foreach_enumerate_nttp
+    namespace concepts {
+
+        template <typename F, typename T>
+        concept can_for_each_enumerate_nttp = concepts::tuple_like<T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and
+                requires {
+                    std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>()));
+                }
+                // std::is_invocable_v<
+                //     decltype(&F::template operator()<indexes /* possible element */>),
+                //     F,
+                //     decltype(get<indexes>(std::declval<T>()))
+                // >
+            );
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+
+        template <typename F, typename T>
+        concept can_nothrow_for_each_enumerate_nttp = can_for_each_enumerate_nttp<F, T>
+        and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and 
+                noexcept(std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>())))
+            );
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+    }
+
+    constexpr auto for_each_enumerate_nttp(auto && f, concepts::tuple_like auto && value)
+    noexcept(concepts::can_nothrow_for_each_enumerate_nttp<decltype(f), decltype(value)>)
+    requires concepts::can_for_each_enumerate_nttp<decltype(f), decltype(value)>
+    {
+        constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((
+                std::invoke(csl_fwd(f), indexes, get<indexes>(csl_fwd(value)))
+            ), ...);
+        }(std::make_index_sequence<size>{});
+        return f;
+    }
+
+    template <typename F, typename T> requires concepts::can_for_each_enumerate_nttp<F, T>
+    struct for_each_enumerate_nttp_result : std::type_identity<F>{};
+    template <typename F, typename T>
+    using for_each_enumerate_nttp_result_t = for_each_enumerate_nttp_result<F, T>::type;
+
+
     // QUESTION: what for f<indexes>(element) ? -> for_each_index(_constant|_nttp)
     //  f<index>(element) vs. f.operator()<index>(element)
 
