@@ -1860,17 +1860,9 @@ struct tuple_element<index, csl::mp::tuple<Ts...>> : csl::mp::tuple<Ts...>::stor
 }
 
 // tuple algorithms
+// QUESTION(DESIGN): as user-defined functor type - rather than functions -,
+//  with ::result nested type_trait to expose ::type ?
 namespace csl::mp {
-
-    // QUESTION: primitive for
-    // auto ??? (concepts::tuple auto && value, auto f){
-    //     constexpr auto size = csl::mp::size_v<std::remove_cvref_t<decltype(value)>>;
-    //     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    //         ((
-    //             // arg<indexes...>(std::get<indexes>(csl_fwd(values))))
-    //         ), ...);
-    //     }(std::make_index_sequence<size>{});
-    // }
 
     // foreach
     namespace concepts {
@@ -1901,7 +1893,10 @@ namespace csl::mp {
         return f;
     }
 
-    // TODO(Guillaume) result_type
+    template <typename F, typename T> requires concepts::can_for_each<F, T>
+    struct for_each_result : std::type_identity<F>{};
+    template <typename F, typename T>
+    using for_each_result_t = for_each_result<F, T>::type;
 
     // foreach_enumerate
     namespace concepts {
@@ -1931,6 +1926,11 @@ namespace csl::mp {
         }(std::make_index_sequence<size>{});
         return f;
     }
+
+    template <typename F, typename T> requires concepts::can_for_each_enumerate<F, T>
+    struct for_each_enumerate_result : std::type_identity<F>{};
+    template <typename F, typename T>
+    using for_each_enumerate_result_t = for_each_enumerate_result<F, T>::type;
 
     // QUESTION: what for f<indexes>(element) ? -> for_each_index(_constant|_nttp)
     //  f<index>(element) vs. f.operator()<index>(element)

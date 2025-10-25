@@ -105,8 +105,23 @@ namespace test::tuples::function::for_each {
     static_assert(expected == my_reduce(std::tuple{1,2,3}));
     static_assert(expected == my_reduce(std::array{1,2,3}));
     static_assert(expected == my_reduce(std::pair{2,4}));
+
+    namespace result {
+
+        using tuple_int = csl::mp::tuple<int>;
+        using f_tuple_int = decltype([](int){});
+
+        static_assert(std::is_same_v<
+            f_tuple_int,
+            csl::mp::for_each_result_t<
+                f_tuple_int,
+                tuple_int
+            >
+        >);
+    }
 }
 namespace test::tuples::function::for_each_enumerate {
+
     struct result_type {
         std::size_t index{};
         int value{};
@@ -130,6 +145,20 @@ namespace test::tuples::function::for_each_enumerate {
     static_assert(expected == my_indexed_reduce(std::tuple{2,3}));
     static_assert(expected == my_indexed_reduce(std::array{2,3}));
     static_assert(expected == my_indexed_reduce(std::pair{2,3}));
+
+    namespace result {
+
+        using tuple_int = csl::mp::tuple<int>;
+        using f_tuple_int = decltype([](std::size_t, int){});
+
+        static_assert(std::is_same_v<
+            f_tuple_int,
+            csl::mp::for_each_enumerate_result_t<
+                f_tuple_int,
+                tuple_int
+            >
+        >);
+    }
 }
 // WIP -> std::invoke to expand API for F, elements... -> see https://godbolt.org/z/Ej3sz35GT
 namespace test::tuples::function::apply::concepts {
