@@ -200,7 +200,7 @@ namespace test::tuples::function::for_each_enumerate_nttp {
     };
     constexpr auto my_indexed_reduce(csl::mp::concepts::tuple_like auto && values){
         result_type result{};
-        csl::mp::for_each_enumerate(
+        csl::mp::for_each_enumerate_nttp(
              [&result]<std::size_t i>(const auto & value) {
                 result.index += i;
                 result.value += value;
@@ -209,6 +209,12 @@ namespace test::tuples::function::for_each_enumerate_nttp {
         );
         return result;
     }
+
+    constexpr auto expected = result_type{ .index = 1, .value = 5 };
+    static_assert(expected == my_indexed_reduce(csl::mp::tuple{2,3}));
+    static_assert(expected == my_indexed_reduce(std::tuple{2,3}));
+    static_assert(expected == my_indexed_reduce(std::array{2,3}));
+    static_assert(expected == my_indexed_reduce(std::pair{2,3}));
 }
 
 // WIP -> std::invoke to expand API for F, elements... -> see https://godbolt.org/z/Ej3sz35GT

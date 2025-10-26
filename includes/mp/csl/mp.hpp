@@ -1967,7 +1967,7 @@ namespace csl::mp {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((
-                std::invoke(csl_fwd(f), indexes, get<indexes>(csl_fwd(value)))
+                csl_fwd(f).template operator()<indexes>(get<indexes>(csl_fwd(value)))
             ), ...);
         }(std::make_index_sequence<size>{});
         return f;
