@@ -1978,10 +1978,6 @@ namespace csl::mp {
     template <typename F, typename T>
     using for_each_enumerate_nttp_result_t = for_each_enumerate_nttp_result<F, T>::type;
 
-
-    // QUESTION: what for f<indexes>(element) ? -> for_each_index(_constant|_nttp)
-    //  f<index>(element) vs. f.operator()<index>(element)
-
     // apply
     //
     //  DESIGN: proactive vs. reactive concepts design: see benchmark https://www.build-bench.com/b/HfzRXC9L7fpkhIyU7ykv0fZg2Hg
@@ -2014,6 +2010,7 @@ namespace csl::mp {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
 
+    // Equivalent to std::invoke(fwd(f), fwd(elements)...)
     constexpr decltype(auto) apply(auto && f, concepts::tuple_like auto && value)
     noexcept(concepts::can_nothrow_apply<decltype(f), decltype(value)>)
     requires concepts::can_apply<decltype(f), decltype(value)>
@@ -2023,15 +2020,12 @@ namespace csl::mp {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
     }
 
-
     template <typename F, concepts::tuple_like tuple_type>
     struct apply_result: std::type_identity<
         decltype(csl::mp::apply(std::declval<F>(), std::declval<tuple_type>()))
     >{};
     template <typename F, concepts::tuple_like tuple_type>
     using apply_result_t = typename apply_result<F, tuple_type>::type;
-
-    // WIP(Guillaume) - REFACTO: concepts::tuple -> tuple_like
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
@@ -2109,6 +2103,8 @@ namespace csl::mp {
     using fold_right_result_t = typename fold_right_result<T, F, init>::type;
     #pragma endregion
 
+    // WIP(Guillaume) - REFACTO: concepts::tuple -> tuple_like ⬇️ (everything below)
+    
     template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p)
     {

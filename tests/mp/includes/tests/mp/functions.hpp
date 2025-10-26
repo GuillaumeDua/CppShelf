@@ -190,7 +190,6 @@ namespace test::tuples::function::for_each_enumerate_nttp::concepts {
     static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<A, B>>);
 }
 
-// WIP
 namespace test::tuples::function::for_each_enumerate_nttp {
     struct result_type {
         std::size_t index{};
