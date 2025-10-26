@@ -168,8 +168,9 @@ namespace test::tuples::function::for_each_enumerate_nttp::concepts {
 
     struct functor      {
         template <std::size_t> constexpr void operator()(A){}
-        template <> constexpr void operator()<2>(A) = delete;
     };
+    template <> constexpr void functor::operator()<2>(A) = delete; // NOTE: GCC(13, 14) does not support explicit specialization in non-namespace scope
+
     struct functor_auto { template <std::size_t> constexpr void operator()(auto){} };
     template <std::size_t> constexpr void f(auto){};
     constexpr auto adapted_f = []<std::size_t i>(auto value){ return f<i>(value); };

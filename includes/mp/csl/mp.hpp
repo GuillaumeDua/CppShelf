@@ -41,6 +41,7 @@
 //  - std::three_way_comparable_with<T1, T2>
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
+// TODO(Guillaume) refactor with fixed_string + template specialization https://github.com/GuillaumeDua/CppShelf/issues/299
 // --- Handle preprocessor options
 #define CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE      0
 #define CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE      1
