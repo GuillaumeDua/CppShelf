@@ -216,7 +216,6 @@ namespace test::tuples::function::for_each_enumerate_nttp {
     static_assert(expected == my_indexed_reduce(std::pair{2,3}));
 }
 
-// WIP -> std::invoke to expand API for F, elements... -> see https://godbolt.org/z/Ej3sz35GT
 namespace test::tuples::function::apply::concepts {
 
     using throw_f_t = decltype([](int, int){});

@@ -1663,6 +1663,35 @@ namespace csl::mp {
     template <typename tuple_type, template <typename...> typename predicate>
     using filter_t = typename filter<tuple_type, predicate>::type;
 
+    // replace
+    template <
+        concepts::tuple_like tuple_type,
+        typename to_replace, typename replacement
+    >
+    class replace {
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+        // WIP: does rebind works well with std::array ? -> Most likely, wrong quantity of elements
+        -> rebind_t<
+            tuple_type,
+            std::conditional_t<
+                std::is_same_v<to_replace, std::tuple_element_t<Is, tuple_type>>,
+                replacement,
+                std::tuple_element_t<Is, tuple_type>
+            >...
+        >;
+    public:
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::value;
+    };
+    
+    template <
+        concepts::tuple_like tuple_type,
+        typename to_replace, typename replacement
+    >
+    using replace_t = typename replace<tuple_type, to_replace, replacement>::type;
+
+    // replace_if
+
     // set_union
     template <typename, typename>
     struct set_union;
