@@ -1476,8 +1476,14 @@ namespace csl::mp {
             std::declval<T>()
         ));
     };
-    template <typename T, std::size_t N, typename U>
-    struct rebind<std::array<T,N>, U> : std::type_identity<std::array<U,N>>{};
+    // template <typename T, std::size_t N, typename U>
+    // struct rebind<std::array<T,N>, U> : std::type_identity<std::array<U,N>>{};
+    //
+    // rebind tuplelike: rebind<tuplelike, elements...>
+    template <typename T, std::size_t N, typename Us_0, typename ... Us_N>
+    requires (N == 1 + sizeof...(Us_N))
+        and (std::same_as<Us_0, Us_N> and ...)
+    struct rebind<std::array<T,N>, Us_0, Us_N...> : std::type_identity<std::array<Us_0,N>>{};
     template <typename... Us, typename... Ts>
     struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
     template <typename ... Us, typename... Ts>

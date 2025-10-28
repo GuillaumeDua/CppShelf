@@ -98,7 +98,7 @@ namespace test::tuples::algorithm::rebind {
         std::pair<bool, double>
     >);
     static_assert(std::same_as<
-        csl::mp::rebind_t<std::array<int, 4>, char>,
+        csl::mp::rebind_t<std::array<int, 4>, char,char,char,char>,
         std::array<char, 4>
     >);
 
