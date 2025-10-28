@@ -160,6 +160,9 @@ namespace test::tuples::algorithm::filter {
         csl::mp::tuple<double, float>
     >);
 }
+// replace -> std::array rebind
+// replace_if
+
 // WIP: std::tuple support
 namespace test::tuples::algorithm::set_union {
     using T0 = csl::mp::tuple<int, char>;

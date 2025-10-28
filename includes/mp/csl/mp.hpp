@@ -1476,9 +1476,7 @@ namespace csl::mp {
             std::declval<T>()
         ));
     };
-    // template <typename T, std::size_t N, typename U>
-    // struct rebind<std::array<T,N>, U> : std::type_identity<std::array<U,N>>{};
-    //
+
     // rebind tuplelike: rebind<tuplelike, elements...>
     template <typename T, std::size_t N, typename Us_0, typename ... Us_N>
     requires (N == 1 + sizeof...(Us_N))
@@ -1672,12 +1670,12 @@ namespace csl::mp {
     // replace
     template <
         concepts::tuple_like tuple_type,
-        typename to_replace, typename replacement
+        typename to_replace,
+        typename replacement
     >
     class replace {
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
-        // WIP: does rebind works well with std::array ? -> Most likely, wrong quantity of elements
         -> rebind_t<
             tuple_type,
             std::conditional_t<
@@ -1692,11 +1690,38 @@ namespace csl::mp {
     
     template <
         concepts::tuple_like tuple_type,
-        typename to_replace, typename replacement
+        typename to_replace,
+        typename replacement
     >
     using replace_t = typename replace<tuple_type, to_replace, replacement>::type;
 
-    // replace_if
+    // replace
+    template <
+        concepts::tuple_like tuple_type,
+        template <typename...> typename predicate,
+        typename replacement
+    >
+    class replace_if {
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+        -> rebind_t<
+            tuple_type,
+            std::conditional_t<
+                predicate<std::tuple_element_t<Is, tuple_type>>::value,
+                replacement,
+                std::tuple_element_t<Is, tuple_type>
+            >...
+        >;
+    public:
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::value;
+    };
+    
+    template <
+        concepts::tuple_like tuple_type,
+        template <typename...> typename predicate,
+        typename replacement
+    >
+    using replace_if_t = typename replace_if<tuple_type, predicate, replacement>::type;
 
     // set_union
     template <typename, typename>
