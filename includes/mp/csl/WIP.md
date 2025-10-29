@@ -12,8 +12,7 @@
 
 Check:
 
-- https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
-  - T auto &&, &&&
+- [p2481r2 - T auto &&, &&&](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html)
 
 ## Documentation
 
@@ -125,6 +124,15 @@ Check:
     - is_sorted -> `comparator<L, R>`
       - `sort_t<tuplelike, per_typename_demangled_length>`
   - `deduplicate<tuple<a,b,a,b,c>>` -> `deduplicate<tuple<a,b,c>>`
+
+```cpp
+auto values = csl::mp::tuple{ 1, std::ref(a), 'c' };
+const auto transformation = overload {
+  [](auto && value) requires is_reference_wrapper_v<std::remove_cvref_t<T>> { return value.get(); }
+  [](auto && value){ return value; }
+};
+auto owning = transform(values, transformation /*, projection = std::identity*/);
+```
 
 ### Tests
 

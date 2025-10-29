@@ -1685,7 +1685,7 @@ namespace csl::mp {
             >...
         >;
     public:
-        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::value;
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
     };
     
     template <
@@ -1700,6 +1700,7 @@ namespace csl::mp {
         concepts::tuple_like tuple_type,
         template <typename...> typename predicate,
         typename replacement
+        // TODO(Guillaume): projection = std::type_identity
     >
     class replace_if {
         template <std::size_t... Is>
@@ -1713,7 +1714,7 @@ namespace csl::mp {
             >...
         >;
     public:
-        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::value;
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::type;
     };
     
     template <

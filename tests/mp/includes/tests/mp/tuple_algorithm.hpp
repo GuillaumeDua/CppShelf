@@ -160,8 +160,31 @@ namespace test::tuples::algorithm::filter {
         csl::mp::tuple<double, float>
     >);
 }
-// replace -> std::array rebind
-// replace_if
+namespace test::tuples::algorithm::replace {
+
+    struct replacement{};
+
+    static_assert(std::same_as<
+        csl::mp::replace_t<csl::mp::tuple<int, double>, int, replacement>,
+        csl::mp::tuple<replacement, double>
+    >);
+    static_assert(std::same_as<
+        csl::mp::replace_t<std::tuple<int, double>, int, replacement>,
+        std::tuple<replacement, double>
+    >);
+    static_assert(std::same_as<
+        csl::mp::replace_t<std::array<int, 2>, int, replacement>,
+        std::array<replacement, 2>
+    >);
+    static_assert(std::same_as<
+        csl::mp::replace_t<std::pair<int, char>, int, replacement>,
+        std::pair<replacement, char>
+    >);
+}
+namespace test::tuples::algorithm::replace_if {
+
+}
+
 
 // WIP: std::tuple support
 namespace test::tuples::algorithm::set_union {
