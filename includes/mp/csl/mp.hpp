@@ -1714,7 +1714,7 @@ namespace csl::mp {
             >...
         >;
     public:
-        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::type;
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
     };
     
     template <

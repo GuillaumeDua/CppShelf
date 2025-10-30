@@ -165,12 +165,12 @@ namespace test::tuples::algorithm::replace {
     struct replacement{};
 
     static_assert(std::same_as<
-        csl::mp::replace_t<csl::mp::tuple<int, double>, int, replacement>,
-        csl::mp::tuple<replacement, double>
+        csl::mp::replace_t<csl::mp::tuple<int, double, int>, int, replacement>,
+        csl::mp::tuple<replacement, double, replacement>
     >);
     static_assert(std::same_as<
-        csl::mp::replace_t<std::tuple<int, double>, int, replacement>,
-        std::tuple<replacement, double>
+        csl::mp::replace_t<std::tuple<int, double, int>, int, replacement>,
+        std::tuple<replacement, double, replacement>
     >);
     static_assert(std::same_as<
         csl::mp::replace_t<std::array<int, 2>, int, replacement>,
@@ -182,7 +182,25 @@ namespace test::tuples::algorithm::replace {
     >);
 }
 namespace test::tuples::algorithm::replace_if {
+    
+    struct replacement{};
 
+    static_assert(std::same_as<
+        csl::mp::replace_if_t<csl::mp::tuple<int, double, char>, std::is_integral, replacement>,
+        csl::mp::tuple<replacement, double, replacement>
+    >);
+    static_assert(std::same_as<
+        csl::mp::replace_if_t<std::tuple<int, double, char>, std::is_integral, replacement>,
+        std::tuple<replacement, double, replacement>
+    >);
+    static_assert(std::same_as<
+        csl::mp::replace_if_t<std::array<int, 2>, std::is_integral, replacement>,
+        std::array<replacement, 2>
+    >);
+    static_assert(std::same_as<
+        csl::mp::replace_if_t<std::pair<int, char>, std::is_integral, replacement>,
+        std::pair<replacement, replacement>
+    >);
 }
 
 
