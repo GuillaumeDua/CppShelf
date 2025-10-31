@@ -1509,7 +1509,9 @@ namespace csl::mp {
     template <typename tuple_type, template <typename...> typename Transformation>
     using transform_t = typename transform<tuple_type, Transformation>::type;
 
-    // TODO(Guillaume) regroup/move functions, partition from traits -> dedicated namespace ?
+    // TODO(Guillaume) regroup/move functions, partition from traits
+    //  - dedicated namespace ?
+    //  - or algo_name::trait, operator() ?
     constexpr auto tie(auto & ... values) -> csl::mp::tuple<decltype(values)...>{
         return csl::mp::tuple<decltype(values)...>{ csl_fwd(values)... };
     }
@@ -1525,12 +1527,12 @@ namespace csl::mp {
     }
     // forward_as_tuple_result ?
 
-    // WIP --- 🏗️ --- revert API so it looks like std::ranges
+    // WIP: csl::mp::common_tuplelike + rebind -> https://godbolt.org/z/eMMaj8Gxa
     // WIP(Guillaume) tests
 
     // tuple_cat
-    constexpr auto cat(){ return csl::mp::tuple{}; }
-    constexpr auto cat(/* TODO: tuplelike */ auto && ... tuples)
+    constexpr auto cat() -> csl::mp::tuple<> { return {}; }
+    constexpr auto cat(csl::mp::concepts::tuple_like auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
         constexpr auto size = (... + size_v<decltype(tuples)>);
@@ -1620,6 +1622,8 @@ namespace csl::mp {
     >{};
     template <typename ... tuple_types>
     using cat_result_t = typename cat_result<tuple_types...>::type;
+
+    // WIP --- 🏗️ --- revert API so it looks like std::ranges
 
     // contains
     // build benchmark (~ +20% perfs): https://build-bench.com/b/Ir0K0cw2wfFLyRYPYYIMVASDYQU

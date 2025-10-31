@@ -46,6 +46,9 @@ namespace test::function::factory::forward_as_tuple {
         >);
     }
 }
+namespace test::function::factory::cat {
+    // WIP
+}
 namespace test::function::factory::cat_result {
     using empty = csl::mp::tuple<>;
 
