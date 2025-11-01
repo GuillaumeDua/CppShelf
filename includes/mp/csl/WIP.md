@@ -123,7 +123,7 @@ Check:
   - Sorting ?
     - is_sorted -> `comparator<L, R>`
       - `sort_t<tuplelike, per_typename_demangled_length>`
-  - `deduplicate<tuple<a,b,a,b,c>>` -> `deduplicate<tuple<a,b,c>>`
+  - `deduplicate<tuple<a,b,a,b,c>>` -> sort -> `deduplicate<tuple<a,b,c>>`
 
 ```cpp
 auto values = csl::mp::tuple{ 1, std::ref(a), 'c' };

@@ -3,6 +3,8 @@
 #include <csl/mp.hpp>
 #include <string>
 
+// NOLINTBEGIN(*-avoid-magic-numbers)
+
 namespace test::function::factory::tie {
 
     constexpr int i{};
@@ -47,7 +49,22 @@ namespace test::function::factory::forward_as_tuple {
     }
 }
 namespace test::function::factory::cat {
-    // WIP
+    
+    static_assert(
+        csl::mp::cat(
+            std::tuple{},
+            csl::mp::tuple{}
+        ) == csl::mp::tuple{}
+    );
+
+    static_assert(
+        csl::mp::cat(
+            std::tuple{ 1, 2 },
+            csl::mp::tuple{ '3' },
+            std::array<double, 1>{ 4.F },
+            std::pair{5,6}
+        ) == csl::mp::tuple{1,2, '3', 4.F, 5,6}
+    );
 }
 namespace test::function::factory::cat_result {
     using empty = csl::mp::tuple<>;
@@ -268,3 +285,5 @@ namespace test::tuples::function::apply::result {
         csl::mp::apply_result_t<F, std::pair<int, bool>>>
     );
 }
+
+// NOLINTEND(*-avoid-magic-numbers)

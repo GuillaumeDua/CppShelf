@@ -2,8 +2,6 @@
 
 #include <csl/mp.hpp>
 
-// WIP
-
 namespace test::type_traits::type_identity {
     static_assert(std::same_as<int, csl::mp::type_identity_t<int>>);
 }
@@ -56,4 +54,8 @@ namespace test::primitives::bind_back {
         tuple_ending_with_int::type<char>,
         csl::mp::tuple<char, int>
     >);
+}
+
+namespace test::primitives::two_dimensions_indexes {
+    // WIP
 }

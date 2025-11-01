@@ -1478,6 +1478,7 @@ namespace csl::mp {
     };
 
     // rebind tuplelike: rebind<tuplelike, elements...>
+    //  Each tuplelike should add a specialization, especially user-defined ones
     template <typename T, std::size_t N, typename Us_0, typename ... Us_N>
     requires (N == 1 + sizeof...(Us_N))
         and (std::same_as<Us_0, Us_N> and ...)
@@ -1527,10 +1528,74 @@ namespace csl::mp {
     }
     // forward_as_tuple_result ?
 
-    // WIP: csl::mp::common_tuplelike + rebind -> https://godbolt.org/z/eMMaj8Gxa
-    // WIP(Guillaume) tests
+    // WIP: csl::mp::common_tuplelike + rebind -> https://godbolt.org/z/M8jcWYPba
+    //  - if instances of the same ttp, then ttp<elements...>
+    //    - if array and common_type, then array<common_type, N + ...>
+    //  - if only `std::` tuplelike, consider std::tuple ?
 
-    // tuple_cat
+#pragma region Two dimensions indexing
+    template <std::size_t element_counts>
+    requires (element_counts > 0)
+    struct two_dimensions_indexes_t {
+        std::size_t tuples[element_counts];      // NOLINT(*-avoid-c-arrays)
+        std::size_t elements[element_counts];    // NOLINT(*-avoid-c-arrays)
+    };
+
+    template <csl::mp::concepts::tuple_like ... tuple_types>
+    requires (sizeof...(tuple_types) not_eq 0)
+    using make_two_dimensions_indexes_t = two_dimensions_indexes_t<(size_v<tuple_types> + ...)>;
+
+    // scenario:
+    //
+    // t0 = [ a b c . . . ] - tuple<a,b,c>
+    // t1 = [ . . . d e . ] - pair<d,e>
+    // t2 = [ . . . . . f ] - array<f,1>
+    //
+    // see demo https://godbolt.org/z/jeY1dM7h6
+    //
+    // { tuple_index ;; element_index }
+    // ------------------------------
+    // [ . . . . . . ][ . . . . . . ]
+    // ------------------------------
+    // [ 0 . . . . . ][ 0 . . . . . ]
+    // [ 0 0 . . . . ][ 0 1 . . . . ]
+    // [ 0 0 0 . . . ][ 0 1 2 . . . ]
+    // ------------------------------
+    // [ 0 0 0 1 . . ][ 0 1 2 0 . . ]
+    // [ 0 0 0 1 1 . ][ 0 1 2 0 1 . ]
+    // ------------------------------
+    // [ 0 0 0 1 1 2 ][ 0 1 2 0 1 0 ]
+    template <csl::mp::concepts::tuple_like ... tuple_types>
+    constexpr auto two_dimensions_indexes = []() -> make_two_dimensions_indexes_t<tuple_types...> {
+
+        constexpr auto size = (... + size_v<tuple_types>);
+        two_dimensions_indexes_t<size> result{};
+
+        auto create_indexes_for = [
+            &result,
+            tuple_index = std::size_t{0},
+            offset = std::size_t{0}
+        ]<std::size_t ... indexes>(std::index_sequence<indexes...>) mutable {
+
+            ((
+                (result.tuples  [offset + indexes] = tuple_index),
+                (result.elements[offset + indexes] = indexes)
+            ), ...);
+
+            offset += sizeof...(indexes);
+            ++tuple_index;
+        };
+
+        // populate indexes for each tuplelike
+        ((create_indexes_for(std::make_index_sequence<
+            size_v<tuple_types>
+        >{})), ...);
+
+        return result;
+    }();
+#pragma endregion
+
+    // tuple_cat / join
     constexpr auto cat() -> csl::mp::tuple<> { return {}; }
     constexpr auto cat(csl::mp::concepts::tuple_like auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
@@ -1541,69 +1606,24 @@ namespace csl::mp {
             return csl::mp::tuple<>{};
         else
         {
-            // TODO(Guillaume): use `make_two_dimensions_indexes` from the old `flatten` poc ?
-            constexpr auto indexes_map = [&](){
-
-                // scenario:
-                // t0 = [ a b . . . ]
-                // t1 = [ . . c d . ]
-                // t2 = [ . . . . e ]
-
-                //  tuple_I    || element_I
-                // --------------------------
-                // [ . . . . . ][ . . . . . ]
-                // --------------------------
-                // [ 0 . . . . ][ 0 . . . . ]
-                // [ 0 0 . . . ][ 0 1 . . . ]
-                // --------------------------
-                // [ 0 0 1 . . ][ 0 1 0 . . ]
-                // [ 0 0 1 1 . ][ 0 1 0 1 . ]
-                // --------------------------
-                // [ 0 0 1 1 2 ][ 0 1 0 1 0 ]
-
-                struct {
-                    std::size_t tuple_index[size];      // NOLINT(*-avoid-c-arrays)
-                    std::size_t element_index[size];    // NOLINT(*-avoid-c-arrays)
-                } mapped_indexes{};
-
-                auto create_indexes_for = [
-                    &,
-                    tuple_index = std::size_t{0},
-                    offset = std::size_t{0}
-                ]<std::size_t ... indexes>(std::index_sequence<indexes...>) mutable {
-
-                    ((
-                        (mapped_indexes.tuple_index  [offset + indexes] = tuple_index),
-                        (mapped_indexes.element_index[offset + indexes] = indexes)
-                    ), ...);
-
-                    offset += sizeof...(indexes);
-                    ++tuple_index;
-                };
-
-                // create indexes for each tuple
-                ((create_indexes_for(std::make_index_sequence<
-                    size_v<decltype(tuples)>
-                >{})), ...);
-
-                return mapped_indexes;
-            }();
+            constexpr auto indexes_map = two_dimensions_indexes<decltype(tuples)...>;
 
             return []<std::size_t ... indexes>(auto && tuple_of_tuples, std::index_sequence<indexes...>){
 
-                // FEATURE: if only `std::` tuplelike, consider std::tuple ?
                 using type = csl::mp::tuple<
                     std::tuple_element_t<
-                        indexes_map.element_index[indexes],
-                        std::remove_cvref_t<std::tuple_element_t<
-                            indexes_map.tuple_index[indexes],
-                            std::remove_cvref_t<decltype(tuple_of_tuples)>
-                        >>
+                        indexes_map.elements[indexes],
+                        std::remove_cvref_t<
+                            std::tuple_element_t<
+                                indexes_map.tuples[indexes],
+                                std::remove_cvref_t<decltype(tuple_of_tuples)>
+                            >
+                        >
                     >...
                 >;
                 return type{
-                    get<indexes_map.element_index[indexes]>(
-                        get<indexes_map.tuple_index[indexes]>(
+                    get<indexes_map.elements[indexes]>(
+                        get<indexes_map.tuples[indexes]>(
                             csl_fwd(tuple_of_tuples)
                         )
                     )...
