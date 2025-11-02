@@ -1534,6 +1534,14 @@ namespace csl::mp {
     //  - if only `std::` tuplelike, consider std::tuple ?
 
 #pragma region indexes mapping
+
+    // Enable flat iteration over multiples tuplikes:
+    //
+    // get<indexes_map.elements[indexes]>(
+    //     get<indexes_map.tuples[indexes]>(
+    //         tuple_of_tuplelikes
+    //     )
+    // )...
     template <std::size_t element_counts>
     requires (element_counts not_eq 0)
     struct index_map_t {
@@ -1575,7 +1583,7 @@ namespace csl::mp {
 
         index_map_t<size> result{};
 
-        auto create_indexes_for = [
+        auto populate_indexes_for = [
             &result,
             tuple_index = std::size_t{0},
             offset = std::size_t{0}
@@ -1590,8 +1598,7 @@ namespace csl::mp {
             ++tuple_index;
         };
 
-        // populate indexes for each tuplelike
-        ((create_indexes_for(std::make_index_sequence<
+        ((populate_indexes_for(std::make_index_sequence<
             size_v<tuple_types>
         >{})), ...);
 
@@ -1612,7 +1619,7 @@ namespace csl::mp {
         {
             constexpr auto indexes_map = index_map_v<decltype(tuples)...>;
 
-            return []<std::size_t ... indexes>(auto && tuple_of_tuples, std::index_sequence<indexes...>){
+            return []<std::size_t ... indexes>(auto && tuple_of_tuplelikes, std::index_sequence<indexes...>){
 
                 using type = csl::mp::tuple<
                     std::tuple_element_t<
@@ -1620,7 +1627,7 @@ namespace csl::mp {
                         std::remove_cvref_t<
                             std::tuple_element_t<
                                 indexes_map.tuples[indexes],
-                                std::remove_cvref_t<decltype(tuple_of_tuples)>
+                                std::remove_cvref_t<decltype(tuple_of_tuplelikes)>
                             >
                         >
                     >...
@@ -1628,7 +1635,7 @@ namespace csl::mp {
                 return type{
                     get<indexes_map.elements[indexes]>(
                         get<indexes_map.tuples[indexes]>(
-                            csl_fwd(tuple_of_tuples)
+                            csl_fwd(tuple_of_tuplelikes)
                         )
                     )...
                 };
@@ -1647,7 +1654,8 @@ namespace csl::mp {
     template <typename ... tuple_types>
     using cat_result_t = typename cat_result<tuple_types...>::type;
 
-    // WIP --- 🏗️ --- revert API so it looks like std::ranges
+    // TODO(Guillaume) zip
+    // TODO(Guillaume) visit -> apply(f, tuplelikes...) ?
 
     // contains
     // build benchmark (~ +20% perfs): https://build-bench.com/b/Ir0K0cw2wfFLyRYPYYIMVASDYQU
@@ -1673,6 +1681,9 @@ namespace csl::mp {
     struct contains<std::array<value_type, N>, T> : std::is_same<T, value_type>{};
     template <typename tuple_type, typename T>
     constexpr bool contains_v = contains<tuple_type, T>::value;
+
+    // WIP --- 🏗️ --- revert API so it looks like std::ranges,
+    // WIP --- 🏗️ --- tuplelike as first template parameter
 
     // filter<trait>
     //  Supports only csl::mp::tuple and std::tuple, as array, pair, etc. won't make much sens
