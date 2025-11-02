@@ -1533,17 +1533,19 @@ namespace csl::mp {
     //    - if array and common_type, then array<common_type, N + ...>
     //  - if only `std::` tuplelike, consider std::tuple ?
 
-#pragma region Two dimensions indexing
+#pragma region indexes mapping
     template <std::size_t element_counts>
-    requires (element_counts > 0)
-    struct two_dimensions_indexes_t {
+    requires (element_counts not_eq 0)
+    struct index_map_t {
         std::size_t tuples[element_counts];      // NOLINT(*-avoid-c-arrays)
         std::size_t elements[element_counts];    // NOLINT(*-avoid-c-arrays)
+
+        constexpr bool operator==(const index_map_t &) const noexcept = default;
     };
 
     template <csl::mp::concepts::tuple_like ... tuple_types>
     requires (sizeof...(tuple_types) not_eq 0)
-    using make_two_dimensions_indexes_t = two_dimensions_indexes_t<(size_v<tuple_types> + ...)>;
+    using make_index_map_t = index_map_t<(size_v<tuple_types> + ...)>;
 
     // scenario:
     //
@@ -1551,7 +1553,7 @@ namespace csl::mp {
     // t1 = [ . . . d e . ] - pair<d,e>
     // t2 = [ . . . . . f ] - array<f,1>
     //
-    // see demo https://godbolt.org/z/jeY1dM7h6
+    // see demo https://godbolt.org/z/rKdjbzxeq
     //
     // { tuple_index ;; element_index }
     // ------------------------------
@@ -1566,10 +1568,12 @@ namespace csl::mp {
     // ------------------------------
     // [ 0 0 0 1 1 2 ][ 0 1 2 0 1 0 ]
     template <csl::mp::concepts::tuple_like ... tuple_types>
-    constexpr auto two_dimensions_indexes = []() -> make_two_dimensions_indexes_t<tuple_types...> {
+    constexpr auto index_map_v = []() -> make_index_map_t<tuple_types...> {
 
         constexpr auto size = (... + size_v<tuple_types>);
-        two_dimensions_indexes_t<size> result{};
+        static_assert(size not_eq 0);
+
+        index_map_t<size> result{};
 
         auto create_indexes_for = [
             &result,
@@ -1606,7 +1610,7 @@ namespace csl::mp {
             return csl::mp::tuple<>{};
         else
         {
-            constexpr auto indexes_map = two_dimensions_indexes<decltype(tuples)...>;
+            constexpr auto indexes_map = index_map_v<decltype(tuples)...>;
 
             return []<std::size_t ... indexes>(auto && tuple_of_tuples, std::index_sequence<indexes...>){
 

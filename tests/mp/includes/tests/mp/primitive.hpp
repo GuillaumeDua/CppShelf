@@ -56,6 +56,49 @@ namespace test::primitives::bind_back {
     >);
 }
 
-namespace test::primitives::two_dimensions_indexes {
-    // WIP
+namespace test::primitives::index_map {
+
+    struct A{};
+    struct B{};
+    struct C{};
+    struct D{};
+    struct E{};
+    struct F{};
+
+    constexpr static auto expected = csl::mp::index_map_t<6>{
+        .tuples = { 0, 0, 1, 2, 2, 3 },
+        .elements = { 0, 1, 0, 0, 1, 0 },
+    };
+    using expected_t = std::remove_cvref_t<decltype(expected)>;
+
+    static_assert(std::is_same_v<
+        expected_t,
+        csl::mp::make_index_map_t<
+            csl::mp::tuple<A, B>,
+            std::array<C, 1>,
+            std::pair<D, E>,
+            std::tuple<F>
+        >
+    >);
+    static_assert(expected == csl::mp::index_map_v<
+        csl::mp::tuple<A, B>,
+        std::array<C, 1>,
+        std::pair<D, E>,
+        std::tuple<F>
+    >);
+
+    // Check multiples empty tuplelikes
+    static_assert(
+        csl::mp::index_map_t<1>{
+            .tuples = { 2 },
+            .elements = { 0 }
+        }
+    ==  csl::mp::index_map_v<
+        csl::mp::tuple<>,
+        std::tuple<>,
+        std::array<A, 1>, // non-empty
+        csl::mp::tuple<>,
+        csl::mp::tuple<>
+    >
+    );
 }

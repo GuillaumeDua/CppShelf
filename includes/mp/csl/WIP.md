@@ -117,7 +117,7 @@ Check:
   - filter, filter_if
   - partition
   - fold_left, fold_right
-  - zip(tuplelikes...)
+  - zip(tuplelikes...) -> size == smallest vs. force same ?
   - flatten -> see POC
   - Cartesian product ? (motivation: matrixes)
   - Sorting ?
