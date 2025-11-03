@@ -242,27 +242,27 @@ namespace test::tuples::function::apply::concepts {
     using nothrow_f_t = decltype([](int, int) noexcept {});
 
     // can_apply
-    static_assert(csl::mp::concepts::can_apply<throw_f_t, csl::mp::tuple<int, int>>);
-    static_assert(csl::mp::concepts::can_apply<throw_f_t, std::tuple<int, int>>);
-    static_assert(csl::mp::concepts::can_apply<throw_f_t, std::array<int, 2>>);
+    static_assert(csl::mp::concepts::can_apply<csl::mp::tuple<int, int>, throw_f_t>);
+    static_assert(csl::mp::concepts::can_apply<std::tuple<int, int>, throw_f_t>);
+    static_assert(csl::mp::concepts::can_apply<std::array<int, 2>, throw_f_t>);
 
     // can_nothrow_apply
-    static_assert(not csl::mp::concepts::can_nothrow_apply<throw_f_t, csl::mp::tuple<int, int>>);
-    static_assert(not csl::mp::concepts::can_nothrow_apply<throw_f_t, std::tuple<int, int>>);
-    static_assert(not csl::mp::concepts::can_nothrow_apply<throw_f_t, std::array<int, 2>>);
-    static_assert(csl::mp::concepts::can_nothrow_apply<nothrow_f_t, csl::mp::tuple<int, int>>);
-    static_assert(csl::mp::concepts::can_nothrow_apply<nothrow_f_t, std::tuple<int, int>>);
-    static_assert(csl::mp::concepts::can_nothrow_apply<nothrow_f_t, std::array<int, 2>>);
+    static_assert(not csl::mp::concepts::can_nothrow_apply<csl::mp::tuple<int, int>, throw_f_t>);
+    static_assert(not csl::mp::concepts::can_nothrow_apply<std::tuple<int, int>, throw_f_t>);
+    static_assert(not csl::mp::concepts::can_nothrow_apply<std::array<int, 2>, throw_f_t>);
+    static_assert(csl::mp::concepts::can_nothrow_apply<csl::mp::tuple<int, int>, nothrow_f_t>);
+    static_assert(csl::mp::concepts::can_nothrow_apply<std::tuple<int, int>, nothrow_f_t>);
+    static_assert(csl::mp::concepts::can_nothrow_apply<std::array<int, 2>, nothrow_f_t>);
 }
 namespace test::tuples::function::apply {
 
     constexpr auto my_reduce = [](auto ... values){ return (0 + ... + values); };
 
     constexpr auto expected = 6;
-    static_assert(expected == csl::mp::apply(my_reduce, csl::mp::tuple{1,2,3}));
-    static_assert(expected == csl::mp::apply(my_reduce, std::tuple{1,2,3}));
-    static_assert(expected == csl::mp::apply(my_reduce, std::array{1,2,3}));
-    static_assert(expected == csl::mp::apply(my_reduce, std::pair{2,4}));
+    static_assert(expected == csl::mp::apply(csl::mp::tuple{1,2,3}, my_reduce));
+    static_assert(expected == csl::mp::apply(std::tuple{1,2,3}, my_reduce));
+    static_assert(expected == csl::mp::apply(std::array{1,2,3}, my_reduce));
+    static_assert(expected == csl::mp::apply(std::pair{2,4}, my_reduce));
 }
 namespace test::tuples::function::apply::result {
 
@@ -274,15 +274,15 @@ namespace test::tuples::function::apply::result {
 
     static_assert(std::is_same_v<
         int,
-        csl::mp::apply_result_t<F, csl::mp::tuple<int, int>>>
+        csl::mp::apply_result_t<csl::mp::tuple<int, int>, F>>
     );
     static_assert(std::is_same_v<
         char,
-        csl::mp::apply_result_t<F, std::tuple<int, char>>>
+        csl::mp::apply_result_t<std::tuple<int, char>, F>>
     );
     static_assert(std::is_same_v<
         bool,
-        csl::mp::apply_result_t<F, std::pair<int, bool>>>
+        csl::mp::apply_result_t<std::pair<int, bool>, F>>
     );
 }
 

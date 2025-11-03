@@ -2105,19 +2105,19 @@ namespace csl::mp {
     //
     //      Either
     //      - 🟡 Promote unqualified apply (just like [get])
-    //      - 🟡 csl::mp::apply(F, std-tuplelike) should redirect call to `std::apply`,  
-    //        current impl becomes csl::mp::apply(F, csl-tuple)
+    //      - 🟡 csl::mp::apply(std-tuplelike, F) should redirect call to `std::apply` (reverting args order),  
+    //        current impl becomes csl::mp::apply(csl-tuple, F)
     //      - ✅ [DESIGNER CHOICE] provide the same impl. for any tuple_like
     //
    namespace concepts {
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_apply = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_nothrow_apply = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
@@ -2125,21 +2125,21 @@ namespace csl::mp {
     }
 
     // Equivalent to std::invoke(fwd(f), fwd(elements)...)
-    constexpr decltype(auto) apply(auto && f, concepts::tuple_like auto && value)
-    noexcept(concepts::can_nothrow_apply<decltype(f), decltype(value)>)
-    requires concepts::can_apply<decltype(f), decltype(value)>
+    constexpr decltype(auto) apply(concepts::tuple_like auto && value, auto && f)
+    noexcept(concepts::can_nothrow_apply<decltype(value), decltype(f)>)
+    requires concepts::can_apply<decltype(value), decltype(f)>
     {
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))...);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(value)>>>{});
     }
 
-    template <typename F, concepts::tuple_like tuple_type>
+    template <concepts::tuple_like tuple_type, typename F>
     struct apply_result: std::type_identity<
-        decltype(csl::mp::apply(std::declval<F>(), std::declval<tuple_type>()))
+        decltype(csl::mp::apply(std::declval<tuple_type>(), std::declval<F>()))
     >{};
-    template <typename F, concepts::tuple_like tuple_type>
-    using apply_result_t = typename apply_result<F, tuple_type>::type;
+    template <concepts::tuple_like tuple_type, typename F>
+    using apply_result_t = typename apply_result<tuple_type, F>::type;
 
     #pragma region fold
     // MVE: https://godbolt.org/z/z1so3dqee
