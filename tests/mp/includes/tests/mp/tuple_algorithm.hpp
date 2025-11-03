@@ -54,74 +54,74 @@ namespace test::tuples::algorithm::uniqued {
 }
 namespace test::tuples::algorithm::unfold {
     
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<csl::mp::tuple<int, char>, csl::mp::tuple>,
         csl::mp::tuple<int, char>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
         csl::mp::tuple<int, char>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<std::array<int, 2>, csl::mp::tuple>,
         csl::mp::tuple<int, int>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<std::array<int, 2>, std::tuple>,
         std::tuple<int, int>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
         std::tuple<int, char>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<csl::mp::tuple<int, char>, std::pair>,
         std::pair<int, char>
     >);
 
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::unfold_t<csl::mp::tuple<int, char>, std::is_same>,
         std::is_same<int, char>
     >);
 }
 namespace test::tuples::algorithm::rebind {
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::rebind_t<std::tuple<int>, char>,
         std::tuple<char>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::rebind_t<csl::mp::tuple<int>, char>,
         csl::mp::tuple<char>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::rebind_t<std::pair<int, char>, bool, double>,
         std::pair<bool, double>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::rebind_t<std::array<int, 4>, char,char,char,char>,
         std::array<char, 4>
     >);
 
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::rebind_t<std::is_same<int, char>, bool, double>,
         std::is_same<bool, double>
     >);
 }
 namespace test::tuples::algorithm::transform {
 
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::transform_t<csl::mp::tuple<int, char>, std::add_lvalue_reference_t>,
         csl::mp::tuple<int&, char&>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::transform_t<std::tuple<int, char>, std::add_lvalue_reference_t>,
         std::tuple<int&, char&>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::transform_t<std::pair<int, char>, std::add_lvalue_reference_t>,
         std::pair<int&, char&>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::transform_t<std::array<int, 1>, std::add_lvalue_reference_t>,
         std::array<int&, 1>
     >);
@@ -147,15 +147,15 @@ namespace test::tuples::algorithm::filter {
     using csl_tuple = csl::mp::tuple<int, double, float, char>;
     using std_tuple = csl::mp::unfold_t<csl_tuple, std::tuple>;
 
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::filter_t<csl_tuple, std::is_integral>,
         csl::mp::tuple<int, char>
     >);
-    static_assert(std::same_as<
-        csl::mp::filter_t<std_tuple, std::is_integral >,
+    static_assert(std::is_same_v<
+        csl::mp::filter_t<std_tuple, std::is_integral>,
         std::tuple<int, char>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::filter_t<csl_tuple, std::is_floating_point>,
         csl::mp::tuple<double, float>
     >);
@@ -164,19 +164,19 @@ namespace test::tuples::algorithm::replace {
 
     struct replacement{};
 
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_t<csl::mp::tuple<int, double, int>, int, replacement>,
         csl::mp::tuple<replacement, double, replacement>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_t<std::tuple<int, double, int>, int, replacement>,
         std::tuple<replacement, double, replacement>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_t<std::array<int, 2>, int, replacement>,
         std::array<replacement, 2>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_t<std::pair<int, char>, int, replacement>,
         std::pair<replacement, char>
     >);
@@ -185,19 +185,19 @@ namespace test::tuples::algorithm::replace_if {
     
     struct replacement{};
 
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_if_t<csl::mp::tuple<int, double, char>, std::is_integral, replacement>,
         csl::mp::tuple<replacement, double, replacement>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_if_t<std::tuple<int, double, char>, std::is_integral, replacement>,
         std::tuple<replacement, double, replacement>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_if_t<std::array<int, 2>, std::is_integral, replacement>,
         std::array<replacement, 2>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::replace_if_t<std::pair<int, char>, std::is_integral, replacement>,
         std::pair<replacement, replacement>
     >);
@@ -328,11 +328,11 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         std::plus<void>{},
         std::string{}
     );
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         std::remove_cvref_t<decltype(fold_left_result)>,
         csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>
     >);
-    static_assert(std::same_as<decltype(fold_left_result), const std::string>);
+    static_assert(std::is_same_v<decltype(fold_left_result), const std::string>);
 
     static_assert(
         // NOTE: GCC complains about `fold_left_result’ is not usable in a constant expression` because of basic_string `{ return _M_string_length; }`
@@ -349,16 +349,16 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         std::plus<void>{},
         std::string{}
     );
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         std::remove_cvref_t<decltype(fold_right_result)>,
         csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>
     >);
-    static_assert(std::same_as<
+    static_assert(std::is_same_v<
         csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>,
         std::string
     >);
 
-    static_assert(std::same_as<decltype(fold_right_result), const std::string>);
+    static_assert(std::is_same_v<decltype(fold_right_result), const std::string>);
 
     static_assert(
         csl::mp::fold_right(

@@ -99,24 +99,24 @@ namespace test::tuples::function::for_each::concepts {
         constexpr auto operator()(B value) noexcept { return value; }
     };
 
-    static_assert(csl::mp::concepts::can_for_each<f, csl::mp::tuple<B, A, bool>>);
-    static_assert(csl::mp::concepts::can_for_each<f, std::tuple<B, A, bool>>);
-    static_assert(csl::mp::concepts::can_for_each<f, std::pair<B, A>>);
-    static_assert(csl::mp::concepts::can_for_each<f, std::array<B, 2>>);
-    static_assert(not csl::mp::concepts::can_for_each<f, std::pair<B, std::string>>); // no conversion from std::string to B
+    static_assert(csl::mp::concepts::can_for_each<csl::mp::tuple<B, A, bool>, f>);
+    static_assert(csl::mp::concepts::can_for_each<std::tuple<B, A, bool>, f>);
+    static_assert(csl::mp::concepts::can_for_each<std::pair<B, A>, f>);
+    static_assert(csl::mp::concepts::can_for_each<std::array<B, 2>, f>);
+    static_assert(not csl::mp::concepts::can_for_each<std::pair<B, std::string>, f>); // no conversion from std::string to B
 
-    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, csl::mp::tuple<B, A, bool>>);
-    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::tuple<B, A, bool>>);
-    static_assert(not csl::mp::concepts::can_nothrow_for_each<f, std::pair<B, A>>);
-    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::pair<B, B>>);
-    static_assert(csl::mp::concepts::can_nothrow_for_each<f, std::array<B, 2>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<csl::mp::tuple<B, A, bool>, f>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<std::tuple<B, A, bool>, f>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each<std::pair<B, A>, f>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each<std::pair<B, B>, f>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each<std::array<B, 2>, f>);
 }
 
 namespace test::tuples::function::for_each {
 
     constexpr auto my_reduce(csl::mp::concepts::tuple_like auto && values){
         int reduced{};
-        csl::mp::for_each([&reduced](const auto & value){ reduced += value; }, values);
+        csl::mp::for_each(values,[&reduced](const auto & value){ reduced += value; });
         return reduced;
     }
 
@@ -134,8 +134,8 @@ namespace test::tuples::function::for_each {
         static_assert(std::is_same_v<
             f_tuple_int,
             csl::mp::for_each_result_t<
-                f_tuple_int,
-                tuple_int
+                tuple_int,
+                f_tuple_int
             >
         >);
     }
@@ -151,11 +151,11 @@ namespace test::tuples::function::for_each_enumerate {
     constexpr auto my_indexed_reduce(csl::mp::concepts::tuple_like auto && values){
         result_type result{};
         csl::mp::for_each_enumerate(
+            values,
              [&result](std::size_t i, const auto & value) {
                 result.index += i;
                 result.value += value;
-            },
-            values
+            }
         );
         return result;
     }
@@ -174,8 +174,8 @@ namespace test::tuples::function::for_each_enumerate {
         static_assert(std::is_same_v<
             f_tuple_int,
             csl::mp::for_each_enumerate_result_t<
-                f_tuple_int,
-                tuple_int
+                tuple_int,
+                f_tuple_int
             >
         >);
     }
@@ -195,19 +195,19 @@ namespace test::tuples::function::for_each_enumerate_nttp::concepts {
     template <std::size_t> constexpr void f(auto){};
     constexpr auto adapted_f = []<std::size_t i>(auto value){ return f<i>(value); };
 
-    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<functor, std::tuple<A>>);
-    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<functor_auto, std::tuple<A>>);
-    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<decltype(adapted_f), std::tuple<int>>);
+    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<std::tuple<A>, functor>);
+    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<std::tuple<A>, functor_auto>);
+    static_assert(csl::mp::concepts::can_for_each_enumerate_nttp<std::tuple<int>, decltype(adapted_f)>);
 
     struct functor_noexcept {
         template <std::size_t> constexpr void operator()(A) noexcept {}
         template <std::size_t> constexpr void operator()(B) {}
     };
 
-    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor, std::tuple<A>>);
-    static_assert(csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<A>>);
-    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<B>>);
-    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<functor_noexcept, std::tuple<A, B>>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<std::tuple<A>, functor>);
+    static_assert(csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<std::tuple<A>, functor_noexcept>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<std::tuple<B>, functor_noexcept>);
+    static_assert(not csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<std::tuple<A, B>, functor_noexcept>);
 }
 
 namespace test::tuples::function::for_each_enumerate_nttp {
@@ -220,11 +220,11 @@ namespace test::tuples::function::for_each_enumerate_nttp {
     constexpr auto my_indexed_reduce(csl::mp::concepts::tuple_like auto && values){
         result_type result{};
         csl::mp::for_each_enumerate_nttp(
+            values,
              [&result]<std::size_t i>(const auto & value) {
                 result.index += i;
                 result.value += value;
-            },
-            values
+            }
         );
         return result;
     }

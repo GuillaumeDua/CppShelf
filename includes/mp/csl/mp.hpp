@@ -1485,6 +1485,8 @@ namespace csl::mp {
     struct rebind<std::array<T,N>, Us_0, Us_N...> : std::type_identity<std::array<Us_0,N>>{};
     template <typename... Us, typename... Ts>
     struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
+
+    // TODO(Guillaume) What if std::tuple is not defined ?
     template <typename ... Us, typename... Ts>
     struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
     template <typename T0, typename T1, typename U0, typename U1>
@@ -1687,8 +1689,12 @@ namespace csl::mp {
 
     // filter<trait>
     //  Supports only csl::mp::tuple and std::tuple, as array, pair, etc. won't make much sens
+    //  WIP: No, std::pair, std::array, etc. shoud either be no-op or produce ill-formed result based on the predicate, for consistency sake
     template <typename, template <typename...> typename>
     struct filter;
+    template <typename tuple_type, template <typename...> typename predicate>
+    using filter_t = typename filter<tuple_type, predicate>::type;
+
     template <typename ... Ts, template <typename...> typename predicate>
     struct filter<tuple<Ts...>, predicate> : cat_result<
         std::conditional_t<
@@ -1697,14 +1703,34 @@ namespace csl::mp {
             tuple<>
         >...
     >{};
-    //  Limitation: less performant implementation
     template <typename ... Ts, template <typename> typename predicate>
     struct filter<std::tuple<Ts...>, predicate> : unfold<
         typename filter<csl::mp::tuple<Ts...>, predicate>::type,
         std::tuple
     >{};
-    template <typename tuple_type, template <typename...> typename predicate>
-    using filter_t = typename filter<tuple_type, predicate>::type;
+
+    // WIP: needs rebind
+    //  - unfold<tuplelike, ttp<???>>
+    //  - rebind<tuplelike, elements...>
+    //  - ???<tuplelike, tuplelike>
+
+    //  Limitation: less performant implementation
+    // template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
+    // struct filter<tuple_type, predicate> {
+    // private:
+    //     template <std::size_t... Is>
+    //     constexpr static auto helper(std::index_sequence<Is...>)
+    //     -> rebind_t<
+    //         tuple_type,
+    //         std::conditional_t<
+    //             predicate<std::tuple_element_t<Is, tuple_type>>::value,
+    //             tuple<std::tuple_element_t<Is, tuple_type>>,
+    //             tuple<>
+    //         >...
+    //     >;
+    // public:
+    //     using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
+    // };
 
     // replace
     template <
@@ -1904,17 +1930,6 @@ namespace csl::mp {
 
     // fwd_as_tuple
     // get<I>, get<T>
-    // // for_each
-    // template <concepts::valid_tuple tuple_type>
-    // void for_each(tuple_type && value, auto && visitor){
-    //     [&](){}();
-    // }
-
-    // for_each_with_index
-    // template <concepts::valid_tuple tuple_type>
-    // void for_each_with_index(tuple_type && value, auto && visitor){
-    //     [&](){}();
-    // }
 
     // projection: column vs. row
     // column: projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
@@ -1968,22 +1983,22 @@ namespace csl::mp {
     // foreach
     namespace concepts {
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_for_each = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_nothrow_for_each = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
 
-    constexpr auto for_each(auto && f, concepts::tuple_like auto && value)
-    noexcept(concepts::can_nothrow_for_each<decltype(f), decltype(value)>)
-    requires concepts::can_for_each<decltype(f), decltype(value)>
+    constexpr auto for_each(concepts::tuple_like auto && value, auto && f)
+    noexcept(concepts::can_nothrow_for_each<decltype(value), decltype(f)>)
+    requires concepts::can_for_each<decltype(value), decltype(f)>
     {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -1994,30 +2009,30 @@ namespace csl::mp {
         return f;
     }
 
-    template <typename F, typename T> requires concepts::can_for_each<F, T>
+    template <typename T, typename F> requires concepts::can_for_each<T, F>
     struct for_each_result : std::type_identity<F>{};
-    template <typename F, typename T>
-    using for_each_result_t = for_each_result<F, T>::type;
+    template <typename T, typename F>
+    using for_each_result_t = for_each_result<T, F>::type;
 
     // foreach_enumerate
     namespace concepts {
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_for_each_enumerate = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::is_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_nothrow_for_each_enumerate = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and std::is_nothrow_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
 
-    constexpr auto for_each_enumerate(auto && f, concepts::tuple_like auto && value)
-    noexcept(concepts::can_nothrow_for_each_enumerate<decltype(f), decltype(value)>)
-    requires concepts::can_for_each_enumerate<decltype(f), decltype(value)>
+    constexpr auto for_each_enumerate(concepts::tuple_like auto && value, auto && f)
+    noexcept(concepts::can_nothrow_for_each_enumerate<decltype(value), decltype(f)>)
+    requires concepts::can_for_each_enumerate<decltype(value), decltype(f)>
     {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -2028,15 +2043,14 @@ namespace csl::mp {
         return f;
     }
 
-    template <typename F, typename T> requires concepts::can_for_each_enumerate<F, T>
+    template <typename T, typename F> requires concepts::can_for_each_enumerate<T, F>
     struct for_each_enumerate_result : std::type_identity<F>{};
-    template <typename F, typename T>
-    using for_each_enumerate_result_t = for_each_enumerate_result<F, T>::type;
+    template <typename T, typename F>
+    using for_each_enumerate_result_t = for_each_enumerate_result<T, F>::type;
 
-    // WIP foreach_enumerate_nttp
     namespace concepts {
 
-        template <typename F, typename T>
+        template <typename T, typename F>
         concept can_for_each_enumerate_nttp = concepts::tuple_like<T>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and
@@ -2051,8 +2065,8 @@ namespace csl::mp {
             );
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
 
-        template <typename F, typename T>
-        concept can_nothrow_for_each_enumerate_nttp = can_for_each_enumerate_nttp<F, T>
+        template <typename T, typename F>
+        concept can_nothrow_for_each_enumerate_nttp = can_for_each_enumerate_nttp<T, F>
         and []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (true and ... and 
                 noexcept(std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>())))
@@ -2060,9 +2074,9 @@ namespace csl::mp {
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
 
-    constexpr auto for_each_enumerate_nttp(auto && f, concepts::tuple_like auto && value)
-    noexcept(concepts::can_nothrow_for_each_enumerate_nttp<decltype(f), decltype(value)>)
-    requires concepts::can_for_each_enumerate_nttp<decltype(f), decltype(value)>
+    constexpr auto for_each_enumerate_nttp(concepts::tuple_like auto && value, auto && f)
+    noexcept(concepts::can_nothrow_for_each_enumerate_nttp<decltype(value), decltype(f)>)
+    requires concepts::can_for_each_enumerate_nttp<decltype(value), decltype(f)>
     {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -2073,10 +2087,10 @@ namespace csl::mp {
         return f;
     }
 
-    template <typename F, typename T> requires concepts::can_for_each_enumerate_nttp<F, T>
+    template <typename T, typename F> requires concepts::can_for_each_enumerate_nttp<T, F>
     struct for_each_enumerate_nttp_result : std::type_identity<F>{};
-    template <typename F, typename T>
-    using for_each_enumerate_nttp_result_t = for_each_enumerate_nttp_result<F, T>::type;
+    template <typename T, typename F>
+    using for_each_enumerate_nttp_result_t = for_each_enumerate_nttp_result<T, F>::type;
 
     // apply
     //
