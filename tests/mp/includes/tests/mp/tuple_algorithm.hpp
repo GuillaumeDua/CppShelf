@@ -159,6 +159,14 @@ namespace test::tuples::algorithm::filter {
         csl::mp::filter_t<csl_tuple, std::is_floating_point>,
         csl::mp::tuple<double, float>
     >);
+    static_assert(std::is_same_v<
+        csl::mp::filter_t<std::pair<int, char>, std::is_integral>,
+        std::pair<int, char>
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::filter_t<std::array<int, 2>, std::is_integral>,
+        std::array<int, 2>
+    >);
 }
 namespace test::tuples::algorithm::replace {
 

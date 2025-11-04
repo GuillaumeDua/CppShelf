@@ -707,7 +707,7 @@ namespace csl::mp {
     // constexpr std::size_t size_v = tuple_size<tuple_type>::value;
 
     namespace details {
-        constexpr static std::size_t npos = static_cast<std::size_t>(-1);
+        [[maybe_unused]] constexpr static std::size_t npos = static_cast<std::size_t>(-1);
     }
 
     // tuple_common_reference
@@ -1446,6 +1446,7 @@ namespace csl::mp {
     }
 
     // unfold
+    //  KNOWN-LIMITATION: NTTPs
     //  REFACTO: universal ttps
     template <typename, template <typename...> typename>
     struct unfold;
@@ -1466,14 +1467,15 @@ namespace csl::mp {
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
     // rebind
+    //  KNOWN-LIMITATION: NTTPs
     template <typename T, typename... Us>
     struct rebind{
     private:
         template <template <typename ...> typename ttp, typename ... Ts>
-        constexpr static auto helper(ttp<Ts...>&&) -> ttp<Us...>;
+        constexpr static auto helper(std::type_identity<ttp<Ts...>>) -> ttp<Us...>;
     public:
         using type = decltype(helper(
-            std::declval<T>()
+            std::type_identity<T>{}
         ));
     };
 
@@ -1656,6 +1658,8 @@ namespace csl::mp {
     template <typename ... tuple_types>
     using cat_result_t = typename cat_result<tuple_types...>::type;
 
+    // QUESTION: what about concatenating/appening tuple types (not values) which are not default/copy/move constructibles ?
+
     // TODO(Guillaume) zip
     // TODO(Guillaume) visit -> apply(f, tuplelikes...) ?
 
@@ -1703,16 +1707,38 @@ namespace csl::mp {
             tuple<>
         >...
     >{};
-    template <typename ... Ts, template <typename> typename predicate>
+    template <typename ... Ts, template <typename...> typename predicate>
     struct filter<std::tuple<Ts...>, predicate> : unfold<
         typename filter<csl::mp::tuple<Ts...>, predicate>::type,
         std::tuple
     >{};
+    template <typename ... Ts, template <typename...> typename predicate>
+    requires (predicate<Ts>::value and ...)
+    struct filter<std::pair<Ts...>, predicate> : std::type_identity<std::pair<Ts...>>{};
+    template <typename T, std::size_t N, template <typename...> typename predicate>
+    requires predicate<T>::value
+    struct filter<std::array<T, N>, predicate> : std::type_identity<std::array<T, N>>{};
+
+    // template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
+    // struct filter<tuple_type, predicate> {
+    // private:
+    //     template <std::size_t... Is>
+    //     constexpr static auto helper(std::index_sequence<Is...>)
+    //     -> rebind_t<
+    //         tuple_type,
+    //         filter_t<
+    //             csl::mp::tuple<std::tuple_element_t<Is, tuple_type>...>,
+    //             predicate
+    //         >
+    //     >;
+    // public:
+    //     using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
+    // };
 
     // WIP: needs rebind
     //  - unfold<tuplelike, ttp<???>>
     //  - rebind<tuplelike, elements...>
-    //  - ???<tuplelike, tuplelike>
+    //  - ???<tuplelike, tuplelike> -> transfert elements from a to b
 
     //  Limitation: less performant implementation
     // template <concepts::tuple_like tuple_type, template <typename...> typename predicate>

@@ -101,7 +101,8 @@
         "NOTE",
         "DESIGN",
         "TECH-DEBT",
-        "KNOWN-ISSUE"
+        "KNOWN-ISSUE",
+        "KNOWN-LIMITATION"
     ],
     "todo-tree.highlights.useColourScheme": true,
     "todo-tree.highlights.customHighlight": {
@@ -156,7 +157,7 @@
             "background": "#2ac3de",
         },
         "DESIGN": {
-            "icon": "note",
+            "icon": "image",
             "iconColour": "#6f3780",
             "background": "#6f3780",
         },
@@ -170,7 +171,12 @@
             "icon": "issue-draft",
             "iconColour": "#6f3780",
             "background": "#6f3780",
-        }
+        },
+        "KNOWN-LIMITATION": {
+            "icon": "beaker",
+            "iconColour": "#703caa",
+            "background": "#703caa",
+        },
     },
     "files.associations": {
         "*.md": "markdown",

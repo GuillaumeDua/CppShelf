@@ -88,6 +88,8 @@ namespace test::function::factory::cat_result {
             std::tuple<bool>
         >
     >);
+
+    
 }
 namespace test::tuples::function::for_each::concepts {
 

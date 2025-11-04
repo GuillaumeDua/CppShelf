@@ -57,7 +57,7 @@ Check:
   - remove all `tuple_` prefix/suffix, but in `std` namespace
   - naming clash for algorithms
     - function vs. type_traits
-  - remove all `_result` -> dedicated namespace
+  - remove all `_result` -> dedicated namespace `csl::mp::result`
 
 - piecewise: constructible, convertible
   - use in conversion, etc.
