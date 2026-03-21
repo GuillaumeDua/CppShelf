@@ -412,6 +412,17 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         ) == "abcdefg"
     );
 }
+namespace test::tuples::algorithm::fold::accumulation_order {
+    
+    constexpr auto expression_accumulator = [](std::string_view a, std::string_view b) -> std::string {
+        return "(" + std::string{a} + "," + std::string{b} + ")";
+    };
+    using namespace std::string_literals;
+    constexpr auto value = std::make_tuple("x"s, "y"s, "z"s);
+
+    static_assert(csl::mp::fold_left( value, expression_accumulator, "_"s) == "(((_,x),y),z)");
+    static_assert(csl::mp::fold_right(value, expression_accumulator, "_"s) == "(x,(y,(z,_)))");
+}
 
 // TODO(Guillaume) sort, is_sorted
 
