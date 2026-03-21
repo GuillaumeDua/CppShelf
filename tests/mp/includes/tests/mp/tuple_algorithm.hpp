@@ -279,38 +279,38 @@ namespace test::tuples::algorithm::deduplicate {
     >);
 
 }
-namespace test::tuples::algorithm::fold::homogeneous::plus {
+namespace test::tuples::algorithm::fold::homogeneous {
 
+    // empty: left
+    static_assert(csl::mp::fold_left(std::tuple{},     std::minus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
     static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
     static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
 
-    constexpr auto expected_sum = 15;
+    static_assert(csl::mp::fold_right(std::tuple{},     std::minus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_right(csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_right(std::tuple{},     std::plus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_right(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
+
+    // single element
+    static_assert(csl::mp::fold_left(std::tuple{5},     std::minus<void>{}, 0) == -5);
+    static_assert(csl::mp::fold_left(csl::mp::tuple{5}, std::minus<void>{}, 0) == -5);
+    static_assert(csl::mp::fold_right(std::tuple{5},    std::minus<void>{}, 0) == 5);
+    static_assert(csl::mp::fold_right(csl::mp::tuple{5},std::minus<void>{}, 0) == 5);
+
+    // plus
     static_assert(csl::mp::fold_left(
         std::array{ 0, 1, 2, 3, 4, 5 }, // NOLINT(*-magic-numbers)
         std::plus<void>{},
         int{}
-    ) == expected_sum);
+    ) == 15);
     static_assert(csl::mp::fold_right(
         std::array{ 0, 1, 2, 3, 4, 5 }, // NOLINT(*-magic-numbers)
         std::plus<void>{},
         int{}
-    ) == expected_sum);
+    ) == 15);
 
-    // result_type
-    static_assert(std::is_same_v<
-        csl::mp::fold_left_result_t<std::array<int, 2>, std::plus<void>, int>,
-        int
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::fold_right_result_t<std::array<int, 2>, std::plus<void>, int>,
-        int
-    >);
-}
-namespace test::tuples::algorithm::fold::homogeneous::minus {
-
-    static_assert(csl::mp::fold_left(std::tuple{},     std::minus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
-
+    // minus
     static_assert(csl::mp::fold_left(
         std::array{  1, 2, 3, }, // NOLINT(*-magic-numbers)
         std::minus<void>{},
@@ -322,7 +322,17 @@ namespace test::tuples::algorithm::fold::homogeneous::minus {
         int{}
     ) == 2);
 
-    // result_type
+    // result_type: plus
+    static_assert(std::is_same_v<
+        csl::mp::fold_left_result_t<std::array<int, 2>, std::plus<void>, int>,
+        int
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::fold_right_result_t<std::array<int, 2>, std::plus<void>, int>,
+        int
+    >);
+
+    // result_type: minus
     static_assert(std::is_same_v<
         csl::mp::fold_left_result_t<std::array<int, 2>, std::minus<void>, int>,
         int
