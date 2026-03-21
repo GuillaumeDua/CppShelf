@@ -2749,6 +2749,7 @@ namespace csl::mp {
 #endif
 
 #undef csl_fwd
+#undef csl_fwd_maybe_cast
 #undef csl_compiler_is_clang
 #undef csl_compiler_is_gcc
 #undef csl_compiler_is_msvc
