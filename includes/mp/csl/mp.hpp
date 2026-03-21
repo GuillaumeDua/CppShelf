@@ -2187,7 +2187,7 @@ namespace csl::mp {
             // right: f(x1, f(x2, ...f(xn, init))), where x1, x2, ..., xn are the tuple elements
             template <typename U>
             [[nodiscard]] friend constexpr auto operator>>(folder && lhs, folder<F, U> && rhs) -> decltype(auto) {
-                return details::folder{ lhs.f, std::invoke(lhs.f, rhs.value, lhs.value ) };
+                return details::folder{ lhs.f, std::invoke(lhs.f, lhs.value, rhs.value ) };
             }
             // NOLINTEND(*-not-moved)
         };
@@ -2195,27 +2195,34 @@ namespace csl::mp {
         folder(F, T) -> folder<std::remove_cvref_t<F>, std::remove_cvref_t<T>>;
     }
 
+    // fold_left: (init_folder << ... << element_folder)
+    //
+    //  ((((init << x0) << x1) << x2) << xn)
+    //  = f(f(f(f(init, x0), x1), x2), ..., xn)
     [[nodiscard]] constexpr auto fold_left(csl::mp::concepts::tuple_like auto && value, auto f, auto init)
     {
         if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return (
-                details::folder{ f, get<indexes>(csl_fwd(value)) }
+                details::folder{ f, init }
                 << ...
-                << details::folder{ f, init }
+                << details::folder{ f, get<indexes>(csl_fwd(value)) }
             ).value;
         }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }
+    // fold_right: (element_folder >> ... >> init_folder)
+    //  x0 >> (x1 >> (... >> (xn >> init)))
+    //  = f(x0, f(x1, ..., f(xn, init)...))
     [[nodiscard]] constexpr auto fold_right(csl::mp::concepts::tuple_like auto && value, auto f, auto init)
     {
         if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             return (
-                details::folder{ f, init }
+                details::folder{ f, get<indexes>(csl_fwd(value)) }
                 >> ...
-                >> details::folder{ f, get<indexes>(csl_fwd(value)) }
+                >> details::folder{ f, init }
             ).value;
         }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }

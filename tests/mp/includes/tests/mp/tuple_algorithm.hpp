@@ -279,7 +279,7 @@ namespace test::tuples::algorithm::deduplicate {
     >);
 
 }
-namespace test::tuples::algorithm::fold::homogeneous {
+namespace test::tuples::algorithm::fold::homogeneous::plus {
 
     static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
     static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
@@ -303,6 +303,32 @@ namespace test::tuples::algorithm::fold::homogeneous {
     >);
     static_assert(std::is_same_v<
         csl::mp::fold_right_result_t<std::array<int, 2>, std::plus<void>, int>,
+        int
+    >);
+}
+namespace test::tuples::algorithm::fold::homogeneous::minus {
+
+    static_assert(csl::mp::fold_left(std::tuple{},     std::minus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
+
+    static_assert(csl::mp::fold_left(
+        std::array{  1, 2, 3, }, // NOLINT(*-magic-numbers)
+        std::minus<void>{},
+        int{}
+    ) == -6);
+    static_assert(csl::mp::fold_right(
+        std::array{  1, 2, 3, }, // NOLINT(*-magic-numbers)
+        std::minus<void>{},
+        int{}
+    ) == 2);
+
+    // result_type
+    static_assert(std::is_same_v<
+        csl::mp::fold_left_result_t<std::array<int, 2>, std::minus<void>, int>,
+        int
+    >);
+    static_assert(std::is_same_v<
+        csl::mp::fold_right_result_t<std::array<int, 2>, std::minus<void>, int>,
         int
     >);
 }
@@ -373,7 +399,7 @@ namespace test::tuples::algorithm::fold::heterogeneous {
             value,
             std::plus<void>{},
             std::string{}
-        ) == "fgdebca"
+        ) == "abcdefg"
     );
 }
 
