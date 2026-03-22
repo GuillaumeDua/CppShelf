@@ -342,7 +342,6 @@ namespace test::tuples::algorithm::fold::heterogeneous {
         csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>,
         std::string
     >);
-    // NOTE: GCC may complain about that a named constexpr variable "not usable in a constant expression" due to basic_string internals.
     static_assert(csl::mp::fold_left(value, std::plus<void>{}, std::string{}) == "abcdefg");
 
     static_assert(std::is_same_v<
@@ -357,17 +356,21 @@ namespace test::tuples::algorithm::fold::heterogeneous {
 }
 namespace test::tuples::algorithm::fold::accumulation_order {
 
-    // expression_accumulator(a, b) = "(a,b)" to check internal behavior:
-    //   fold_left  = f(f(f(init, x), y), z) = "(((_,x),y),z)"
-    //   fold_right = f(x, f(y, f(z, init))) = "(x,(y,(z,_)))"
-    constexpr auto expression_accumulator = [](std::string_view a, std::string_view b) -> std::string {
-        return "(" + std::string{a} + "," + std::string{b} + ")";
-    };
-    using namespace std::string_literals;
-    constexpr auto value = std::make_tuple("x"s, "y"s, "z"s);
+    // GCC < 15: complain about that a named constexpr variable "not usable in a constant expression" due to basic_string internals.
+    #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 15)
+    #else
+        // expression_accumulator(a, b) = "(a,b)" to check internal behavior:
+        //   fold_left  = f(f(f(init, x), y), z) = "(((_,x),y),z)"
+        //   fold_right = f(x, f(y, f(z, init))) = "(x,(y,(z,_)))"
+        constexpr auto expression_accumulator = [](std::string_view a, std::string_view b) -> std::string {
+            return "(" + std::string{a} + "," + std::string{b} + ")";
+        };
+        using namespace std::string_literals;
+        constexpr auto value = std::make_tuple("x"s, "y"s, "z"s);
 
-    static_assert(csl::mp::fold_left( value, expression_accumulator, "_"s) == "(((_,x),y),z)");
-    static_assert(csl::mp::fold_right(value, expression_accumulator, "_"s) == "(x,(y,(z,_)))");
+        static_assert(csl::mp::fold_left( value, expression_accumulator, "_"s) == "(((_,x),y),z)");
+        static_assert(csl::mp::fold_right(value, expression_accumulator, "_"s) == "(x,(y,(z,_)))");
+    #endif
 }
 
 // TODO(Guillaume) sort, is_sorted
