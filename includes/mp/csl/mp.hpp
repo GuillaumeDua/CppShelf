@@ -2252,7 +2252,7 @@ namespace csl::mp {
 
     // WIP(Guillaume) - REFACTO: concepts::tuple -> tuple_like ⬇️ (everything below)
     // TODO(Guillaume) - element_predicate<tuple>
-    template <csl::mp::concepts::tuple T>
+    template <csl::mp::concepts::tuple_like T>
     [[nodiscard]] constexpr auto all_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p)
     {
         // REFACTO: reduce
@@ -2260,14 +2260,14 @@ namespace csl::mp {
             return (true and ... and std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
-    template <csl::mp::concepts::tuple T>
+    template <csl::mp::concepts::tuple_like T>
     [[nodiscard]] constexpr auto any_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p){
         // REFACTO: reduce
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (false or ... or std::invoke(p, get<indexes>(value)));
         }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
-    template <csl::mp::concepts::tuple T>
+    template <csl::mp::concepts::tuple_like T>
     [[nodiscard]] constexpr auto none_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p){
         // REFACTO: reduce
         // return all_of(value, std::not_fn(csl_fwd(p)));

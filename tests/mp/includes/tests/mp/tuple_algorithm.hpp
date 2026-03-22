@@ -379,8 +379,23 @@ namespace test::tuples::algorithm::fold::accumulation_order {
 // TODO(Guillaume) sort, is_sorted
 
 namespace test::tuples::algorithm::functions::all_any_none_of {
-    constexpr auto value = csl::mp::tuple{ 42, .42f, 'a' };
-    static_assert(csl::mp::all_of(value, [](const auto & element){ return element > 0; }));
-    static_assert(csl::mp::any_of(value, [](const auto & element){ return element < 1; }));
-    static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
+
+    namespace csl_tuple {
+        constexpr auto value = csl::mp::tuple{ 42, .42f, 'a' };
+        static_assert(csl::mp::all_of(value, [](const auto & element){ return element > 0; }));
+        static_assert(csl::mp::any_of(value, [](const auto & element){ return element < 1; }));
+        static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
+    }
+    namespace std_tuple {
+        constexpr auto value = std::tuple{ 42, .42f, 'a' };
+        static_assert(csl::mp::all_of(value, [](const auto & element){ return element > 0; }));
+        static_assert(csl::mp::any_of(value, [](const auto & element){ return element < 1; }));
+        static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
+    }
+    namespace std_array {
+        constexpr auto value = std::array{ 42.F, .42F };
+        static_assert(csl::mp::all_of(value, [](const auto & element){ return element > 0; }));
+        static_assert(csl::mp::any_of(value, [](const auto & element){ return element < 1; }));
+        static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
+    }
 }
