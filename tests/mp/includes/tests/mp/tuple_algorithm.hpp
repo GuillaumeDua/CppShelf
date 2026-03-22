@@ -279,141 +279,87 @@ namespace test::tuples::algorithm::deduplicate {
     >);
 
 }
+
 namespace test::tuples::algorithm::fold::homogeneous {
 
-    // empty: left
-    static_assert(csl::mp::fold_left(std::tuple{},     std::minus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_left(std::tuple{},     std::plus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_left(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
-
-    static_assert(csl::mp::fold_right(std::tuple{},     std::minus<void>{}, 0) == 0);
+    // empty: both directions always return init, regardless of operation
+    static_assert(csl::mp::fold_left (csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_left (std::tuple{},     std::minus<void>{}, 0) == 0);
     static_assert(csl::mp::fold_right(csl::mp::tuple{}, std::minus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_right(std::tuple{},     std::plus<void>{}, 0) == 0);
-    static_assert(csl::mp::fold_right(csl::mp::tuple{}, std::plus<void>{}, 0) == 0);
+    static_assert(csl::mp::fold_right(std::tuple{},     std::minus<void>{}, 0) == 0);
 
-    // single element
-    static_assert(csl::mp::fold_left(std::tuple{5},     std::minus<void>{}, 0) == -5);
-    static_assert(csl::mp::fold_left(csl::mp::tuple{5}, std::minus<void>{}, 0) == -5);
-    static_assert(csl::mp::fold_right(std::tuple{5},    std::minus<void>{}, 0) == 5);
-    static_assert(csl::mp::fold_right(csl::mp::tuple{5},std::minus<void>{}, 0) == 5);
+    // minus:
+    //  single:     fold_left  = f(init, x) = 0 - 5 = -5
+    //              fold_right = f(x, init) = 5 - 0 =  5
+    //  multiple:   fold_left ({1,2,3}, -, 0) = ((0-1)-2)-3 = -6
+    //              fold_right({1,2,3}, -, 0) =  1-(2-(3-0)) = 2
+    static_assert(csl::mp::fold_left (csl::mp::tuple{5},   std::minus<void>{}, 0)   == -5);
+    static_assert(csl::mp::fold_left (std::tuple{5},       std::minus<void>{}, 0)   == -5);
+    static_assert(csl::mp::fold_right(csl::mp::tuple{5},   std::minus<void>{}, 0)   ==  5);
+    static_assert(csl::mp::fold_right(std::tuple{5},       std::minus<void>{}, 0)   ==  5);
+    static_assert(csl::mp::fold_left (std::array{1, 2, 3}, std::minus<void>{}, int{}) == -6);
+    static_assert(csl::mp::fold_right(std::array{1, 2, 3}, std::minus<void>{}, int{}) ==  2);
 
-    // plus
-    static_assert(csl::mp::fold_left(
-        std::array{ 0, 1, 2, 3, 4, 5 }, // NOLINT(*-magic-numbers)
-        std::plus<void>{},
-        int{}
-    ) == 15);
-    static_assert(csl::mp::fold_right(
-        std::array{ 0, 1, 2, 3, 4, 5 }, // NOLINT(*-magic-numbers)
-        std::plus<void>{},
-        int{}
-    ) == 15);
+    // plus:
+    static_assert(csl::mp::fold_left (std::array{0,1,2,3,4,5}, std::plus<void>{}, int{}) == 15); // NOLINT(*-magic-numbers)
+    static_assert(csl::mp::fold_right(std::array{0,1,2,3,4,5}, std::plus<void>{}, int{}) == 15); // NOLINT(*-magic-numbers)
 
-    // minus
-    static_assert(csl::mp::fold_left(
-        std::array{  1, 2, 3, }, // NOLINT(*-magic-numbers)
-        std::minus<void>{},
-        int{}
-    ) == -6);
-    static_assert(csl::mp::fold_right(
-        std::array{  1, 2, 3, }, // NOLINT(*-magic-numbers)
-        std::minus<void>{},
-        int{}
-    ) == 2);
-
-    // result_type: plus
-    static_assert(std::is_same_v<
-        csl::mp::fold_left_result_t<std::array<int, 2>, std::plus<void>, int>,
-        int
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::fold_right_result_t<std::array<int, 2>, std::plus<void>, int>,
-        int
-    >);
-
-    // result_type: minus
-    static_assert(std::is_same_v<
-        csl::mp::fold_left_result_t<std::array<int, 2>, std::minus<void>, int>,
-        int
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::fold_right_result_t<std::array<int, 2>, std::minus<void>, int>,
-        int
-    >);
+    // result_type
+    static_assert(std::is_same_v<csl::mp::fold_left_result_t <std::array<int,2>, std::plus<void>,  int>, int>);
+    static_assert(std::is_same_v<csl::mp::fold_right_result_t<std::array<int,2>, std::plus<void>,  int>, int>);
+    static_assert(std::is_same_v<csl::mp::fold_left_result_t <std::array<int,2>, std::minus<void>, int>, int>);
+    static_assert(std::is_same_v<csl::mp::fold_right_result_t<std::array<int,2>, std::minus<void>, int>, int>);
 }
 namespace test::tuples::algorithm::fold::heterogeneous {
 
     static_assert(std::invocable<std::plus<void>, std::string, char>);
     static_assert(std::invocable<std::plus<void>, std::string, std::string>);
     static_assert(std::invocable<std::plus<void>, std::string, const char *>);
-    #if __cpp_lib_string_view >= 202403L
-    static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // requires C++26 - P2591
-    #endif
-    
+#if __cpp_lib_string_view >= 202403L
+    static_assert(std::invocable<std::plus<void>, std::string, std::string_view>); // C++26 P2591
+#endif
+
     constexpr auto value = std::tuple{
-            'a',
-        #if __cpp_lib_constexpr_string >= 201907L // P0980R1 support
-            std::string{ "bc" },
-        #else
-            "bc"
-        #endif
-            "de",
-        #if __cpp_lib_string_view >= 202403L
-            std::string_view{ "fg" }
-        #else
-            "fg"
-        #endif
+        'a',
+#if __cpp_lib_constexpr_string >= 201907L
+        std::string{ "bc" },
+#else
+        "bc",
+#endif
+        "de",
+#if __cpp_lib_string_view >= 202403L
+        std::string_view{ "fg" }
+#else
+        "fg"
+#endif
     };
 
-    // fold_left
-    constexpr auto fold_left_result = csl::mp::fold_left(
-        value,
-        std::plus<void>{},
-        std::string{}
-    );
     static_assert(std::is_same_v<
-        std::remove_cvref_t<decltype(fold_left_result)>,
+        decltype(csl::mp::fold_left(value, std::plus<void>{}, std::string{})),
         csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>
     >);
-    static_assert(std::is_same_v<decltype(fold_left_result), const std::string>);
-
-    static_assert(
-        // NOTE: GCC complains about `fold_left_result’ is not usable in a constant expression` because of basic_string `{ return _M_string_length; }`
-        csl::mp::fold_left(
-            value,
-            std::plus<void>{},
-            std::string{}
-        ) == "abcdefg"
-    );
-
-    // fold_right
-    constexpr auto fold_right_result = csl::mp::fold_right(
-        value,
-        std::plus<void>{},
-        std::string{}
-    );
     static_assert(std::is_same_v<
-        std::remove_cvref_t<decltype(fold_right_result)>,
+        csl::mp::fold_left_result_t<decltype(value), std::plus<void>, std::string>,
+        std::string
+    >);
+    // NOTE: GCC may complain about that a named constexpr variable "not usable in a constant expression" due to basic_string internals.
+    static_assert(csl::mp::fold_left(value, std::plus<void>{}, std::string{}) == "abcdefg");
+
+    static_assert(std::is_same_v<
+        decltype(csl::mp::fold_right(value, std::plus<void>{}, std::string{})),
         csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>
     >);
     static_assert(std::is_same_v<
         csl::mp::fold_right_result_t<decltype(value), std::plus<void>, std::string>,
         std::string
     >);
-
-    static_assert(std::is_same_v<decltype(fold_right_result), const std::string>);
-
-    static_assert(
-        csl::mp::fold_right(
-            value,
-            std::plus<void>{},
-            std::string{}
-        ) == "abcdefg"
-    );
+    static_assert(csl::mp::fold_right(value, std::plus<void>{}, std::string{}) == "abcdefg");
 }
 namespace test::tuples::algorithm::fold::accumulation_order {
-    
+
+    // expression_accumulator(a, b) = "(a,b)" to check internal behavior:
+    //   fold_left  = f(f(f(init, x), y), z) = "(((_,x),y),z)"
+    //   fold_right = f(x, f(y, f(z, init))) = "(x,(y,(z,_)))"
     constexpr auto expression_accumulator = [](std::string_view a, std::string_view b) -> std::string {
         return "(" + std::string{a} + "," + std::string{b} + ")";
     };

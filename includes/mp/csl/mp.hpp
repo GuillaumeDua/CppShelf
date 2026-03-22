@@ -63,7 +63,7 @@
 
 // ---
 
-#if not __cplusplus >= 202002L
+#if __cplusplus < 202002L
 # error "csl/mp.hpp requires C++20 or greater"
 #endif
 
@@ -2251,7 +2251,7 @@ namespace csl::mp {
     #pragma endregion
 
     // WIP(Guillaume) - REFACTO: concepts::tuple -> tuple_like ⬇️ (everything below)
-    
+    // TODO(Guillaume) - element_predicate<tuple>
     template <csl::mp::concepts::tuple T>
     [[nodiscard]] constexpr auto all_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p)
     {
