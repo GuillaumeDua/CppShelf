@@ -747,10 +747,10 @@ namespace csl::mp {
         template <typename> class TQual,
         template <typename> class UQual
     >
-    requires (concepts::tuple<T> or concepts::tuple<U>)
-    and std::same_as<T, std::remove_cvref_t<T>>
-    and std::same_as<U, std::remove_cvref_t<U>>
-    and (std::tuple_size_v<T> == std::tuple_size_v<U>)
+    requires
+            std::same_as<T, std::remove_cvref_t<T>>
+        and std::same_as<U, std::remove_cvref_t<U>>
+        and (std::tuple_size_v<T> == std::tuple_size_v<U>)
     using tuple_common_reference_t = typename tuple_common_reference<
         T, U,
         TQual, UQual
@@ -1196,6 +1196,8 @@ namespace csl::mp {
     // is_homogeneous
     template <typename T>
     struct is_homogeneous : std::false_type{};
+    template <concepts::empty T>
+    struct is_homogeneous<T> : std::true_type{};
     template <concepts::tuple_like T>
     struct is_homogeneous<T> : std::bool_constant<
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -2250,8 +2252,8 @@ namespace csl::mp {
     using fold_right_result_t = typename fold_right_result<T, F, init>::type;
     #pragma endregion
 
-    // WIP(Guillaume) - REFACTO: concepts::tuple -> tuple_like ⬇️ (everything below)
     // TODO(Guillaume) - element_predicate<tuple>
+    // TODO(Guillaume) - projection
     template <csl::mp::concepts::tuple_like T>
     [[nodiscard]] constexpr auto all_of(const T & value, /*std::predicate<tuple_elements...>*/ auto && p)
     {

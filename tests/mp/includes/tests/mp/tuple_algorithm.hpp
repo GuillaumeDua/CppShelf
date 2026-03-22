@@ -1,5 +1,7 @@
 #pragma once
 #include <csl/mp.hpp>
+#include <tuple>
+#include <array>
 #include <string>
 #include <cstdint>
 
@@ -33,8 +35,6 @@ namespace test::tuples::algorithm::count_if {
     using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
     static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
 }
-
-// WIP: reorder in tests/mp/includes/tests/mp/tuple.hpp if no dependent-code comes right after
 namespace test::tuples::algorithm::uniqued {
 
     using without_duplicates = csl::mp::tuple<int, char, bool>;
@@ -214,20 +214,38 @@ namespace test::tuples::algorithm::replace_if {
     >);
 }
 
-
 // WIP: std::tuple support
+// WIP: result type should be:
+//  T0, T1 are same      => T0
+//  T0, T1 are different => T0 or csl::mp::tuple ?
 namespace test::tuples::algorithm::set_union {
-    using T0 = csl::mp::tuple<int, char>;
-    using T1 = csl::mp::tuple<int, double>;
-    
-    static_assert(std::is_same_v<
-        csl::mp::set_union_t<T0, T1>,
-        csl::mp::tuple<int, char, double>
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
-        csl::mp::tuple<int, char, double>
-    >);
+
+    namespace csl_mp_tuple {
+        using T0 = csl::mp::tuple<int, char>;
+        using T1 = csl::mp::tuple<int, double>;
+        
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<T0, T1>,
+            csl::mp::tuple<int, char, double>
+        >);
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
+            csl::mp::tuple<int, char, double>
+        >);
+    }
+    namespace std_tuple {
+        using T0 = std::tuple<int, char>;
+        using T1 = std::tuple<int, double>;
+        
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<T0, T1>,
+            csl::mp::tuple<int, char, double>
+        >);
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
+            csl::mp::tuple<int, char, double>
+        >);
+    }
 }
 namespace test::tuples::algorithm::set_intersection {
     using T0 = csl::mp::tuple<int, char>;
@@ -385,6 +403,12 @@ namespace test::tuples::algorithm::functions::all_any_none_of {
         static_assert(csl::mp::all_of(value, [](const auto & element){ return element > 0; }));
         static_assert(csl::mp::any_of(value, [](const auto & element){ return element < 1; }));
         static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
+
+        namespace with_rvalue {
+            static_assert(csl::mp::all_of(csl::mp::tuple{ 42, .42f, 'a' }, [](const auto & element){ return element > 0; }));
+            static_assert(csl::mp::all_of(csl::mp::make_tuple( 42, .42f, 'a' ), [](const auto & element){ return element > 0; }));
+            static_assert(csl::mp::all_of(csl::mp::forward_as_tuple( 42, .42f, 'a' ), [](const auto & element){ return element > 0; }));
+        }
     }
     namespace std_tuple {
         constexpr auto value = std::tuple{ 42, .42f, 'a' };
