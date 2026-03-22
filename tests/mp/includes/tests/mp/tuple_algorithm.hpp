@@ -51,6 +51,9 @@ namespace test::tuples::algorithm::uniqued {
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&&>);
     static_assert(csl::mp::concepts::uniqued<const csl::mp::tuple<int>&>);
+
+    static_assert(csl::mp::concepts::uniqued<std::array<int, 1>>);
+    static_assert(not csl::mp::concepts::uniqued<std::array<int, 2>>);
 }
 namespace test::tuples::algorithm::unfold {
     

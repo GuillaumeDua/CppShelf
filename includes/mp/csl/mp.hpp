@@ -1421,7 +1421,7 @@ namespace csl::mp {
     template <typename>
     struct is_uniqued;
     template <typename T, std::size_t N>
-    struct is_uniqued<std::array<T, N>> : std::bool_constant<(N > 1)>{};
+    struct is_uniqued<std::array<T, N>> : std::bool_constant<(N == 1)>{};
     template <concepts::tuple_like tuple_type>
     struct is_uniqued<tuple_type> : support_get_by_type<tuple_type>{};
     template <typename tuple_type>
