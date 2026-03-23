@@ -98,6 +98,12 @@ Check:
 
 ### Algorithms
 
+- What about per-algorithm tag-type ?
+  - `algorithm::result_type`
+  - on type:   `algorithm::mp<tuplelike, ...>`
+  - on values: `algorithm::operator()(tuplelike, ...)`
+  - enable composition: tuplelike | algorithm | another_algorithm
+
 - range-like API for sequence, tuple
   - views-like composition: `std::make_index_sequence<4> | reverse | drop(1) | take(2)` => `std::integer_sequence<std::size_t, 3, 2>`
   - ranges-like mp algo `op<tuple-like, args...>`

@@ -1259,7 +1259,7 @@ namespace csl::mp {
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
     struct index_of<tuple_type, T> : std::integral_constant<std::size_t,
-        // QUESTION: is it worthy ? If so, would a rebind like unfold_to<tuple_type, tuple> be worth ?
+        // QUESTION: is it worthy ? If so, would a rebind like unfold_into<tuple_type, tuple> be worth ?
         tuple_type::storage_type::template by_type_<T>::index
     >{};
     template <concepts::tuple_like tuple_type, typename T>
@@ -1490,7 +1490,7 @@ namespace csl::mp {
     template <typename... Us, typename... Ts>
     struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
 
-    // TODO(Guillaume) What if std::tuple is not defined ?
+    // TODO(Guillaume) What if std::tuple is not defined yet ?
     template <typename ... Us, typename... Ts>
     struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
     template <typename T0, typename T1, typename U0, typename U1>
@@ -1817,6 +1817,8 @@ namespace csl::mp {
     >
     using replace_if_t = typename replace_if<tuple_type, predicate, replacement>::type;
 
+    // WIP: use rebind_t
+    //  small experiment: https://godbolt.org/z/E3q3P6o4P
     // set_union
     template <typename, typename>
     struct set_union;
