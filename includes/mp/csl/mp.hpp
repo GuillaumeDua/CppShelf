@@ -1454,14 +1454,15 @@ namespace csl::mp {
     struct unfold;
     template <typename ... Ts, template <typename...> typename destination>
     struct unfold<destination<Ts...>, destination> : std::type_identity<destination<Ts...>>{};
-    // REFACTO: for_each_index ?
     template <concepts::tuple_like tuple_type, template <typename...> typename destination>
     struct unfold<tuple_type, destination> {
     private:
         // NOTE(impl.): using lambdas here (dependent-name and the closure-types) mess up with ADL
+        // REFACTO: for_each_index ?
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> destination<std::tuple_element_t<Is, tuple_type>...>;
+        //  or decltype(destination{ std::tuple_element_t<Is, tuple_type>... }) ?
     public:
         using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
     };
@@ -1470,6 +1471,8 @@ namespace csl::mp {
 
     // rebind
     //  KNOWN-LIMITATION: NTTPs
+    // rebind tuplelike: rebind<tuplelike, elements...>
+    //  Each tuplelike should add a specialization, especially user-defined ones
     template <typename T, typename... Us>
     struct rebind{
     private:
@@ -1481,20 +1484,19 @@ namespace csl::mp {
         ));
     };
 
-    // rebind tuplelike: rebind<tuplelike, elements...>
-    //  Each tuplelike should add a specialization, especially user-defined ones
+    template <typename... Us, typename... Ts>
+    struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
+    // rebind<std::array<T, N>>: 
     template <typename T, std::size_t N, typename Us_0, typename ... Us_N>
     requires (N == 1 + sizeof...(Us_N))
         and (std::same_as<Us_0, Us_N> and ...)
     struct rebind<std::array<T,N>, Us_0, Us_N...> : std::type_identity<std::array<Us_0,N>>{};
-    template <typename... Us, typename... Ts>
-    struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
-
     // TODO(Guillaume) What if std::tuple is not defined yet ?
     template <typename ... Us, typename... Ts>
     struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
     template <typename T0, typename T1, typename U0, typename U1>
     struct rebind<std::pair<T0, T1>, U0, U1> : std::type_identity<std::pair<U0, U1>>{};
+
     template <typename ttp, typename ... Ts>
     using rebind_t = typename rebind<ttp, Ts...>::type;
 

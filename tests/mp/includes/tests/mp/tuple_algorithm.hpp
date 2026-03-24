@@ -88,27 +88,56 @@ namespace test::tuples::algorithm::unfold {
     >);
 }
 namespace test::tuples::algorithm::rebind {
+
+    // csl::mp::tuple
+    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<int, float>, char, double>,  csl::mp::tuple<char, double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<int, float>, char>,          csl::mp::tuple<char>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<int, float>>,                csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<>>,                          csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<>, int, float>,              csl::mp::tuple<int, float>>);
+    // element types from `like` are fully replaced
     static_assert(std::is_same_v<
-        csl::mp::rebind_t<std::tuple<int>, char>,
-        std::tuple<char>
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::rebind_t<csl::mp::tuple<int>, char>,
-        csl::mp::tuple<char>
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::rebind_t<std::pair<int, char>, bool, double>,
-        std::pair<bool, double>
-    >);
-    static_assert(std::is_same_v<
-        csl::mp::rebind_t<std::array<int, 4>, char,char,char,char>,
-        std::array<char, 4>
+        csl::mp::rebind_t<
+            csl::mp::tuple<std::int64_t, std::int64_t, std::int64_t>,
+            int, float, double
+        >,
+        csl::mp::tuple<int, float, double>
     >);
 
-    static_assert(std::is_same_v<
-        csl::mp::rebind_t<std::is_same<int, char>, bool, double>,
-        std::is_same<bool, double>
-    >);
+    // std::tuple
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<int, float>, char, double>,  std::tuple<char, double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<int, float>>,                std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<>>,                          std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<>, int, float>,              std::tuple<int, float>>);
+
+    // std::pair - always exactly 2 types
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::pair<int, float>, char, double>,               std::pair<char, double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::pair<std::int64_t, std::int64_t>, int, float>, std::pair<int, float>>);
+    // wrong arity is ill-formed:
+    //   rebind_t<std::pair<int,float>, char>                       // 1 element  -> ill-formed
+    //   rebind_t<std::pair<int,float>, char, double, std::int64_t> // 3 elements -> ill-formed
+
+    // std::array
+    //   Requires: sizeof...(Us) == N AND all Us are the same type.
+    //   Both constraints are structural: violating either is ill-formed.
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::array<int, 3>, float, float, float>,   std::array<float, 3>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::array<int, 1>, double>,                std::array<double, 1>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::array<int, 2>, char, char>,            std::array<char, 2>>);
+    // N mismatch is ill-formed:
+    //   rebind_t<std::array<int,3>, float, float>                  // 2 != 3 -> ill-formed
+    //   rebind_t<std::array<int,3>, float, float, float, float>    // 4 != 3 -> ill-formed
+    // Heterogeneous Us is ill-formed:
+    //   rebind_t<std::array<int,3>, float, int, float>             // not all same -> ill-formed
+
+    // User-defined TTP  (no specialisation needed — primary handles it)
+    template <typename... Ts> struct pack {};
+    static_assert(std::is_same_v<csl::mp::rebind_t<pack<int, float>, char, double>,    pack<char, double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<pack<int, float>>,                  pack<>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<pack<>, int>,                       pack<int>>);
+
+    // Us can carry cvref qualifiers regardless of what T holds
+    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<std::int64_t, std::int64_t>, int&, float&&>, std::tuple<int&, float&&>>);
+    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<double>,  const int>,                    csl::mp::tuple<const int>>);
 }
 namespace test::tuples::algorithm::transform {
 
