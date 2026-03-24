@@ -129,7 +129,7 @@ namespace test::tuples::algorithm::rebind {
     // Heterogeneous Us is ill-formed:
     //   rebind_t<std::array<int,3>, float, int, float>             // not all same -> ill-formed
 
-    // User-defined TTP  (no specialisation needed — primary handles it)
+    // User-defined TTP (no specialisation needed: primary handles it)
     template <typename... Ts> struct pack {};
     static_assert(std::is_same_v<csl::mp::rebind_t<pack<int, float>, char, double>,    pack<char, double>>);
     static_assert(std::is_same_v<csl::mp::rebind_t<pack<int, float>>,                  pack<>>);
@@ -138,6 +138,60 @@ namespace test::tuples::algorithm::rebind {
     // Us can carry cvref qualifiers regardless of what T holds
     static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<std::int64_t, std::int64_t>, int&, float&&>, std::tuple<int&, float&&>>);
     static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<double>,  const int>,                    csl::mp::tuple<const int>>);
+}
+namespace test::tuples::algorithm::rebind_elements {
+
+    // base use-case
+    static_assert(std::is_same_v<
+        csl::mp::rebind_elements_t<
+            std::tuple<std::int64_t,std::int64_t,std::int64_t>,
+            csl::mp::tuple<int,float,double>
+        >,
+        std::tuple<int,float,double>
+    >);
+
+    // csl::mp::tuple
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, csl::mp::tuple<char,double>>,  csl::mp::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, std::tuple<char,double>>,      csl::mp::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, std::pair<char,double>>,       csl::mp::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, std::array<char,2>>,           csl::mp::tuple<char,char>>);
+
+    // std::tuple
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, csl::mp::tuple<char,double>>,      std::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, std::tuple<char,double>>,          std::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, std::pair<char,double>>,           std::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, std::array<char,2>>,               std::tuple<char,char>>);
+
+    // std::pair
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, csl::mp::tuple<char,double>>,       std::pair<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, std::tuple<char,double>>,           std::pair<char,double>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, std::array<char,2>>,                std::pair<char,char>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, std::pair<char,double>>,            std::pair<char,double>>);
+
+    // std::array
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, csl::mp::tuple<float,float>>,          std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, std::tuple<float,float>>,              std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, std::array<float,2>>,                  std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, std::pair<float,float>>,               std::array<float,2>>);
+    // heterogeneous elements_source with std::array shape is ill-formed:
+    //   rebind_elements_t<std::array<int,2>, csl::mp::tuple<float,double>>  // not all same -> ill-formed
+
+    // empty source: output has shape's kind with zero elements
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, csl::mp::tuple<>>,             csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>,     csl::mp::tuple<>>,             std::tuple<>>);
+    // empty shape: output is fully determined by elements_source
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<>,          csl::mp::tuple<int>>,          csl::mp::tuple<int>>);
+    // both empty
+    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<>,          csl::mp::tuple<>>,             csl::mp::tuple<>>);
+
+    // cvref qualifiers
+    static_assert(std::is_same_v<
+        csl::mp::rebind_elements_t<
+            std::tuple<std::int64_t>,
+            csl::mp::tuple<int&,float&&>
+        >,
+        std::tuple<int&,float&&>
+    >);
 }
 namespace test::tuples::algorithm::transform {
 

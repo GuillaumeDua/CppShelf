@@ -1500,6 +1500,21 @@ namespace csl::mp {
     template <typename ttp, typename ... Ts>
     using rebind_t = typename rebind<ttp, Ts...>::type;
 
+    // rebind_elements
+    template <concepts::tuple_like shape, concepts::tuple_like elements_source>
+    struct rebind_elements {
+    private:
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+            -> rebind_t<shape, std::tuple_element_t<Is, elements_source>...>;
+    public:
+        using type = decltype(helper(
+            std::make_index_sequence<std::tuple_size_v<elements_source>>{}
+        ));
+    };
+    template <concepts::tuple_like shape, concepts::tuple_like elements_source>
+    using rebind_elements_t = typename rebind_elements<shape, elements_source>::type;
+
     // transform
     //  QUESTION: DRY vs. perfs. vs. API, scalability ?
     template <concepts::tuple_like tuple_type, template <typename...> typename transformation>
