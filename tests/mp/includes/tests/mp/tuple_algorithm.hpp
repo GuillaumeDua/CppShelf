@@ -296,11 +296,6 @@ namespace test::tuples::algorithm::replace_if {
         std::pair<replacement, replacement>
     >);
 }
-
-// WIP: std::tuple support
-// WIP: result type should be:
-//  T0, T1 are same      => T0
-//  T0, T1 are different => T0 or csl::mp::tuple ?
 namespace test::tuples::algorithm::set_union {
 
     namespace csl_mp_tuple {
@@ -322,11 +317,11 @@ namespace test::tuples::algorithm::set_union {
         
         static_assert(std::is_same_v<
             csl::mp::set_union_t<T0, T1>,
-            csl::mp::tuple<int, char, double>
+            std::tuple<int, char, double>
         >);
         static_assert(std::is_same_v<
             csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
-            csl::mp::tuple<int, char, double>
+            std::tuple<int, char, double>
         >);
     }
 }

@@ -190,9 +190,18 @@ namespace csl::mp {
     template <typename T>
     using value_type_t = typename value_type<T>::type;
 
+    template <template <typename> typename P>
+    struct negate {
+        template <typename T>
+        requires requires { { P<T>::value } -> std::convertible_to<bool>; }
+        struct type : std::bool_constant<not P<T>::value> {};
+    };
+
     //  example: csl::mp::bind_front<std::is_same, int>::value<int> == true
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_front {
+        template <typename ... Us>
+        using apply = trait<Ts..., Us...>; 
         template <typename ... Us>
         using type = trait<Ts..., Us...>::type;
         template <typename ... Us>
@@ -200,6 +209,8 @@ namespace csl::mp {
     };
     template <template <typename ...> typename trait, typename ... Ts>
     struct bind_back {
+        template <typename ... Us>
+        using apply = trait<Us..., Ts...>; 
         template <typename ... Us>
         using type = trait<Us..., Ts...>::type;
         template <typename ... Us>
@@ -1581,8 +1592,8 @@ namespace csl::mp {
     // scenario:
     //
     // t0 = [ a b c . . . ] - tuple<a,b,c>
-    // t1 = [ . . . d e . ] - pair<d,e>
-    // t2 = [ . . . . . f ] - array<f,1>
+    // T1 = [ . . . d e . ] - pair<d,e>
+    // T2 = [ . . . . . f ] - array<f,1>
     //
     // see demo https://godbolt.org/z/rKdjbzxeq
     //
@@ -1631,6 +1642,7 @@ namespace csl::mp {
 
     // tuple_cat / join
     constexpr auto cat() -> csl::mp::tuple<> { return {}; }
+    // TODO(Guillaume): rebind as t0 ?
     constexpr auto cat(csl::mp::concepts::tuple_like auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {
@@ -1707,7 +1719,7 @@ namespace csl::mp {
     template <typename tuple_type, typename T>
     constexpr bool contains_v = contains<tuple_type, T>::value;
 
-    // WIP --- 🏗️ --- revert API so it looks like std::ranges,
+    // WIP --- 🏗️ --- revert API so it looks like std::ranges 
     // WIP --- 🏗️ --- tuplelike as first template parameter
 
     // filter<trait>
@@ -1834,29 +1846,39 @@ namespace csl::mp {
     >
     using replace_if_t = typename replace_if<tuple_type, predicate, replacement>::type;
 
-    // WIP: use rebind_t
-    //  small experiment: https://godbolt.org/z/E3q3P6o4P
     // set_union
+    //  result type is a rebind_element_t<T1, result>
+    //  QUESTION: rebind destination consensus ?
+    //      T1 and T2 are same => T1                                                    | tuple<int, char>, tuple<char, bool>
+    //      T1 and T2 are different, but rebind in T1 is valid => T1                    | tuple<int, char>, array<char, 2>
+    //      T1 and T2 are different, and rebind in T1 is NOT valid => csl::mp::tuple ?  | array<char, 2>    tuple<int, char>
     template <typename, typename>
     struct set_union;
-    template <concepts::tuple_like t1, concepts::tuple_like t2>
-    struct set_union<t1, t2>{
+    template <concepts::tuple_like T1, concepts::tuple_like T2>
+    struct set_union<T1, T2>{
     private:
 
-        // REFACTO: cat_result<t1, filter_t<bind_front<contains, t1>::type>
-        template <std::size_t... t2_Is>
-        constexpr static auto helper(std::index_sequence<t2_Is...>)
+        template <std::size_t... T2_Is>
+        constexpr static auto helper(std::index_sequence<T2_Is...>)
             -> cat_result<
-                t1,
+                T1,
                 std::conditional_t<
-                    contains_v<t1, std::tuple_element_t<t2_Is, t2>>,
+                    contains_v<T1, std::tuple_element_t<T2_Is, T2>>,
                     tuple<>,
-                    tuple<std::tuple_element_t<t2_Is, t2>>
+                    tuple<std::tuple_element_t<T2_Is, T2>>
                 >...
             >;
-        // QUESTION(design) rebind as t1 ?
     public:
-        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<t2>>{}))::type;
+        using type = rebind_elements_t<T1, typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T2>>{}))::type>;
+    /*
+        Equivalent to:
+
+        using not_in_T1 = negate<bind_front<contains, T1>::template apply>;
+        using filtered  = filter_t<T2, not_in_T1::template type>;
+        using result    = cat_result_t<unfold_t<T1, csl::mp::tuple>, filtered>;
+    public:
+        using type = rebind_elements_t<T1, result>;
+    */
     };
     template <typename T, typename U>
     using set_union_t = typename set_union<T, U>::type;
@@ -1864,20 +1886,20 @@ namespace csl::mp {
     // set_intersection
     template <typename, typename>
     struct set_intersection;
-    template <concepts::tuple_like t1, concepts::tuple_like t2>
-    struct set_intersection<t1, t2> {
+    template <concepts::tuple_like T1, concepts::tuple_like T2>
+    struct set_intersection<T1, T2> {
     private:
-        template <std::size_t... t1_Is>
-        constexpr static auto helper(std::index_sequence<t1_Is...>)
+        template <std::size_t... T1_Is>
+        constexpr static auto helper(std::index_sequence<T1_Is...>)
             -> cat_result<
                 std::conditional_t<
-                    contains_v<t2, std::tuple_element_t<t1_Is, t1>>,
-                    tuple<std::tuple_element_t<t1_Is, t1>>,
+                    contains_v<T2, std::tuple_element_t<T1_Is, T1>>,
+                    tuple<std::tuple_element_t<T1_Is, T1>>,
                     tuple<>
                 >...
             >;
     public:
-        using type = typename decltype(helper(std::make_index_sequence<std::tuple_size_v<t1>>{}))::type;
+        using type = rebind_elements_t<T1, typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type>;
     };
     template <typename T, typename U>
     using set_intersection_t = typename set_intersection<T, U>::type;
@@ -1937,7 +1959,7 @@ namespace csl::mp {
                 >...
             >;
     public:
-        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type;
+        using type = rebind_elements_t<T1, typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type>;
     };
     template <typename T, typename U>
     using set_difference_t = typename set_difference<T, U>::type;
