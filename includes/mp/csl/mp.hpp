@@ -1848,12 +1848,23 @@ namespace csl::mp {
 
     // set_union
     //  result type is a rebind_element_t<T1, result>
-    //  QUESTION: rebind destination consensus ?
-    //      T1 and T2 are same => T1                                                    | tuple<int, char>, tuple<char, bool>
-    //      T1 and T2 are different, but rebind in T1 is valid => T1                    | tuple<int, char>, array<char, 2>
-    //      T1 and T2 are different, and rebind in T1 is NOT valid => csl::mp::tuple ?  | array<char, 2>    tuple<int, char>
+    //      QUESTION: rebind destination consensus ?
+    //      - T1 and T2 are same => T1                                                    | tuple<int, char>, tuple<char, bool>
+    //      - T1 and T2 are different, but rebind in T1 is valid => T1                    | tuple<int, char>, array<char, 2>
+    //      - T1 and T2 are different, and rebind in T1 is NOT valid => csl::mp::tuple ?  | array<char, 2>    tuple<int, char>
     //
-    //      Since we don't want to require same instance_of
+    //        Since we don't want to require same instance_of
+    ///
+    // Performances
+    //
+    //  Could also impl something like
+    //      template <tuplelike T1, tuplelike T2, template <class...> class comparator>
+    //      struct set_merge;
+    //  So we have:
+    //      using set_union_t        = typename set_merge<T1, T2, take_left>::type;
+    //      using set_intersection_t = typename set_merge<T1, T2, take_right>::type;
+    //      using set_difference_t   = typename set_merge<T1, T2, ?>::type;
+    //  But that'd requires a heavy boilerplate, plus some sorting algorithms => most likely, no gain
     template <typename, typename>
     struct set_union;
     template <concepts::tuple_like T1, concepts::tuple_like T2>
