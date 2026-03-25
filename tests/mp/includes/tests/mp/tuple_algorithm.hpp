@@ -296,61 +296,171 @@ namespace test::tuples::algorithm::replace_if {
         std::pair<replacement, replacement>
     >);
 }
-namespace test::tuples::algorithm::set_union {
+namespace test::tuples::algorithm::set {
+    using empty = csl::mp::tuple<>;
+    using T0 = csl::mp::tuple<int, char>;
+    using T1 = csl::mp::tuple<int, double>;
 
-    namespace csl_mp_tuple {
+    namespace set_union {
+
+        // empty LHS or RHS => identity
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<T0, empty>,
+            T0
+        >);
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<empty, T0>,
+            T0
+        >);
+
+        // idempotence
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<T0, T0>,
+            T0
+        >);
+
+        // order preservation
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<
+                csl::mp::tuple<int, char>,
+                csl::mp::tuple<char, int, float>
+            >,
+            csl::mp::tuple<int, char, float>
+        >);
+
+        // duplicates in RHS
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<
+                csl::mp::tuple<int>,
+                csl::mp::tuple<int, int, int>
+            >,
+            csl::mp::tuple<int>
+        >);
+        // duplicates in LHS
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<
+                csl::mp::tuple<int, int>,
+                csl::mp::tuple<int>
+            >,
+            csl::mp::tuple<int, int>
+        >);
+
+        // cross tuplelikes types
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<
+                std::tuple<int, char>,
+                csl::mp::tuple<char, double>
+            >,
+            std::tuple<int, char, double>
+        >);
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<
+                std::tuple<int, char>,
+                std::array<char, 2>
+            >,
+            std::tuple<int, char>
+        >);
+        static_assert(std::is_same_v<
+            csl::mp::set_union_t<
+                std::array<char, 2>,
+                std::tuple<char>
+            >,
+            std::array<char, 2>
+        >);
+    }
+    namespace intersection {
         using T0 = csl::mp::tuple<int, char>;
         using T1 = csl::mp::tuple<int, double>;
         
+        // empty behavior
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<T0, T1>,
-            csl::mp::tuple<int, char, double>
+            csl::mp::set_intersection_t<T0, empty>,
+            empty
         >);
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
-            csl::mp::tuple<int, char, double>
+            csl::mp::set_intersection_t<empty, T0>,
+            empty
         >);
-    }
-    namespace std_tuple {
-        using T0 = std::tuple<int, char>;
-        using T1 = std::tuple<int, double>;
-        
-        static_assert(std::is_same_v<
-            csl::mp::set_union_t<T0, T1>,
-            std::tuple<int, char, double>
-        >);
-        static_assert(std::is_same_v<
-            csl::mp::set_union_t<T0, csl::mp::unfold_t<T1, std::tuple>>,
-            std::tuple<int, char, double>
-        >);
-    }
-}
-namespace test::tuples::algorithm::set_intersection {
-    using T0 = csl::mp::tuple<int, char>;
-    using T1 = csl::mp::tuple<int, double>;
-    
-    static_assert(std::is_same_v<
-        csl::mp::set_intersection_t<T0, T1>,
-        csl::mp::tuple<int>
-    >);
-}
-namespace test::tuples::algorithm::set_difference {
-    
-    static_assert(std::is_same_v<
-        csl::mp::set_difference_t<
-            csl::mp::tuple<int, char>,
-            csl::mp::tuple<int, double>
-        >,
-        csl::mp::tuple<char>
-    >);
 
-    static_assert(std::is_same_v<
-        csl::mp::set_difference_t<
-            csl::mp::tuple<A,B,D,D,D,G>,
-            csl::mp::tuple<B,D,F>
-        >,
-        csl::mp::tuple<A,D,D,G>
-    >);
+        // idempotence
+        static_assert(std::is_same_v<
+            csl::mp::set_intersection_t<T0, T0>,
+            T0
+        >);
+
+        // order preservation (from LHS!)
+        static_assert(std::is_same_v<
+            csl::mp::set_intersection_t<
+                csl::mp::tuple<int, char, float>,
+                csl::mp::tuple<float, int>
+            >,
+            csl::mp::tuple<int, float>
+        >);
+
+        // duplicates in LHS are preserved
+        static_assert(std::is_same_v<
+            csl::mp::set_intersection_t<
+                csl::mp::tuple<int, int, char>,
+                csl::mp::tuple<int>
+            >,
+            csl::mp::tuple<int, int>
+        >);
+    }
+    namespace set_difference {
+    
+        // correctness
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<
+                csl::mp::tuple<int, int, int>,
+                csl::mp::tuple<int, int>
+            >,
+            csl::mp::tuple<int>
+        >);
+
+        // identity
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<T0, empty>,
+            T0
+        >);
+
+        // annihilation
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<T0, T0>,
+            empty
+        >);
+
+        // empty lhs
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<empty, T0>,
+            empty
+        >);
+
+        // order preservation
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<
+                csl::mp::tuple<int, char, float>,
+                csl::mp::tuple<char>
+            >,
+            csl::mp::tuple<int, float>
+        >);
+
+        // duplicates preserved
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<
+                csl::mp::tuple<int, int, char>,
+                csl::mp::tuple<int>
+            >,
+            csl::mp::tuple<int, char>
+        >);
+
+        static_assert(std::is_same_v<
+            csl::mp::set_difference_t<
+                csl::mp::tuple<A,B,D,D,D,G>,
+                csl::mp::tuple<B,D,F>
+            >,
+            csl::mp::tuple<A,D,D,G>
+        >);
+    }
 }
 namespace test::tuples::algorithm::deduplicate {
     using csl_tuple_valid   = csl::mp::tuple<int, char, double>;

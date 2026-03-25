@@ -1852,6 +1852,8 @@ namespace csl::mp {
     //      T1 and T2 are same => T1                                                    | tuple<int, char>, tuple<char, bool>
     //      T1 and T2 are different, but rebind in T1 is valid => T1                    | tuple<int, char>, array<char, 2>
     //      T1 and T2 are different, and rebind in T1 is NOT valid => csl::mp::tuple ?  | array<char, 2>    tuple<int, char>
+    //
+    //      Since we don't want to require same instance_of
     template <typename, typename>
     struct set_union;
     template <concepts::tuple_like T1, concepts::tuple_like T2>
