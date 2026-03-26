@@ -301,7 +301,7 @@ namespace test::tuples::algorithm::set {
     using T0 = csl::mp::tuple<int, char>;
     using T1 = csl::mp::tuple<int, double>;
 
-    namespace set_union {
+    namespace union_ {
 
         // empty LHS or RHS => identity
         static_assert(std::is_same_v<
@@ -406,7 +406,7 @@ namespace test::tuples::algorithm::set {
             csl::mp::tuple<int, int>
         >);
     }
-    namespace set_difference {
+    namespace difference {
     
         // correctness
         static_assert(std::is_same_v<
@@ -582,6 +582,127 @@ namespace test::tuples::algorithm::fold::accumulation_order {
     #endif
 }
 
+// TODO(Guillaume) forgot some algos here
+
+namespace test::tuples::algorithm::index_of {
+
+    template <csl::mp::concepts::tuple_like tuple_type, typename /*not_found*/>
+    constexpr auto not_found = csl::mp::size_v<tuple_type>;
+
+    // csl::mp::tuple - unique types -> use direct storage deduction: O(1), no linear scan.
+    namespace optimized_O1 {
+
+        using T = csl::mp::tuple<char, double, float, int>;
+
+        static_assert(csl::mp::index_of_v<T, char>   == 0);
+        static_assert(csl::mp::index_of_v<T, double> == 1);
+        static_assert(csl::mp::index_of_v<T, float>  == 2);
+        static_assert(csl::mp::index_of_v<T, int>    == 3);
+        static_assert(csl::mp::index_of_v<T, std::int64_t> == not_found<T, std::int64_t>);
+
+        // index_of == last_index_of
+        static_assert(csl::mp::last_index_of_v<T, char>   == 0);
+        static_assert(csl::mp::last_index_of_v<T, double> == 1);
+        static_assert(csl::mp::last_index_of_v<T, float>  == 2);
+        static_assert(csl::mp::last_index_of_v<T, int>    == 3);
+        static_assert(csl::mp::last_index_of_v<T, std::int64_t> == not_found<T, std::int64_t>);
+
+        template <std::size_t index>
+        constexpr auto check_element(){
+            using element_t = csl::mp::element_t<index, T>;
+            static_assert(csl::mp::details::concepts::can_deduce_by_type<T, element_t>);
+            static_assert(index == csl::mp::index_of_v<T, element_t>);
+            static_assert(index == csl::mp::last_index_of_v<T, element_t>);
+            // so we implicitly have: static_assert(csl::mp::index_of_v<T, element_t> == csl::mp::last_index_of_v<T, element_t>);
+        };
+        [[maybe_unused]] constexpr auto check_elements = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            ((check_element<indexes>()), ...);
+            return true;
+        }(std::make_index_sequence<csl::mp::size_v<T>>{});
+    }
+
+    namespace linear_ON {
+        static_assert(not csl::mp::details::concepts::can_deduce_by_type<csl::mp::tuple<int, float, int>, int>);
+
+        using duplicate_at_end = csl::mp::tuple<char, double, float, int, int>;
+        static_assert(csl::mp::index_of_v     <duplicate_at_end, int> == 3);
+        static_assert(csl::mp::last_index_of_v<duplicate_at_end, int> == 4);
+
+        using duplicate_at_begin = csl::mp::tuple<int, int, float, double>;
+        static_assert(csl::mp::index_of_v     <duplicate_at_begin, int> == 0);
+        static_assert(csl::mp::last_index_of_v<duplicate_at_begin, int> == 1);
+
+        using duplicate_in_middle = csl::mp::tuple<char, int, int, double>;
+        static_assert(csl::mp::index_of_v     <duplicate_in_middle, int> == 1);
+        static_assert(csl::mp::last_index_of_v<duplicate_in_middle, int> == 2);
+
+        using duplicate_sparsed = csl::mp::tuple<int, float, int, double, int>;
+        static_assert(csl::mp::index_of_v     <duplicate_sparsed, int> == 0);
+        static_assert(csl::mp::last_index_of_v<duplicate_sparsed, int> == 4);
+
+        static_assert(csl::mp::index_of_v     <duplicate_at_end, std::int64_t> == not_found<duplicate_at_end, std::int64_t>);
+        static_assert(csl::mp::last_index_of_v<duplicate_at_end, std::int64_t> == not_found<duplicate_at_end, std::int64_t>);
+
+        using homogeneous = csl::mp::tuple<int, int, int>;
+        static_assert(csl::mp::index_of_v     <homogeneous, int>   == 0);
+        static_assert(csl::mp::last_index_of_v<homogeneous, int>   == 2);
+        static_assert(csl::mp::index_of_v     <homogeneous, float> == not_found<homogeneous, float>);
+    }
+
+    namespace edge_cases {
+        // empty: not_found == tuple_size == 0
+        using empty_csl_mp_tuple  = csl::mp::tuple<>;
+        using empty_std_tuple     = std::tuple<>;
+        static_assert(csl::mp::index_of_v     <empty_csl_mp_tuple,  int> == not_found<empty_csl_mp_tuple,  int>);
+        static_assert(csl::mp::last_index_of_v<empty_csl_mp_tuple,  int> == not_found<empty_csl_mp_tuple,  int>);
+        static_assert(csl::mp::index_of_v     <empty_std_tuple,     int> == not_found<empty_std_tuple,     int>);
+        static_assert(csl::mp::last_index_of_v<empty_std_tuple,     int> == not_found<empty_std_tuple,     int>);
+
+        // size == 1: found
+        using single_element = csl::mp::tuple<int>;
+        static_assert(csl::mp::index_of_v     <single_element, int>   == 0);
+        static_assert(csl::mp::last_index_of_v<single_element, int>   == 0);
+        // size == 1: not found
+        static_assert(csl::mp::index_of_v     <single_element, float> == not_found<single_element, float>);
+        static_assert(csl::mp::last_index_of_v<single_element, float> == not_found<single_element, float>);
+    }
+
+    // linear
+    namespace std_tuple {
+        using T = std::tuple<char, double, float, int>;
+        static_assert(csl::mp::index_of_v     <T, char>         == 0);
+        static_assert(csl::mp::index_of_v     <T, int>          == 3);
+        static_assert(csl::mp::index_of_v     <T, std::int64_t> == not_found<T, std::int64_t>);
+        static_assert(csl::mp::last_index_of_v<T, int>          == 3);
+
+        using duplicates = std::tuple<int, float, int>;
+        static_assert(csl::mp::index_of_v     <duplicates, int> == 0);
+        static_assert(csl::mp::last_index_of_v<duplicates, int> == 2);
+    }
+
+    // std::array - optimised O(1)
+    namespace std_array {
+        using T = std::array<int, 4>;
+        static_assert(csl::mp::index_of_v     <T, int>   == 0);
+        static_assert(csl::mp::last_index_of_v<T, int>   == 3);
+        static_assert(csl::mp::index_of_v     <T, float> == not_found<T, float>);
+    }
+
+    namespace std_pair {
+        using T = std::pair<int, float>;
+        static_assert(csl::mp::index_of_v     <T, int>    == 0);
+        static_assert(csl::mp::index_of_v     <T, float>  == 1);
+        static_assert(csl::mp::index_of_v     <T, double> == not_found<T, double>);
+        static_assert(csl::mp::last_index_of_v<T, int>    == 0);
+        static_assert(csl::mp::last_index_of_v<T, float>  == 1);
+
+        // Same type in both positions
+        using duplicate = std::pair<int, int>;
+        static_assert(csl::mp::index_of_v     <duplicate, int>   == 0);
+        static_assert(csl::mp::last_index_of_v<duplicate, int>   == 1);
+    }
+}
+
 // TODO(Guillaume) sort, is_sorted
 
 namespace test::tuples::algorithm::functions::all_any_none_of {
@@ -611,3 +732,6 @@ namespace test::tuples::algorithm::functions::all_any_none_of {
         static_assert(csl::mp::none_of(value, [](const auto & element){ return element < 0; }));
     }
 }
+
+
+

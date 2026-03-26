@@ -1267,23 +1267,43 @@ namespace csl::mp {
     //  QUESTION: should value be Index<N> rather than integral_constant<std::size_t, N> ?
     template <typename, typename>
     struct index_of{};
+    // TODO(Guillaume): std::array specialization => T is same as value_type => 0. Do same for other index-search.
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
-    struct index_of<tuple_type, T> : std::integral_constant<std::size_t,
-        // QUESTION: is it worthy ? If so, would a rebind like unfold_into<tuple_type, tuple> be worth ?
+    struct index_of<tuple_type, T> : csl::mp::index_t<
+        // QUESTION: is it worthy ? If so, would a rebind like unfold_into<tuple_type, mp::tuple> for any tuplelike be worthy ?
         tuple_type::storage_type::template by_type_<T>::index
     >{};
     template <concepts::tuple_like tuple_type, typename T>
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
-    struct index_of<tuple_type, T> : std::integral_constant<std::size_t,
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            constexpr bool matches[] = { std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
-            for (std::size_t i = 0; i < sizeof...(indexes); ++i)
-                if (matches[i])
-                    return i;
-            return sizeof...(indexes);
+    struct index_of<tuple_type, T> : csl::mp::index_t<
+        []<std::size_t... Is>(std::index_sequence<Is...>) constexpr -> std::size_t {
+            if constexpr (sizeof...(Is) == 0)
+                return 0;
+            else {
+                std::size_t pos = sizeof...(Is);
+                (void)(
+                    (std::is_same_v<T, std::tuple_element_t<Is, std::remove_cvref_t<tuple_type>>>
+                    ? (pos = Is, false) // save result, stop the and-chain
+                    : true              // keep going
+                ) and ...);
+                return pos;
+            }
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+        //
+        // NOTE(Performances) Equivalent to:
+        //
+        // []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        //     constexpr bool matches[] = { std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
+        //     for (std::size_t i = 0; i < sizeof...(indexes); ++i)
+        //         if (matches[i])
+        //             return i;
+        //     return sizeof...(indexes);
+        // }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
+    //
+    // NOTE: legacy impl:
+    //
     // struct index_of<tuple<Ts...>, T> {
     //     constexpr static std::size_t value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
     //         std::size_t pos = details::npos;
