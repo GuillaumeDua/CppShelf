@@ -1267,6 +1267,9 @@ namespace csl::mp {
     //  QUESTION: should value be Index<N> rather than integral_constant<std::size_t, N> ?
     template <typename, typename>
     struct index_of{};
+    // Performance: std::array specialization
+    template <typename T, std::size_t N>
+    struct index_of<std::array<T, N>, T> : csl::mp::index_t<0>{};
     // TODO(Guillaume): std::array specialization => T is same as value_type => 0. Do same for other index-search.
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
@@ -1277,15 +1280,15 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename T>
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct index_of<tuple_type, T> : csl::mp::index_t<
-        []<std::size_t... Is>(std::index_sequence<Is...>) constexpr -> std::size_t {
-            if constexpr (sizeof...(Is) == 0)
-                return 0;
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+            if constexpr (sizeof...(indexes) == 0)
+                return 0; // tuple_size
             else {
-                std::size_t pos = sizeof...(Is);
-                (void)(
-                    (std::is_same_v<T, std::tuple_element_t<Is, std::remove_cvref_t<tuple_type>>>
-                    ? (pos = Is, false) // save result, stop the and-chain
-                    : true              // keep going
+                std::size_t pos = sizeof...(indexes);
+                (void)((
+                    std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+                    ? (pos = indexes, false)    // save result, stop the and-chain
+                    : true                      // keep going
                 ) and ...);
                 return pos;
             }
@@ -1316,9 +1319,13 @@ namespace csl::mp {
     constexpr std::size_t index_of_v = index_of<tuple_type, T>::value;
 
     // last_index_of
-    //  equivalent to (sizeof...(Ts) - index_of<T, reverse<tuple<Ts...>>>)
+    //  equivalent to   (sizeof...(Ts) - index_of<reverse<tuple<Ts...>>, T>)
+    //  or              index_of_impl<tupletype, make_reverse_index_sequence<tuple_size_v<tupletype>>, T>
     template <typename, typename>
     struct last_index_of{};
+    // Performance: std::array specialization
+    template <typename T, std::size_t N>
+    struct last_index_of<std::array<T, N>, T> : csl::mp::index_t<(N - 1)>{};
 
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
@@ -1326,16 +1333,21 @@ namespace csl::mp {
 
     template <concepts::tuple_like tuple_type, typename T>
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
-    // REFACTO: index_of<reverse<tuple_type>, T> ?
-    struct last_index_of<tuple_type, T> : std::integral_constant<std::size_t,
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            std::size_t pos = sizeof...(indexes);
-            (void)((pos = std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
-                        ? indexes
-                        : pos
-            ), ...);
-            return pos;
-        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    struct last_index_of<tuple_type, T> : csl::mp::index_t<
+    []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+            // NOTE: same as index_of
+            if constexpr (sizeof...(indexes) == 0)
+                return 0;
+            else {
+                std::size_t pos = sizeof...(indexes);
+                (void)((
+                    std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+                    ? (pos = indexes, false)
+                    : true
+                ) and ...);
+                return pos;
+            }
+        }(make_reverse_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >
     {};
     template <typename tuple_type, typename T>
