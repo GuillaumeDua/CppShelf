@@ -1963,7 +1963,7 @@ namespace csl::mp {
             std::index_sequence<T2_Is...>
         ) {
 
-            auto should_keep = [
+            [[maybe_unused]] auto should_keep = [
                 used = std::array<bool, std::tuple_size_v<T2>>{}
             ]<typename T1_element>() mutable{
 
