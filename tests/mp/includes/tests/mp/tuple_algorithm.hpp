@@ -462,31 +462,99 @@ namespace test::tuples::algorithm::set {
         >);
     }
 }
-namespace test::tuples::algorithm::deduplicate {
-    using csl_tuple_valid   = csl::mp::tuple<int, char, double>;
-    using csl_tuple_invalid = csl::mp::tuple<int, char, int, char, double, int>;
-    
-    static_assert(std::is_same_v<
-        csl_tuple_valid,
-        csl::mp::deduplicate_t<csl_tuple_valid>
-    >);
-    static_assert(std::is_same_v<
-        csl_tuple_valid,
-        csl::mp::deduplicate_t<csl_tuple_invalid>
-    >);
+namespace test::tuples::algorithm::unique {
 
-    using std_tuple_valid   = csl::mp::unfold_t<csl::mp::tuple<int, char, double>, std::tuple>;
-    using std_tuple_invalid = csl::mp::unfold_t<csl::mp::tuple<int, char, int, char, double, int>, std::tuple>;
+    // ================================================================
+    // Invariant helpers: properties that must hold for ANY input
+    // ================================================================
 
-    static_assert(std::is_same_v<
-        std_tuple_valid,
-        csl::mp::deduplicate_t<std_tuple_valid>
-    >);
-    static_assert(std::is_same_v<
-        std_tuple_valid,
-        csl::mp::deduplicate_t<std_tuple_invalid>
-    >);
+    template <csl::mp::concepts::tuple_like T>
+    constexpr bool check = csl::mp::is_uniqued_v<csl::mp::unique_t<T>>;
 
+    template <csl::mp::concepts::tuple_like T>
+    constexpr bool unchanged = std::is_same_v<
+        csl::mp::unique_t<T>,
+        csl::mp::unique_t<csl::mp::unique_t<T>>
+    >;
+
+    namespace csl_tuple {
+
+        // already uniqued -> no-op
+        using already_unique = csl::mp::tuple<int, char, double>;
+        static_assert(csl::mp::concepts::support_get_by_type<already_unique>);
+        static_assert(csl::mp::concepts::uniqued<already_unique>);
+        static_assert(std::is_same_v<csl::mp::unique_t<already_unique>, already_unique>);
+
+        static_assert(not csl::mp::concepts::support_get_by_type<csl::mp::tuple<int, char, int>>);
+
+        // duplicate at end: first occurrence kept
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<csl::mp::tuple<int, char, double, int>>,
+            csl::mp::tuple<int, char, double>
+        >);
+        // duplicate at start
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<csl::mp::tuple<int, int, char, double>>,
+            csl::mp::tuple<int, char, double>
+        >);
+        // duplicate in middle
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<csl::mp::tuple<int, char, int, double>>,
+            csl::mp::tuple<int, char, double>
+        >);
+        // multiple distinct duplicates
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<csl::mp::tuple<int, char, int, char, double, int>>,
+            csl::mp::tuple<int, char, double>
+        >);
+        // all same type
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<csl::mp::tuple<int, int, int>>,
+            csl::mp::tuple<int>
+        >);
+
+        static_assert(unchanged<csl::mp::tuple<>>);
+        static_assert(unchanged<csl::mp::tuple<int>>);
+        static_assert(check<csl::mp::tuple<int, char, int, char, double, int>>);
+        static_assert(unchanged<csl::mp::tuple<int, char, int, char, double, int>>);
+        static_assert(unchanged<csl::mp::tuple<int, char, double>>); // already unique
+        static_assert(unchanged<csl::mp::tuple<>>);
+    }
+
+    namespace std_tuple {
+
+        using already_unique = std::tuple<int, char, double>;
+        static_assert(csl::mp::concepts::support_get_by_type<already_unique>);
+        static_assert(csl::mp::concepts::uniqued<already_unique>);
+        static_assert(std::is_same_v<csl::mp::unique_t<already_unique>, already_unique>);
+
+        static_assert(not csl::mp::concepts::support_get_by_type<std::tuple<int, char, int>>);
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<std::tuple<int, char, int, char, double, int>>,
+            std::tuple<int, char, double>
+        >);
+
+        static_assert(check<std::tuple<int, char, int, char, double, int>>);
+        static_assert(unchanged<std::tuple<>>);
+        static_assert(unchanged<std::tuple<int>>);
+        static_assert(unchanged<std::tuple<int, char, int, char, double, int>>);
+    }
+
+    namespace std_pair {
+
+        static_assert(csl::mp::concepts::support_get_by_type<std::pair<int, float>>);
+        static_assert(csl::mp::concepts::uniqued<std::pair<int, float>>);
+
+        using type = std::pair<int, float>;
+
+        // NOTE: pairs are either same/unchanged, or ill-formed
+        static_assert(check<type>);
+        static_assert(unchanged<type>);
+    }
+
+    namespace std_array {
+        // std_array -> std::array<T, N> -> std::array<T, 1>
+    }
 }
 
 namespace test::tuples::algorithm::fold::homogeneous {

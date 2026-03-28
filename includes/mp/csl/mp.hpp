@@ -2016,8 +2016,11 @@ namespace csl::mp {
     //  Post-condition: is_uniqued<T> is true_type
     template <typename>
     struct unique;
-    template <concepts::uniqued T>
+
+    template <concepts::tuple_like T>
+    requires concepts::uniqued<T>
     struct unique<T> : type_identity<T>{};
+    
     template <concepts::tuple_like T>
     struct unique<T> {
     private:
