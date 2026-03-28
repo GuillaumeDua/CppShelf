@@ -25,6 +25,8 @@ jobs:
 
             CMAKE_BUILD_TYPE: [ Debug, Release ]
             CSL_component: [ ag, ensure, functional, mp, typeinfo, wf ]
+            # TODO: CMakePreset instead
+            # TODO: for each compiler only [min, max] version
             configuration:
             # TODO: ARM once it's not public preview (ubuntu-24.04-arm)
             # TODO: clang, gcc -> only minimum supported and latest-stable ?

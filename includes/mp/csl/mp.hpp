@@ -2004,40 +2004,43 @@ namespace csl::mp {
                 >...
             >;
     public:
-        using type = rebind_elements_t<T1, typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type>;
+        using type = rebind_elements_t<
+            T1,
+            typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type
+        >;
     };
     template <typename T, typename U>
     using set_difference_t = typename set_difference<T, U>::type;
 
-    // deduplicate / make_valid / make_unique
+    // unique (deduplicate)
+    //  Post-condition: is_uniqued<T> is true_type
     template <typename>
-    struct deduplicate;
-    template <concepts::support_get_by_type T>
-    struct deduplicate<T> : type_identity<T>{};
-    template <typename ... Ts>
-    struct deduplicate<csl::mp::tuple<Ts...>> {
+    struct unique;
+    template <concepts::uniqued T>
+    struct unique<T> : type_identity<T>{};
+    template <concepts::tuple_like T>
+    struct unique<T> {
     private:
+        using T_no_cvref = std::remove_cvref_t<T>;
+
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> cat_result_t<
                 std::conditional_t<
-                    details::concepts::can_deduce_by_type<tuple<Ts...>, Ts> // not unique
-                        or Is == index_of_v<tuple<Ts...>, Ts>,              // first occurence
-                    tuple<Ts>,
+                    Is == index_of_v<T_no_cvref, element_t<Is, T_no_cvref>>, // first occurence
+                    tuple<element_t<Is, T_no_cvref>>,
                     tuple<>
                 >...
             >
         ;
     public:
-        using type = decltype(helper(std::make_index_sequence<sizeof...(Ts)>{}));
+        using type = rebind_elements_t<
+            T,
+            decltype(helper(std::make_index_sequence<size_v<T_no_cvref>>{}))
+        >;
     };
-    template <typename ... Ts>
-    struct deduplicate<std::tuple<Ts...>> : unfold<
-        typename deduplicate<csl::mp::tuple<Ts...>>::type,
-        std::tuple
-    >{};
     template <typename tuple_type>
-    using deduplicate_t = typename deduplicate<tuple_type>::type;
+    using unique_t = typename unique<tuple_type>::type;
 
     // flatten_once
     // flatten / make_flat
