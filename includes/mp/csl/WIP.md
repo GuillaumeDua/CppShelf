@@ -36,6 +36,7 @@ Check:
       - Better lookup perfs in some cases
       - same perfs for other cases ?
 - Doxygen
+  - Comments format, like `/// \brief etc.`
 
 ## Support
 

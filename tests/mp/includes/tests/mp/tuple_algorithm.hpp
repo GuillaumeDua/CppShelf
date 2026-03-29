@@ -553,7 +553,21 @@ namespace test::tuples::algorithm::unique {
     }
 
     namespace std_array {
-        // std_array -> std::array<T, N> -> std::array<T, 1>
+
+        using type       = std::array<int, 1>;
+        using duplicates = std::array<int, 2>;
+
+        static_assert(    csl::mp::concepts::uniqued<type>);
+        static_assert(not csl::mp::concepts::uniqued<duplicates>);
+
+        static_assert(check<type>);
+        static_assert(unchanged<type>);
+
+        // std::array<T, N> -> std::array<T, 1>
+        static_assert(std::is_same_v<
+            csl::mp::unique_t<duplicates>,
+            type
+        >);
     }
 }
 

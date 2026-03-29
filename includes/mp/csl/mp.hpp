@@ -1512,8 +1512,8 @@ namespace csl::mp {
     template <typename tuple_type, template <typename...> typename destination>
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
-    // rebind
-    //  KNOWN-LIMITATION: NTTPs
+    // rebind<tuple_like, elements...>
+    //  NOTE: size can change
     // rebind tuplelike: rebind<tuplelike, elements...>
     //  Each tuplelike should add a specialization, especially user-defined ones
     template <typename T, typename... Us>
@@ -1529,12 +1529,9 @@ namespace csl::mp {
 
     template <typename... Us, typename... Ts>
     struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>>{};
-    // rebind<std::array<T, N>>: 
     template <typename T, std::size_t N, typename Us_0, typename ... Us_N>
-    requires (N == 1 + sizeof...(Us_N))
-        and (std::same_as<Us_0, Us_N> and ...)
-    struct rebind<std::array<T,N>, Us_0, Us_N...> : std::type_identity<std::array<Us_0,N>>{};
-    // TODO(Guillaume) What if std::tuple is not defined yet ?
+    requires (std::same_as<Us_0, Us_N> and ...)
+    struct rebind<std::array<T,N>, Us_0, Us_N...> : std::type_identity<std::array<Us_0, (1 + sizeof...(Us_N))>>{};
     template <typename ... Us, typename... Ts>
     struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>>{};
     template <typename T0, typename T1, typename U0, typename U1>
@@ -1544,6 +1541,7 @@ namespace csl::mp {
     using rebind_t = typename rebind<ttp, Ts...>::type;
 
     // rebind_elements
+    //  NOTE: size can change
     template <concepts::tuple_like shape, concepts::tuple_like elements_source>
     struct rebind_elements {
     private:
