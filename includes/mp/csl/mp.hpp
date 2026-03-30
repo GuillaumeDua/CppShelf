@@ -1366,17 +1366,20 @@ namespace csl::mp {
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
     struct count<tuple_type, T> : std::integral_constant<std::size_t, 1>{};
+    template <typename value_type, std::size_t N, typename T>
+    struct count<std::array<value_type, N>, T> : std::integral_constant<std::size_t, (
+        std::is_same_v<value_type, T> ? N : 0
+    )>{};
     template <concepts::tuple_like tuple_type, typename T>
     requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct count<tuple_type, T> : std::integral_constant<std::size_t,
-
-        // TODO(Guillaume) cv std_array -> size
-        // TODO(Guillaume) cv empty tuplelike -> 0
-
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (0 + ... + 
-                std::is_same_v<T, std::tuple_element_t<indexes, tuple_type>>
-            );
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>) -> std::size_t {
+            if constexpr (sizeof...(indexes) == 0)
+                return std::size_t{0};
+            else
+                return (std::size_t{0} + ... + 
+                    std::size_t{ std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>> }
+                );
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
     template <concepts::tuple_like tuple_type, typename T>
@@ -1386,7 +1389,7 @@ namespace csl::mp {
     struct count_if : std::integral_constant<std::size_t,
         []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return (0 + ... + 
-                predicate<std::tuple_element_t<indexes, tuple_type>>::value
+                predicate<std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>::value
             );
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
