@@ -1385,16 +1385,23 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename T>
     constexpr std::size_t count_v = count<tuple_type, T>::value;
 
+    // count_if
+    // QUESTION: using csl::mp::predicate<P> ? template vs. non-template wrapper for better semantic ?
+    //           predicate<P>::template operator()<std::tuple_element_t<indexes, tuple_type>>()
     template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
     struct count_if : std::integral_constant<std::size_t,
-        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (0 + ... + 
-                predicate<std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>::value
-            );
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+            if constexpr (sizeof...(indexes) == 0)
+                return std::size_t{0};
+            else
+                return (std::size_t{0} + ... +
+                    std::size_t{ predicate<std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>::value }
+                );
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
     >{};
-    // QUESTION: using csl::mp::predicate<P> ? template vs. non-template wrapper for better semantic ?
-    //             predicate<P>::template operator()<std::tuple_element_t<indexes, tuple_type>>()
+    template <typename value_type, std::size_t N, template <typename...> typename predicate>
+    struct count_if<std::array<value_type, N>, predicate>
+    : std::integral_constant<std::size_t, predicate<value_type>::value ? N : 0>{};
     template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
     constexpr std::size_t count_if_v = count_if<tuple_type, predicate>::value;
 
