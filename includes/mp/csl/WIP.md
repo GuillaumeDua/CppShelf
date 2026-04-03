@@ -69,8 +69,11 @@ Check:
     - `std::tuple` drop-in replacement: Still don't wanna force conversions to be on the caller site
     - Yet, is the consumer responsible to `-w` or `-isystem` such a header ?
 
-## Optimisation
+## Performances, pptimisation
 
+Benchmarks using ct-bench
+
+- `concepts::tuple_like` -> `concepts::empty` or `concepts::not_empty` rather than double-checking
 - homogeneous layout -> array as storage
 - a bit like `csl::ag` lookup
   - Hard-code 0..8 storage, get
