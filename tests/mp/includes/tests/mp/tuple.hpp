@@ -161,7 +161,7 @@ namespace test::tuples::support_get_by_type {
     static_assert(not csl::mp::support_get_by_type_v<std::tuple<int, int>>);
     static_assert(csl::mp::support_get_by_type_v<std::tuple<int, char>>);
 }
-namespace test::tuples::type_gettable {
+namespace test::tuples::index_gettable {
 
     static_assert(csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 0>);
     static_assert(not csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 1>);

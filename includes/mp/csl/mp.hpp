@@ -1438,10 +1438,10 @@ namespace csl::mp {
     // support_get_by_type: true_type if get<tuple_element>... is legal
     //  conjunction<is_type_gettable<tuple-like, tuple-elements>...>
     template <typename>
-    class support_get_by_type : std::false_type{};
+    struct support_get_by_type : std::false_type{};
     template <concepts::tuple_like T>
-    class support_get_by_type<T> {
-    
+    struct support_get_by_type<T> {
+    private:
         consteval static auto impl(){
             if constexpr (concepts::std_array<T>)
                 return false;
@@ -1462,7 +1462,8 @@ namespace csl::mp {
     constexpr bool support_get_by_type_v = support_get_by_type<T>::value;
 
     namespace concepts {
-        template <typename T> concept support_get_by_type = support_get_by_type_v<std::remove_cvref_t<T>>;
+        template <typename T>
+        concept support_get_by_type = support_get_by_type_v<std::remove_cvref_t<T>>;
     }
 
     // is_index_gettable: same as is_type_gettable, using get<index> instead of get<T>
@@ -1476,6 +1477,17 @@ namespace csl::mp {
 
     namespace concepts {
         template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<std::remove_cvref_t<T>, N>;
+    }
+
+    // support_get_by_index: user-defined tuplelikes can opt-out in some strange specific cases
+    template <concepts::tuple_like>
+    struct support_get_by_index : std::true_type{};
+    template <concepts::tuple_like T>
+    constexpr bool support_get_by_index_v = support_get_by_index<T>::value;
+
+    namespace concepts {
+        template <typename tuple_type>
+        concept support_get_by_index = support_get_by_index_v<std::remove_cvref_t<tuple_type>>;
     }
 
     // is_uniqued: has no duplicate (don't matter if sorted or not)
