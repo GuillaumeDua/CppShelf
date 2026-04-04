@@ -1479,9 +1479,20 @@ namespace csl::mp {
         template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<std::remove_cvref_t<T>, N>;
     }
 
-    // support_get_by_index: user-defined tuplelikes can opt-out in some strange specific cases
-    template <concepts::tuple_like>
-    struct support_get_by_index : std::true_type{};
+    // support_get_by_index
+    //  true_type if get<index> is valid for each index in [0, tuple_size_v<T>)
+    //  false_type otherwise: tuple-like T is most likely ill-formed
+    template <concepts::tuple_like T>
+    struct support_get_by_index {
+    private:
+        consteval static auto impl() {
+            return []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+                return (true and ... and is_index_gettable_v<T, indexes>);
+            }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
+        }
+    public:
+        constexpr static auto value = impl();
+    };
     template <concepts::tuple_like T>
     constexpr bool support_get_by_index_v = support_get_by_index<T>::value;
 

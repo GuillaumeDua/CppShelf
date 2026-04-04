@@ -161,6 +161,100 @@ namespace test::tuples::support_get_by_type {
     static_assert(not csl::mp::support_get_by_type_v<std::tuple<int, int>>);
     static_assert(csl::mp::support_get_by_type_v<std::tuple<int, char>>);
 }
+
+// TODO(Guillaume) also use in support_get tests
+namespace test::tuples::user_defined {
+    struct well_formed {
+        int a; float b; double c;
+    };
+    struct ill_formed {
+        int a; float b;
+    };
+    static constexpr int ill_formed_sentinel{}; // NOTE: so ill-formed ops compiles
+}
+
+// test::tuples::user_defined::well_formed
+template <> struct std::tuple_size<test::tuples::user_defined::well_formed>
+    : std::integral_constant<std::size_t, 3>
+{};
+
+template <> struct std::tuple_element<0, test::tuples::user_defined::well_formed> { using type = int; };
+template <> struct std::tuple_element<1, test::tuples::user_defined::well_formed> { using type = float; };
+template <> struct std::tuple_element<2, test::tuples::user_defined::well_formed> { using type = double; };
+
+template <std::size_t I> auto get(test::tuples::user_defined::well_formed & value) noexcept 
+-> std::tuple_element_t<I, test::tuples::user_defined::well_formed> &
+{
+    if constexpr (I == 0)       return value.a;
+    else if constexpr (I == 1)  return value.b;
+    else if constexpr (I == 2)  return value.c;
+    else static_assert(false, "invalid index: out of bound");
+}
+template <std::size_t I> auto get(const test::tuples::user_defined::well_formed & value) noexcept
+-> const std::tuple_element_t<I, test::tuples::user_defined::well_formed> &
+{
+    if constexpr (I == 0)       return value.a;
+    else if constexpr (I == 1)  return value.b;
+    else if constexpr (I == 2)  return value.c;
+    else static_assert(false, "invalid index: out of bound");
+}
+template <std::size_t I> auto get(test::tuples::user_defined::well_formed && value) noexcept
+-> const std::tuple_element_t<I, test::tuples::user_defined::well_formed> &
+{
+    if constexpr (I == 0)       return std::move(value.a);
+    else if constexpr (I == 1)  return std::move(value.b);
+    else if constexpr (I == 2)  return std::move(value.c);
+    else static_assert(false, "invalid index: out of bound");
+}
+
+// test::tuples::user_defined::ill_formed
+template <> struct std::tuple_size<test::tuples::user_defined::ill_formed>
+    : std::integral_constant<std::size_t, 3>
+{};
+
+template <> struct std::tuple_element<0, test::tuples::user_defined::ill_formed> { using type = int; };
+template <> struct std::tuple_element<1, test::tuples::user_defined::ill_formed> { using type = float; };
+template <> struct std::tuple_element<2, test::tuples::user_defined::ill_formed> { using type = int; }; // NOTE: does not match reality
+
+template <std::size_t I> auto get(test::tuples::user_defined::ill_formed& value) noexcept
+-> std::tuple_element_t<I, test::tuples::user_defined::ill_formed> &
+{
+    if constexpr (I == 0)       return value.a;
+    else if constexpr (I == 1)  return value.b;
+    else if constexpr (I == 2)  return test::tuples::user_defined::ill_formed_sentinel; // NOTE: does not match reality, but will compiles
+    else static_assert(false, "invalid index: out of bound");
+}
+template <std::size_t I> auto get(const test::tuples::user_defined::ill_formed& value) noexcept
+-> const std::tuple_element_t<I, test::tuples::user_defined::ill_formed> &
+{
+    if constexpr (I == 0)       return value.a;
+    else if constexpr (I == 1)  return value.b;
+    else if constexpr (I == 2)  return test::tuples::user_defined::ill_formed_sentinel; // NOTE: does not match reality, but will compiles
+    else static_assert(false, "invalid index: out of bound");
+}
+template <std::size_t I> auto get(test::tuples::user_defined::ill_formed && value) noexcept
+-> std::tuple_element_t<I, test::tuples::user_defined::ill_formed> &&
+{
+    if constexpr (I == 0)       return std::move(value.a);
+    else if constexpr (I == 1)  return std::move(value.b);
+    else if constexpr (I == 2)  return test::tuples::user_defined::ill_formed_sentinel; // NOTE: does not match reality, but will compiles
+    else static_assert(false, "invalid index: out of bound");
+}
+
+// NOTE: Opt-out index-based access since is unreliable
+// WIP: useless ? should be default ...
+// template <>
+// struct csl::mp::support_get_by_index<test::tuples::user_defined::ill_formed> : std::false_type{};
+
+namespace test::tuples::support_get_by_index {
+    static_assert(csl::mp::concepts::tuple_like<test::tuples::user_defined::well_formed>);
+    static_assert(csl::mp::support_get_by_index_v<test::tuples::user_defined::well_formed>);
+    static_assert(csl::mp::concepts::support_get_by_index<test::tuples::user_defined::well_formed>);
+    static_assert(csl::mp::is_index_gettable_v<test::tuples::user_defined::well_formed, 0>);
+    static_assert(csl::mp::is_index_gettable_v<test::tuples::user_defined::well_formed, 1>);
+    static_assert(csl::mp::is_index_gettable_v<test::tuples::user_defined::well_formed, 2>);
+    static_assert(not csl::mp::is_index_gettable_v<test::tuples::user_defined::well_formed, 3>); // out of bounds
+}
 namespace test::tuples::index_gettable {
 
     static_assert(csl::mp::concepts::index_gettable<csl::mp::tuple<int>, 0>);
