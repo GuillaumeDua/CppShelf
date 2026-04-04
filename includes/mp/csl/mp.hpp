@@ -1405,7 +1405,7 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
     constexpr std::size_t count_if_v = count_if<tuple_type, predicate>::value;
 
-    // is_type_gettable: get<T>(tuple-like) would be legal and not error-prone
+    // is_type_gettable: ADL get<T>(tuple-like) would be legal and not error-prone
     //  NOTE(design) cannot detect get<T>(tuple-like): https://godbolt.org/z/vqvMYf7zc as error is handled by static-assert
     //  NOTE(naming) has_duplicate/is_uniqued won't fit as one cannot `get<int>(std::array{1})` anyway
     template <typename, typename>
@@ -1435,7 +1435,7 @@ namespace csl::mp {
         concept type_gettable = is_type_gettable_v<tuple_type, std::remove_cvref_t<T>>;
     }
 
-    // support_get_by_type: true_type if get<tuple_element>... is legal
+    // support_get_by_type: true_type if ADL get<tuple_element>... is legal
     //  conjunction<is_type_gettable<tuple-like, tuple-elements>...>
     template <typename>
     struct support_get_by_type : std::false_type{};
