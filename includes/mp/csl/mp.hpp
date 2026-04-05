@@ -1427,7 +1427,7 @@ namespace csl::mp {
     public:
         constexpr static auto value = impl();
     };
-    template <concepts::tuple_like tuple_type, typename T>
+    template <typename tuple_type, typename T>
     constexpr bool is_type_gettable_v = is_type_gettable<tuple_type, T>::value;
 
     namespace concepts {
@@ -1458,7 +1458,7 @@ namespace csl::mp {
     public:
         constexpr static auto value = impl();
     };
-    template <concepts::tuple_like T>
+    template <typename T>
     constexpr bool support_get_by_type_v = support_get_by_type<T>::value;
 
     namespace concepts {
@@ -1472,8 +1472,8 @@ namespace csl::mp {
     struct is_index_gettable : std::false_type{};
     template <concepts::tuple_like tuple_type, std::size_t N>
     struct is_index_gettable<tuple_type, N> : std::integral_constant<bool, (N < std::tuple_size_v<tuple_type>)>{};
-    template <concepts::tuple_like tuple_type, std::size_t N>
-    constexpr auto is_index_gettable_v = is_index_gettable<tuple_type, N>::value;
+    template <typename T, std::size_t N>
+    constexpr auto is_index_gettable_v = is_index_gettable<T, N>::value;
 
     namespace concepts {
         template <typename T, std::size_t N> concept index_gettable = is_index_gettable_v<std::remove_cvref_t<T>, N>;
@@ -1482,8 +1482,10 @@ namespace csl::mp {
     // support_get_by_index
     //  true_type if get<index> is valid for each index in [0, tuple_size_v<T>)
     //  false_type otherwise: tuple-like T is most likely ill-formed
+    template <typename>
+    struct support_get_by_index : std::false_type{};
     template <concepts::tuple_like T>
-    struct support_get_by_index {
+    struct support_get_by_index<T> {
     private:
         consteval static auto impl() {
             return []<std::size_t... indexes>(std::index_sequence<indexes...>) {
@@ -1493,7 +1495,7 @@ namespace csl::mp {
     public:
         constexpr static auto value = impl();
     };
-    template <concepts::tuple_like T>
+    template <typename T>
     constexpr bool support_get_by_index_v = support_get_by_index<T>::value;
 
     namespace concepts {
