@@ -56,8 +56,8 @@ include(FetchContent)
 if (NOT TARGET fmt::fmt-header-only)
 	list(APPEND CMAKE_MESSAGE_INDENT "  ")
 	FetchContent_Declare(fmt
-		GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-		GIT_TAG master
+		GIT_REPOSITORY 	https://github.com/fmtlib/fmt.git
+		GIT_TAG 		main
 	)
 	FetchContent_MakeAvailable(fmt)
 	list(POP_BACK CMAKE_MESSAGE_INDENT)
