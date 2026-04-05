@@ -50,8 +50,8 @@ include(FetchContent)
 if (NOT TARGET fmt::fmt-header-only)
 	list(APPEND CMAKE_MESSAGE_INDENT "  ")
 	FetchContent_Declare(fmt
-		GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-		GIT_TAG master
+		GIT_REPOSITORY 	https://github.com/fmtlib/fmt.git
+		GIT_TAG 		main
 	)
 	FetchContent_MakeAvailable(fmt)
 	list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -62,7 +62,7 @@ if (NOT TARGET GTest::gtest_main)
 	list(APPEND CMAKE_MESSAGE_INDENT "  ")
 	FetchContent_Declare(googletest
 		GIT_REPOSITORY 	https://github.com/google/googletest.git
-		GIT_TAG 		v1.15.2
+		GIT_TAG 		v1.17.0
 	)
 	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 	FetchContent_MakeAvailable(googletest)
