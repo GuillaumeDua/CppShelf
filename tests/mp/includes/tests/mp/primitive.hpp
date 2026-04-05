@@ -94,11 +94,11 @@ namespace test::primitives::index_map {
             .elements = { 0 }
         }
     ==  csl::mp::index_map_v<
-        csl::mp::tuple<>,
-        std::tuple<>,
-        std::array<A, 1>, // non-empty
-        csl::mp::tuple<>,
-        csl::mp::tuple<>
-    >
+            csl::mp::tuple<>,
+            std::tuple<>,
+            std::array<A, 1>, // non-empty
+            csl::mp::tuple<>,
+            csl::mp::tuple<>
+        >
     );
 }

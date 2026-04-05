@@ -289,6 +289,15 @@ namespace test::tuples::compare::tuple {
 }
 namespace test::tuples::compare::tuplelikes {
     // TODO(Guillaume)
+
+    // std::array with csl::mp::tuple
+    // csl::mp::tuple with std::array
+
+    // std::tuple with csl::mp::tuple
+    // csl::mp::tuple with std::tuple
+
+    // pair
+    // etc.
 }
 namespace test::tuples::fwd_as_tuple {
 

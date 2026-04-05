@@ -1514,7 +1514,8 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type>
     constexpr bool is_uniqued_v = is_uniqued<tuple_type>::value;
 
-    // QUESTION(perf.) faster ? array{ index_of_v<tuple_type, index>... } == array{ last_index_of_v<tuple_type, index>... }
+    // QUESTION(performance) to benchmark:
+    //  array{ index_of_v<tuple_type, index>... } == array{ last_index_of_v<tuple_type, index>... }
     //
     // template <concepts::tuple_like tuple_type>
     // struct is_uniqued<tuple_type> : std::bool_constant<
@@ -1714,7 +1715,9 @@ namespace csl::mp {
 
     // tuple_cat / join
     constexpr auto cat() -> csl::mp::tuple<> { return {}; }
-    // TODO(Guillaume): rebind as t0 ?
+    // Returns a csl::mp::tuple which elements/values are the concatenation of inputs tuples
+    //  NOTE: std::tuple_cat always returns a std::tuple<...>, see https://godbolt.org/z/TY5dc7vfe,
+    //        so the result type is always a csl::mp::tuple: there is not rebind to T0 type for now
     constexpr auto cat(csl::mp::concepts::tuple_like auto && ... tuples)
     requires (sizeof...(tuples) not_eq 0)
     {

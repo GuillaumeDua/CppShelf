@@ -1,4 +1,5 @@
 #pragma once
+
 #include <csl/mp.hpp>
 #include <tuple>
 #include <array>
@@ -464,10 +465,7 @@ namespace test::tuples::algorithm::set {
 }
 namespace test::tuples::algorithm::unique {
 
-    // ================================================================
-    // Invariant helpers: properties that must hold for ANY input
-    // ================================================================
-
+    // invariant helpers: properties that must hold for ANY input
     template <csl::mp::concepts::tuple_like T>
     constexpr bool check = csl::mp::is_uniqued_v<csl::mp::unique_t<T>>;
 
