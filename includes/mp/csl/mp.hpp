@@ -1776,11 +1776,13 @@ namespace csl::mp {
     template <concepts::tuple_like tuple_type, typename T>
     struct contains<tuple_type, T> {
     private:
+        using unqualified_tuple_type = std::remove_cvref_t<tuple_type>;
+
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
-            -> std::disjunction<std::is_same<T, std::tuple_element_t<Is, tuple_type>>...>;
+            -> std::disjunction<std::is_same<T, std::tuple_element_t<Is, unqualified_tuple_type>>...>;
     public:
-        constexpr static auto value = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}))::value;
+        constexpr static auto value = decltype(helper(std::make_index_sequence<std::tuple_size_v<unqualified_tuple_type>>{}))::value;
     };
     template <typename tuple_type, typename T>
     requires details::concepts::can_deduce_by_type<tuple_type, T>
@@ -1794,17 +1796,41 @@ namespace csl::mp {
     template <typename tuple_type, typename T>
     constexpr bool contains_v = contains<tuple_type, T>::value;
 
-    // WIP --- 🏗️ --- revert API so it looks like std::ranges 
-    // WIP --- 🏗️ --- tuplelike as first template parameter
-
     // filter<trait>
-    //  Supports only csl::mp::tuple and std::tuple, as array, pair, etc. won't make much sens
-    //  WIP: No, std::pair, std::array, etc. shoud either be no-op or produce ill-formed result based on the predicate, for consistency sake
+    //  filtering std::array, std::pair, etc. when conjunction<predicate<elements>...> is not true_type will result in ill-formed result type
     template <typename, template <typename...> typename>
     struct filter;
     template <typename tuple_type, template <typename...> typename predicate>
     using filter_t = typename filter<tuple_type, predicate>::type;
 
+    // filter: general case (slower)
+    template <
+        concepts::tuple_like tuple_type,
+        template <typename...> typename predicate
+    >
+    struct filter<tuple_type, predicate> {
+    private:
+
+        using unqualified_tuple_type = std::remove_cvref_t<tuple_type>;
+
+        template <std::size_t... Is>
+        constexpr static auto helper(std::index_sequence<Is...>)
+        -> cat_result_t<
+            std::conditional_t<
+                predicate<std::tuple_element_t<Is, unqualified_tuple_type>>::value,
+                csl::mp::tuple<std::tuple_element_t<Is, unqualified_tuple_type>>,
+                csl::mp::tuple<>
+            >...
+        >;
+
+    public:
+        using type = rebind_elements_t<
+            tuple_type,
+            decltype(helper(std::make_index_sequence<std::tuple_size_v<unqualified_tuple_type>>{}))
+        >;
+    };
+
+    // filter: csl::mp::tuple
     template <typename ... Ts, template <typename...> typename predicate>
     struct filter<tuple<Ts...>, predicate> : cat_result<
         std::conditional_t<
@@ -1813,56 +1839,22 @@ namespace csl::mp {
             tuple<>
         >...
     >{};
-    template <typename ... Ts, template <typename...> typename predicate>
-    struct filter<std::tuple<Ts...>, predicate> : unfold<
-        typename filter<csl::mp::tuple<Ts...>, predicate>::type,
-        std::tuple
-    >{};
+    
+    // template <typename ... Ts, template <typename...> typename predicate>
+    // struct filter<std::tuple<Ts...>, predicate> : unfold<
+    //     typename filter<csl::mp::tuple<Ts...>, predicate>::type,
+    //     std::tuple
+    // >{};
+
+    // filter: std::pair
     template <typename ... Ts, template <typename...> typename predicate>
     requires (predicate<Ts>::value and ...)
     struct filter<std::pair<Ts...>, predicate> : std::type_identity<std::pair<Ts...>>{};
+
+    // filter: std::array
     template <typename T, std::size_t N, template <typename...> typename predicate>
     requires predicate<T>::value
     struct filter<std::array<T, N>, predicate> : std::type_identity<std::array<T, N>>{};
-
-    // template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
-    // struct filter<tuple_type, predicate> {
-    // private:
-    //     template <std::size_t... Is>
-    //     constexpr static auto helper(std::index_sequence<Is...>)
-    //     -> rebind_t<
-    //         tuple_type,
-    //         filter_t<
-    //             csl::mp::tuple<std::tuple_element_t<Is, tuple_type>...>,
-    //             predicate
-    //         >
-    //     >;
-    // public:
-    //     using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
-    // };
-
-    // WIP: needs rebind
-    //  - unfold<tuplelike, ttp<???>>
-    //  - rebind<tuplelike, elements...>
-    //  - ???<tuplelike, tuplelike> -> transfert elements from a to b
-
-    //  Limitation: less performant implementation
-    // template <concepts::tuple_like tuple_type, template <typename...> typename predicate>
-    // struct filter<tuple_type, predicate> {
-    // private:
-    //     template <std::size_t... Is>
-    //     constexpr static auto helper(std::index_sequence<Is...>)
-    //     -> rebind_t<
-    //         tuple_type,
-    //         std::conditional_t<
-    //             predicate<std::tuple_element_t<Is, tuple_type>>::value,
-    //             tuple<std::tuple_element_t<Is, tuple_type>>,
-    //             tuple<>
-    //         >...
-    //     >;
-    // public:
-    //     using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<tuple_type>>{}));
-    // };
 
     // replace
     template <
@@ -1891,6 +1883,9 @@ namespace csl::mp {
         typename replacement
     >
     using replace_t = typename replace<tuple_type, to_replace, replacement>::type;
+
+    // WIP --- 🏗️ --- revert API so it looks like std::ranges 
+    // WIP --- 🏗️ --- tuplelike as first template parameter
 
     // replace
     template <

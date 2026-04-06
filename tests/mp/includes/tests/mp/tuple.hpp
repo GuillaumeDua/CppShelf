@@ -194,8 +194,6 @@ namespace test::tuples::support_get_by_index {
 }
 
 
-// WIP --- 🏗️ --- revert API so it looks like std::ranges
-
 namespace test::tuples::compare::tuple {
 
     template <
@@ -287,17 +285,18 @@ namespace test::tuples::compare::tuple {
     using asymetrical_ok = impl<lhs_t, lhs_t>;
     // #endif
 }
+// QUESTION: #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
 namespace test::tuples::compare::tuplelikes {
-    // TODO(Guillaume)
 
-    // std::array with csl::mp::tuple
-    // csl::mp::tuple with std::array
+    static_assert(std::tuple{ 'a', 42 } == std::array<int, 2>{ 'a', 42 }); // WARNING: implicit conversion
+    static_assert(std::tuple{ 'a', 42 } == std::pair{ 'a', 42 });
 
-    // std::tuple with csl::mp::tuple
-    // csl::mp::tuple with std::tuple
+    // TODO(GUILLAUME) issue #285
+    // static_assert(csl::mp::tuple{ 'a', 42 } == std::tuple{'a', 42});
+    // static_assert(csl::mp::tuple{ 'a', 42 } == std::array<int, 2>{'a', 42});
+    // static_assert(csl::mp::tuple{ 'a', 42 } == std::pair{ 'a', 42 });
 
-    // pair
-    // etc.
+    // and the other way around
 }
 namespace test::tuples::fwd_as_tuple {
 
