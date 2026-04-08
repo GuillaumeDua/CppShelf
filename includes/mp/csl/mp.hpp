@@ -1861,6 +1861,7 @@ namespace csl::mp {
         concepts::tuple_like tuple_type,
         typename to_replace,
         typename replacement
+        // TODO(Guillaume): projection = std::type_identity ?
     >
     class replace {
         template <std::size_t... Is>
@@ -1884,15 +1885,12 @@ namespace csl::mp {
     >
     using replace_t = typename replace<tuple_type, to_replace, replacement>::type;
 
-    // WIP --- 🏗️ --- revert API so it looks like std::ranges 
-    // WIP --- 🏗️ --- tuplelike as first template parameter
-
     // replace
     template <
         concepts::tuple_like tuple_type,
         template <typename...> typename predicate,
         typename replacement
-        // TODO(Guillaume): projection = std::type_identity
+        // TODO(Guillaume): projection = std::type_identity ?
     >
     class replace_if {
         template <std::size_t... Is>
@@ -2083,6 +2081,8 @@ namespace csl::mp {
     template <typename tuple_type>
     using unique_t = typename unique<tuple_type>::type;
 
+    // all_of, any_of, none_of
+
     // flatten_once
     // flatten / make_flat
 
@@ -2153,6 +2153,8 @@ namespace csl::mp {
             return (true and ... and std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});
     }
+
+    // REFACTO: struct for_each{ using result_type = type; operator()(...); }
 
     constexpr auto for_each(concepts::tuple_like auto && value, auto && f)
     noexcept(concepts::can_nothrow_for_each<decltype(value), decltype(f)>)
