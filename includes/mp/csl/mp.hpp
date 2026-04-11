@@ -2052,6 +2052,8 @@ namespace csl::mp {
     //  Post-condition: is_uniqued<T> is true_type
     template <typename>
     struct unique;
+    template <typename tuple_type>
+    using unique_t = typename unique<tuple_type>::type;
 
     template <concepts::tuple_like T>
     requires concepts::uniqued<T>
@@ -2078,18 +2080,40 @@ namespace csl::mp {
             decltype(helper(std::make_index_sequence<size_v<T_no_cvref>>{}))
         >;
     };
-    template <typename tuple_type>
-    using unique_t = typename unique<tuple_type>::type;
 
-    // all_of, any_of, none_of
+
+    // push_back
+    template <typename tuple_type, typename T>
+    struct push_back;
+    template <typename tuple_type, typename T>
+    using push_back_t = typename push_back<tuple_type, T>::type;
+
+    template <template <typename...> typename TTP, typename... Ts, typename U>
+    struct push_back<TTP<Ts...>, U> : std::type_identity<TTP<Ts..., U>>{};
+
+    template <typename T, std::size_t N>
+    struct push_back<std::array<T, N>, T> : std::type_identity<std::array<T, N+1>>{};
+
+    // push_front
+    template <typename tuple_type, typename T>
+    struct push_front;
+    template <typename tuple_type, typename T>
+    using push_front_t = typename push_front<tuple_type, T>::type;
+
+    template <template <typename...> typename TTP, typename... Ts, typename U>
+    struct push_front<TTP<Ts...>, U> : std::type_identity<TTP<U, Ts...>>{};
+
+    template <typename T, std::size_t N>
+    struct push_front<std::array<T, N>, T> : std::type_identity<std::array<T, N+1>>{};
+
+    // pop_back
+    // pop_front
 
     // flatten_once
     // flatten / make_flat
 
-    // fwd_as_tuple
-    // get<I>, get<T>
-
-    // projection: column vs. row
+    // tuple matrix projection: column vs. row (best effort, like ranges::take )
+    //  requirement: tuplelike of tuplelike
     // column: projection by index -> tuple{ tuple{ int, char }, tuple{ int, char } }
     //  project_by_index<0>(tuple_of_tuplelike) -> tuple{ int, int }
     //  project_by_index<1>(tuple_of_tuplelike) -> tuple{ char, char }
@@ -2408,7 +2432,11 @@ namespace csl::mp {
         return not all_of(value, csl_fwd(p));
     }
 
+    // all_of, any_of, none_of
+
     // push/pop front/back
+    
+    // remove, remove_if
 
     // split -> result { .lhs ... .separator ... .rhs }
     // chunk_by: <N>, predicate
