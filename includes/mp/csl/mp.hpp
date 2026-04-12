@@ -72,6 +72,7 @@
 #include <concepts>
 #include <algorithm>
 #include <functional>
+#include <limits>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(*-macro-*)
 
@@ -266,6 +267,14 @@ namespace csl::mp {
     template <typename T>
     constexpr static inline auto is_sequence_v = is_sequence<T>::value;
 
+    // is_index_sequence
+    template <typename T>
+    struct is_index_sequence : std::false_type{};
+    template <std::size_t ... Is>
+    struct is_index_sequence<std::index_sequence<Is...>> : std::true_type{};
+    template <typename T>
+    constexpr static inline auto is_index_sequence_v = is_index_sequence<T>::value;
+
     // to_tuplelike
     template <
         typename T
@@ -296,8 +305,12 @@ namespace csl::mp {
     constexpr static inline auto at_v = at<index, T>::value;
 
     namespace seq::concepts {
+
         template <typename T>
         concept sequence = is_sequence_v<std::remove_cvref_t<T>>;
+
+        template <typename T>
+        concept index_sequence = is_index_sequence_v<std::remove_cvref_t<T>>;
 
         template <typename T>
         concept empty = sequence<T> and std::remove_cvref_t<T>::size() == 0;
@@ -1556,8 +1569,6 @@ namespace csl::mp {
     using unfold_t = typename unfold<tuple_type, destination>::type;
 
     // rebind<tuple_like, elements...>
-    //  NOTE: size can change
-    // rebind tuplelike: rebind<tuplelike, elements...>
     //  Each tuplelike should add a specialization, especially user-defined ones
     template <typename T, typename... Us>
     struct rebind{
@@ -1583,19 +1594,40 @@ namespace csl::mp {
     template <typename ttp, typename ... Ts>
     using rebind_t = typename rebind<ttp, Ts...>::type;
 
-    // rebind_elements
-    //  NOTE: size can change
-    template <concepts::tuple_like shape, concepts::tuple_like elements_source>
-    struct rebind_elements {
+    // rebind_N_elements
+    template <
+        concepts::tuple_like shape,
+        concepts::tuple_like elements_source,
+        seq::concepts::index_sequence index_sequence = std::make_index_sequence<
+            std::tuple_size_v<std::remove_cvref_t<elements_source>>
+        >
+    >
+    struct rebind_N_elements {
     private:
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> rebind_t<shape, std::tuple_element_t<Is, elements_source>...>;
     public:
-        using type = decltype(helper(
-            std::make_index_sequence<std::tuple_size_v<elements_source>>{}
-        ));
+        using type = decltype(helper(index_sequence{}));
     };
+    template <
+        concepts::tuple_like shape,
+        concepts::tuple_like elements_source,
+        seq::concepts::index_sequence = std::make_index_sequence<
+            std::tuple_size_v<std::remove_cvref_t<elements_source>>
+        >
+    >
+    using rebind_N_elements_t = typename rebind_N_elements<shape, elements_source>::type;
+
+    // rebind_elements
+    template <concepts::tuple_like shape, concepts::tuple_like elements_source>
+    struct rebind_elements : rebind_N_elements<
+        shape,
+        elements_source,
+        std::make_index_sequence<
+            std::tuple_size_v<std::remove_cvref_t<elements_source>>
+        >
+    >{};
     template <concepts::tuple_like shape, concepts::tuple_like elements_source>
     using rebind_elements_t = typename rebind_elements<shape, elements_source>::type;
 
@@ -2082,6 +2114,8 @@ namespace csl::mp {
     };
 
 
+    // TODO(Guillaume) Tests 👇
+
     // push_back
     template <typename tuple_type, typename T>
     struct push_back;
@@ -2089,9 +2123,10 @@ namespace csl::mp {
     using push_back_t = typename push_back<tuple_type, T>::type;
 
     template <template <typename...> typename TTP, typename... Ts, typename U>
+    requires concepts::tuple_like<TTP<Ts...>>
     struct push_back<TTP<Ts...>, U> : std::type_identity<TTP<Ts..., U>>{};
 
-    template <typename T, std::size_t N>
+    template <typename T, std::size_t N> requires (N not_eq std::numeric_limits<std::size_t>::max())
     struct push_back<std::array<T, N>, T> : std::type_identity<std::array<T, N+1>>{};
 
     // push_front
@@ -2101,13 +2136,59 @@ namespace csl::mp {
     using push_front_t = typename push_front<tuple_type, T>::type;
 
     template <template <typename...> typename TTP, typename... Ts, typename U>
+    requires concepts::tuple_like<TTP<Ts...>>
     struct push_front<TTP<Ts...>, U> : std::type_identity<TTP<U, Ts...>>{};
 
-    template <typename T, std::size_t N>
+    template <typename T, std::size_t N> requires (N not_eq std::numeric_limits<std::size_t>::max())
     struct push_front<std::array<T, N>, T> : std::type_identity<std::array<T, N+1>>{};
 
     // pop_back
+    template <concepts::not_empty tuple_type>
+    struct pop_back;
+    template <concepts::not_empty tuple_type>
+    using pop_back_t = typename pop_back<tuple_type>::type;
+
+    template <concepts::not_empty Tuple>
+    struct pop_back : rebind_N_elements<
+        Tuple,
+        Tuple,
+        std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1>
+    >{};
+
+    template <typename T, std::size_t N> requires (N not_eq 0)
+    struct pop_back<std::array<T, N>> : std::type_identity<std::array<T, N-1>>{};
+
     // pop_front
+    template <concepts::not_empty tuple_type>
+    struct pop_front;
+    template <concepts::not_empty tuple_type>
+    using pop_front_t = typename pop_front<tuple_type>::type;
+
+    template <concepts::not_empty Tuple>
+    struct pop_front {
+    private:
+        
+        // 0..N-1
+        using index_sequence = std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1>;
+
+        // remap indexes: Is -> Is + 1 => 1..N
+        template <std::size_t ... Is>
+        static auto helper(std::index_sequence<Is...>)
+            -> rebind_N_elements_t<
+                Tuple,
+                Tuple,
+                std::index_sequence<(Is + 1)...>
+            >;
+
+    public:
+
+        using type = decltype(helper(std::make_index_sequence<
+            std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1
+        >{}));
+    };
+
+    template <typename T, std::size_t N> requires (N not_eq 0)
+    struct pop_front<std::array<T, N>> : std::type_identity<std::array<T, N-1>>{};
 
     // flatten_once
     // flatten / make_flat

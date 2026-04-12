@@ -102,3 +102,8 @@ namespace test::primitives::index_map {
         >
     );
 }
+
+// TODO(Guillaume):
+// - rebind
+// - rebind_elements
+// - unfold_into
