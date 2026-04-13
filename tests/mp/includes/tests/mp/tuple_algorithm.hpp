@@ -568,7 +568,81 @@ namespace test::tuples::algorithm::unique {
         >);
     }
 }
+namespace test::tuples::algorithm::push_back {
 
+    // csl::mp::tuple
+    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<int,float,double>, char>,   csl::mp::tuple<int,float,double,char>>);
+    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<int>,              float>,  csl::mp::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<>,                 int>,    csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<int,float>,        int>,    csl::mp::tuple<int,float,int>>);
+
+    // std::tuple
+    static_assert(std::is_same_v<csl::mp::push_back_t<std::tuple<int,float,double>, char>,       std::tuple<int,float,double,char>>);
+    static_assert(std::is_same_v<csl::mp::push_back_t<std::tuple<int>,              float>,      std::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::push_back_t<std::tuple<>,                 int>,        std::tuple<int>>);
+
+    // std::array
+    static_assert(std::is_same_v<csl::mp::push_back_t<std::array<int,3>, int>, std::array<int,4>>);
+    static_assert(std::is_same_v<csl::mp::push_back_t<std::array<int,0>, int>, std::array<int,1>>);
+    // ill-formed: push_back_t<std::array<int,3>, float>
+    // ill-formed: push_back_t<std::pair<int,float>, double>
+}
+namespace test::tuples::algorithm::push_front {
+
+    // csl::mp::tuple
+    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<int,float,double>, char>,  csl::mp::tuple<char,int,float,double>>);
+    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<int>,              float>, csl::mp::tuple<float,int>>);
+    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<>,                 int>,   csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<int,float>,        int>,   csl::mp::tuple<int,int,float>>);
+
+    // std::tuple
+    static_assert(std::is_same_v<csl::mp::push_front_t<std::tuple<int,float,double>, char>,      std::tuple<char,int,float,double>>);
+    static_assert(std::is_same_v<csl::mp::push_front_t<std::tuple<int>,              float>,     std::tuple<float,int>>);
+    static_assert(std::is_same_v<csl::mp::push_front_t<std::tuple<>,                 int>,       std::tuple<int>>);
+
+    // std::array
+    static_assert(std::is_same_v<csl::mp::push_front_t<std::array<int,3>, int>,       std::array<int,4>>);
+    static_assert(std::is_same_v<csl::mp::push_front_t<std::array<int,0>, int>,       std::array<int,1>>);
+    // ill-formed: push_front_t<std::array<int,3>, float>
+    // ill-formed: push_front_t<std::pair<int,float>, double>
+}
+
+namespace test::type_traits::pop_back {
+
+    // csl::mp::tuple
+    static_assert(std::is_same_v<csl::mp::pop_back_t<csl::mp::tuple<int,float,double>>,   csl::mp::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::pop_back_t<csl::mp::tuple<int,float>>,          csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::pop_back_t<csl::mp::tuple<int>>,                csl::mp::tuple<>>);
+    // ill-formed: pop_back_t<csl::mp::tuple<>>
+
+    // std::tuple
+    static_assert(std::is_same_v<csl::mp::pop_back_t<std::tuple<int,float,double>>,       std::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::pop_back_t<std::tuple<int,float>>,              std::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::pop_back_t<std::tuple<int>>,                    std::tuple<>>);
+
+    // std::array
+    static_assert(std::is_same_v<csl::mp::pop_back_t<std::array<int,4>>,                  std::array<int,3>>);
+    static_assert(std::is_same_v<csl::mp::pop_back_t<std::array<int,1>>,                  std::array<int,0>>);
+    // ill-formed: pop_back_t<std::array<int,0>>
+}
+
+namespace test::type_traits::pop_front {
+
+    // csl::mp::tuple
+    static_assert(std::is_same_v<csl::mp::pop_front_t<csl::mp::tuple<int,float,double>>,  csl::mp::tuple<float,double>>);
+    static_assert(std::is_same_v<csl::mp::pop_front_t<csl::mp::tuple<int,float>>,         csl::mp::tuple<float>>);
+    static_assert(std::is_same_v<csl::mp::pop_front_t<csl::mp::tuple<int>>,               csl::mp::tuple<>>);
+    // ill-formed: pop_front_t<csl::mp::tuple<>>
+
+    // std::tuple
+    static_assert(std::is_same_v<csl::mp::pop_front_t<std::tuple<int,float,double>>,      std::tuple<float,double>>);
+    static_assert(std::is_same_v<csl::mp::pop_front_t<std::tuple<int,float>>,             std::tuple<float>>);
+    static_assert(std::is_same_v<csl::mp::pop_front_t<std::tuple<int>>,                   std::tuple<>>);
+
+    // std::array
+    static_assert(std::is_same_v<csl::mp::pop_front_t<std::array<int,4>>,                 std::array<int,3>>);
+    static_assert(std::is_same_v<csl::mp::pop_front_t<std::array<int,1>>,                 std::array<int,0>>);
+}
 
 
 // TODO(Guillaume) forgot some algos here

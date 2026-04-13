@@ -1613,11 +1613,11 @@ namespace csl::mp {
     template <
         concepts::tuple_like shape,
         concepts::tuple_like elements_source,
-        seq::concepts::index_sequence = std::make_index_sequence<
+        seq::concepts::index_sequence index_sequence = std::make_index_sequence<
             std::tuple_size_v<std::remove_cvref_t<elements_source>>
         >
     >
-    using rebind_N_elements_t = typename rebind_N_elements<shape, elements_source>::type;
+    using rebind_N_elements_t = typename rebind_N_elements<shape, elements_source, index_sequence>::type;
 
     // rebind_elements
     template <concepts::tuple_like shape, concepts::tuple_like elements_source>
@@ -2167,11 +2167,8 @@ namespace csl::mp {
     template <concepts::not_empty Tuple>
     struct pop_front {
     private:
-        
-        // 0..N-1
-        using index_sequence = std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1>;
 
-        // remap indexes: Is -> Is + 1 => 1..N
+        // remap indexes: 1..N-2 indexes
         template <std::size_t ... Is>
         static auto helper(std::index_sequence<Is...>)
             -> rebind_N_elements_t<
@@ -2183,7 +2180,7 @@ namespace csl::mp {
     public:
 
         using type = decltype(helper(std::make_index_sequence<
-            std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1
+            std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1 // // 0..N-1
         >{}));
     };
 
