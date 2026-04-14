@@ -30,10 +30,10 @@ namespace test::concepts::instance {
 }
 
 namespace test::primitives::value_type {
-    static_assert(std::same_as<char, csl::mp::value_type_t<std::string>>);
-    static_assert(std::same_as<char, csl::mp::value_type_t<std::array<char, 1>>>);
-    static_assert(std::same_as<char, csl::mp::value_type_t<char[1]>>); // NOLINT(*-c-arrays)
-    static_assert(std::same_as<bool, csl::mp::value_type_t<std::is_same<int, char>>>);
+    static_assert(std::same_as<char, csl::mp::type_traits::value_type_t<std::string>>);
+    static_assert(std::same_as<char, csl::mp::type_traits::value_type_t<std::array<char, 1>>>);
+    static_assert(std::same_as<char, csl::mp::type_traits::value_type_t<char[1]>>); // NOLINT(*-c-arrays)
+    static_assert(std::same_as<bool, csl::mp::type_traits::value_type_t<std::is_same<int, char>>>);
 }
 namespace test::primitives::bind_front {
     using same_as_int = csl::mp::bind_front<std::is_same, int>;
@@ -65,7 +65,7 @@ namespace test::primitives::index_map {
     struct E{};
     struct F{};
 
-    constexpr static auto expected = csl::mp::index_map_t<6>{
+    constexpr static auto expected = csl::mp::functions::index_map_t<6>{
         .tuples = { 0, 0, 1, 2, 2, 3 },
         .elements = { 0, 1, 0, 0, 1, 0 },
     };
@@ -73,14 +73,14 @@ namespace test::primitives::index_map {
 
     static_assert(std::is_same_v<
         expected_t,
-        csl::mp::make_index_map_t<
+        csl::mp::functions::make_index_map_t<
             csl::mp::tuple<A, B>,
             std::array<C, 1>,
             std::pair<D, E>,
             std::tuple<F>
         >
     >);
-    static_assert(expected == csl::mp::index_map_v<
+    static_assert(expected == csl::mp::functions::index_map_v<
         csl::mp::tuple<A, B>,
         std::array<C, 1>,
         std::pair<D, E>,
@@ -89,11 +89,11 @@ namespace test::primitives::index_map {
 
     // Check multiples empty tuplelikes
     static_assert(
-        csl::mp::index_map_t<1>{
+        csl::mp::functions::index_map_t<1>{
             .tuples = { 2 },
             .elements = { 0 }
         }
-    ==  csl::mp::index_map_v<
+    ==  csl::mp::functions::index_map_v<
             csl::mp::tuple<>,
             std::tuple<>,
             std::array<A, 1>, // non-empty
