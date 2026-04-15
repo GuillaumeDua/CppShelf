@@ -19,7 +19,9 @@
         "ms-vscode-remote.remote-ssh-edit",
         "ms-vscode.remote-explorer",
         "ms-azuretools.vscode-docker",
-        "gruntfuggly.todo-tree"
+        "gruntfuggly.todo-tree",
+        "matepek.vscode-catch2-test-adapter",
+        "jeff-hykin.better-shellscript-syntax"
     ],
     "unwantedRecommendations": []
 }

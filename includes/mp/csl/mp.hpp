@@ -73,8 +73,8 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
-#include <optional> // WTF ?
 #include <array>
+#include <utility>
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(*-macro-*)
 
@@ -112,7 +112,7 @@
 // deprecated by P2593R0 - Allowing static_assert(false)
 namespace csl::mp::inline deprecated_by_P2593R0 {
     template <typename...>
-    struct [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]] dependent_false : std::false_type {};
+    struct [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]] dependent_false: std::false_type {};
     template <typename... Ts>                                                                                         // NOTE: for NTTP, use decltype(value)
     [[deprecated("Prefer P2593R0 - Allowing static_assert(false)")]] constexpr static auto dependent_false_v = false; // NOTE: no odr-use of dependent_false, to avoid GCC warning
 } // namespace csl::mp::inline deprecated_by_P2593R0
@@ -123,9 +123,7 @@ namespace csl::mp::inline P0887 {
     using type_identity = typename std::type_identity<T>;
 #else
     template <typename T>
-    struct type_identity {
-        using type = T;
-    };
+    struct type_identity { using type = T; };
 #endif
     template <typename T>
     using type_identity_t = typename type_identity<T>::type;
@@ -135,7 +133,8 @@ namespace csl::mp::concepts::inline fake_p2481_alternative {
     // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2481r2.html
     //  rather than T auto && or auto &&&, this will do the job for now
     template <typename T, typename U>
-    concept fwd_ref = std::is_reference_v<T>
+    concept fwd_ref = 
+            std::is_reference_v<T>
         and std::same_as<U, std::remove_cvref_t<T>>;
 } // namespace csl::mp::concepts::inline fake_p2481_alternative
 namespace csl::mp::inline P0318 {
@@ -159,13 +158,13 @@ namespace csl::mp::inline P0318 {
     };
     template <class T>
     struct unwrap_reference<std::reference_wrapper<T>> {
-        using type = T &;
+        using type = T&;
     };
     template <class T>
     using unwrap_reference_t = unwrap_reference<T>::type;
 
     template <class T>
-    struct unwrap_ref_decay : unwrap_reference<std::decay_t<T>> {};
+    struct unwrap_ref_decay : unwrap_reference<std::decay_t<T>>{};
     template <class T>
     using unwrap_ref_decay_t = typename unwrap_ref_decay<T>::type;
 
@@ -173,6 +172,7 @@ namespace csl::mp::inline P0318 {
 } // namespace csl::mp::inline P0318
 
 namespace csl::mp::type_traits {
+
     // value_type<sequence_type>
     template <typename T>
     struct value_type : csl::mp::type_identity<typename T::value_type> {};
@@ -180,6 +180,37 @@ namespace csl::mp::type_traits {
     struct value_type<T[N]> : csl::mp::type_identity<T> {}; // NOLINT(*-c-arrays)
     template <typename T>
     using value_type_t = typename value_type<T>::type;
+
+    // negate
+    template <template <typename> typename P>
+    struct negate {
+        template <typename T>
+        requires requires { { P<T>::value } -> std::convertible_to<bool>; }
+        struct type : std::bool_constant<not P<T>::value> {};
+    };
+
+    // bind_front
+    // example: csl::mp::bind_front<std::is_same, int>::value<int> == true
+    template <template <typename...> typename trait, typename... Ts>
+    struct bind_front {
+        template <typename... Us>
+        using apply = trait<Ts..., Us...>;
+        template <typename... Us>
+        using type = trait<Ts..., Us...>::type;
+        template <typename... Us>
+        constexpr static auto value = trait<Ts..., Us...>::value;
+    };
+
+    // bind_back
+    template <template <typename...> typename trait, typename... Ts>
+    struct bind_back {
+        template <typename... Us>
+        using apply = trait<Us..., Ts...>;
+        template <typename... Us>
+        using type = trait<Us..., Ts...>::type;
+        template <typename... Us>
+        constexpr static auto value = trait<Us..., Ts...>::value;
+    };
 
     // is_same_template
     //  TECH-DEBT(Limitation): universal template parameters (nttps, etc.) -> std::array, std::integer_sequence, etc.
@@ -209,6 +240,7 @@ namespace csl::mp::type_traits {
 } // namespace csl::mp::type_traits
 
 namespace csl::mp::concepts {
+
     // TECH-DEBT(Limitation): universal template parameters (nttps, etc.) -> std::array, std::integer_sequence, etc.
     template <typename T, template <typename...> typename ttp>
     concept instance = type_traits::is_instance_v<ttp, std::remove_cvref_t<T>>;
@@ -217,42 +249,12 @@ namespace csl::mp::concepts {
     concept std_array = type_traits::is_std_array_v<std::remove_cvref_t<T>>;
 } // namespace csl::mp::concepts
 
-namespace csl::mp {
-    template <template <typename> typename P>
-    struct negate {
-        template <typename T>
-        requires requires { { P<T>::value } -> std::convertible_to<bool>; }
-        struct type : std::bool_constant<not P<T>::value> {};
-    };
-
-    // example: csl::mp::bind_front<std::is_same, int>::value<int> == true
-    template <template <typename...> typename trait, typename... Ts>
-    struct bind_front {
-        template <typename... Us>
-        using apply = trait<Ts..., Us...>;
-        template <typename... Us>
-        using type = trait<Ts..., Us...>::type;
-        template <typename... Us>
-        constexpr static auto value = trait<Ts..., Us...>::value;
-    };
-    template <template <typename...> typename trait, typename... Ts>
-    struct bind_back {
-        template <typename... Us>
-        using apply = trait<Us..., Ts...>;
-        template <typename... Us>
-        using type = trait<Us..., Ts...>::type;
-        template <typename... Us>
-        constexpr static auto value = trait<Us..., Ts...>::value;
-    };
-} // namespace csl::mp
-
-#include <utility>
-// csl::mp relies on STL's tuplelike API, rather than adapt csl::mp to it
+// csl::mp relies on STL's tuplelike API, rather than adapting to it
 // - Need to check if worthy from performances perspective
 //   consider using https://github.com/JPenuchot/ctbench, and/or https://build-bench.com
 namespace csl::mp {
-    // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
 
+    // NOTE: std::remove_reference should be enough here, as the standard already removes const/volatile qualifiers
     template </*tuple-like*/ typename T>
     struct size : std::tuple_size<std::remove_cvref_t<T>> {};
     template </*tuple-like*/ typename T>
@@ -270,27 +272,28 @@ namespace csl::mp {
 } // namespace csl::mp
 
 // --- sequence ---
+// TODO(Guillaume) type-traits namespace, avoid clash with tuplelikes
 namespace csl::mp {
 
     // size
     template <typename T, T... values>
     struct size<std::integer_sequence<T, values...>>
-        : std::integral_constant<std::size_t, sizeof...(values)> // ::size()
+        : std::integral_constant<std::size_t, sizeof...(values)> // NOTE: equivalent to `::size()`
     {};
 
     // element
     template <std::size_t I, typename T, T... values>
     struct element<I, std::integer_sequence<T, values...>>
-        : std::type_identity<T> {};
+        : std::type_identity<T>{};
 
     // member_value
     template <std::size_t I, typename T, T... values>
     struct member_value<I, std::integer_sequence<T, values...>>
-        : std::type_identity<T> {};
+        : std::type_identity<T>{};
 
     // is_sequence
     template <typename T>
-    struct is_sequence : std::false_type {};
+    struct is_sequence : std::false_type{};
     template <typename T, T... values>
     struct is_sequence<std::integer_sequence<T, values...>> : std::true_type {};
     template <typename T>
@@ -305,10 +308,8 @@ namespace csl::mp {
     constexpr static inline auto is_index_sequence_v = is_index_sequence<T>::value;
 
     // to_tuplelike
-    template <
-        typename T
-        // TODO(Guillaume) universal TTP: to = std::array | std::tuple | std::pair etc.
-        >
+    //  TECH-DEBT(Limitations) universal TTP: to = std::array | std::tuple | std::pair etc.
+    template <typename T>
     struct to_tuplelike;
     template <typename T, T... values>
     struct to_tuplelike<std::integer_sequence<T, values...>> {
@@ -324,10 +325,14 @@ namespace csl::mp {
     template <std::size_t, typename>
     struct at;
     template <std::size_t index, typename T, T... values>
-    struct at<index, std::integer_sequence<T, values...>> : std::integral_constant<T, std::get<index>(to_tuplelike_v<std::integer_sequence<T, values...>>)> {};
+    struct at<index, std::integer_sequence<T, values...>>: std::integral_constant<
+        T,
+        std::get<index>(to_tuplelike_v<std::integer_sequence<T, values...>>)
+    >{};
     template <std::size_t index, typename T>
     constexpr static inline auto at_v = at<index, T>::value;
 
+    // TODO(Guillaume) concepts::seq
     namespace seq::concepts {
 
         template <typename T>
@@ -349,7 +354,8 @@ namespace csl::mp {
     // reverse
     template <typename T>
     struct reverse;
-    // Assuming 0..N : std::integer_sequence<T, (sizeof...(values) - 1 - values)...>
+    // WARNING(Limitation): Assuming 0..N
+    // TODO(Guillaume) proper reverse
     template <seq::concepts::sequence T>
     struct reverse<T> : type_identity<decltype([]<std::size_t... indexes>(std::index_sequence<indexes...>) {
         return std::integer_sequence<
@@ -372,26 +378,30 @@ namespace csl::mp {
 // P2165 - tuple-like
 //  https://en.cppreference.com/w/cpp/utility/tuple/tuple-like.html
 namespace csl::mp::concepts::P2165 {
-    template <typename T, std::size_t N>
-    concept tuple_element = requires { std::tuple_size<T>{}; }
-        and std::tuple_size_v<T> > N and requires(T t) {
-                typename std::tuple_element_t<N, std::remove_const_t<T>>;
-                { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T> &>;
-            };
+	template <typename T, std::size_t N>
+    concept tuple_element =
+            requires { std::tuple_size<T>{}; }
+        and std::tuple_size_v<T> > N
+        and requires(T t) {
+            typename std::tuple_element_t<N, std::remove_const_t<T>>;
+            { get<N>(t) } -> std::convertible_to<std::tuple_element_t<N, T>&>;
+        }
+    ;
     namespace details {
-        // QUICK-FIX: Clang >= 18.1.8 Same mangled name error
+        // QUICK-FIX(Clang >= 18.1.8) same mangled name error
         template <typename T>
         constexpr static auto valid_tuple_elements_v = []<std::size_t... I>(std::index_sequence<I...>) constexpr {
             return (true and ... and tuple_element<T, I>);
         }(std::make_index_sequence<std::tuple_size_v<T>>{});
     } // namespace details
     template <typename T>
-    concept tuple_like = not std::is_reference_v<T>
+    concept tuple_like =
+        not std::is_reference_v<T>
         and requires {
                 typename std::tuple_size<T>::type;
                 requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
             }
-        // QUICK-FIX: Clang >= 18.1.8 Same mangled name error
+        // QUICK-FIX(Clang >= 18.1.8) same mangled name error
         and details::valid_tuple_elements_v<T>
         // and []<std::size_t... I>(std::index_sequence<I...>) constexpr {
         //     return (tuple_element<T, I> && ...);
@@ -402,9 +412,11 @@ namespace csl::mp::concepts::P2165 {
 } // namespace csl::mp::concepts::P2165
 
 namespace csl::mp::concepts {
+
     template <typename T, std::size_t N>
     concept tuple_element = P2165::tuple_element<std::remove_cvref_t<T>, N>;
-    // NOTE: as details::valid_tuple_elements is costly, could be refactored with a less restrictive check
+
+    // REFACTO: as details::valid_tuple_elements is costly, could be refactored with a less restrictive check:
     //  empty or not_empty -> tuple_size and tuple_element<0, T> not the other elements
     template <typename T>
     concept tuple_like = P2165::tuple_like<std::remove_cvref_t<T>>;
@@ -423,6 +435,7 @@ namespace csl::mp::concepts {
 
 // P1450 - Enriching type modification traits https://github.com/cplusplus/papers/issues/216
 namespace csl::mp::inline P1450 {
+
     // P1450 copy_ref
     template <typename from, typename to>
     struct copy_ref : std::remove_reference<to> {};
@@ -433,7 +446,7 @@ namespace csl::mp::inline P1450 {
     template <typename from, typename to>
     using copy_ref_t = typename copy_ref<from, to>::type;
 
-    // P1450 - add cv - impl detail (also for ref-qualified types)
+    // P1450 - add_const
     template <typename T>
     struct add_const : type_identity<const T> {};
     template <typename T>
@@ -443,6 +456,7 @@ namespace csl::mp::inline P1450 {
     template <typename T>
     using add_const_t = typename add_const<T>::type;
 
+    // P1450 - add_volatile
     template <typename T>
     struct add_volatile : type_identity<volatile T> {};
     template <typename T>
@@ -452,6 +466,7 @@ namespace csl::mp::inline P1450 {
     template <typename T>
     using add_volatile_t = typename add_volatile<T>::type;
 
+    // P1450 - add_cv
     template <typename T>
     struct add_cv : add_const<typename add_volatile<T>::type> {};
     template <typename T>
@@ -484,13 +499,13 @@ namespace csl::mp::inline P2445 {
     // using std::forward_like;
     // #else
     template <class T, class U>
-    constexpr auto && forward_like(U && x) noexcept {
+    constexpr auto && forward_like(U && x) noexcept { // NOLINT(*-missing-std-forward)
         constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
         if constexpr (std::is_lvalue_reference_v<T &&>) {
             if constexpr (is_adding_const)
                 return std::as_const(x);
             else
-                return static_cast<U &>(x);
+                return static_cast<U &>(x); // NOLINT(*-redundant-casting)
         }
         else {
             if constexpr (is_adding_const)
@@ -531,10 +546,11 @@ namespace csl::mp::inline indexing {
 namespace csl::mp::details::inline compare {
 
     constexpr auto synth_three_way = []<class T, class U>(const T & t, const U & u)
-    requires requires {
-        { t < u } -> std::convertible_to<bool>;
-        { u < t } -> std::convertible_to<bool>;
-    }
+    requires
+        requires {
+            { t < u } -> std::convertible_to<bool>;
+            { u < t } -> std::convertible_to<bool>;
+        }
     {
         if constexpr (std::three_way_comparable_with<T, U>)
             return t <=> u;
@@ -563,7 +579,7 @@ namespace csl::mp::details {
 
         T value;
 
-        // TODO(Guillaume): Benchmark if worthy vs. plain static_cast
+        // TODO(Guillaume): Benchmark if worthy (overload-resolution vs. static_cast)
         // index-to-type mapping
         constexpr static tuple_member<I, T> deduce_type(mp::index_t<I>) noexcept;
         // type-to-index mapping (repetitions: clashes are handled downstream)
@@ -597,20 +613,20 @@ namespace csl::mp::details {
     //     return static_cast<result_type>(te.value);
     // }
     template <std::size_t I, typename T>
-    [[nodiscard]] constexpr static T & tuple_member_value(tuple_member<I, T> & te) noexcept {
-        return te.value;
+    [[nodiscard]] constexpr static T & tuple_member_value(tuple_member<I, T> & value) noexcept {
+        return value.value;
     }
     template <std::size_t I, typename T>
-    [[nodiscard]] constexpr static const T & tuple_member_value(const tuple_member<I, T> & te) noexcept {
-        return te.value;
+    [[nodiscard]] constexpr static const T & tuple_member_value(const tuple_member<I, T> & value) noexcept {
+        return value.value;
     }
     template <std::size_t I, typename T>
-    [[nodiscard]] constexpr static T && tuple_member_value(tuple_member<I, T> && te) noexcept {
-        return static_cast<T &&>(te.value);
-    } // NOLINT(*-not-moved)
+    [[nodiscard]] constexpr static T && tuple_member_value(tuple_member<I, T> && value) noexcept { // NOLINT(*-not-moved)
+        return static_cast<T &&>(value.value);
+    }
     template <std::size_t I, typename T>
-    [[nodiscard]] constexpr static const T && tuple_member_value(const tuple_member<I, T> && te) noexcept {
-        return static_cast<const T &&>(te.value);
+    [[nodiscard]] constexpr static const T && tuple_member_value(const tuple_member<I, T> && value) noexcept {
+        return static_cast<const T &&>(value.value);
     }
 
     template <typename...>
@@ -619,8 +635,10 @@ namespace csl::mp::details {
     struct tuple_storage<> {};
     template <std::size_t... indexes, typename... Ts>
     struct tuple_storage<tuple_member<indexes, Ts>...>
-        : tuple_member<indexes, Ts>... {
-        // tuple-element indexing
+        : tuple_member<indexes, Ts>...
+    {
+
+    // tuple-element indexing
         using tuple_member<indexes, Ts>::deduce_type...;
         using tuple_member<indexes, Ts>::deduce_index...;
 
@@ -629,15 +647,15 @@ namespace csl::mp::details {
         template <typename T>
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
 
-// Conversion support: unsafe use are handled by the compiler -Wconversion
-#if not CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    // Conversion support: unsafe use are handled by the compiler -Wconversion
+    #if not CSL_MP_TUPLE__IMPLICIT_CONVERSION
         constexpr explicit tuple_storage(std::convertible_to<Ts> auto &&... args) // NOLINT(*-missing-std-forward)
             noexcept((true and ... and std::is_nothrow_constructible_v<Ts, decltype(args)>))
         requires(sizeof...(Ts) == sizeof...(args) and (true and ... and std::constructible_from<Ts, decltype(args)>))
             : tuple_member<indexes, Ts>{
                   csl_fwd(args)
               }... {}
-#else
+    #else
         template <typename...>
         friend struct tuple_storage;
         // #endif
@@ -656,15 +674,15 @@ namespace csl::mp::details {
                   static_cast<copy_cvref_t<decltype(args), Ts>>(args)
               }... {}
 
- #if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
+    #if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
         // QUICK-FIX: for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120500
         //  MVE: https://godbolt.org/z/8oEW71xv8
         template <std::size_t... indexes_, typename... Us>
         constexpr explicit tuple_storage(tuple_storage<tuple_member<indexes_, Us>...> && other)
- #else
+    #else
         template <typename... Us>
         constexpr explicit tuple_storage(tuple_storage<tuple_member<indexes, Us>...> && other)
- #endif
+    #endif
             noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us &&>))
         requires(
             sizeof...(Ts) == sizeof...(Us)
@@ -683,7 +701,7 @@ namespace csl::mp::details {
             : tuple_storage{
                   static_cast<const tuple_member<indexes, Us> &>(other).value...
               } {}
-#endif
+    #endif // not CSL_MP_TUPLE__IMPLICIT_CONVERSION
 
         constexpr tuple_storage()                                      = default;
         constexpr ~tuple_storage()                                     = default;
@@ -696,7 +714,11 @@ namespace csl::mp::details {
     template <typename sequence_type, typename... Ts>
     struct make_tuple_storage;
     template <std::size_t... indexes, typename... Ts>
-    struct make_tuple_storage<std::index_sequence<indexes...>, Ts...> : type_identity<typename mp::details::tuple_storage<mp::details::tuple_member<indexes, Ts>...>> {};
+    struct make_tuple_storage<std::index_sequence<indexes...>, Ts...> : type_identity<
+        typename mp::details::tuple_storage<
+            mp::details::tuple_member<indexes, Ts>...
+        >
+    >{};
     template <
         csl::mp::seq::concepts::sequence sequence_type,
         typename... Ts>

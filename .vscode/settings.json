@@ -47,7 +47,7 @@
         "editor.insertSpaces": true,
         "editor.tabCompletion": "on",
         "editor.detectIndentation": false,
-        "editor.formatOnSave": true, // NOTE: clang-format might be not that worthy to use, consider `false` here.
+        "editor.formatOnSave": false, // NOTE: clang-format might be not that worthy to use, consider `false` here, or spend more time polishing `.clang-format`
     },
     "debug.terminal.clearBeforeReusing": true,
     "terminal.integrated.profiles.windows": {
