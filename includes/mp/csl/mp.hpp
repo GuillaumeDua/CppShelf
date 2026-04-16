@@ -1212,10 +1212,10 @@ namespace csl::mp {
         //  use tuple_member_value ?
         //  get/at/operator[] -> cvref qualifiers matrix
         //  - index
-        //  index_of<T>
+        //  - index_of<T> / operator[](std::type_identity<T>) ?
         //  assign/operator=(tuple<Us...>) if (true and ... and std::assignable_to<Ts, Us>)
         //  compare/operator<=>
-        //  visit/operator()
+        //  visit/operator() ?
         //  Integrate some data_store design
     };
     template <typename... Ts>
@@ -1251,10 +1251,10 @@ namespace csl::mp::details::concepts {
 
 // predicate: TTP to std::predicate adapter (shared utility)
 namespace csl::mp {
-    // REFACTO: predicate<P> was formerly inside the algorithm block
+
     template <template <typename> class P>
     struct predicate {
-        // std::predicate
+        // std::predicate API
         template <typename T>
         [[nodiscard]] constexpr static auto operator()() noexcept { return P<T>::value; }
         // deduced T
@@ -1275,21 +1275,25 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::empty T>
     struct is_homogeneous<T> : std::true_type {};
     template <csl::mp::concepts::tuple_like T>
-    struct is_homogeneous<T> : std::bool_constant<[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and std::same_as<csl::mp::element<0, T>, csl::mp::element<indexes, T>>);
-    }(std::make_index_sequence<csl::mp::size_v<T>>{})> {};
+    struct is_homogeneous<T> : std::bool_constant<
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and std::same_as<csl::mp::element<0, T>, csl::mp::element<indexes, T>>);
+        }(std::make_index_sequence<csl::mp::size_v<T>>{})
+    >{};
     template <typename T>
-    constexpr bool is_homogeneous_v = is_homogeneous<T>::value;
+    constexpr static auto is_homogeneous_v = is_homogeneous<T>::value;
 
     // is_constrained_by
     template <typename, template <typename> typename>
     struct is_constrained_by : std::false_type {};
     template <csl::mp::concepts::tuple_like T, template <typename> typename predicate>
-    struct is_constrained_by<T, predicate> : std::bool_constant<[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and predicate<csl::mp::element<indexes, T>>::value);
-    }(std::make_index_sequence<csl::mp::size_v<T>>{})> {};
+    struct is_constrained_by<T, predicate> : std::bool_constant<
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and predicate<csl::mp::element<indexes, T>>::value);
+        }(std::make_index_sequence<csl::mp::size_v<T>>{})
+    >{};
     template <typename T, template <typename> typename predicate>
-    constexpr auto is_constrained_by_v = is_constrained_by<T, predicate>::value;
+    constexpr static auto is_constrained_by_v = is_constrained_by<T, predicate>::value;
 
     // empty
     template <typename>
@@ -1297,56 +1301,54 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::tuple_like T>
     struct empty<T> : std::integral_constant<bool, (csl::mp::size_v<T> == 0)> {};
     template <typename T>
-    constexpr bool empty_v = empty<T>::value;
+    constexpr static auto empty_v = empty<T>::value;
 
-    // index-by-type: index of the first occurence of T, if any, and tuple_size otherwise
+     // index-by-type: index of the first occurence of T, if any, and tuple_size otherwise
     template <typename, typename>
-    struct index_of {};
+    struct index_of{};
     template <typename T, std::size_t N>
-    struct index_of<std::array<T, N>, T> : csl::mp::index_t<0> {};
+    struct index_of<std::array<T, N>, T> : csl::mp::index_t<0>{};
     template <typename tuple_type, typename T>
-    requires csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>
+    requires details::concepts::can_deduce_by_type<tuple_type, T>
     struct index_of<tuple_type, T> : csl::mp::index_t<
-                                         // QUESTION: is it worthy ? If so, would a rebind like unfold_into<tuple_type, mp::tuple> for any tuplelike be worthy ?
-                                         tuple_type::storage_type::template by_type_<T>::index> {};
-    template <csl::mp::concepts::tuple_like tuple_type, typename T>
-    requires(not csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>)
+        // QUESTION: is it worthy ? If so, would a rebind like unfold_into<tuple_type, mp::tuple> for any tuplelike be worthy ?
+        tuple_type::storage_type::template by_type_<T>::index
+    >{};
+    template <concepts::tuple_like tuple_type, typename T>
+    requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct index_of<tuple_type, T> : csl::mp::index_t<
-                                         //
-                                         // NOTE(Performances)
-                                         //
-                                         []<std::size_t... indexes>(std::index_sequence<indexes...>) {
-                                             constexpr bool matches[] = {std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>...}; // NOLINT(*c-arrays)
-                                             for (std::size_t i = 0; i < sizeof...(indexes); ++i)
-                                                 if (matches[i])
-                                                     return i;
-                                             return sizeof...(indexes);
-                                         }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
-                                         //
-                                         // Equivalent to:
-                                         //
-                                         // []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
-                                         //     if constexpr (sizeof...(indexes) == 0)
-                                         //         return 0; // tuple_size
-                                         //     else {
-                                         //         std::size_t pos = sizeof...(indexes);
-                                         //         (void)((
-                                         //             std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
-                                         //             ? (pos = indexes, false)    // save result, stop the and-chain
-                                         //             : true                      // keep going
-                                         //         ) and ...);
-                                         //         return pos;
-                                         //     }
-                                         // }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
-                                         > {};
-    template <csl::mp::concepts::tuple_like tuple_type, typename T>
-    constexpr std::size_t index_of_v = index_of<tuple_type, T>::value;
+        // NOTE: Better performances, equivalent to:
+        //
+        // []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+        //     if constexpr (sizeof...(indexes) == 0)
+        //         return 0; // tuple_size
+        //     else {
+        //         std::size_t pos = sizeof...(indexes);
+        //         (void)((
+        //             std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+        //             ? (pos = indexes, false)    // save result, stop the and-chain
+        //             : true                      // keep going
+        //         ) and ...);
+        //         return pos;
+        //     }
+        // }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+        []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            constexpr bool matches[] = { std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>... }; // NOLINT(*c-arrays)
+            for (std::size_t i = 0; i < sizeof...(indexes); ++i)
+                if (matches[i])
+                    return i;
+            return sizeof...(indexes);
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    >{};
+    template <concepts::tuple_like tuple_type, typename T>
+    constexpr static auto index_of_v = index_of<tuple_type, T>::value;
 
     // last_index_of
     //  equivalent to   (sizeof...(Ts) - index_of<reverse<tuple<Ts...>>, T>)
     //  or              index_of_impl<tupletype, make_reverse_index_sequence<tuple_size_v<tupletype>>, T>
     template <typename, typename>
     struct last_index_of {};
+
     template <typename T, std::size_t N>
     struct last_index_of<std::array<T, N>, T> : csl::mp::index_t<(N - 1)> {};
 
@@ -1354,45 +1356,42 @@ namespace csl::mp::type_traits {
     requires csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>
     struct last_index_of<tuple_type, T> : index_of<tuple_type, T> {};
 
-    template <csl::mp::concepts::tuple_like tuple_type, typename T>
-    requires(not csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>)
+    template <concepts::tuple_like tuple_type, typename T>
+    requires (not details::concepts::can_deduce_by_type<tuple_type, T>)
     struct last_index_of<tuple_type, T> : csl::mp::index_t<
-                                              //
-                                              // NOTE(Performances)
-                                              //
-                                              []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
-                                                  if constexpr (sizeof...(indexes) == 0)
-                                                      return 0;
-                                                  else {
-                                                      constexpr bool matches[] = { // NOLINT(*c-arrays)
-                                                          std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>...
-                                                      };
-                                                      for (std::size_t i = sizeof...(indexes); i not_eq 0; --i)
-                                                          if (matches[i - 1])
-                                                              return i - 1;
-                                                      return sizeof...(indexes);
-                                                  }
-                                              }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
-                                              //
-                                              // NOTE: equivalent to:
-                                              //
-                                              //  []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
-                                              //
-                                              //     if constexpr (sizeof...(indexes) == 0)
-                                              //         return 0;
-                                              //     else {
-                                              //         std::size_t pos = sizeof...(indexes);
-                                              //         (void)((
-                                              //             std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
-                                              //             ? (pos = indexes, false)
-                                              //             : true
-                                              //         ) and ...);
-                                              //         return pos;
-                                              //     }
-                                              //  }(make_reverse_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
-                                              > {};
+        // NOTE: Better performances, equivalent to:
+        //
+        //  []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+        //
+        //     if constexpr (sizeof...(indexes) == 0)
+        //         return 0;
+        //     else {
+        //         std::size_t pos = sizeof...(indexes);
+        //         (void)((
+        //             std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>
+        //             ? (pos = indexes, false)
+        //             : true
+        //         ) and ...);
+        //         return pos;
+        //     }
+        //  }(make_reverse_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+            if constexpr (sizeof...(indexes) == 0)
+                return 0; // tuple_size
+            else {
+                constexpr bool matches[] = { // NOLINT(*c-arrays)
+                    std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>...
+                };
+                for (std::size_t i = sizeof...(indexes); i not_eq 0; --i)
+                    if (matches[i - 1])
+                        return i - 1;
+                return sizeof...(indexes);
+            }
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    >
+    {};
     template <typename tuple_type, typename T>
-    constexpr std::size_t last_index_of_v = last_index_of<tuple_type, T>::value;
+    constexpr static auto last_index_of_v = last_index_of<tuple_type, T>::value;
 
     // count
     template <typename, typename>
@@ -1401,33 +1400,59 @@ namespace csl::mp::type_traits {
     requires csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>
     struct count<tuple_type, T> : std::integral_constant<std::size_t, 1> {};
     template <typename value_type, std::size_t N, typename T>
-    struct count<std::array<value_type, N>, T> : std::integral_constant<std::size_t, (std::is_same_v<value_type, T> ? N : 0)> {};
+    struct count<std::array<value_type, N>, T> : std::integral_constant<
+        std::size_t,
+        (std::is_same_v<value_type, T> ? N : 0)
+    >{};
     template <csl::mp::concepts::tuple_like tuple_type, typename T>
     requires(not csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>)
-    struct count<tuple_type, T> : std::integral_constant<std::size_t, []<std::size_t... indexes>(std::index_sequence<indexes...>) -> std::size_t {
-        if constexpr (sizeof...(indexes) == 0)
-            return std::size_t{0};
-        else
-            return (std::size_t{0} + ... + std::size_t{std::is_same_v<T, std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>});
-    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})> {};
+    struct count<tuple_type, T> : std::integral_constant<
+        std::size_t,
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) -> std::size_t {
+            if constexpr (sizeof...(indexes) == 0)
+                return std::size_t{0}; // tuple_size
+            else
+                return (
+                    std::size_t{0}
+                    + ...
+                    + std::size_t{
+                        std::is_same_v<
+                            T,
+                            std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>
+                        >
+                    }
+                );
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    >{};
     template <csl::mp::concepts::tuple_like tuple_type, typename T>
-    constexpr std::size_t count_v = count<tuple_type, T>::value;
+    constexpr static auto count_v = count<tuple_type, T>::value;
 
     // count_if
     // QUESTION: using csl::mp::predicate<P> ? template vs. non-template wrapper for better semantic ?
     //           predicate<P>::template operator()<std::tuple_element_t<indexes, tuple_type>>()
     template <csl::mp::concepts::tuple_like tuple_type, template <typename...> typename predicate>
-    struct count_if : std::integral_constant<std::size_t, []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
-        if constexpr (sizeof...(indexes) == 0)
-            return std::size_t{0};
-        else
-            return (std::size_t{0} + ... + std::size_t{predicate<std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>::value});
-    }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})> {};
+    struct count_if : std::integral_constant<
+        std::size_t,
+        []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
+            if constexpr (sizeof...(indexes) == 0)
+                return std::size_t{0}; // tuple_size
+            else
+                return (
+                    std::size_t{0}
+                    + ...
+                    + std::size_t{
+                        predicate<std::tuple_element_t<indexes, std::remove_cvref_t<tuple_type>>>::value
+                    }
+                );
+        }(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>>>{})
+    >{};
     template <typename value_type, std::size_t N, template <typename...> typename predicate>
-    struct count_if<std::array<value_type, N>, predicate>
-        : std::integral_constant<std::size_t, predicate<value_type>::value ? N : 0> {};
+    struct count_if<std::array<value_type, N>, predicate> : std::integral_constant<
+        std::size_t,
+        predicate<value_type>::value ? N : 0
+    >{};
     template <csl::mp::concepts::tuple_like tuple_type, template <typename...> typename predicate>
-    constexpr std::size_t count_if_v = count_if<tuple_type, predicate>::value;
+    constexpr static auto count_if_v = count_if<tuple_type, predicate>::value;
 
     // is_type_gettable: ADL get<T>(tuple-like) would be legal and not error-prone
     //  NOTE(design) cannot detect get<T>(tuple-like): https://godbolt.org/z/vqvMYf7zc as error is handled by static-assert
@@ -1453,7 +1478,7 @@ namespace csl::mp::type_traits {
         constexpr static auto value = impl();
     };
     template <typename tuple_type, typename T>
-    constexpr bool is_type_gettable_v = is_type_gettable<tuple_type, T>::value;
+    constexpr static auto is_type_gettable_v = is_type_gettable<tuple_type, T>::value;
 
     // support_get_by_type: true_type if ADL get<tuple_element>... is legal
     //  conjunction<is_type_gettable<tuple-like, tuple-elements>...>
@@ -1479,20 +1504,25 @@ namespace csl::mp::type_traits {
         constexpr static auto value = impl();
     };
     template <typename T>
-    constexpr bool support_get_by_type_v = support_get_by_type<T>::value;
+    constexpr static auto support_get_by_type_v = support_get_by_type<T>::value;
 
     // is_index_gettable: same as is_type_gettable, using get<index> instead of get<T>
     //  NOTE: pref. concepts::sized_at_least in most cases
+    //  NOTE: csl::mp::concepts::tuple_like ensure that `tuple_type` is well-formed
     template <typename, std::size_t>
     struct is_index_gettable : std::false_type {};
     template <csl::mp::concepts::tuple_like tuple_type, std::size_t N>
-    struct is_index_gettable<tuple_type, N> : std::integral_constant<bool, (N < std::tuple_size_v<tuple_type>)> {};
+    struct is_index_gettable<tuple_type, N> : std::integral_constant<
+        bool,
+        (N < std::tuple_size_v<tuple_type>)
+    >{};
     template <typename T, std::size_t N>
-    constexpr auto is_index_gettable_v = is_index_gettable<T, N>::value;
+    constexpr static auto is_index_gettable_v = is_index_gettable<T, N>::value;
 
     // support_get_by_index
     //  true_type if get<index> is valid for each index in [0, tuple_size_v<T>)
     //  false_type otherwise: tuple-like T is most likely ill-formed
+    //  QUESTION(Design): already guarantee by `csl::mp::concepts::tuple_like` ?
     template <typename>
     struct support_get_by_index : std::false_type {};
     template <csl::mp::concepts::tuple_like T>
@@ -1510,7 +1540,7 @@ namespace csl::mp::type_traits {
         constexpr static auto value = impl();
     };
     template <typename T>
-    constexpr bool support_get_by_index_v = support_get_by_index<T>::value;
+    constexpr static auto support_get_by_index_v = support_get_by_index<T>::value;
 
     // is_uniqued: has no duplicate (don't matter if sorted or not)
     //  named after P2848 - std::uniqued - https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2848r1.html
@@ -1521,7 +1551,7 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::tuple_like tuple_type>
     struct is_uniqued<tuple_type> : support_get_by_type<tuple_type> {}; // NOTE: inambiguously get by type each tuple_elements
     template <csl::mp::concepts::tuple_like tuple_type>
-    constexpr bool is_uniqued_v = is_uniqued<tuple_type>::value;
+    constexpr static auto is_uniqued_v = is_uniqued<tuple_type>::value;
 
     // QUESTION(performance) to benchmark:
     //  array{ index_of_v<tuple_type, index>... } == array{ last_index_of_v<tuple_type, index>... }

@@ -296,6 +296,7 @@ namespace test::tuples::fwd_as_tuple {
 
     constexpr auto c = 'a';
     static_assert(std::is_same_v<
+        
                   csl::mp::tuple<int &&, const char &>,
                   decltype(csl::mp::functions::forward_as_tuple(42, c))>);
     static_assert(std::is_same_v<
