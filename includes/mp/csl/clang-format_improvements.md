@@ -73,6 +73,34 @@ Acceptance criteria: should not change much, when compared to what I have now in
             >;
         };
 
+    What I have:
+        template <
+            csl::mp::concepts::tuple_like          shape,
+            csl::mp::concepts::tuple_like          elements_source,
+            csl::mp::seq::concepts::index_sequence index_sequence = std::make_index_sequence<
+                std::tuple_size_v<std::remove_cvref_t<elements_source>>>>
+        struct rebind_N_elements;
+    What I want:
+        template <
+            csl::mp::concepts::tuple_like          shape,
+            csl::mp::concepts::tuple_like          elements_source,
+            csl::mp::seq::concepts::index_sequence index_sequence = std::make_index_sequence<
+                std::tuple_size_v<std::remove_cvref_t<elements_source>>
+            >
+        >
+        struct rebind_N_elements;
+
+    What I have:
+        template <csl::mp::concepts::tuple_like shape, csl::mp::concepts::tuple_like elements_source>
+        struct rebind_elements : rebind_N_elements<shape, elements_source, std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<elements_source>>>> {};
+    What I want:
+        template <csl::mp::concepts::tuple_like shape, csl::mp::concepts::tuple_like elements_source>
+        struct rebind_elements : rebind_N_elements<
+            shape,
+            elements_source,
+            std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<elements_source>>>
+        >{};
+
 - 3: align concepts clause, one by line, breaking after =, and breaking before logical keywords.
 
      for instance `template <typename T> concept some_concept = true and (not false) and int{} == 0;

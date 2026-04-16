@@ -1572,8 +1572,10 @@ namespace csl::mp::type_traits {
     //  REFACTO: universal ttps
     template <typename, template <typename...> typename>
     struct unfold;
+
     template <typename... Ts, template <typename...> typename destination>
     struct unfold<destination<Ts...>, destination> : std::type_identity<destination<Ts...>> {};
+
     template <csl::mp::concepts::tuple_like tuple_type, template <typename...> typename destination>
     struct unfold<tuple_type, destination> {
     private:
@@ -1610,11 +1612,14 @@ namespace csl::mp::type_traits {
 
     template <typename... Us, typename... Ts>
     struct rebind<csl::mp::tuple<Ts...>, Us...> : std::type_identity<csl::mp::tuple<Us...>> {};
+
     template <typename T, std::size_t N, typename Us_0, typename... Us_N>
     requires(std::same_as<Us_0, Us_N> and ...)
     struct rebind<std::array<T, N>, Us_0, Us_N...> : std::type_identity<std::array<Us_0, (1 + sizeof...(Us_N))>> {};
+
     template <typename... Us, typename... Ts>
     struct rebind<std::tuple<Ts...>, Us...> : std::type_identity<std::tuple<Us...>> {};
+
     template <typename T0, typename T1, typename U0, typename U1>
     struct rebind<std::pair<T0, T1>, U0, U1> : std::type_identity<std::pair<U0, U1>> {};
 
@@ -1626,7 +1631,9 @@ namespace csl::mp::type_traits {
         csl::mp::concepts::tuple_like          shape,
         csl::mp::concepts::tuple_like          elements_source,
         csl::mp::seq::concepts::index_sequence index_sequence = std::make_index_sequence<
-            std::tuple_size_v<std::remove_cvref_t<elements_source>>>>
+            std::tuple_size_v<std::remove_cvref_t<elements_source>>
+        >
+    >
     struct rebind_N_elements {
     private:
 
@@ -1642,12 +1649,18 @@ namespace csl::mp::type_traits {
         csl::mp::concepts::tuple_like          shape,
         csl::mp::concepts::tuple_like          elements_source,
         csl::mp::seq::concepts::index_sequence index_sequence = std::make_index_sequence<
-            std::tuple_size_v<std::remove_cvref_t<elements_source>>>>
+            std::tuple_size_v<std::remove_cvref_t<elements_source>>
+        >
+    >
     using rebind_N_elements_t = typename rebind_N_elements<shape, elements_source, index_sequence>::type;
 
     // rebind_elements
     template <csl::mp::concepts::tuple_like shape, csl::mp::concepts::tuple_like elements_source>
-    struct rebind_elements : rebind_N_elements<shape, elements_source, std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<elements_source>>>> {};
+    struct rebind_elements : rebind_N_elements<
+        shape,
+        elements_source,
+        std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<elements_source>>>
+    >{};
     template <csl::mp::concepts::tuple_like shape, csl::mp::concepts::tuple_like elements_source>
     using rebind_elements_t = typename rebind_elements<shape, elements_source>::type;
 
