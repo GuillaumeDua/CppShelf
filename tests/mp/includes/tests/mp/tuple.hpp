@@ -204,18 +204,23 @@ namespace test::tuples::compare::tuple {
             static_assert(requires { std::common_reference_t<rhs_t>{}; });
 
             static_assert(std::same_as<
-                          csl::mp::tuple_common_reference_t<
-                              lhs_t,
-                              rhs_t,
-                              std::type_identity_t,
-                              std::type_identity_t>,
-                          csl::mp::tuple<
-                              std::common_reference_t<
-                                  std::tuple_element_t<0, lhs_t>,
-                                  std::tuple_element_t<0, rhs_t>>,
-                              std::common_reference_t<
-                                  std::tuple_element_t<1, lhs_t>,
-                                  std::tuple_element_t<1, rhs_t>>>>);
+                csl::mp::tuple_common_reference_t<
+                    lhs_t,
+                    rhs_t,
+                    std::type_identity_t,
+                    std::type_identity_t
+                >,
+                csl::mp::tuple<
+                    std::common_reference_t<
+                        std::tuple_element_t<0, lhs_t>,
+                        std::tuple_element_t<0, rhs_t>
+                    >,
+                    std::common_reference_t<
+                        std::tuple_element_t<1, lhs_t>,
+                        std::tuple_element_t<1, rhs_t>
+                    >
+                >
+            >);
 
             static_assert(
                 requires {
@@ -227,9 +232,7 @@ namespace test::tuples::compare::tuple {
                 }
             );
 
-            static_assert(std::common_reference_with<
-                          lhs_t,
-                          rhs_t>);
+            static_assert(std::common_reference_with<lhs_t, rhs_t>);
         }
 
         constexpr static void equality() {
@@ -245,9 +248,7 @@ namespace test::tuples::compare::tuple {
             static_assert(lhs_t{42, {}} != lhs_t{42.F, 'a'});
 
             // NOTE: C++23
-            static_assert(std::equality_comparable_with<
-                          lhs_t,
-                          rhs_t>);
+            static_assert(std::equality_comparable_with<lhs_t, rhs_t>);
 
 #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
             [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
@@ -263,9 +264,7 @@ namespace test::tuples::compare::tuple {
             static_assert(requires {
                 lhs_t{} <=> rhs_t{};
             });
-            static_assert(std::three_way_comparable_with<
-                          lhs_t,
-                          rhs_t>);
+            static_assert(std::three_way_comparable_with<lhs_t, rhs_t>);
             static_assert(lhs_t{0.F, {}} < rhs_t{1.F, {}});
             static_assert(lhs_t{0.F, {}} < rhs_t{0.F, 1});
         }
@@ -296,49 +295,60 @@ namespace test::tuples::fwd_as_tuple {
 
     constexpr auto c = 'a';
     static_assert(std::is_same_v<
-        
-                  csl::mp::tuple<int &&, const char &>,
-                  decltype(csl::mp::functions::forward_as_tuple(42, c))>);
+        csl::mp::tuple<int &&, const char &>,
+        decltype(csl::mp::functions::forward_as_tuple(42, c))
+    >);
     static_assert(std::is_same_v<
-                  csl::mp::tuple<csl::mp::tuple<int> &&>,
-                  decltype(csl::mp::functions::forward_as_tuple(csl::mp::tuple{42}))>);
+        csl::mp::tuple<csl::mp::tuple<int> &&>,
+        decltype(csl::mp::functions::forward_as_tuple(csl::mp::tuple{42}))
+    >);
 } // namespace test::tuples::fwd_as_tuple
 namespace test::tuples::cat {
 
     // empty
     static_assert(std::is_same_v<
-                  csl::mp::tuple<>,
-                  csl::mp::type_traits::cat_result_t<>>);
+        csl::mp::tuple<>,
+        csl::mp::type_traits::cat_result_t<>
+    >);
     static_assert(std::is_same_v<
-                  csl::mp::tuple<>,
-                  csl::mp::type_traits::cat_result_t<csl::mp::tuple<>>>);
+        csl::mp::tuple<>,
+        csl::mp::type_traits::cat_result_t<csl::mp::tuple<>>
+    >);
     static_assert(std::is_same_v<
-                  csl::mp::tuple<>,
-                  csl::mp::type_traits::cat_result_t<csl::mp::tuple<>, csl::mp::tuple<>>>);
+        csl::mp::tuple<>,
+        csl::mp::type_traits::cat_result_t<
+            csl::mp::tuple<>,
+            csl::mp::tuple<>
+        >
+    >);
 
     // type
     static_assert(std::is_same_v<
-                  csl::mp::tuple<int, char, double, float>,
-                  csl::mp::type_traits::cat_result_t<
-                      csl::mp::tuple<int, char>,
-                      csl::mp::tuple<double, float>>>);
+        csl::mp::tuple<int, char, double, float>,
+        csl::mp::type_traits::cat_result_t<
+            csl::mp::tuple<int, char>,
+            csl::mp::tuple<double, float>
+        >
+    >);
     static_assert(std::is_same_v<
-                  csl::mp::tuple<int, char, double, float>,
-                  csl::mp::type_traits::cat_result_t<
-                      csl::mp::tuple<>,
-                      csl::mp::tuple<int>,
-                      csl::mp::tuple<>,
-                      csl::mp::tuple<char>,
-                      csl::mp::tuple<double, float>,
-                      csl::mp::tuple<>>>);
+        csl::mp::tuple<int, char, double, float>,
+        csl::mp::type_traits::cat_result_t<
+            csl::mp::tuple<>,
+            csl::mp::tuple<int>,
+            csl::mp::tuple<>,
+            csl::mp::tuple<char>,
+            csl::mp::tuple<double, float>,
+            csl::mp::tuple<>
+        >
+    >);
 
     // value
     static_assert(
-        csl::mp::tuple<char, int>{'a', 42}
-        == csl::mp::functions::cat(
-            csl::mp::tuple<char>{'a'},
-            csl::mp::tuple<int>{42}
-        )
+            csl::mp::tuple<char, int>{'a', 42}
+        ==  csl::mp::functions::cat(
+                csl::mp::tuple<char>{'a'},
+                csl::mp::tuple<int>{42}
+            )
     );
 } // namespace test::tuples::cat
 namespace test::tuples::indexes {
@@ -358,79 +368,95 @@ namespace test::tuples::storage::constructors::default_ {
 namespace test::tuples::storage::constructors::value::no_cvref {
 
     static_assert(std::constructible_from<
-                  std::tuple<int, char>,
-                  int,
-                  char>);
+        std::tuple<int, char>,
+        int,
+        char
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<int, char>,
-                  int &,
-                  char &>);
+        std::tuple<int, char>,
+        int &,
+        char &
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<int, char>,
-                  const int &,
-                  const char &>);
+        std::tuple<int, char>,
+        const int &,
+        const char &
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<int, char>,
-                  int &&,
-                  char &&>);
+        std::tuple<int, char>,
+        int &&,
+        char &&
+    >);
     [[maybe_unused]] constexpr auto v1 = csl::mp::tuple<int, char>{42, 'a'};
 } // namespace test::tuples::storage::constructors::value::no_cvref
 namespace test::tuples::storage::constructors::value::lvalue_ref {
 
     static_assert(not std::constructible_from<
-                  std::tuple<int &, char &>,
-                  int,
-                  char>);
+        std::tuple<int &, char &>,
+        int,
+        char
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<int &, char &>,
-                  int &,
-                  char &>);
+        std::tuple<int &, char &>,
+        int &,
+        char &
+    >);
     static_assert(not std::constructible_from<
-                  std::tuple<int &, char &>,
-                  const int &,
-                  const char &>);
+        std::tuple<int &, char &>,
+        const int &,
+        const char &
+    >);
     static_assert(not std::constructible_from<
-                  std::tuple<int &, char &>,
-                  int &&,
-                  char &&>);
+        std::tuple<int &, char &>,
+        int &&,
+        char &&
+    >);
 } // namespace test::tuples::storage::constructors::value::lvalue_ref
 namespace test::tuples::storage::constructors::value::const_lvalue_ref {
 
     static_assert(std::constructible_from<
-                  std::tuple<const int &, const char &>,
-                  int,
-                  char>);
+        std::tuple<const int &, const char &>,
+        int,
+        char
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<const int &, const char &>,
-                  int &,
-                  char &>);
+        std::tuple<const int &, const char &>,
+        int &,
+        char &
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<const int &, const char &>,
-                  const int &,
-                  const char &>);
+        std::tuple<const int &, const char &>,
+        const int &,
+        const char &
+    >);
     static_assert(not std::constructible_from<
-                  std::tuple<int &, const char &>,
-                  int &&,
-                  char &&>);
+        std::tuple<int &, const char &>,
+        int &&,
+        char &&
+    >);
 } // namespace test::tuples::storage::constructors::value::const_lvalue_ref
 namespace test::tuples::storage::constructors::value::rvalue_ref {
 
     static_assert(std::constructible_from<
-                  std::tuple<int &&, char &&>,
-                  int,
-                  char>);
+        std::tuple<int &&, char &&>,
+        int,
+        char
+    >);
     static_assert(not std::constructible_from<
-                  std::tuple<int &&, char &&>,
-                  int &,
-                  char &>);
+        std::tuple<int &&, char &&>,
+        int &,
+        char &
+    >);
     static_assert(not std::constructible_from<
-                  std::tuple<int &&, char &&>,
-                  const int &,
-                  const char &>);
+        std::tuple<int &&, char &&>,
+        const int &,
+        const char &
+    >);
     static_assert(std::constructible_from<
-                  std::tuple<int &&, char &&>,
-                  int &&,
-                  char &&>);
+        std::tuple<int &&, char &&>,
+        int &&,
+        char &&
+    >);
 } // namespace test::tuples::storage::constructors::value::rvalue_ref
 namespace test::tuples::storage::constructors::copy {
     using type                            = csl::mp::tuple<int, char>;
@@ -475,11 +501,13 @@ namespace test::tuples::storage::of_refs {
 
 namespace test::tuples::deduction_guide {
     static_assert(std::same_as<
-                  csl::mp::tuple<>,
-                  decltype(csl::mp::tuple{})>);
+        csl::mp::tuple<>,
+        decltype(csl::mp::tuple{})>
+    );
     static_assert(std::same_as<
-                  csl::mp::tuple<int, char>,
-                  decltype(csl::mp::tuple{42, 'a'})>);
+        csl::mp::tuple<int, char>,
+        decltype(csl::mp::tuple{42, 'a'})>
+    );
 } // namespace test::tuples::deduction_guide
 namespace test::tuples::get {
     using type           = csl::mp::tuple<int, char>;
@@ -507,17 +535,21 @@ namespace test::tuples::get::cvref {
 namespace test::tuples::get::cvref::consistency {
 
     static_assert(std::same_as<
-                  decltype(std::declval<type &>().get<0>()),
-                  decltype(csl::mp::get<0>(std::declval<type &>()))>);
+        decltype(std::declval<type &>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<type &>()))
+    >);
     static_assert(std::same_as<
-                  decltype(std::declval<type &&>().get<0>()),
-                  decltype(csl::mp::get<0>(std::declval<type &&>()))>);
+        decltype(std::declval<type &&>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<type &&>()))
+    >);
     static_assert(std::same_as<
-                  decltype(std::declval<const type &>().get<0>()),
-                  decltype(csl::mp::get<0>(std::declval<const type &>()))>);
+        decltype(std::declval<const type &>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<const type &>()))
+    >);
     static_assert(std::same_as<
-                  decltype(std::declval<const type &&>().get<0>()),
-                  decltype(csl::mp::get<0>(std::declval<const type &&>()))>);
+        decltype(std::declval<const type &&>().get<0>()),
+        decltype(csl::mp::get<0>(std::declval<const type &&>()))
+    >);
 } // namespace test::tuples::get::cvref::consistency
 
 // std::tuple interface/inter-operatiblity

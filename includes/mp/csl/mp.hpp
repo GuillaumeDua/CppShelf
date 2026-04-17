@@ -1712,7 +1712,7 @@ namespace csl::mp::concepts {
 
 } // namespace csl::mp::concepts
 
-// WIP: csl::mp::common_tuplelike + rebind -> https://godbolt.org/z/M8jcWYPba
+// TODO(Guillaume): consensus: csl::mp::common_tuplelike + rebind -> https://godbolt.org/z/M8jcWYPba
 //  - if instances of the same ttp, then ttp<elements...>
 //    - if array and common_type, then array<common_type, N + ...>
 //  - if only `std::` tuplelike, consider std::tuple ?
@@ -1722,7 +1722,10 @@ namespace csl::mp::functions {
     constexpr auto tie(auto &... values) -> csl::mp::tuple<decltype(values)...> {
         return csl::mp::tuple<decltype(values)...>{csl_fwd(values)...};
     }
-    // tie_result ?
+    // TODO(Guillaume): consensus on the best API for tie
+    //  - tie_result ?
+    //  - or struct tie { using result<Ts...> = ...; constexpr static auto operator()(auto & ... values) -> result<decltype(values)...>{};
+    //  - or range-view-like impl: struct tie_ + static constexpr auto tie = tie_{};
 
     [[nodiscard]] constexpr auto make_tuple(auto &&... args) -> csl::mp::tuple<csl::mp::unwrap_ref_decay_t<decltype(args)>...> {
         return csl::mp::tuple<csl::mp::unwrap_ref_decay_t<decltype(args)>...>{csl_fwd(args)...};
@@ -1742,11 +1745,11 @@ namespace csl::mp::functions {
 
     // Enable flat iteration over multiples tuplikes:
     //
-    // get<indexes_map.elements[indexes]>(
-    //     get<indexes_map.tuples[indexes]>(
-    //         tuple_of_tuplelikes
-    //     )
-    // )...
+    //  get<indexes_map.elements[indexes]>(
+    //      get<indexes_map.tuples[indexes]>(
+    //          tuple_of_tuplelikes
+    //      )
+    //  )...
     template <std::size_t element_counts>
     requires(element_counts not_eq 0)
     struct index_map_t {
@@ -1762,45 +1765,50 @@ namespace csl::mp::functions {
 
     // scenario:
     //
-    // t0 = [ a b c . . . ] - tuple<a,b,c>
-    // T1 = [ . . . d e . ] - pair<d,e>
-    // T2 = [ . . . . . f ] - array<f,1>
+    //  t0 = [ a b c . . . ] - tuple<a,b,c>
+    //  T1 = [ . . . d e . ] - pair<d,e>
+    //  T2 = [ . . . . . f ] - array<f,1>
     //
-    // see demo https://godbolt.org/z/rKdjbzxeq
+    //  see demo https://godbolt.org/z/rKdjbzxeq
     //
-    // { tuple_index ;; element_index }
-    // ------------------------------
-    // [ . . . . . . ][ . . . . . . ]
-    // ------------------------------
-    // [ 0 . . . . . ][ 0 . . . . . ]
-    // [ 0 0 . . . . ][ 0 1 . . . . ]
-    // [ 0 0 0 . . . ][ 0 1 2 . . . ]
-    // ------------------------------
-    // [ 0 0 0 1 . . ][ 0 1 2 0 . . ]
-    // [ 0 0 0 1 1 . ][ 0 1 2 0 1 . ]
-    // ------------------------------
-    // [ 0 0 0 1 1 2 ][ 0 1 2 0 1 0 ]
-    template <csl::mp::concepts::tuple_like... tuple_types>
+    //  { tuple_index ;; element_index }
+    //  ------------------------------
+    //  [ . . . . . . ][ . . . . . . ]
+    //  ------------------------------
+    //  [ 0 . . . . . ][ 0 . . . . . ]
+    //  [ 0 0 . . . . ][ 0 1 . . . . ]
+    //  [ 0 0 0 . . . ][ 0 1 2 . . . ]
+    //  ------------------------------
+    //  [ 0 0 0 1 . . ][ 0 1 2 0 . . ]
+    //  [ 0 0 0 1 1 . ][ 0 1 2 0 1 . ]
+    //  ------------------------------
+    //  [ 0 0 0 1 1 2 ][ 0 1 2 0 1 0 ]
+    template <csl::mp::concepts::tuple_like ... tuple_types>
     constexpr auto index_map_v = []() -> make_index_map_t<tuple_types...> {
-        constexpr auto size = (... + csl::mp::size_v<tuple_types>);
+
+        constexpr auto size = (... + size_v<tuple_types>);
         static_assert(size not_eq 0);
 
         index_map_t<size> result{};
 
-        auto populate_indexes_for = [&result,
-                                     tuple_index = std::size_t{0},
-                                     offset      = std::size_t{0}]<std::size_t... indexes>(std::index_sequence<indexes...>) mutable {
+        auto populate_indexes_for = [
+            &result,
+            tuple_index = std::size_t{0},
+            offset = std::size_t{0}
+        ]<std::size_t ... indexes>(std::index_sequence<indexes...>) mutable {
+
             ((
-                 (result.tuples[offset + indexes] = tuple_index),
-                 (result.elements[offset + indexes] = indexes)
-             ),
-             ...);
+                (result.tuples  [offset + indexes] = tuple_index),
+                (result.elements[offset + indexes] = indexes)
+            ), ...);
 
             offset += sizeof...(indexes);
             ++tuple_index;
         };
 
-        ((populate_indexes_for(std::make_index_sequence<csl::mp::size_v<tuple_types>>{})), ...);
+        ((populate_indexes_for(std::make_index_sequence<
+            size_v<tuple_types>
+        >{})), ...);
 
         return result;
     }();
@@ -1813,24 +1821,31 @@ namespace csl::mp::functions {
     // Returns a csl::mp::tuple which elements/values are the concatenation of inputs tuples
     //  NOTE: std::tuple_cat always returns a std::tuple<...>, see https://godbolt.org/z/TY5dc7vfe,
     //        so the result type is always a csl::mp::tuple: there is not rebind to T0 type for now
-    constexpr auto cat(csl::mp::concepts::tuple_like auto &&... tuples)
-    requires(sizeof...(tuples) not_eq 0)
+    //  TODO(Guillaume): consensus common_tuple_type + rebind on the best API for cat ?
+    constexpr auto cat(csl::mp::concepts::tuple_like auto && ... tuples)
+    requires (sizeof...(tuples) not_eq 0)
     {
-        constexpr auto size = (... + csl::mp::size_v<decltype(tuples)>);
+        constexpr auto size = (... + size_v<decltype(tuples)>);
 
         if constexpr (size == 0)
             return csl::mp::tuple<>{};
-        else {
+        else
+        {
             constexpr auto indexes_map = index_map_v<decltype(tuples)...>;
 
-            return []<std::size_t... indexes>(auto && tuple_of_tuplelikes, std::index_sequence<indexes...>) {
+            return []<std::size_t ... indexes>(auto && tuple_of_tuplelikes, std::index_sequence<indexes...>){
+
                 using type = csl::mp::tuple<
                     std::tuple_element_t<
                         indexes_map.elements[indexes],
                         std::remove_cvref_t<
                             std::tuple_element_t<
                                 indexes_map.tuples[indexes],
-                                std::remove_cvref_t<decltype(tuple_of_tuplelikes)>>>>...>;
+                                std::remove_cvref_t<decltype(tuple_of_tuplelikes)>
+                            >
+                        >
+                    >...
+                >;
                 return type{
                     get<indexes_map.elements[indexes]>(
                         get<indexes_map.tuples[indexes]>(
@@ -1839,9 +1854,9 @@ namespace csl::mp::functions {
                     )...
                 };
             }(
-                       csl::mp::functions::forward_as_tuple(csl_fwd(tuples)...),
-                       std::make_index_sequence<size>{}
-                   );
+                csl::mp::functions::forward_as_tuple(csl_fwd(tuples)...),
+                std::make_index_sequence<size>{}
+            );
         }
     }
 
@@ -1851,7 +1866,9 @@ namespace csl::mp::type_traits {
 
     // tuple_cat_result
     template <typename... tuple_types>
-    struct cat_result : csl::mp::type_identity<decltype(csl::mp::functions::cat(std::declval<tuple_types>()...))> {};
+    struct cat_result : csl::mp::type_identity<
+        decltype(csl::mp::functions::cat(std::declval<tuple_types>()...))
+    >{};
     template <typename... tuple_types>
     using cat_result_t = typename cat_result<tuple_types...>::type;
 
@@ -1872,7 +1889,9 @@ namespace csl::mp::type_traits {
 
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
-            -> std::disjunction<std::is_same<T, std::tuple_element_t<Is, unqualified_tuple_type>>...>;
+            -> std::disjunction<
+                std::is_same<T, std::tuple_element_t<Is, unqualified_tuple_type>>...
+            >;
 
     public:
 
@@ -1882,11 +1901,13 @@ namespace csl::mp::type_traits {
     requires csl::mp::details::concepts::can_deduce_by_type<tuple_type, T>
     struct contains<tuple_type, T> : std::true_type {};
     template <typename T, typename... Ts>
-    struct contains<csl::mp::tuple<Ts...>, T> : std::bool_constant<(false or ... or std::same_as<T, Ts>)> {};
+    struct contains<csl::mp::tuple<Ts...>, T> : std::bool_constant<
+        (false or ... or std::same_as<T, Ts>)
+    >{};
     template <typename T, typename value_type, std::size_t N>
     struct contains<std::array<value_type, N>, T> : std::is_same<T, value_type> {};
     template <typename tuple_type, typename T>
-    constexpr bool contains_v = contains<tuple_type, T>::value;
+    constexpr static auto contains_v = contains<tuple_type, T>::value;
 
     // filter<trait>
     //  filtering std::array, std::pair, etc. when conjunction<predicate<elements>...> is not true_type will result in ill-formed result type
@@ -1908,30 +1929,35 @@ namespace csl::mp::type_traits {
         constexpr static auto helper(std::index_sequence<Is...>)
             -> cat_result_t<
                 std::conditional_t<
-                    predicate<std::tuple_element_t<Is, unqualified_tuple_type>>::value,
+                    predicate<
+                        std::tuple_element_t<Is, unqualified_tuple_type>
+                    >::value,
                     csl::mp::tuple<std::tuple_element_t<Is, unqualified_tuple_type>>,
-                    csl::mp::tuple<>>...>;
+                    csl::mp::tuple<>
+                >...
+            >;
 
     public:
 
         using type = rebind_elements_t<
             tuple_type,
-            decltype(helper(std::make_index_sequence<std::tuple_size_v<unqualified_tuple_type>>{}))>;
+            decltype(helper(std::make_index_sequence<std::tuple_size_v<unqualified_tuple_type>>{}))
+        >;
     };
 
     // filter: csl::mp::tuple
     template <typename... Ts, template <typename...> typename predicate>
-    struct filter<csl::mp::tuple<Ts...>, predicate> : cat_result<std::conditional_t<predicate<Ts>::value, csl::mp::tuple<Ts>, csl::mp::tuple<>>...> {};
-
-    // // template <typename ... Ts, template <typename...> typename predicate>
-    // // struct filter<std::tuple<Ts...>, predicate> : unfold<
-    // //     typename filter<csl::mp::tuple<Ts...>, predicate>::type,
-    // //     std::tuple
-    // // >{};
+    struct filter<csl::mp::tuple<Ts...>, predicate> : cat_result<
+        std::conditional_t<
+            predicate<Ts>::value,
+            csl::mp::tuple<Ts>,
+            csl::mp::tuple<>
+        >...
+    >{};
 
     // filter: std::pair
     template <typename... Ts, template <typename...> typename predicate>
-    requires(predicate<Ts>::value and ...)
+    requires (predicate<Ts>::value and ...)
     struct filter<std::pair<Ts...>, predicate> : std::type_identity<std::pair<Ts...>> {};
 
     // filter: std::array
@@ -1945,16 +1971,21 @@ namespace csl::mp::type_traits {
         typename to_replace,
         typename replacement
         // TODO(Guillaume): projection = std::type_identity ?
-        >
+    >
     class replace {
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> rebind_t<
                 tuple_type,
                 std::conditional_t<
-                    std::is_same_v<to_replace, std::tuple_element_t<Is, tuple_type>>,
+                    std::is_same_v<
+                        to_replace,
+                        std::tuple_element_t<Is, tuple_type>
+                    >,
                     replacement,
-                    std::tuple_element_t<Is, tuple_type>>...>;
+                    std::tuple_element_t<Is, tuple_type>
+                >...
+            >;
 
     public:
 
@@ -1964,7 +1995,8 @@ namespace csl::mp::type_traits {
     template <
         csl::mp::concepts::tuple_like tuple_type,
         typename to_replace,
-        typename replacement>
+        typename replacement
+    >
     using replace_t = typename replace<tuple_type, to_replace, replacement>::type;
 
     // replace_if
@@ -1973,16 +2005,20 @@ namespace csl::mp::type_traits {
         template <typename...> typename predicate,
         typename replacement
         // TODO(Guillaume): projection = std::type_identity ?
-        >
+    >
     class replace_if {
         template <std::size_t... Is>
         constexpr static auto helper(std::index_sequence<Is...>)
             -> rebind_t<
                 tuple_type,
                 std::conditional_t<
-                    predicate<std::tuple_element_t<Is, tuple_type>>::value,
+                    predicate<
+                        std::tuple_element_t<Is, tuple_type>
+                    >::value,
                     replacement,
-                    std::tuple_element_t<Is, tuple_type>>...>;
+                    std::tuple_element_t<Is, tuple_type>
+                >...
+            >;
 
     public:
 
@@ -1992,7 +2028,8 @@ namespace csl::mp::type_traits {
     template <
         csl::mp::concepts::tuple_like tuple_type,
         template <typename...> typename predicate,
-        typename replacement>
+        typename replacement
+    >
     using replace_if_t = typename replace_if<tuple_type, predicate, replacement>::type;
 
     // set_union
@@ -2013,7 +2050,7 @@ namespace csl::mp::type_traits {
     //      using set_union_t        = typename set_merge<T1, T2, take_left>::type;
     //      using set_intersection_t = typename set_merge<T1, T2, take_right>::type;
     //      using set_difference_t   = typename set_merge<T1, T2, ?>::type;
-    //  But that'd requires a heavy boilerplate, plus some sorting algorithms => most likely, no gain
+    //  But that'd requires a heavy boilerplate, plus some sorting algorithms => most likely, no gain at all
     template <typename, typename>
     struct set_union;
     template <csl::mp::concepts::tuple_like T1, csl::mp::concepts::tuple_like T2>
@@ -2027,7 +2064,9 @@ namespace csl::mp::type_traits {
                 std::conditional_t<
                     contains_v<T1, std::tuple_element_t<T2_Is, T2>>,
                     csl::mp::tuple<>,
-                    csl::mp::tuple<std::tuple_element_t<T2_Is, T2>>>...>;
+                    csl::mp::tuple<std::tuple_element_t<T2_Is, T2>>
+                >...
+            >;
 
     public:
 
@@ -2058,7 +2097,9 @@ namespace csl::mp::type_traits {
                 std::conditional_t<
                     contains_v<T2, std::tuple_element_t<T1_Is, T1>>,
                     csl::mp::tuple<std::tuple_element_t<T1_Is, T1>>,
-                    csl::mp::tuple<>>...>;
+                    csl::mp::tuple<>
+                >...
+            >;
 
     public:
 
@@ -2086,12 +2127,14 @@ namespace csl::mp::type_traits {
                 (
                     (
                         std::is_same_v<T1_element, std::tuple_element_t<T2_Is, T2>>
-                                and not used[T2_Is] and not index
-                            ? index = T2_Is
-                            : index
+                            and not used[T2_Is]
+                            and not index
+                        ? index = T2_Is
+                        : index
                     ),
                     ...
                 );
+
                 if (index) {
                     used[index.value()] = true;
                     return false;
@@ -2115,13 +2158,16 @@ namespace csl::mp::type_traits {
                 std::conditional_t<
                     mask[Is],
                     csl::mp::tuple<std::tuple_element_t<Is, T1>>,
-                    csl::mp::tuple<>>...>;
+                    csl::mp::tuple<>
+                >...
+            >;
 
     public:
 
         using type = rebind_elements_t<
             T1,
-            typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type>;
+            typename decltype(helper(std::make_index_sequence<std::tuple_size_v<T1>>{}))::type
+        >;
     };
     template <typename T, typename U>
     using set_difference_t = typename set_difference<T, U>::type;
@@ -2149,16 +2195,17 @@ namespace csl::mp::type_traits {
                 std::conditional_t<
                     Is == index_of_v<T_no_cvref, csl::mp::element_t<Is, T_no_cvref>>, // first occurence
                     csl::mp::tuple<csl::mp::element_t<Is, T_no_cvref>>,
-                    csl::mp::tuple<>>...>;
+                    csl::mp::tuple<>
+                >...
+            >;
 
     public:
 
         using type = rebind_elements_t<
             T,
-            decltype(helper(std::make_index_sequence<csl::mp::size_v<T_no_cvref>>{}))>;
+            decltype(helper(std::make_index_sequence<csl::mp::size_v<T_no_cvref>>{}))
+        >;
     };
-
-    // TODO(Guillaume) Tests 👇
 
     // push_back
     template <typename tuple_type, typename T>
@@ -2194,11 +2241,15 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::not_empty tuple_type>
     using pop_back_t = typename pop_back<tuple_type>::type;
 
-    template <csl::mp::concepts::not_empty Tuple>
-    struct pop_back : rebind_N_elements<Tuple, Tuple, std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1>> {};
+    template <csl::mp::concepts::not_empty tuple_type>
+    struct pop_back : rebind_N_elements<
+        tuple_type,
+        tuple_type,
+        std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>> - 1>
+    > {};
 
     template <typename T, std::size_t N>
-    requires(N not_eq 0)
+    requires (N not_eq 0)
     struct pop_back<std::array<T, N>> : std::type_identity<std::array<T, N - 1>> {};
 
     // pop_front
@@ -2207,7 +2258,7 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::not_empty tuple_type>
     using pop_front_t = typename pop_front<tuple_type>::type;
 
-    template <csl::mp::concepts::not_empty Tuple>
+    template <csl::mp::concepts::not_empty tuple_type>
     struct pop_front {
     private:
 
@@ -2215,18 +2266,18 @@ namespace csl::mp::type_traits {
         template <std::size_t... Is>
         static auto helper(std::index_sequence<Is...>)
             -> rebind_N_elements_t<
-                Tuple,
-                Tuple,
-                std::index_sequence<(Is + 1)...>>;
+                tuple_type,
+                tuple_type,
+                std::index_sequence<(Is + 1)...>
+            >;
 
     public:
 
-        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>> - 1 // // 0..N-1
-                                                              >{}));
+        using type = decltype(helper(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<tuple_type>> - 1>{})); // 0..N-1
     };
 
     template <typename T, std::size_t N>
-    requires(N not_eq 0)
+    requires (N not_eq 0)
     struct pop_front<std::array<T, N>> : std::type_identity<std::array<T, N - 1>> {};
 
     // TODO(Guillaume):
@@ -2269,7 +2320,7 @@ namespace csl::mp {
 namespace std {
     // NOLINTBEGIN(cert-dcl58-cpp) Modification of 'std' namespace can result in undefined behavior
     template <typename... Ts>
-    struct tuple_size<csl::mp::tuple<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)> {};
+    struct tuple_size<csl::mp::tuple<Ts...>>: std::integral_constant<std::size_t, sizeof...(Ts)> {};
 
     // QUESTION: perfs vs. plain recursive inheritance,
     //  as already provided by https://en.cppreference.com/w/cpp/utility/tuple/tuple_element ?
@@ -2278,105 +2329,122 @@ namespace std {
     // NOLINTEND(cert-dcl58-cpp)
 } // namespace std
 
-// tuple algorithms
-// tuple algorithms
-
 namespace csl::mp::concepts {
 
     template <typename T, typename F>
-    concept can_for_each = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_for_each = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_nothrow_for_each = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_nothrow_for_each = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_for_each_enumerate = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and std::is_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_for_each_enumerate = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and std::is_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_nothrow_for_each_enumerate = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and std::is_nothrow_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_nothrow_for_each_enumerate = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and std::is_nothrow_invocable_v<F, std::size_t, decltype(get<indexes>(std::declval<T>()))>);
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_for_each_enumerate_nttp = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and requires {
-            std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>()));
-        });
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_for_each_enumerate_nttp = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and requires {
+                std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>()));
+            });
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_nothrow_for_each_enumerate_nttp = can_for_each_enumerate_nttp<T, F> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return (true and ... and noexcept(std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>()))));
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_nothrow_for_each_enumerate_nttp = can_for_each_enumerate_nttp<T, F>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and noexcept(std::declval<F>().template operator()<indexes>(get<indexes>(std::declval<T>()))));
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_apply = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_apply = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 
     template <typename T, typename F>
-    concept can_nothrow_apply = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-        return std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
-    }
-    (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    concept can_nothrow_apply = concepts::tuple_like<T>
+        and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return std::is_nothrow_invocable_v<F, decltype(get<indexes>(std::declval<T>()))...>;
+        }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
 } // namespace csl::mp::concepts
 
 namespace csl::mp::functions {
 
-    constexpr auto for_each(csl::mp::concepts::tuple_like auto && value, auto && f) noexcept(csl::mp::concepts::can_nothrow_for_each<decltype(value), decltype(f)>)
+    constexpr auto for_each(csl::mp::concepts::tuple_like auto && value, auto && f)
+    noexcept(csl::mp::concepts::can_nothrow_for_each<decltype(value), decltype(f)>)
     requires csl::mp::concepts::can_for_each<decltype(value), decltype(f)>
     {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            ((
-                 std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value)))
-             ),
-             ...);
+            (
+                std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value))),
+                ...
+            );
         }(std::make_index_sequence<size>{});
         return f;
     }
 
-    constexpr auto for_each_enumerate(csl::mp::concepts::tuple_like auto && value, auto && f) noexcept(csl::mp::concepts::can_nothrow_for_each_enumerate<decltype(value), decltype(f)>)
+    constexpr auto for_each_enumerate(csl::mp::concepts::tuple_like auto && value, auto && f)
+    noexcept(csl::mp::concepts::can_nothrow_for_each_enumerate<decltype(value), decltype(f)>)
     requires csl::mp::concepts::can_for_each_enumerate<decltype(value), decltype(f)>
     {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            ((
-                 std::invoke(csl_fwd(f), indexes, get<indexes>(csl_fwd(value)))
-             ),
-             ...);
+            (
+                std::invoke(csl_fwd(f), indexes, get<indexes>(csl_fwd(value))),
+                ...
+            );
         }(std::make_index_sequence<size>{});
         return f;
     }
 
-    constexpr auto for_each_enumerate_nttp(csl::mp::concepts::tuple_like auto && value, auto && f) noexcept(csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<decltype(value), decltype(f)>)
+    constexpr auto for_each_enumerate_nttp(csl::mp::concepts::tuple_like auto && value, auto && f)
+    noexcept(csl::mp::concepts::can_nothrow_for_each_enumerate_nttp<decltype(value), decltype(f)>)
     requires csl::mp::concepts::can_for_each_enumerate_nttp<decltype(value), decltype(f)>
     {
         constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
         [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            ((
-                 csl_fwd(f).template operator()<indexes>(get<indexes>(csl_fwd(value)))
-             ),
-             ...);
+            (
+                csl_fwd(f).template operator()<indexes>(get<indexes>(csl_fwd(value))),
+                ...
+            );
         }(std::make_index_sequence<size>{});
         return f;
     }
 
-    // Equivalent to std::invoke(fwd(f), fwd(elements)...)
-    constexpr decltype(auto) apply(csl::mp::concepts::tuple_like auto && value, auto && f) noexcept(csl::mp::concepts::can_nothrow_apply<decltype(value), decltype(f)>)
+    // Apply: Equivalent to std::invoke(fwd(f), fwd(elements)...)
+    //
+    //  DESIGN: proactive vs. reactive concepts design: see benchmark https://www.build-bench.com/b/HfzRXC9L7fpkhIyU7ykv0fZg2Hg
+    //
+    //      - 🟡 reactive
+    //      - ✅ [DESIGNER CHOICE] proactive
+    //
+    //  DESIGN: libstdc++ implementation of `noexcept(apply(std-tuplelike))` produce inconsistent results.
+    //
+    //      See https://godbolt.org/z/vYsn66jd8
+    //
+    //      Either
+    //      - 🟡 Promote unqualified apply (just like [get])
+    //      - 🟡 csl::mp::apply(std-tuplelike, F) should redirect call to `std::apply` (reverting args order),  
+    //        current impl becomes csl::mp::apply(csl-tuple, F)
+    //      - ✅ [DESIGNER CHOICE] provide the same impl. for any tuple_like
+    //
+    constexpr decltype(auto) apply(csl::mp::concepts::tuple_like auto && value, auto && f)
+    noexcept(csl::mp::concepts::can_nothrow_apply<decltype(value), decltype(f)>)
     requires csl::mp::concepts::can_apply<decltype(value), decltype(f)>
     {
         return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
@@ -2415,36 +2483,41 @@ namespace csl::mp::functions {
     //
     //  ((((init << x0) << x1) << x2) << xn)
     //  = f(f(f(f(init, x0), x1), x2), ..., xn)
+    //
     [[nodiscard]] constexpr auto fold_left(csl::mp::concepts::tuple_like auto && value, auto f, auto init) {
         if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
         return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr {
             return (
-                       details::folder{f, init}
-                       << ...
-                       << details::folder{f, get<indexes>(csl_fwd(value))}
-            )
-                .value;
+                details::folder{f, init}
+                << ...
+                << details::folder{f, get<indexes>(csl_fwd(value))}
+            ).value;
         }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }
 
     // fold_right: (element_folder >> ... >> init_folder)
+    //
     //  x0 >> (x1 >> (... >> (xn >> init)))
     //  = f(x0, f(x1, ..., f(xn, init)...))
+    //
     [[nodiscard]] constexpr auto fold_right(csl::mp::concepts::tuple_like auto && value, auto f, auto init) {
         if constexpr (0 == csl::mp::size_v<decltype(value)>)
             return init;
         return [&]<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr {
             return (
-                       details::folder{f, get<indexes>(csl_fwd(value))}
-                       >> ...
-                       >> details::folder{f, init}
-            )
-                .value;
+                details::folder{f, get<indexes>(csl_fwd(value))}
+                >> ...
+                >> details::folder{f, init}
+            ).value;
         }(std::make_index_sequence<csl::mp::size_v<decltype(value)>>{});
     }
 #pragma endregion
 
+    // TODO(Guillaume) type-traits equivalent:
+    //      - all_of<tuple_type, is_integral> -> conjunction<is_integral<tuple_elements>...>
+    //      - any_of<tuple_type, is_integral> -> disjunction<is_integral<tuple_elements>...>
+    //      - none_of<tuple_type, is_integral> -> negation<disjunction<is_integral<tuple_elements>...>>
     // TODO(Guillaume) - element_predicate<tuple>
     // TODO(Guillaume) - projection
     template <csl::mp::concepts::tuple_like T>
@@ -2506,17 +2579,31 @@ namespace csl::mp::type_traits {
     using for_each_enumerate_nttp_result_t = typename for_each_enumerate_nttp_result<T, F>::type;
 
     template <csl::mp::concepts::tuple_like tuple_type, typename F>
-    struct apply_result : std::type_identity<decltype(csl::mp::functions::apply(std::declval<tuple_type>(), std::declval<F>()))> {};
+    struct apply_result : std::type_identity<decltype(
+        csl::mp::functions::apply(
+            std::declval<tuple_type>(),
+            std::declval<F>())
+    )> {};
     template <csl::mp::concepts::tuple_like tuple_type, typename F>
     using apply_result_t = typename apply_result<tuple_type, F>::type;
 
     template <csl::mp::concepts::tuple_like T, typename F, typename init>
-    struct fold_left_result : type_identity<decltype(csl::mp::functions::fold_left(std::declval<T>(), std::declval<F>(), std::declval<init>()))> {};
+    struct fold_left_result : type_identity<decltype(
+        csl::mp::functions::fold_left(
+            std::declval<T>(),
+            std::declval<F>(),
+            std::declval<init>())
+    )> {};
     template <csl::mp::concepts::tuple_like T, typename F, typename init>
     using fold_left_result_t = typename fold_left_result<T, F, init>::type;
 
     template <csl::mp::concepts::tuple_like T, typename F, typename init>
-    struct fold_right_result : type_identity<decltype(csl::mp::functions::fold_right(std::declval<T>(), std::declval<F>(), std::declval<init>()))> {};
+    struct fold_right_result : type_identity<decltype(
+        csl::mp::functions::fold_right(
+            std::declval<T>(),
+            std::declval<F>(),
+            std::declval<init>())
+    )> {};
     template <csl::mp::concepts::tuple_like T, typename F, typename init>
     using fold_right_result_t = typename fold_right_result<T, F, init>::type;
 
@@ -2538,8 +2625,7 @@ namespace csl::mp::inline functions::experimentale {
     // consider some thread with cooperative cancelation -> std::stop_token
     void for_each(std::execution::parallel_policy, concepts::tuple auto && value, auto f) {
         constexpr auto                 size = csl::mp::size_v<decltype(value)>;
-        std::vector<std::future<void>> tasks;
-        tasks.reserve(size);
+        std::vector<std::future<void>> tasks; tasks.reserve(size);
         // REFACTO: transform
         for_each(csl_fwd(value), [&](auto && element) {
             tasks.push_back(
@@ -2554,9 +2640,9 @@ namespace csl::mp::inline functions::experimentale {
 } // namespace csl::mp::inline functions::experimentale
 #endif
 
-// TODO(@Guss): fmt, std formatter
+// TODO(Guillaume): fmt, std formatter
 
-// TODO(@Guss): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
+// TODO(Guillaume): algos eDSL (range-like?) : (pipe, shift operators, plus, minus, etc...)
 
 // ===================
 // -- OLD, to refactor
@@ -2984,6 +3070,7 @@ namespace csl::mp {
 // wip, benchmarked : https://godbolt.org/z/fj4z8sjzh
 // wip bench : https://www.build-bench.com/b/lADLAH3QR2OEHMbbDVB2wkssuVg
 
+// namespaces shortcuts
 namespace csl::mp {
     namespace tt = ::csl::mp::type_traits;
     namespace fn = ::csl::mp::functions;

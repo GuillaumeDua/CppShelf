@@ -33,7 +33,7 @@ namespace test::tuples::algorithm::count_if {
     static_assert(2 == csl::mp::type_traits::count_if_v<t, std::is_floating_point>);
 
     // empty tuple
-    using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
+    using is_int64_t = csl::mp::type_traits::bind_front<std::is_same, std::int64_t>;
     static_assert(0 == csl::mp::type_traits::count_if_v<t, is_int64_t::type>);
 }
 namespace test::tuples::algorithm::uniqued {

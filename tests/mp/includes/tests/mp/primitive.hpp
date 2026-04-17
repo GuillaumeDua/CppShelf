@@ -36,20 +36,20 @@ namespace test::primitives::value_type {
     static_assert(std::same_as<bool, csl::mp::type_traits::value_type_t<std::is_same<int, char>>>);
 }
 namespace test::primitives::bind_front {
-    using same_as_int = csl::mp::bind_front<std::is_same, int>;
+    using same_as_int = csl::mp::type_traits::bind_front<std::is_same, int>;
     static_assert(same_as_int::value<int>);
 
-    using tuple_starting_with_int = csl::mp::bind_front<csl::mp::tuple, int>;
+    using tuple_starting_with_int = csl::mp::type_traits::bind_front<csl::mp::tuple, int>;
     static_assert(std::same_as<
         tuple_starting_with_int::type<char>,
         csl::mp::tuple<int, char>
     >);
 }
 namespace test::primitives::bind_back {
-    using same_as_int = csl::mp::bind_back<std::is_same, int>;
+    using same_as_int = csl::mp::type_traits::bind_back<std::is_same, int>;
     static_assert(same_as_int::value<int>);
 
-    using tuple_ending_with_int = csl::mp::bind_back<csl::mp::tuple, int>;
+    using tuple_ending_with_int = csl::mp::type_traits::bind_back<csl::mp::tuple, int>;
     static_assert(std::same_as<
         tuple_ending_with_int::type<char>,
         csl::mp::tuple<char, int>

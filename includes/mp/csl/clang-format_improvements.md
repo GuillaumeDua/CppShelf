@@ -183,6 +183,38 @@ Acceptance criteria: should not change much, when compared to what I have now in
             and (std::constructible_from<Ts, Us &&> and ...)
         : storage{ csl_fwd(args)... }
         {}
+
+    What I have:
+
+        constexpr auto for_each(csl::mp::concepts::tuple_like auto && value, auto && f)noexcept(csl::mp::concepts::can_nothrow_for_each<decltype(value), decltype(f)>)
+        requires csl::mp::concepts::can_for_each<decltype(value), decltype(f)>
+        {
+            constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+            [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
+                ((
+                    std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value)))
+                ),
+                ...);
+            }(std::make_index_sequence<size>{});
+            return f;
+        }
+    What I want:
+        constexpr auto for_each(csl::mp::concepts::tuple_like auto && value, auto && f)
+        noexcept(csl::mp::concepts::can_nothrow_for_each<decltype(value), decltype(f)>)
+        requires csl::mp::concepts::can_for_each<decltype(value), decltype(f)>
+        {
+            constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(value)>>;
+            [&]<std::size_t... indexes>(std::index_sequence<indexes...>) {
+                (
+                    (
+                        std::invoke(csl_fwd(f), get<indexes>(csl_fwd(value)))
+                    ),
+                    ...
+                );
+            }(std::make_index_sequence<size>{});
+            return f;
+        }
+
 - 8: add an empty line after #pragma region. add an empty line before #pragma endregion 
 - 9: indent preprocessor directives
 
@@ -206,3 +238,62 @@ Acceptance criteria: should not change much, when compared to what I have now in
                 return (true and ... and std::same_as<element<0, T>, element<indexes, T>>);
             }(std::make_index_sequence<size_v<T>>{})
         >{};
+- 11: break before IILE in concepts definition
+
+    What I have:
+        template <typename T, typename F>
+        concept can_for_each = concepts::tuple_like<T> and[]<std::size_t... indexes>(std::index_sequence<indexes...>) {
+            return (true and ... and std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
+        }
+        (std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+    What I want:
+        template <typename T, typename F>
+        concept can_for_each = concepts::tuple_like<T>
+            and []<std::size_t... indexes>(std::index_sequence<indexes...>) {
+                return (true and ... and std::is_invocable_v<F, decltype(get<indexes>(std::declval<T>()))>);
+            }(std::make_index_sequence<csl::mp::size_v<std::remove_cvref_t<T>>>{});
+
+- 12: break long static_assert lines
+
+    What I have:
+        static_assert(std::same_as<
+                csl::mp::tuple_common_reference_t<
+                    lhs_t,
+                    rhs_t,
+                    std::type_identity_t,
+                    std::type_identity_t>,
+                csl::mp::tuple<
+                    std::common_reference_t<
+                        std::tuple_element_t<0, lhs_t>,
+                        std::tuple_element_t<0, rhs_t>>,
+                    std::common_reference_t<
+                        std::tuple_element_t<1, lhs_t>,
+                        std::tuple_element_t<1, rhs_t>>>>);
+    What I want:
+        static_assert(std::same_as<
+            csl::mp::tuple_common_reference_t<
+                lhs_t,
+                rhs_t,
+                std::type_identity_t,
+                std::type_identity_t
+            >,
+            csl::mp::tuple<
+                std::common_reference_t<
+                    std::tuple_element_t<0, lhs_t>,
+                    std::tuple_element_t<0, rhs_t>
+                >,
+                std::common_reference_t<
+                    std::tuple_element_t<1, lhs_t>,
+                    std::tuple_element_t<1, rhs_t>
+                >
+            >
+        >);
+
+        Keeping the same indentation logic for angle brackets than braces.
+
+    What I have:
+        static_assert(std::common_reference_with<
+                lhs_t,
+                rhs_t>);
+    What I want:
+        static_assert(std::common_reference_with<lhs_t, rhs_t>);
