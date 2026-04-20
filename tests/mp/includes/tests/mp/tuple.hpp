@@ -352,13 +352,14 @@ namespace test::tuples::cat {
     );
 } // namespace test::tuples::cat
 namespace test::tuples::indexes {
-    using invalid_tuple = csl::mp::tuple<char, double, float, int, int>;
-    static_assert(csl::mp::type_traits::index_of_v<invalid_tuple, int> == 3);
-    static_assert(csl::mp::type_traits::last_index_of_v<invalid_tuple, int> == 4);
 
-    using valid_tuple = csl::mp::tuple<char, double, float, int>;
-    static_assert(csl::mp::type_traits::index_of_v<valid_tuple, int> == 3);
-    static_assert(csl::mp::type_traits::last_index_of_v<valid_tuple, int> == 3);
+    using with_duplicates = csl::mp::tuple<char, double, float, int, int>;
+    static_assert(3 == csl::mp::type_traits::index_of_v<with_duplicates, int>);
+    static_assert(4 == csl::mp::type_traits::last_index_of_v<with_duplicates, int>);
+
+    using uniqued = csl::mp::tuple<char, double, float, int>;
+    static_assert(3 == csl::mp::type_traits::index_of_v<uniqued, int>);
+    static_assert(3 == csl::mp::type_traits::last_index_of_v<uniqued, int>);
 } // namespace test::tuples::indexes
 // construction
 namespace test::tuples::storage::constructors::default_ {
@@ -387,7 +388,7 @@ namespace test::tuples::storage::constructors::value::no_cvref {
         int &&,
         char &&
     >);
-    [[maybe_unused]] constexpr auto v1 = csl::mp::tuple<int, char>{42, 'a'};
+    [[maybe_unused]] constexpr auto v1 = csl::mp::tuple<int, char>{ 42, 'a' };
 } // namespace test::tuples::storage::constructors::value::no_cvref
 namespace test::tuples::storage::constructors::value::lvalue_ref {
 
@@ -513,7 +514,7 @@ namespace test::tuples::get {
     using type           = csl::mp::tuple<int, char>;
     constexpr auto value = type{42, 'a'};
 
-    static_assert(42 == value.template get<0>());
+    static_assert(42  == value.template get<0>());
     static_assert('a' == value.template get<1>());
 } // namespace test::tuples::get
 namespace test::tuples::get::cvref {
@@ -575,9 +576,9 @@ namespace test::tuples::std_interopterability::get {
     using std::get; // NOTE: std::get is not a customization point
 
     using type           = csl::mp::tuple<int, char>;
-    constexpr auto value = type{42, 'a'};
+    constexpr auto value = type{ 42, 'a' };
 
-    static_assert(42 == get<0>(value));
+    static_assert(42  == get<0>(value));
     static_assert('a' == get<1>(value));
 
     static_assert(get<0>(value) == get<int>(value));
@@ -616,18 +617,36 @@ namespace test::tuples::structured_binding {
     using type = csl::mp::tuple<int, char>;
 
     constexpr void lvalue() {
-        constexpr auto value           = type{};
+        auto value = type{ 42, 'a' };
         [[maybe_unused]] auto & [i, c] = value; // NOLINT(*-qualified-auto)
+
+        static_assert(std::is_same_v<decltype(i), int &>);
+        static_assert(std::is_same_v<decltype(c), char &>);
+
+        // static_assert(i == get<0>(value));
+        // static_assert(c == get<1>(value));
     }
     constexpr void const_lvalue() {
-        constexpr auto value                 = type{};
+        constexpr auto value                 = type{ 42, 'a' };
         [[maybe_unused]] const auto & [i, c] = value;
+
+        static_assert(std::is_same_v<decltype(i), int const &>);
+        static_assert(std::is_same_v<decltype(c), char const &>);
+
+        static_assert(i == csl::mp::get<0>(value));
+        static_assert(c == csl::mp::get<1>(value));
     }
     constexpr void rvalue() {
-        [[maybe_unused]] auto && [i, c] = type{};
+        [[maybe_unused]] auto && [i, c] = type{ 42, 'a' };
+
+        static_assert(i == csl::mp::get<0>(value));
+        static_assert(c == csl::mp::get<1>(value));
     }
     constexpr void const_rvalue() {
-        [[maybe_unused]] const auto && [i, c] = type{};
+        [[maybe_unused]] const auto && [i, c] = type{ 42, 'a' };
+
+        static_assert(i == csl::mp::get<0>(value));
+        static_assert(c == csl::mp::get<1>(value));
     }
 } // namespace test::tuples::structured_binding
 

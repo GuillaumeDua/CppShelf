@@ -17,9 +17,13 @@ namespace test::function::factory::tie {
         const csl::mp::tuple<const int&, const char&>
     >);
 
-    // BUG? std::get ?
     static_assert(std::addressof(i) == std::addressof(get<0>(tied)));
     static_assert(std::addressof(c) == std::addressof(get<1>(tied)));
+
+    static_assert(std::addressof(i) == std::addressof(csl::mp::get<0>(tied)));
+    static_assert(std::addressof(c) == std::addressof(csl::mp::get<1>(tied)));
+
+    // BUG? std::get ?
 }
 namespace test::function::factory::make_tuple {
 
@@ -63,11 +67,13 @@ namespace test::function::factory::cat {
             std::tuple{ 1, 2 },
             csl::mp::tuple{ '3' },
             std::array<double, 1>{ 4.F },
-            std::pair{5,6}
-        ) == csl::mp::tuple{1,2, '3', 4.F, 5,6}
+            std::pair{ 5, 6 }
+        )
+        == csl::mp::tuple{ 1, 2, '3', 4.F, 5, 6 }
     );
 }
 namespace test::function::factory::cat_result {
+
     using empty = csl::mp::tuple<>;
 
     static_assert(std::same_as<empty, csl::mp::type_traits::cat_result_t<>>);
@@ -89,8 +95,6 @@ namespace test::function::factory::cat_result {
             std::tuple<bool>
         >
     >);
-
-    
 }
 namespace test::tuples::function::for_each::concepts {
 

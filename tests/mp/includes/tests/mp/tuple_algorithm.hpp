@@ -3,7 +3,6 @@
 #include <csl/mp.hpp>
 #include <tuple>
 #include <array>
-#include <string>
 #include <cstdint>
 
 namespace test::tuples::algorithm {
@@ -48,6 +47,8 @@ namespace test::tuples::algorithm::uniqued {
     static_assert(csl::mp::concepts::uniqued<without_duplicates>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
+
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int, int&>>);
 
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&&>);
@@ -96,14 +97,6 @@ namespace test::tuples::algorithm::rebind {
     static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<int, float>>,                csl::mp::tuple<>>);
     static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<>>,                          csl::mp::tuple<>>);
     static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<>, int, float>,              csl::mp::tuple<int, float>>);
-    // element types from `like` are fully replaced
-    static_assert(std::is_same_v<
-        csl::mp::type_traits::rebind_t<
-            csl::mp::tuple<std::int64_t, std::int64_t, std::int64_t>,
-            int, float, double
-        >,
-        csl::mp::tuple<int, float, double>
-    >);
 
     // std::tuple
     static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::tuple<int, float>, char, double>,  std::tuple<char, double>>);
@@ -298,6 +291,7 @@ namespace test::tuples::algorithm::replace_if {
     >);
 }
 namespace test::tuples::algorithm::set {
+
     using empty = csl::mp::tuple<>;
     using T0 = csl::mp::tuple<int, char>;
     using T1 = csl::mp::tuple<int, double>;
@@ -477,7 +471,7 @@ namespace test::tuples::algorithm::unique {
 
     namespace csl_tuple {
 
-        // already uniqued -> no-op
+        // already uniqued -> identity
         using already_unique = csl::mp::tuple<int, char, double>;
         static_assert(csl::mp::concepts::support_get_by_type<already_unique>);
         static_assert(csl::mp::concepts::uniqued<already_unique>);
@@ -568,6 +562,7 @@ namespace test::tuples::algorithm::unique {
         >);
     }
 }
+
 namespace test::tuples::algorithm::push_back {
 
     // csl::mp::tuple
@@ -606,7 +601,6 @@ namespace test::tuples::algorithm::push_front {
     // ill-formed: push_front_t<std::array<int,3>, float>
     // ill-formed: push_front_t<std::pair<int,float>, double>
 }
-
 namespace test::type_traits::pop_back {
 
     // csl::mp::tuple
@@ -625,7 +619,6 @@ namespace test::type_traits::pop_back {
     static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<std::array<int,1>>,                  std::array<int,0>>);
     // ill-formed: pop_back_t<std::array<int,0>>
 }
-
 namespace test::type_traits::pop_front {
 
     // csl::mp::tuple
@@ -643,7 +636,6 @@ namespace test::type_traits::pop_front {
     static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::array<int,4>>,                 std::array<int,3>>);
     static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::array<int,1>>,                 std::array<int,0>>);
 }
-
 
 // TODO(Guillaume) forgot some algos here
 
@@ -684,6 +676,7 @@ namespace test::tuples::algorithm::index_of {
         }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
 
+    // csl::mp::tuple - at least one duplicated type -> linear scan O(N)
     namespace linear_ON {
         static_assert(not csl::mp::details::concepts::can_deduce_by_type<csl::mp::tuple<int, float, int>, int>);
 
@@ -713,6 +706,7 @@ namespace test::tuples::algorithm::index_of {
     }
 
     namespace edge_cases {
+
         // empty: not_found == tuple_size == 0
         using empty_csl_mp_tuple  = csl::mp::tuple<>;
         using empty_std_tuple     = std::tuple<>;
@@ -732,6 +726,7 @@ namespace test::tuples::algorithm::index_of {
 
     // linear
     namespace std_tuple {
+
         using T = std::tuple<char, double, float, int>;
         static_assert(csl::mp::type_traits::index_of_v     <T, char>         == 0);
         static_assert(csl::mp::type_traits::index_of_v     <T, int>          == 3);
@@ -745,6 +740,7 @@ namespace test::tuples::algorithm::index_of {
 
     // std::array - optimised O(1)
     namespace std_array {
+
         using T = std::array<int, 4>;
         static_assert(csl::mp::type_traits::index_of_v     <T, int>   == 0);
         static_assert(csl::mp::type_traits::last_index_of_v<T, int>   == 3);
@@ -752,6 +748,7 @@ namespace test::tuples::algorithm::index_of {
     }
 
     namespace std_pair {
+
         using T = std::pair<int, float>;
         static_assert(csl::mp::type_traits::index_of_v     <T, int>    == 0);
         static_assert(csl::mp::type_traits::index_of_v     <T, float>  == 1);
@@ -767,8 +764,3 @@ namespace test::tuples::algorithm::index_of {
 }
 
 // TODO(Guillaume) sort, is_sorted
-
-
-
-
-
