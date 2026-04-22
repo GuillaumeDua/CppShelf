@@ -275,14 +275,16 @@ namespace test::tuples::compare::tuple {
 
     using symetrical_ok = impl<lhs_t, lhs_t>;
     // #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
-    using asymetrical_ok = impl<lhs_t, lhs_t>;
+    using asymetrical_ok = impl<lhs_t, rhs_t>;
     // #endif
 } // namespace test::tuples::compare::tuple
 // QUESTION: #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
 namespace test::tuples::compare::tuplelikes {
 
-    static_assert(std::tuple{'a', 42} == std::array<int, 2>{'a', 42}); // WARNING: implicit conversion
+    #if defined(__cpp_lib_tuple_like) and __cpp_lib_tuple_like >= 202311L
+    static_assert(std::tuple{'a', 42} == std::array<int, 2>{'a', 42});
     static_assert(std::tuple{'a', 42} == std::pair{'a', 42});
+    #endif
 
     // TODO(GUILLAUME) issue #285
     // static_assert(csl::mp::tuple{ 'a', 42 } == std::tuple{'a', 42});
