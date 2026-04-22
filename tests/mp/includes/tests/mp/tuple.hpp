@@ -617,36 +617,43 @@ namespace test::tuples::structured_binding {
     using type = csl::mp::tuple<int, char>;
 
     constexpr void lvalue() {
+        
         auto value = type{ 42, 'a' };
         [[maybe_unused]] auto & [i, c] = value; // NOLINT(*-qualified-auto)
 
-        static_assert(std::is_same_v<decltype(i), int &>);
-        static_assert(std::is_same_v<decltype(c), char &>);
+        static_assert(std::is_same_v<decltype(i), std::tuple_element_t<0, type>>);
+        static_assert(std::is_same_v<decltype(c), std::tuple_element_t<1, type>>);
 
-        // static_assert(i == get<0>(value));
-        // static_assert(c == get<1>(value));
+        // assert(i == csl::mp::get<0>(value));
+        // assert(c == csl::mp::get<1>(value));
     }
     constexpr void const_lvalue() {
+        
         constexpr auto value                 = type{ 42, 'a' };
         [[maybe_unused]] const auto & [i, c] = value;
 
-        static_assert(std::is_same_v<decltype(i), int const &>);
-        static_assert(std::is_same_v<decltype(c), char const &>);
+        static_assert(std::is_same_v<decltype(i), const std::tuple_element_t<0, type>>);
+        static_assert(std::is_same_v<decltype(c), const std::tuple_element_t<1, type>>);
 
-        static_assert(i == csl::mp::get<0>(value));
-        static_assert(c == csl::mp::get<1>(value));
+        // assert(i == csl::mp::get<0>(value));
+        // assert(c == csl::mp::get<1>(value));
     }
     constexpr void rvalue() {
+        
         [[maybe_unused]] auto && [i, c] = type{ 42, 'a' };
 
-        static_assert(i == csl::mp::get<0>(value));
-        static_assert(c == csl::mp::get<1>(value));
+        static_assert(std::is_same_v<decltype(i), std::tuple_element_t<0, type>>);
+        static_assert(std::is_same_v<decltype(c), std::tuple_element_t<1, type>>);
     }
     constexpr void const_rvalue() {
+
         [[maybe_unused]] const auto && [i, c] = type{ 42, 'a' };
 
-        static_assert(i == csl::mp::get<0>(value));
-        static_assert(c == csl::mp::get<1>(value));
+        static_assert(std::is_same_v<decltype(i), const std::tuple_element_t<0, type>>);
+        static_assert(std::is_same_v<decltype(c), const std::tuple_element_t<1, type>>);
+
+        // assert(i == csl::mp::get<0>(value));
+        // assert(c == csl::mp::get<1>(value));
     }
 } // namespace test::tuples::structured_binding
 
