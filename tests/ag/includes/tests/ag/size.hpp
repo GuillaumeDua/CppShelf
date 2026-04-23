@@ -1,6 +1,7 @@
 #pragma once
 
 #include <csl/ag.hpp>
+#include <tests/types.hpp>
 
 namespace test::ag::size_ {
     template <typename T>
@@ -12,6 +13,11 @@ namespace test::ag::size_ {
     and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<const T&>>
     and csl::ag::size_v<T> == std::tuple_size_v<csl::ag::view_t<const T&&>>
     ;
+}
+
+namespace test::ag::size_::empty_ {
+    static_assert(has_consistent_size<types::empty>);
+    static_assert(has_consistent_size<types::not_empty_but_size_1>);
 }
 
 #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
