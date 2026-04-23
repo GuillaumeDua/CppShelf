@@ -3,7 +3,6 @@
 #include <csl/mp.hpp>
 #include <tuple>
 #include <array>
-#include <string>
 #include <cstdint>
 
 namespace test::tuples::algorithm {
@@ -18,36 +17,38 @@ namespace test::tuples::algorithm {
 
 namespace test::tuples::algorithm::count {
     using t = csl::mp::tuple<int, char, bool, int, double>;
-    static_assert(0 == csl::mp::count_v<t, float>);
-    static_assert(1 == csl::mp::count_v<t, char>);
-    static_assert(2 == csl::mp::count_v<t, int>);
+    static_assert(0 == csl::mp::type_traits::count_v<t, float>);
+    static_assert(1 == csl::mp::type_traits::count_v<t, char>);
+    static_assert(2 == csl::mp::type_traits::count_v<t, int>);
 
     // empty tuple
-    static_assert(0 == csl::mp::count_v<csl::mp::tuple<>, int>);
+    static_assert(0 == csl::mp::type_traits::count_v<csl::mp::tuple<>, int>);
 
-    static_assert(1 == csl::mp::count_v<std::tuple<int, char>, char>);
+    static_assert(1 == csl::mp::type_traits::count_v<std::tuple<int, char>, char>);
 }
 namespace test::tuples::algorithm::count_if {
     using t = csl::mp::tuple<int, char, bool, double, float>;
-    static_assert(3 == csl::mp::count_if_v<t, std::is_integral>);
-    static_assert(2 == csl::mp::count_if_v<t, std::is_floating_point>);
+    static_assert(3 == csl::mp::type_traits::count_if_v<t, std::is_integral>);
+    static_assert(2 == csl::mp::type_traits::count_if_v<t, std::is_floating_point>);
 
     // empty tuple
-    using is_int64_t = csl::mp::bind_front<std::is_same, std::int64_t>;
-    static_assert(0 == csl::mp::count_if_v<t, is_int64_t::type>);
+    using is_int64_t = csl::mp::type_traits::bind_front<std::is_same, std::int64_t>;
+    static_assert(0 == csl::mp::type_traits::count_if_v<t, is_int64_t::type>);
 }
 namespace test::tuples::algorithm::uniqued {
 
     using without_duplicates = csl::mp::tuple<int, char, bool>;
     using with_duplicates = csl::mp::tuple<int, char, int>;
 
-    static_assert(csl::mp::is_uniqued_v<without_duplicates>);
-    static_assert(not csl::mp::is_uniqued_v<with_duplicates>);
+    static_assert(csl::mp::type_traits::is_uniqued_v<without_duplicates>);
+    static_assert(not csl::mp::type_traits::is_uniqued_v<with_duplicates>);
 
     static_assert(not csl::mp::concepts::uniqued<with_duplicates>);
     static_assert(csl::mp::concepts::uniqued<without_duplicates>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<>>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>>);
+
+    static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int, int&>>);
 
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&>);
     static_assert(csl::mp::concepts::uniqued<csl::mp::tuple<int>&&>);
@@ -59,61 +60,53 @@ namespace test::tuples::algorithm::uniqued {
 namespace test::tuples::algorithm::unfold {
     
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<csl::mp::tuple<int, char>, csl::mp::tuple>,
+        csl::mp::type_traits::unfold_t<csl::mp::tuple<int, char>, csl::mp::tuple>,
         csl::mp::tuple<int, char>
     >);
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
+        csl::mp::type_traits::unfold_t<std::tuple<int, char>, csl::mp::tuple>,
         csl::mp::tuple<int, char>
     >);
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<std::array<int, 2>, csl::mp::tuple>,
+        csl::mp::type_traits::unfold_t<std::array<int, 2>, csl::mp::tuple>,
         csl::mp::tuple<int, int>
     >);
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<std::array<int, 2>, std::tuple>,
+        csl::mp::type_traits::unfold_t<std::array<int, 2>, std::tuple>,
         std::tuple<int, int>
     >);
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
+        csl::mp::type_traits::unfold_t<csl::mp::tuple<int, char>, std::tuple>,
         std::tuple<int, char>
     >);
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::pair>,
+        csl::mp::type_traits::unfold_t<csl::mp::tuple<int, char>, std::pair>,
         std::pair<int, char>
     >);
 
     static_assert(std::is_same_v<
-        csl::mp::unfold_t<csl::mp::tuple<int, char>, std::is_same>,
+        csl::mp::type_traits::unfold_t<csl::mp::tuple<int, char>, std::is_same>,
         std::is_same<int, char>
     >);
 }
 namespace test::tuples::algorithm::rebind {
 
     // csl::mp::tuple
-    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<int, float>, char, double>,  csl::mp::tuple<char, double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<int, float>, char>,          csl::mp::tuple<char>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<int, float>>,                csl::mp::tuple<>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<>>,                          csl::mp::tuple<>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<>, int, float>,              csl::mp::tuple<int, float>>);
-    // element types from `like` are fully replaced
-    static_assert(std::is_same_v<
-        csl::mp::rebind_t<
-            csl::mp::tuple<std::int64_t, std::int64_t, std::int64_t>,
-            int, float, double
-        >,
-        csl::mp::tuple<int, float, double>
-    >);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<int, float>, char, double>,  csl::mp::tuple<char, double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<int, float>, char>,          csl::mp::tuple<char>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<int, float>>,                csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<>>,                          csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<>, int, float>,              csl::mp::tuple<int, float>>);
 
     // std::tuple
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<int, float>, char, double>,  std::tuple<char, double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<int, float>>,                std::tuple<>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<>>,                          std::tuple<>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<>, int, float>,              std::tuple<int, float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::tuple<int, float>, char, double>,  std::tuple<char, double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::tuple<int, float>>,                std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::tuple<>>,                          std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::tuple<>, int, float>,              std::tuple<int, float>>);
 
     // std::pair - always exactly 2 types
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::pair<int, float>, char, double>,               std::pair<char, double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::pair<std::int64_t, std::int64_t>, int, float>, std::pair<int, float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::pair<int, float>, char, double>,               std::pair<char, double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::pair<std::int64_t, std::int64_t>, int, float>, std::pair<int, float>>);
     // wrong arity is ill-formed:
     //   rebind_t<std::pair<int,float>, char>                       // 1 element  -> ill-formed
     //   rebind_t<std::pair<int,float>, char, double, std::int64_t> // 3 elements -> ill-formed
@@ -121,9 +114,9 @@ namespace test::tuples::algorithm::rebind {
     // std::array
     //   Requires: sizeof...(Us) == N AND all Us are the same type.
     //   Both constraints are structural: violating either is ill-formed.
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::array<int, 3>, float, float, float>,   std::array<float, 3>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::array<int, 1>, double>,                std::array<double, 1>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::array<int, 2>, char, char>,            std::array<char, 2>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::array<int, 3>, float, float, float>,   std::array<float, 3>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::array<int, 1>, double>,                std::array<double, 1>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::array<int, 2>, char, char>,            std::array<char, 2>>);
     // N mismatch is ill-formed:
     //   rebind_t<std::array<int,3>, float, float>                  // 2 != 3 -> ill-formed
     //   rebind_t<std::array<int,3>, float, float, float, float>    // 4 != 3 -> ill-formed
@@ -132,19 +125,19 @@ namespace test::tuples::algorithm::rebind {
 
     // User-defined TTP (no specialisation needed: primary handles it)
     template <typename... Ts> struct pack {};
-    static_assert(std::is_same_v<csl::mp::rebind_t<pack<int, float>, char, double>,    pack<char, double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<pack<int, float>>,                  pack<>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<pack<>, int>,                       pack<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<pack<int, float>, char, double>,    pack<char, double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<pack<int, float>>,                  pack<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<pack<>, int>,                       pack<int>>);
 
     // Us can carry cvref qualifiers regardless of what T holds
-    static_assert(std::is_same_v<csl::mp::rebind_t<std::tuple<std::int64_t, std::int64_t>, int&, float&&>, std::tuple<int&, float&&>>);
-    static_assert(std::is_same_v<csl::mp::rebind_t<csl::mp::tuple<double>,  const int>,                    csl::mp::tuple<const int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<std::tuple<std::int64_t, std::int64_t>, int&, float&&>, std::tuple<int&, float&&>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_t<csl::mp::tuple<double>,  const int>,                    csl::mp::tuple<const int>>);
 }
 namespace test::tuples::algorithm::rebind_elements {
 
     // base use-case
     static_assert(std::is_same_v<
-        csl::mp::rebind_elements_t<
+        csl::mp::type_traits::rebind_elements_t<
             std::tuple<std::int64_t,std::int64_t,std::int64_t>,
             csl::mp::tuple<int,float,double>
         >,
@@ -152,42 +145,42 @@ namespace test::tuples::algorithm::rebind_elements {
     >);
 
     // csl::mp::tuple
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, csl::mp::tuple<char,double>>,  csl::mp::tuple<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, std::tuple<char,double>>,      csl::mp::tuple<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, std::pair<char,double>>,       csl::mp::tuple<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, std::array<char,2>>,           csl::mp::tuple<char,char>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<int,float>, csl::mp::tuple<char,double>>,  csl::mp::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<int,float>, std::tuple<char,double>>,      csl::mp::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<int,float>, std::pair<char,double>>,       csl::mp::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<int,float>, std::array<char,2>>,           csl::mp::tuple<char,char>>);
 
     // std::tuple
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, csl::mp::tuple<char,double>>,      std::tuple<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, std::tuple<char,double>>,          std::tuple<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, std::pair<char,double>>,           std::tuple<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>, std::array<char,2>>,               std::tuple<char,char>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::tuple<int,float>, csl::mp::tuple<char,double>>,      std::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::tuple<int,float>, std::tuple<char,double>>,          std::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::tuple<int,float>, std::pair<char,double>>,           std::tuple<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::tuple<int,float>, std::array<char,2>>,               std::tuple<char,char>>);
 
     // std::pair
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, csl::mp::tuple<char,double>>,       std::pair<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, std::tuple<char,double>>,           std::pair<char,double>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, std::array<char,2>>,                std::pair<char,char>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::pair<int,float>, std::pair<char,double>>,            std::pair<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::pair<int,float>, csl::mp::tuple<char,double>>,       std::pair<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::pair<int,float>, std::tuple<char,double>>,           std::pair<char,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::pair<int,float>, std::array<char,2>>,                std::pair<char,char>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::pair<int,float>, std::pair<char,double>>,            std::pair<char,double>>);
 
     // std::array
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, csl::mp::tuple<float,float>>,          std::array<float,2>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, std::tuple<float,float>>,              std::array<float,2>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, std::array<float,2>>,                  std::array<float,2>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::array<int,2>, std::pair<float,float>>,               std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::array<int,2>, csl::mp::tuple<float,float>>,          std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::array<int,2>, std::tuple<float,float>>,              std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::array<int,2>, std::array<float,2>>,                  std::array<float,2>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::array<int,2>, std::pair<float,float>>,               std::array<float,2>>);
     // heterogeneous elements_source with std::array shape is ill-formed:
     //   rebind_elements_t<std::array<int,2>, csl::mp::tuple<float,double>>  // not all same -> ill-formed
 
     // empty source: output has shape's kind with zero elements
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<int,float>, csl::mp::tuple<>>,             csl::mp::tuple<>>);
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<std::tuple<int,float>,     csl::mp::tuple<>>,             std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<int,float>, csl::mp::tuple<>>,             csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<std::tuple<int,float>,     csl::mp::tuple<>>,             std::tuple<>>);
     // empty shape: output is fully determined by elements_source
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<>,          csl::mp::tuple<int>>,          csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<>,          csl::mp::tuple<int>>,          csl::mp::tuple<int>>);
     // both empty
-    static_assert(std::is_same_v<csl::mp::rebind_elements_t<csl::mp::tuple<>,          csl::mp::tuple<>>,             csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::rebind_elements_t<csl::mp::tuple<>,          csl::mp::tuple<>>,             csl::mp::tuple<>>);
 
     // cvref qualifiers
     static_assert(std::is_same_v<
-        csl::mp::rebind_elements_t<
+        csl::mp::type_traits::rebind_elements_t<
             std::tuple<std::int64_t>,
             csl::mp::tuple<int&,float&&>
         >,
@@ -197,61 +190,61 @@ namespace test::tuples::algorithm::rebind_elements {
 namespace test::tuples::algorithm::transform {
 
     static_assert(std::is_same_v<
-        csl::mp::transform_t<csl::mp::tuple<int, char>, std::add_lvalue_reference_t>,
+        csl::mp::type_traits::transform_t<csl::mp::tuple<int, char>, std::add_lvalue_reference_t>,
         csl::mp::tuple<int&, char&>
     >);
     static_assert(std::is_same_v<
-        csl::mp::transform_t<std::tuple<int, char>, std::add_lvalue_reference_t>,
+        csl::mp::type_traits::transform_t<std::tuple<int, char>, std::add_lvalue_reference_t>,
         std::tuple<int&, char&>
     >);
     static_assert(std::is_same_v<
-        csl::mp::transform_t<std::pair<int, char>, std::add_lvalue_reference_t>,
+        csl::mp::type_traits::transform_t<std::pair<int, char>, std::add_lvalue_reference_t>,
         std::pair<int&, char&>
     >);
     static_assert(std::is_same_v<
-        csl::mp::transform_t<std::array<int, 1>, std::add_lvalue_reference_t>,
+        csl::mp::type_traits::transform_t<std::array<int, 1>, std::add_lvalue_reference_t>,
         std::array<int&, 1>
     >);
 }
 namespace test::tuples::algorithm::contains {
 
-    static_assert(not csl::mp::contains_v<csl::mp::tuple<>, int>);
-    static_assert(csl::mp::contains_v<csl::mp::tuple<int>, int>);
-    static_assert(csl::mp::contains_v<csl::mp::tuple<int, char>, int>);
-    static_assert(csl::mp::contains_v<csl::mp::tuple<char, int>, int>);
+    static_assert(not csl::mp::type_traits::contains_v<csl::mp::tuple<>, int>);
+    static_assert(csl::mp::type_traits::contains_v<csl::mp::tuple<int>, int>);
+    static_assert(csl::mp::type_traits::contains_v<csl::mp::tuple<int, char>, int>);
+    static_assert(csl::mp::type_traits::contains_v<csl::mp::tuple<char, int>, int>);
 
     // std tuple-likes
-    static_assert(csl::mp::contains_v<std::tuple<char, int>, int>);
-    static_assert(csl::mp::contains_v<std::pair<char, int>, int>);
-    static_assert(csl::mp::contains_v<std::array<int, 2>, int>);
+    static_assert(csl::mp::type_traits::contains_v<std::tuple<char, int>, int>);
+    static_assert(csl::mp::type_traits::contains_v<std::pair<char, int>, int>);
+    static_assert(csl::mp::type_traits::contains_v<std::array<int, 2>, int>);
 
     // with duplicates
-    static_assert(csl::mp::contains_v<csl::mp::tuple<int, char, int>, int>);
-    static_assert(csl::mp::contains_v<    std::tuple<int, char, int>, int>);
+    static_assert(csl::mp::type_traits::contains_v<csl::mp::tuple<int, char, int>, int>);
+    static_assert(csl::mp::type_traits::contains_v<    std::tuple<int, char, int>, int>);
 }
 namespace test::tuples::algorithm::filter {
 
     using csl_tuple = csl::mp::tuple<int, double, float, char>;
-    using std_tuple = csl::mp::unfold_t<csl_tuple, std::tuple>;
+    using std_tuple = csl::mp::type_traits::unfold_t<csl_tuple, std::tuple>;
 
     static_assert(std::is_same_v<
-        csl::mp::filter_t<csl_tuple, std::is_integral>,
+        csl::mp::type_traits::filter_t<csl_tuple, std::is_integral>,
         csl::mp::tuple<int, char>
     >);
     static_assert(std::is_same_v<
-        csl::mp::filter_t<std_tuple, std::is_integral>,
+        csl::mp::type_traits::filter_t<std_tuple, std::is_integral>,
         std::tuple<int, char>
     >);
     static_assert(std::is_same_v<
-        csl::mp::filter_t<csl_tuple, std::is_floating_point>,
+        csl::mp::type_traits::filter_t<csl_tuple, std::is_floating_point>,
         csl::mp::tuple<double, float>
     >);
     static_assert(std::is_same_v<
-        csl::mp::filter_t<std::pair<int, char>, std::is_integral>,
+        csl::mp::type_traits::filter_t<std::pair<int, char>, std::is_integral>,
         std::pair<int, char>
     >);
     static_assert(std::is_same_v<
-        csl::mp::filter_t<std::array<int, 2>, std::is_integral>,
+        csl::mp::type_traits::filter_t<std::array<int, 2>, std::is_integral>,
         std::array<int, 2>
     >);
 }
@@ -260,19 +253,19 @@ namespace test::tuples::algorithm::replace {
     struct replacement{};
 
     static_assert(std::is_same_v<
-        csl::mp::replace_t<csl::mp::tuple<int, double, int>, int, replacement>,
+        csl::mp::type_traits::replace_t<csl::mp::tuple<int, double, int>, int, replacement>,
         csl::mp::tuple<replacement, double, replacement>
     >);
     static_assert(std::is_same_v<
-        csl::mp::replace_t<std::tuple<int, double, int>, int, replacement>,
+        csl::mp::type_traits::replace_t<std::tuple<int, double, int>, int, replacement>,
         std::tuple<replacement, double, replacement>
     >);
     static_assert(std::is_same_v<
-        csl::mp::replace_t<std::array<int, 2>, int, replacement>,
+        csl::mp::type_traits::replace_t<std::array<int, 2>, int, replacement>,
         std::array<replacement, 2>
     >);
     static_assert(std::is_same_v<
-        csl::mp::replace_t<std::pair<int, char>, int, replacement>,
+        csl::mp::type_traits::replace_t<std::pair<int, char>, int, replacement>,
         std::pair<replacement, char>
     >);
 }
@@ -281,23 +274,24 @@ namespace test::tuples::algorithm::replace_if {
     struct replacement{};
 
     static_assert(std::is_same_v<
-        csl::mp::replace_if_t<csl::mp::tuple<int, double, char>, std::is_integral, replacement>,
+        csl::mp::type_traits::replace_if_t<csl::mp::tuple<int, double, char>, std::is_integral, replacement>,
         csl::mp::tuple<replacement, double, replacement>
     >);
     static_assert(std::is_same_v<
-        csl::mp::replace_if_t<std::tuple<int, double, char>, std::is_integral, replacement>,
+        csl::mp::type_traits::replace_if_t<std::tuple<int, double, char>, std::is_integral, replacement>,
         std::tuple<replacement, double, replacement>
     >);
     static_assert(std::is_same_v<
-        csl::mp::replace_if_t<std::array<int, 2>, std::is_integral, replacement>,
+        csl::mp::type_traits::replace_if_t<std::array<int, 2>, std::is_integral, replacement>,
         std::array<replacement, 2>
     >);
     static_assert(std::is_same_v<
-        csl::mp::replace_if_t<std::pair<int, char>, std::is_integral, replacement>,
+        csl::mp::type_traits::replace_if_t<std::pair<int, char>, std::is_integral, replacement>,
         std::pair<replacement, replacement>
     >);
 }
 namespace test::tuples::algorithm::set {
+
     using empty = csl::mp::tuple<>;
     using T0 = csl::mp::tuple<int, char>;
     using T1 = csl::mp::tuple<int, double>;
@@ -306,23 +300,23 @@ namespace test::tuples::algorithm::set {
 
         // empty LHS or RHS => identity
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<T0, empty>,
+            csl::mp::type_traits::set_union_t<T0, empty>,
             T0
         >);
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<empty, T0>,
+            csl::mp::type_traits::set_union_t<empty, T0>,
             T0
         >);
 
         // idempotence
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<T0, T0>,
+            csl::mp::type_traits::set_union_t<T0, T0>,
             T0
         >);
 
         // order preservation
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<
+            csl::mp::type_traits::set_union_t<
                 csl::mp::tuple<int, char>,
                 csl::mp::tuple<char, int, float>
             >,
@@ -331,7 +325,7 @@ namespace test::tuples::algorithm::set {
 
         // duplicates in RHS
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<
+            csl::mp::type_traits::set_union_t<
                 csl::mp::tuple<int>,
                 csl::mp::tuple<int, int, int>
             >,
@@ -339,7 +333,7 @@ namespace test::tuples::algorithm::set {
         >);
         // duplicates in LHS
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<
+            csl::mp::type_traits::set_union_t<
                 csl::mp::tuple<int, int>,
                 csl::mp::tuple<int>
             >,
@@ -348,21 +342,21 @@ namespace test::tuples::algorithm::set {
 
         // cross tuplelikes types
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<
+            csl::mp::type_traits::set_union_t<
                 std::tuple<int, char>,
                 csl::mp::tuple<char, double>
             >,
             std::tuple<int, char, double>
         >);
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<
+            csl::mp::type_traits::set_union_t<
                 std::tuple<int, char>,
                 std::array<char, 2>
             >,
             std::tuple<int, char>
         >);
         static_assert(std::is_same_v<
-            csl::mp::set_union_t<
+            csl::mp::type_traits::set_union_t<
                 std::array<char, 2>,
                 std::tuple<char>
             >,
@@ -375,23 +369,23 @@ namespace test::tuples::algorithm::set {
         
         // empty behavior
         static_assert(std::is_same_v<
-            csl::mp::set_intersection_t<T0, empty>,
+            csl::mp::type_traits::set_intersection_t<T0, empty>,
             empty
         >);
         static_assert(std::is_same_v<
-            csl::mp::set_intersection_t<empty, T0>,
+            csl::mp::type_traits::set_intersection_t<empty, T0>,
             empty
         >);
 
         // idempotence
         static_assert(std::is_same_v<
-            csl::mp::set_intersection_t<T0, T0>,
+            csl::mp::type_traits::set_intersection_t<T0, T0>,
             T0
         >);
 
         // order preservation (from LHS!)
         static_assert(std::is_same_v<
-            csl::mp::set_intersection_t<
+            csl::mp::type_traits::set_intersection_t<
                 csl::mp::tuple<int, char, float>,
                 csl::mp::tuple<float, int>
             >,
@@ -400,7 +394,7 @@ namespace test::tuples::algorithm::set {
 
         // duplicates in LHS are preserved
         static_assert(std::is_same_v<
-            csl::mp::set_intersection_t<
+            csl::mp::type_traits::set_intersection_t<
                 csl::mp::tuple<int, int, char>,
                 csl::mp::tuple<int>
             >,
@@ -411,7 +405,7 @@ namespace test::tuples::algorithm::set {
     
         // correctness
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<
+            csl::mp::type_traits::set_difference_t<
                 csl::mp::tuple<int, int, int>,
                 csl::mp::tuple<int, int>
             >,
@@ -420,25 +414,25 @@ namespace test::tuples::algorithm::set {
 
         // identity
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<T0, empty>,
+            csl::mp::type_traits::set_difference_t<T0, empty>,
             T0
         >);
 
         // annihilation
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<T0, T0>,
+            csl::mp::type_traits::set_difference_t<T0, T0>,
             empty
         >);
 
         // empty lhs
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<empty, T0>,
+            csl::mp::type_traits::set_difference_t<empty, T0>,
             empty
         >);
 
         // order preservation
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<
+            csl::mp::type_traits::set_difference_t<
                 csl::mp::tuple<int, char, float>,
                 csl::mp::tuple<char>
             >,
@@ -447,7 +441,7 @@ namespace test::tuples::algorithm::set {
 
         // duplicates preserved
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<
+            csl::mp::type_traits::set_difference_t<
                 csl::mp::tuple<int, int, char>,
                 csl::mp::tuple<int>
             >,
@@ -455,7 +449,7 @@ namespace test::tuples::algorithm::set {
         >);
 
         static_assert(std::is_same_v<
-            csl::mp::set_difference_t<
+            csl::mp::type_traits::set_difference_t<
                 csl::mp::tuple<A,B,D,D,D,G>,
                 csl::mp::tuple<B,D,F>
             >,
@@ -467,47 +461,47 @@ namespace test::tuples::algorithm::unique {
 
     // invariant helpers: properties that must hold for ANY input
     template <csl::mp::concepts::tuple_like T>
-    constexpr bool check = csl::mp::is_uniqued_v<csl::mp::unique_t<T>>;
+    constexpr bool check = csl::mp::type_traits::is_uniqued_v<csl::mp::type_traits::unique_t<T>>;
 
     template <csl::mp::concepts::tuple_like T>
     constexpr bool unchanged = std::is_same_v<
-        csl::mp::unique_t<T>,
-        csl::mp::unique_t<csl::mp::unique_t<T>>
+        csl::mp::type_traits::unique_t<T>,
+        csl::mp::type_traits::unique_t<csl::mp::type_traits::unique_t<T>>
     >;
 
     namespace csl_tuple {
 
-        // already uniqued -> no-op
+        // already uniqued -> identity
         using already_unique = csl::mp::tuple<int, char, double>;
         static_assert(csl::mp::concepts::support_get_by_type<already_unique>);
         static_assert(csl::mp::concepts::uniqued<already_unique>);
-        static_assert(std::is_same_v<csl::mp::unique_t<already_unique>, already_unique>);
+        static_assert(std::is_same_v<csl::mp::type_traits::unique_t<already_unique>, already_unique>);
 
         static_assert(not csl::mp::concepts::support_get_by_type<csl::mp::tuple<int, char, int>>);
 
         // duplicate at end: first occurrence kept
         static_assert(std::is_same_v<
-            csl::mp::unique_t<csl::mp::tuple<int, char, double, int>>,
+            csl::mp::type_traits::unique_t<csl::mp::tuple<int, char, double, int>>,
             csl::mp::tuple<int, char, double>
         >);
         // duplicate at start
         static_assert(std::is_same_v<
-            csl::mp::unique_t<csl::mp::tuple<int, int, char, double>>,
+            csl::mp::type_traits::unique_t<csl::mp::tuple<int, int, char, double>>,
             csl::mp::tuple<int, char, double>
         >);
         // duplicate in middle
         static_assert(std::is_same_v<
-            csl::mp::unique_t<csl::mp::tuple<int, char, int, double>>,
+            csl::mp::type_traits::unique_t<csl::mp::tuple<int, char, int, double>>,
             csl::mp::tuple<int, char, double>
         >);
         // multiple distinct duplicates
         static_assert(std::is_same_v<
-            csl::mp::unique_t<csl::mp::tuple<int, char, int, char, double, int>>,
+            csl::mp::type_traits::unique_t<csl::mp::tuple<int, char, int, char, double, int>>,
             csl::mp::tuple<int, char, double>
         >);
         // all same type
         static_assert(std::is_same_v<
-            csl::mp::unique_t<csl::mp::tuple<int, int, int>>,
+            csl::mp::type_traits::unique_t<csl::mp::tuple<int, int, int>>,
             csl::mp::tuple<int>
         >);
 
@@ -524,11 +518,11 @@ namespace test::tuples::algorithm::unique {
         using already_unique = std::tuple<int, char, double>;
         static_assert(csl::mp::concepts::support_get_by_type<already_unique>);
         static_assert(csl::mp::concepts::uniqued<already_unique>);
-        static_assert(std::is_same_v<csl::mp::unique_t<already_unique>, already_unique>);
+        static_assert(std::is_same_v<csl::mp::type_traits::unique_t<already_unique>, already_unique>);
 
         static_assert(not csl::mp::concepts::support_get_by_type<std::tuple<int, char, int>>);
         static_assert(std::is_same_v<
-            csl::mp::unique_t<std::tuple<int, char, int, char, double, int>>,
+            csl::mp::type_traits::unique_t<std::tuple<int, char, int, char, double, int>>,
             std::tuple<int, char, double>
         >);
 
@@ -563,87 +557,85 @@ namespace test::tuples::algorithm::unique {
 
         // std::array<T, N> -> std::array<T, 1>
         static_assert(std::is_same_v<
-            csl::mp::unique_t<duplicates>,
+            csl::mp::type_traits::unique_t<duplicates>,
             type
         >);
     }
 }
+
 namespace test::tuples::algorithm::push_back {
 
     // csl::mp::tuple
-    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<int,float,double>, char>,   csl::mp::tuple<int,float,double,char>>);
-    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<int>,              float>,  csl::mp::tuple<int,float>>);
-    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<>,                 int>,    csl::mp::tuple<int>>);
-    static_assert(std::is_same_v<csl::mp::push_back_t<csl::mp::tuple<int,float>,        int>,    csl::mp::tuple<int,float,int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<csl::mp::tuple<int,float,double>, char>,   csl::mp::tuple<int,float,double,char>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<csl::mp::tuple<int>,              float>,  csl::mp::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<csl::mp::tuple<>,                 int>,    csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<csl::mp::tuple<int,float>,        int>,    csl::mp::tuple<int,float,int>>);
 
     // std::tuple
-    static_assert(std::is_same_v<csl::mp::push_back_t<std::tuple<int,float,double>, char>,       std::tuple<int,float,double,char>>);
-    static_assert(std::is_same_v<csl::mp::push_back_t<std::tuple<int>,              float>,      std::tuple<int,float>>);
-    static_assert(std::is_same_v<csl::mp::push_back_t<std::tuple<>,                 int>,        std::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<std::tuple<int,float,double>, char>,       std::tuple<int,float,double,char>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<std::tuple<int>,              float>,      std::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<std::tuple<>,                 int>,        std::tuple<int>>);
 
     // std::array
-    static_assert(std::is_same_v<csl::mp::push_back_t<std::array<int,3>, int>, std::array<int,4>>);
-    static_assert(std::is_same_v<csl::mp::push_back_t<std::array<int,0>, int>, std::array<int,1>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<std::array<int,3>, int>, std::array<int,4>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_back_t<std::array<int,0>, int>, std::array<int,1>>);
     // ill-formed: push_back_t<std::array<int,3>, float>
     // ill-formed: push_back_t<std::pair<int,float>, double>
 }
 namespace test::tuples::algorithm::push_front {
 
     // csl::mp::tuple
-    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<int,float,double>, char>,  csl::mp::tuple<char,int,float,double>>);
-    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<int>,              float>, csl::mp::tuple<float,int>>);
-    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<>,                 int>,   csl::mp::tuple<int>>);
-    static_assert(std::is_same_v<csl::mp::push_front_t<csl::mp::tuple<int,float>,        int>,   csl::mp::tuple<int,int,float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<csl::mp::tuple<int,float,double>, char>,  csl::mp::tuple<char,int,float,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<csl::mp::tuple<int>,              float>, csl::mp::tuple<float,int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<csl::mp::tuple<>,                 int>,   csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<csl::mp::tuple<int,float>,        int>,   csl::mp::tuple<int,int,float>>);
 
     // std::tuple
-    static_assert(std::is_same_v<csl::mp::push_front_t<std::tuple<int,float,double>, char>,      std::tuple<char,int,float,double>>);
-    static_assert(std::is_same_v<csl::mp::push_front_t<std::tuple<int>,              float>,     std::tuple<float,int>>);
-    static_assert(std::is_same_v<csl::mp::push_front_t<std::tuple<>,                 int>,       std::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<std::tuple<int,float,double>, char>,      std::tuple<char,int,float,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<std::tuple<int>,              float>,     std::tuple<float,int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<std::tuple<>,                 int>,       std::tuple<int>>);
 
     // std::array
-    static_assert(std::is_same_v<csl::mp::push_front_t<std::array<int,3>, int>,       std::array<int,4>>);
-    static_assert(std::is_same_v<csl::mp::push_front_t<std::array<int,0>, int>,       std::array<int,1>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<std::array<int,3>, int>,       std::array<int,4>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::push_front_t<std::array<int,0>, int>,       std::array<int,1>>);
     // ill-formed: push_front_t<std::array<int,3>, float>
     // ill-formed: push_front_t<std::pair<int,float>, double>
 }
-
 namespace test::type_traits::pop_back {
 
     // csl::mp::tuple
-    static_assert(std::is_same_v<csl::mp::pop_back_t<csl::mp::tuple<int,float,double>>,   csl::mp::tuple<int,float>>);
-    static_assert(std::is_same_v<csl::mp::pop_back_t<csl::mp::tuple<int,float>>,          csl::mp::tuple<int>>);
-    static_assert(std::is_same_v<csl::mp::pop_back_t<csl::mp::tuple<int>>,                csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<csl::mp::tuple<int,float,double>>,   csl::mp::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<csl::mp::tuple<int,float>>,          csl::mp::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<csl::mp::tuple<int>>,                csl::mp::tuple<>>);
     // ill-formed: pop_back_t<csl::mp::tuple<>>
 
     // std::tuple
-    static_assert(std::is_same_v<csl::mp::pop_back_t<std::tuple<int,float,double>>,       std::tuple<int,float>>);
-    static_assert(std::is_same_v<csl::mp::pop_back_t<std::tuple<int,float>>,              std::tuple<int>>);
-    static_assert(std::is_same_v<csl::mp::pop_back_t<std::tuple<int>>,                    std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<std::tuple<int,float,double>>,       std::tuple<int,float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<std::tuple<int,float>>,              std::tuple<int>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<std::tuple<int>>,                    std::tuple<>>);
 
     // std::array
-    static_assert(std::is_same_v<csl::mp::pop_back_t<std::array<int,4>>,                  std::array<int,3>>);
-    static_assert(std::is_same_v<csl::mp::pop_back_t<std::array<int,1>>,                  std::array<int,0>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<std::array<int,4>>,                  std::array<int,3>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_back_t<std::array<int,1>>,                  std::array<int,0>>);
     // ill-formed: pop_back_t<std::array<int,0>>
 }
-
 namespace test::type_traits::pop_front {
 
     // csl::mp::tuple
-    static_assert(std::is_same_v<csl::mp::pop_front_t<csl::mp::tuple<int,float,double>>,  csl::mp::tuple<float,double>>);
-    static_assert(std::is_same_v<csl::mp::pop_front_t<csl::mp::tuple<int,float>>,         csl::mp::tuple<float>>);
-    static_assert(std::is_same_v<csl::mp::pop_front_t<csl::mp::tuple<int>>,               csl::mp::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<csl::mp::tuple<int,float,double>>,  csl::mp::tuple<float,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<csl::mp::tuple<int,float>>,         csl::mp::tuple<float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<csl::mp::tuple<int>>,               csl::mp::tuple<>>);
     // ill-formed: pop_front_t<csl::mp::tuple<>>
 
     // std::tuple
-    static_assert(std::is_same_v<csl::mp::pop_front_t<std::tuple<int,float,double>>,      std::tuple<float,double>>);
-    static_assert(std::is_same_v<csl::mp::pop_front_t<std::tuple<int,float>>,             std::tuple<float>>);
-    static_assert(std::is_same_v<csl::mp::pop_front_t<std::tuple<int>>,                   std::tuple<>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::tuple<int,float,double>>,      std::tuple<float,double>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::tuple<int,float>>,             std::tuple<float>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::tuple<int>>,                   std::tuple<>>);
 
     // std::array
-    static_assert(std::is_same_v<csl::mp::pop_front_t<std::array<int,4>>,                 std::array<int,3>>);
-    static_assert(std::is_same_v<csl::mp::pop_front_t<std::array<int,1>>,                 std::array<int,0>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::array<int,4>>,                 std::array<int,3>>);
+    static_assert(std::is_same_v<csl::mp::type_traits::pop_front_t<std::array<int,1>>,                 std::array<int,0>>);
 }
-
 
 // TODO(Guillaume) forgot some algos here
 
@@ -657,26 +649,26 @@ namespace test::tuples::algorithm::index_of {
 
         using T = csl::mp::tuple<char, double, float, int>;
 
-        static_assert(csl::mp::index_of_v<T, char>   == 0);
-        static_assert(csl::mp::index_of_v<T, double> == 1);
-        static_assert(csl::mp::index_of_v<T, float>  == 2);
-        static_assert(csl::mp::index_of_v<T, int>    == 3);
-        static_assert(csl::mp::index_of_v<T, std::int64_t> == not_found<T, std::int64_t>);
+        static_assert(csl::mp::type_traits::index_of_v<T, char>   == 0);
+        static_assert(csl::mp::type_traits::index_of_v<T, double> == 1);
+        static_assert(csl::mp::type_traits::index_of_v<T, float>  == 2);
+        static_assert(csl::mp::type_traits::index_of_v<T, int>    == 3);
+        static_assert(csl::mp::type_traits::index_of_v<T, std::int64_t> == not_found<T, std::int64_t>);
 
         // index_of == last_index_of
-        static_assert(csl::mp::last_index_of_v<T, char>   == 0);
-        static_assert(csl::mp::last_index_of_v<T, double> == 1);
-        static_assert(csl::mp::last_index_of_v<T, float>  == 2);
-        static_assert(csl::mp::last_index_of_v<T, int>    == 3);
-        static_assert(csl::mp::last_index_of_v<T, std::int64_t> == not_found<T, std::int64_t>);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, char>   == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, double> == 1);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, float>  == 2);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, int>    == 3);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, std::int64_t> == not_found<T, std::int64_t>);
 
         template <std::size_t index>
         constexpr auto check_element(){
             using element_t = csl::mp::element_t<index, T>;
             static_assert(csl::mp::details::concepts::can_deduce_by_type<T, element_t>);
-            static_assert(index == csl::mp::index_of_v<T, element_t>);
-            static_assert(index == csl::mp::last_index_of_v<T, element_t>);
-            // so we implicitly have: static_assert(csl::mp::index_of_v<T, element_t> == csl::mp::last_index_of_v<T, element_t>);
+            static_assert(index == csl::mp::type_traits::index_of_v<T, element_t>);
+            static_assert(index == csl::mp::type_traits::last_index_of_v<T, element_t>);
+            // so we implicitly have: static_assert(csl::mp::type_traits::index_of_v<T, element_t> == csl::mp::type_traits::last_index_of_v<T, element_t>);
         };
         [[maybe_unused]] constexpr auto check_elements = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             ((check_element<indexes>()), ...);
@@ -684,91 +676,91 @@ namespace test::tuples::algorithm::index_of {
         }(std::make_index_sequence<csl::mp::size_v<T>>{});
     }
 
+    // csl::mp::tuple - at least one duplicated type -> linear scan O(N)
     namespace linear_ON {
         static_assert(not csl::mp::details::concepts::can_deduce_by_type<csl::mp::tuple<int, float, int>, int>);
 
         using duplicate_at_end = csl::mp::tuple<char, double, float, int, int>;
-        static_assert(csl::mp::index_of_v     <duplicate_at_end, int> == 3);
-        static_assert(csl::mp::last_index_of_v<duplicate_at_end, int> == 4);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicate_at_end, int> == 3);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicate_at_end, int> == 4);
 
         using duplicate_at_begin = csl::mp::tuple<int, int, float, double>;
-        static_assert(csl::mp::index_of_v     <duplicate_at_begin, int> == 0);
-        static_assert(csl::mp::last_index_of_v<duplicate_at_begin, int> == 1);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicate_at_begin, int> == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicate_at_begin, int> == 1);
 
         using duplicate_in_middle = csl::mp::tuple<char, int, int, double>;
-        static_assert(csl::mp::index_of_v     <duplicate_in_middle, int> == 1);
-        static_assert(csl::mp::last_index_of_v<duplicate_in_middle, int> == 2);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicate_in_middle, int> == 1);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicate_in_middle, int> == 2);
 
         using duplicate_sparsed = csl::mp::tuple<int, float, int, double, int>;
-        static_assert(csl::mp::index_of_v     <duplicate_sparsed, int> == 0);
-        static_assert(csl::mp::last_index_of_v<duplicate_sparsed, int> == 4);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicate_sparsed, int> == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicate_sparsed, int> == 4);
 
-        static_assert(csl::mp::index_of_v     <duplicate_at_end, std::int64_t> == not_found<duplicate_at_end, std::int64_t>);
-        static_assert(csl::mp::last_index_of_v<duplicate_at_end, std::int64_t> == not_found<duplicate_at_end, std::int64_t>);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicate_at_end, std::int64_t> == not_found<duplicate_at_end, std::int64_t>);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicate_at_end, std::int64_t> == not_found<duplicate_at_end, std::int64_t>);
 
         using homogeneous = csl::mp::tuple<int, int, int>;
-        static_assert(csl::mp::index_of_v     <homogeneous, int>   == 0);
-        static_assert(csl::mp::last_index_of_v<homogeneous, int>   == 2);
-        static_assert(csl::mp::index_of_v     <homogeneous, float> == not_found<homogeneous, float>);
+        static_assert(csl::mp::type_traits::index_of_v     <homogeneous, int>   == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<homogeneous, int>   == 2);
+        static_assert(csl::mp::type_traits::index_of_v     <homogeneous, float> == not_found<homogeneous, float>);
     }
 
     namespace edge_cases {
+
         // empty: not_found == tuple_size == 0
         using empty_csl_mp_tuple  = csl::mp::tuple<>;
         using empty_std_tuple     = std::tuple<>;
-        static_assert(csl::mp::index_of_v     <empty_csl_mp_tuple,  int> == not_found<empty_csl_mp_tuple,  int>);
-        static_assert(csl::mp::last_index_of_v<empty_csl_mp_tuple,  int> == not_found<empty_csl_mp_tuple,  int>);
-        static_assert(csl::mp::index_of_v     <empty_std_tuple,     int> == not_found<empty_std_tuple,     int>);
-        static_assert(csl::mp::last_index_of_v<empty_std_tuple,     int> == not_found<empty_std_tuple,     int>);
+        static_assert(csl::mp::type_traits::index_of_v     <empty_csl_mp_tuple,  int> == not_found<empty_csl_mp_tuple,  int>);
+        static_assert(csl::mp::type_traits::last_index_of_v<empty_csl_mp_tuple,  int> == not_found<empty_csl_mp_tuple,  int>);
+        static_assert(csl::mp::type_traits::index_of_v     <empty_std_tuple,     int> == not_found<empty_std_tuple,     int>);
+        static_assert(csl::mp::type_traits::last_index_of_v<empty_std_tuple,     int> == not_found<empty_std_tuple,     int>);
 
         // size == 1: found
         using single_element = csl::mp::tuple<int>;
-        static_assert(csl::mp::index_of_v     <single_element, int>   == 0);
-        static_assert(csl::mp::last_index_of_v<single_element, int>   == 0);
+        static_assert(csl::mp::type_traits::index_of_v     <single_element, int>   == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<single_element, int>   == 0);
         // size == 1: not found
-        static_assert(csl::mp::index_of_v     <single_element, float> == not_found<single_element, float>);
-        static_assert(csl::mp::last_index_of_v<single_element, float> == not_found<single_element, float>);
+        static_assert(csl::mp::type_traits::index_of_v     <single_element, float> == not_found<single_element, float>);
+        static_assert(csl::mp::type_traits::last_index_of_v<single_element, float> == not_found<single_element, float>);
     }
 
     // linear
     namespace std_tuple {
+
         using T = std::tuple<char, double, float, int>;
-        static_assert(csl::mp::index_of_v     <T, char>         == 0);
-        static_assert(csl::mp::index_of_v     <T, int>          == 3);
-        static_assert(csl::mp::index_of_v     <T, std::int64_t> == not_found<T, std::int64_t>);
-        static_assert(csl::mp::last_index_of_v<T, int>          == 3);
+        static_assert(csl::mp::type_traits::index_of_v     <T, char>         == 0);
+        static_assert(csl::mp::type_traits::index_of_v     <T, int>          == 3);
+        static_assert(csl::mp::type_traits::index_of_v     <T, std::int64_t> == not_found<T, std::int64_t>);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, int>          == 3);
 
         using duplicates = std::tuple<int, float, int>;
-        static_assert(csl::mp::index_of_v     <duplicates, int> == 0);
-        static_assert(csl::mp::last_index_of_v<duplicates, int> == 2);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicates, int> == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicates, int> == 2);
     }
 
     // std::array - optimised O(1)
     namespace std_array {
+
         using T = std::array<int, 4>;
-        static_assert(csl::mp::index_of_v     <T, int>   == 0);
-        static_assert(csl::mp::last_index_of_v<T, int>   == 3);
-        static_assert(csl::mp::index_of_v     <T, float> == not_found<T, float>);
+        static_assert(csl::mp::type_traits::index_of_v     <T, int>   == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, int>   == 3);
+        static_assert(csl::mp::type_traits::index_of_v     <T, float> == not_found<T, float>);
     }
 
     namespace std_pair {
+
         using T = std::pair<int, float>;
-        static_assert(csl::mp::index_of_v     <T, int>    == 0);
-        static_assert(csl::mp::index_of_v     <T, float>  == 1);
-        static_assert(csl::mp::index_of_v     <T, double> == not_found<T, double>);
-        static_assert(csl::mp::last_index_of_v<T, int>    == 0);
-        static_assert(csl::mp::last_index_of_v<T, float>  == 1);
+        static_assert(csl::mp::type_traits::index_of_v     <T, int>    == 0);
+        static_assert(csl::mp::type_traits::index_of_v     <T, float>  == 1);
+        static_assert(csl::mp::type_traits::index_of_v     <T, double> == not_found<T, double>);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, int>    == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<T, float>  == 1);
 
         // Same type in both positions
         using duplicate = std::pair<int, int>;
-        static_assert(csl::mp::index_of_v     <duplicate, int>   == 0);
-        static_assert(csl::mp::last_index_of_v<duplicate, int>   == 1);
+        static_assert(csl::mp::type_traits::index_of_v     <duplicate, int>   == 0);
+        static_assert(csl::mp::type_traits::last_index_of_v<duplicate, int>   == 1);
     }
 }
 
 // TODO(Guillaume) sort, is_sorted
-
-
-
-
-

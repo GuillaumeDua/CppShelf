@@ -56,7 +56,7 @@ BreakBeforeTernaryOperators   : 'true'
 BreakConstructorInitializers  : BeforeComma
 BreakInheritanceList          : BeforeComma
 BreakStringLiterals           : 'false'
-NamespaceIndentation          : Inner # Inner
+NamespaceIndentation          : All # Inner
 FixNamespaceComments          : 'true'
 ColumnLimit                   : 0
 UseTab                        : Never
