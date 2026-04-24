@@ -1,0 +1,9 @@
+CompileFlags:
+    Add: [-std=c++23, -xc++, -Wall, -Wextra] 
+    Compiler: clang++
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+Hover:
+  ShowAKA: No

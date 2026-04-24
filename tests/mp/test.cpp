@@ -1,30 +1,21 @@
-#include "./flat.hpp"
+#undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#if not defined(FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#    error "FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION is not set"
+#endif
+#define CSL_MP_TUPLE__IMPLICIT_CONVERSION FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION
 
 #include <csl/mp.hpp>
 
-#include <type_traits>
-#include <concepts>
-#include <iostream> // debug only
+// parts
+#include <tests/mp/primitive.hpp>
+#include <tests/mp/sequence.hpp>
+#include <tests/mp/tuple.hpp>
+#include <tests/mp/tuple_algorithm.hpp>
+#include <tests/mp/functions.hpp>
+// #include <tests/mp/flat.hpp>
 
-namespace test::reverse_integer_sequence {
-    
-    using namespace csl::mp::seq;
-
-    using seq_type = std::make_index_sequence<5>;
-    using reversed_seq_type = csl::mp::seq::make_reverse_index_sequence<5>;
-    static_assert(std::same_as<
-        reversed_seq_type,
-        std::index_sequence<4,3,2,1,0>
-    >);
-    static_assert(std::same_as<
-        reverse_sequence<reversed_seq_type>,
-        std::index_sequence<0,1,2,3,4>
-    >);
-    static_assert(std::same_as<
-        reversed_seq_type,
-        reverse_sequence<std::index_sequence<0,1,2,3,4>>
-    >);
-}
+// pack: legacy algos to refactor/move
+#if false
 namespace test::index_of {
 
     using namespace csl::mp;
@@ -46,6 +37,7 @@ namespace test::nth {
         csl::mp::index_of_v<char, pack_type> == 1
     );
 }
+#endif
 // namespace test::index {
 //     using namespace csl::mp;
 
@@ -70,11 +62,11 @@ namespace test::nth {
 //         pack<char, char, int, int, bool>>);
 // }
 
+// #include <iostream> // debug only
+
 auto main() -> int {
 
     // using namespace csl::mp;
     // std::cout << "1 == " << last_index_of_v<int,
     //     char, char, int, bool> << '\n';
-
-    
 }

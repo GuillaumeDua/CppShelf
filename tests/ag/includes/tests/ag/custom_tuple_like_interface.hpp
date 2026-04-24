@@ -6,7 +6,7 @@
 namespace test::ag::custom_tuple_like_interface::details {
 
     template <typename T, char expected>
-    constexpr decltype(auto) ensure_unqualified_get() noexcept {
+    consteval decltype(auto) ensure_unqualified_get() noexcept {
         using csl::ag::get;
         using std::get;
         static_assert(requires{ get<0>(std::declval<T>()); });
@@ -18,7 +18,7 @@ namespace test::ag::custom_tuple_like_interface::details {
 namespace test::ag::custom_tuple_like_interface {
 
     template <typename ... Ts>
-    constexpr static void ensure_unqualified_get(){
+    consteval static void ensure_unqualified_get(){
         ((details::ensure_unqualified_get<typename Ts::input, Ts::expected>()), ...);
     }
 
@@ -28,7 +28,7 @@ namespace test::ag::custom_tuple_like_interface {
         constexpr static inline auto expected = value;
     };
 
-    constexpr static void test(){
+    consteval static void test(){
         namespace userland = test::ag::types::custom_get;
         ensure_unqualified_get<
             test_case<userland::A, 'A'>,

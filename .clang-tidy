@@ -1,27 +1,37 @@
-Checks: '-boost-*,
-        cert-*,
-        cppcoreguidelines-*,
-        clang-analyzer-*,
-        google-*,
-            -google-build-using-namespace,
-            -google-readability-namespace-comments,
-            -google-readability-braces-around-statements,
-        llvm-*,
-            -llvm-header-guard,
-            -llvm-include-order,
-            -llvm-namespace-comment,
-        misc-*,
-        modernize-*,
-            -modernize-use-trailing-return-type,
-        mpi-*,
-        performance-*,
-        readability-*,
-            -readability-braces-around-statements,
-            -readability-named-parameter,
-            -readability-identifier-length,
-            -readability-magic-numbers,
-            -readability-identifier-length
-        '
+Checks: >
+  -boost-*,
+  cert-*,
+  cppcoreguidelines-*,
+  clang-analyzer-*,
+  google-*,
+    -google-build-using-namespace,
+    -google-readability-namespace-comments,
+    -google-readability-braces-around-statements,
+  llvm-*,
+    -llvm-header-guard,
+    -llvm-include-order,
+    -llvm-namespace-comment,
+  misc-*,
+  modernize-*,
+    -modernize-use-trailing-return-type,
+    -modernize-avoid-c-arrays,
+  mpi-*,
+  performance-*,
+  readability-*,
+    -readability-braces-around-statements,
+    -readability-named-parameter,
+    -readability-identifier-length,
+    -readability-magic-numbers,
+    -readability-identifier-length
+
+CheckOptions:
+    #-----------------------------------------------------------------------------
+    # DESIGN:
+    #   - We allow structs with all-public members (pure data aggregates).
+    #   - Classes that mix behavior and data must keep their data members private.
+    #-----------------------------------------------------------------------------
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: "true"
 
 # WarningsAsErrors: '*'
 HeaderFilterRegex: '.*hpp$'

@@ -4,7 +4,6 @@
         "jeff-hykin.better-cpp-syntax",
         "ibm.output-colorizer",
         "ms-vscode.cpptools",
-        "twxs.cmake",
         "ms-vscode.cmake-tools",
         "cschlosser.doxdocgen",
         "yzhang.markdown-all-in-one",
@@ -20,7 +19,9 @@
         "ms-vscode-remote.remote-ssh-edit",
         "ms-vscode.remote-explorer",
         "ms-azuretools.vscode-docker",
-        "gruntfuggly.todo-tree"
+        "gruntfuggly.todo-tree",
+        "matepek.vscode-catch2-test-adapter",
+        "jeff-hykin.better-shellscript-syntax"
     ],
     "unwantedRecommendations": []
 }

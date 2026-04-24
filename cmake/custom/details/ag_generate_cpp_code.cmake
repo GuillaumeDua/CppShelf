@@ -12,7 +12,7 @@ function(ag_generate_cpp_code)
 
     set(csl_ag_hpp_path ${PROJECT_SOURCE_DIR}/includes/ag/csl/ag.hpp)
     if (NOT EXISTS ${csl_ag_hpp_path})
-        message(FATAL "[${CMAKE_PROJECT_NAME}] csl::${component_name} : missing file ${csl_ag_hpp_path}")
+        message(FATAL "[${CMAKE_PROJECT_NAME}::${component_name}] : missing file ${csl_ag_hpp_path}")
     endif()
 
     set(AG_MAX_FIELDS_COUNT ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT})
@@ -125,7 +125,7 @@ function(ag_generate_cpp_code)
     )
 
     if ("${csl_ag_hpp_file_content_with_injection}" STREQUAL "${csl_ag_hpp_file_content}")
-        message(STATUS "[${CMAKE_PROJECT_NAME}] csl::${component_name} : sources already up-to-date (no new content was injected)")
+        message(STATUS "[${CMAKE_PROJECT_NAME}::${component_name}] : sources already up-to-date (no new content was injected)")
         return()
     endif()
 

@@ -135,7 +135,7 @@ See project's
     include(FetchContent)
 
     # Forces csl a options ...
-    # example: set(CSL_ENABLE_ALL_TESTS OFF CACHE INTERNAL "")
+    # example: set(CSL_TEST_ALL OFF CACHE INTERNAL "")
 
     FetchContent_Declare(
         csl
@@ -148,21 +148,27 @@ See project's
 
 #### CMake - options
 
+> 💡Each cache entry is structured as `CSL_<WHAT>_<ALL|NAME>`.
+
 General options:
 
-| Option                    | Type | Default | Description |
-| ------------------------- | ---- | ------- | ----------- |
-| `CSL_BUILD_ALL`           | bool | ON      | enable/disable all components **build**    |
-| `CSL_ENABLE_ALL_TESTS`    | bool | OFF     | enable/disable all components **tests**    |
-| `CSL_ENABLE_ALL_EXAMPLES` | bool | OFF     | enable/disable all components **examples** |
+| Option              | Type | Default | Description |
+| ------------------- | ---- | ------- | ----------- |
+| `CSL_BUILD_ALL`     | bool | ON      | enable/disable all components **build**      |
+| `CSL_INSTALL_ALL`   | bool | ON      | enable/disable all components **install**    |
+| `CSL_TEST_ALL`      | bool | OFF     | enable/disable all components **tests**      |
+| `CSL_EXAMPLE_ALL`   | bool | OFF     | enable/disable all components **examples**   |
+| `CSL_BENCHMARK_ALL` | bool | OFF     | enable/disable all components **benchmarks** |
 
 Components-specific options:
 
-| Option syntax                    | Type | Default                   | Description |
-| -------------------------------- | ---- | ------------------------- | ----------- |
-| `CSL_BUILD_\<component_name\>`   | BOOL | `CSL_BUILD_ALL`           | enable/disable a specific component **build**   |
-| `CSL_TEST_\<component_name\>`    | BOOL | `CSL_ENABLE_ALL_TESTS`    | enable/disable a specific component **test**    |
-| `CSL_EXAMPLE_\<component_name\>` | BOOL | `CSL_ENABLE_ALL_EXAMPLES` | enable/disable a specific component **example** |
+| Option syntax                      | Type | Default / dependent       | Description |
+| ---------------------------------- | ---- | ------------------------- | ----------- |
+| `CSL_BUILD_\<component_name\>`     | BOOL | `CSL_BUILD_ALL`           | enable/disable a specific component **build**   |
+| `CSL_INSTALL_\<component_name\>`   | BOOL | `CSL_INSTALL_ALL`         | enable/disable a specific component **install** |
+| `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST_ALL`            | enable/disable a specific component **test**    |
+| `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`         | enable/disable a specific component **example** |
+| `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL`       | enable/disable a specific component **benchmark** |
 
 For options related to a specific component, refer to its dedicated documentation.
 
@@ -207,7 +213,7 @@ struct some_model {
 auto main() -> int {
     std::cout
         << csl::typeinfo::type_name_v<
-            csl::ag::element_t<0, some_model> // "char"
+            csl::ag::element_t<0, some_model> // char
            >
     ;
     return csl::ag::get<1>(some_model{}); // 42
@@ -216,10 +222,88 @@ auto main() -> int {
 
 Possible output:
 
-```
+```log
 Program returned: 42
 Program stdout
 char
+```
+
+### Advanced examples
+
+#### Aggregate: print type-value pairs
+
+```cpp
+#include <csl/ag.hpp>
+
+template <csl::ag::concepts::aggregate type>
+void print(const type & value){
+    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        ((
+            std::cout
+                << csl::typeinfo::type_name_v<csl::ag::element_t<0, type>>
+                << ": "
+                << csl::ag::get<indexes>(value)
+                << '\n'
+           >
+        ), ...);
+    ;
+    }(std::make_index_sequence<csl::ag::size_v<type>>{});
+}
+
+auto main() -> int { print(some_model{}); }
+```
+
+Possible output:
+
+```log
+char: 'A'
+int: 42
+```
+
+#### All: pretty-printing
+
+```cpp
+#include <csl/typeinfo.hpp>
+#include <csl/cxx20/ensure.hpp> // with CSL_ENSURE__ENABLE_FMT_SUPPORT enable from CMake cache
+#include <csl/ag.hpp> // with CSL_AG__ENABLE_FMT_SUPPORT enable from CMake cache
+
+struct A { char c = 'c'; };
+using meters = csl::ensure::strong_type<int, struct meter_tag>;
+struct B {
+    meters i = 42;
+    A a;
+};
+struct C {
+    std::array<float> range = { .1F, .2F };
+    B b;
+    csl::mp::tuple<bool>{ true }
+};
+
+auto main() -> int {
+    fmt::print("{}\n",              A{});
+    fmt::print("\nindented:\n{}\n", A{} | csl::ag::io::indented);
+}
+```
+
+Possible output:
+
+```log
+{ [ .1F, .2F ], { 42, { 'c' } } , ( true ) }
+
+indented:
+{
+    [
+        .1F,
+        .2F
+    ],
+    {
+        42,
+        { 'c' }
+    },
+    (
+        true
+    )
+}
 ```
 
 ---
