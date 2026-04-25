@@ -8,6 +8,8 @@
 #   - Empty line after #pragma region / before #pragma endregion: not supported
 #   - Specific IILE break style in template/concept contexts: only partially controlled
 #   - `typename ... T` spacing around ellipsis: not supported (clang-format uses `typename... T`)
+#   - Fold expression `+ ...` pack expansion: not split from its operand (use clang-format off/on)
+#   - `if (binary_expr)` continuation: always aligned after `(`, BlockIndent does not apply (use clang-format off/on)
 # ---
 
 BasedOnStyle                                  : Microsoft

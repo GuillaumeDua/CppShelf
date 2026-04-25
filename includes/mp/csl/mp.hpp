@@ -1430,7 +1430,10 @@ namespace csl::mp::type_traits {
     // count_if
     // QUESTION: using csl::mp::predicate<P> ? template vs. non-template wrapper for better semantic ?
     //           predicate<P>::template operator()<std::tuple_element_t<indexes, tuple_type>>()
-    template <csl::mp::concepts::tuple_like tuple_type, template <typename...> typename predicate>
+    template <
+        csl::mp::concepts::tuple_like tuple_type,
+        template <typename...> typename predicate
+    >
     struct count_if : std::integral_constant<
         std::size_t,
         []<std::size_t... indexes>(std::index_sequence<indexes...>) constexpr -> std::size_t {
