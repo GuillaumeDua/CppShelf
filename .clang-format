@@ -20,11 +20,22 @@ BracedInitializerIndentWidth                  : 4
 AlignArrayOfStructures                        : Right
 AlignOperands                                 : false
 AlignConsecutiveAssignments                   : Consecutive
-AlignConsecutiveDeclarations                  : true
+AlignConsecutiveDeclarations:
+  Enabled                   : true
+  AcrossEmptyLines          : false
+  AcrossComments            : false
+  AlignCompound             : true
+  AlignFunctionDeclarations : true
+  AlignFunctionPointers     : true
+  PadOperators              : true
 AlignConsecutiveMacros:
-  Enabled: true
-  AcrossEmptyLines: false
-  AcrossComments: false
+  Enabled                   : true
+  AcrossEmptyLines          : false
+  AcrossComments            : false
+  AlignCompound             : true
+  AlignFunctionDeclarations : true
+  AlignFunctionPointers     : true
+  PadOperators              : true
 AlignTrailingComments                         : true
 
 # --- Short constructs ---
@@ -40,8 +51,9 @@ AllowShortLoopsOnASingleLine                  : false
 # NOTE: ColumnLimit could be 0, but 100 characters makes it fit on half my IDE window
 ColumnLimit                                   : 100
 
+AlignEscapedNewlines                          : Left
+AllowBreakBeforeNoexceptSpecifier             : OnlyWithParen
 BreakAfterReturnType                          : None
-BreakBeforeNoexceptSpecifier                  : OnlyWithParen
 AlwaysBreakBeforeMultilineStrings             : false
 AlwaysBreakTemplateDeclarations               : Yes
 BreakAfterAttributes                          : Never
@@ -79,6 +91,7 @@ UseTab                                        : Never
 IndentWidth                                   : 4
 TabWidth                                      : 4
 PPIndentWidth                                 : 1
+WhitespaceSensitiveMacros: [STRINGIFY_DETAIL, STRINGIFY_DETAIL]
 ContinuationIndentWidth                       : 4
 NamespaceIndentation                          : All
 IndentAccessModifiers                         : false
@@ -100,7 +113,7 @@ FixNamespaceComments                          : true
 CompactNamespaces                             : true
 KeepEmptyLines:
     AtEndOfFile                     : true
-    AtTheStartOfBlocks              : true
+    AtStartOfBlock                  : true
     AtStartOfFile                   : false
 
 # --- Constructors / initializers ---
@@ -110,7 +123,7 @@ ConstructorInitializerIndentWidth             : 4
 # --- Misc ---
 LineEnding                                    : LF
 InsertNewlineAtEOF                            : true
-SkipMacroDefinitionBody                       : true
+SkipMacroDefinitionBody                       : false # NOTE: can produce ill-formed code
 AllowAllArgumentsOnNextLine                   : false
 AllowAllParametersOfDeclarationOnNextLine     : false
 Cpp11BracedListStyle                          : true
