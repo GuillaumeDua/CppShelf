@@ -55,4 +55,4 @@ namespace csl::test {
     };
 }
 
-#define csl_test_expect(expr) if (not (expr)) throw test::failure{}; // NOLINT(*-macro-usage)
+#define csl_test_expect(expr) if (not (expr)) throw csl::test::failure{}; // NOLINT(*-macro-usage)
