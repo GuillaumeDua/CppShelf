@@ -68,7 +68,7 @@ endif()
 # CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT
 cmake_dependent_option(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT "[${CMAKE_PROJECT_NAME}::${component_name}]: enable csl::typeinfo support"
     ON
-    "EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/includes/typeinfo/csl/typeinfo.hpp"
+    "EXISTS ${PROJECT_SOURCE_DIR}/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp"
     OFF
 )
 print_aligned(STATUS CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT)
@@ -85,6 +85,6 @@ endif()
 
 if (NOT ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT} STREQUAL ${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT})
     message(STATUS "[${CMAKE_PROJECT_NAME}::${component_name}]: custom CSL_AG__MAX_FIELDS_SUPPORTED_COUNT requested, generating code ...")
-    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/custom/details/ag_generate_cpp_code.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/generate_cpp_code.cmake)
     ag_generate_cpp_code()
 endif()
