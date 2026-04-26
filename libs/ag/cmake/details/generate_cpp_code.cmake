@@ -10,7 +10,7 @@
 
 function(ag_generate_cpp_code)
 
-    set(csl_ag_hpp_path ${PROJECT_SOURCE_DIR}/includes/ag/csl/ag.hpp)
+    set(csl_ag_hpp_path ${PROJECT_SOURCE_DIR}/libs/ag/includes/ag/csl/ag.hpp)
     if (NOT EXISTS ${csl_ag_hpp_path})
         message(FATAL "[${CMAKE_PROJECT_NAME}::${component_name}] : missing file ${csl_ag_hpp_path}")
     endif()

@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 cmake_policy(SET CMP0077 NEW)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD          23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS        OFF)
 
 # top-level project
 project(csl LANGUAGES CXX)
-set(PROJECT_VERSION 0.3.1) # not relying on latest tag to avoid stale target
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(PROJECT_VERSION                 0.3.1) # not relying on latest tag to avoid stale target
+set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
     message(FATAL_ERROR "[${PROJECT_NAME}] : In-source build not recommended")
@@ -18,14 +18,14 @@ endif()
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/csl_add.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/print_aligned.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/cache_entry_to_int.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/make_subdirectory_list.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_add_component.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/print_aligned.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cache_entry_to_int.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/make_subdirectory_list.cmake)
 
 ## Components - detection, list
 MAKE_SUBDIRECTORY_LIST(
-    DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/includes
+    DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/libs
     RESULT      CSL_COMPONENTS_LIST
 )
 message(VERBOSE "[${PROJECT_NAME}] Available components: [${CSL_COMPONENTS_LIST}]")
@@ -84,12 +84,16 @@ list(POP_BACK CMAKE_MESSAGE_INDENT)
 message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
 message(STATUS "[${PROJECT_NAME}] Adding components ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
+
+list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_test_idx)
+if (_csl_test_idx GREATER -1)
+    list(REMOVE_AT CSL_ENABLED_COMPONENTS_LIST ${_csl_test_idx})
+    list(INSERT CSL_ENABLED_COMPONENTS_LIST 0 test)
+endif()
+
 add_library(${PROJECT_NAME} INTERFACE)
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-    csl_add(
-        COMPONENT ${component_name}
-    )
-    
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/${component_name})
     add_dependencies(${PROJECT_NAME} csl::${component_name})
     target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
 endforeach()
