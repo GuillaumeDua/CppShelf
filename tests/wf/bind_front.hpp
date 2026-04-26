@@ -2,7 +2,7 @@
 
 #include <csl/wf.hpp>
 #include <memory>
-#include "common/semantic_types.hpp"
+#include <csl/test/types/semantic.hpp>
 
 namespace test::front_binder_ {
 
@@ -102,7 +102,7 @@ namespace test::front_binder_ {
             >);
         }
         {   // not_copiable, non-trivial move
-            using not_copyable = tests::details::utils::not_copyable;
+            using not_copyable = csl::test::types::semantic::not_copyable;
             constexpr auto value = front_binder{ not_copyable{} };
 
             static_assert(not std::is_copy_constructible_v<decltype(value)>);
@@ -135,7 +135,7 @@ namespace test::front_binder_ {
             >);
         }
         {   // not_moveable
-            using not_moveable = tests::details::utils::not_moveable;
+            using not_moveable = csl::test::types::semantic::not_moveable;
             auto f = not_moveable{};
             auto value = front_binder{ f, mp::ttps<void, void>{}, f };
 
@@ -166,7 +166,7 @@ namespace test::front_binder_ {
             other = value;
         }
         {   // not copyable
-            using not_copyable = tests::details::utils::not_copyable;
+            using not_copyable = csl::test::types::semantic::not_copyable;
             auto value = front_binder{ not_copyable{}, mp::ttps<>{} };
 
             static_assert(not std::is_copy_assignable_v<decltype(value)>);
@@ -184,7 +184,7 @@ namespace test::front_binder_ {
             other = std::move(value);
         }
         {   // not moveable
-            using not_moveable = tests::details::utils::not_moveable;
+            using not_moveable = csl::test::types::semantic::not_moveable;
             auto f = not_moveable{};
             auto value = front_binder{ f, mp::ttps<>{} };
 

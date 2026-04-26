@@ -275,7 +275,7 @@ namespace test::invocation {
     // static_assert(not std::is_invocable_v<func_t, const String &&>);
 }
 
-#include <common/test.hpp>
+#include <csl/test/test.hpp>
 namespace test::CPO {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     // std::hash::operator() does not produce an integral constant

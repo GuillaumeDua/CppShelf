@@ -10,20 +10,24 @@
  #error "csl/mp.hpp requires C++17 or greater"
 #endif
 
-#if defined(__cpp_lib_source_location) and __cpp_lib_source_location <=	201907L
+#if __has_include(<version>)
+# include <version>
+#endif
+
+#if defined(__cpp_lib_source_location) and __cpp_lib_source_location >= 201907L
 # include <source_location>
 namespace csl::test::details {
 using source_location = std::source_location;
 }
 #elif __has_include(<experimental/source_location>)
-#pragma message("csl::test: using <experimental/source_location>. Prefer <location> if available.")
-#include <experimental/source_location>
+# pragma message("csl::test: using <experimental/source_location>. Prefer <source_location> if available.")
+# include <experimental/source_location>
 namespace csl::test::details {
 using source_location = std::experimental::source_location;
 }
 #else
 namespace csl::test::details {
-    using source_location = void;
+using source_location = void;
 }
 #endif
 
