@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <concepts>
 
-namespace tests::details::utils {
+namespace csl::test::types::semantic {
     struct not_copyable {
         constexpr not_copyable() = default;
         constexpr not_copyable(const not_copyable&) = delete;
