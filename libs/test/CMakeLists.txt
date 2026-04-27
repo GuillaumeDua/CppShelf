@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT test)
+csl_add_component(NAME test)

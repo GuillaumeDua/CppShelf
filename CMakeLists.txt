@@ -19,6 +19,7 @@ include(CMakeDependentOption)
 include(CMakeParseArguments)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_add_component.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_compile_warnings.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/print_aligned.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cache_entry_to_int.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/make_subdirectory_list.cmake)

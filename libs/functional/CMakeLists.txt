@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT functional)
+csl_add_component(NAME functional)
