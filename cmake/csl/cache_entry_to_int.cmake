@@ -1,4 +1,6 @@
-function(cache_entry_to_int)
+include_guard(GLOBAL)
+
+function(csl_cache_entry_to_int)
 
     set(options)
     set(one_value_args

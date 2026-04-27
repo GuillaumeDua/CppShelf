@@ -1,5 +1,6 @@
+include_guard(GLOBAL)
 
-function(check_option option_name)
+function(csl_check_option option_name)
     message(CHECK_START "${option_name}")
     if (${option_name})
         message(CHECK_PASS "enabled")
@@ -9,10 +10,10 @@ function(check_option option_name)
 endfunction()
 
 # print_aligned(log_level variable [width] [filler_char])
-function(print_aligned log_level variable)
+function(csl_print_aligned log_level variable)
 
     if (NOT DEFINED variable)
-        message(FATAL_ERROR "[print_aligned] argument [variable] is not defined")
+        message(FATAL_ERROR "[csl_print_aligned] argument [variable] is not defined")
     endif()
 
     set(options "")
@@ -43,7 +44,7 @@ function(print_aligned log_level variable)
     endif()
 
     if (NOT "${arg_width}" MATCHES "^[0-9]+$")
-        message(FATAL_ERROR "[print_aligned] argument [arg_width] must be a non-negative integer, got [${arg_width}]")
+        message(FATAL_ERROR "[csl_print_aligned] argument [arg_width] must be a non-negative integer, got [${arg_width}]")
     endif()
 
     if ("${CMAKE_MESSAGE_INDENT}" STREQUAL "")
@@ -66,4 +67,3 @@ function(print_aligned log_level variable)
 
     message(${log_level} "${label}${variable} ${padding} ${${variable}}")
 endfunction()
-

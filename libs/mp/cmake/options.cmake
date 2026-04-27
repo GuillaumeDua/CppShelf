@@ -3,7 +3,7 @@ set(CSL_MP_TUPLE__IMPLICIT_CONVERSION "NONE"
     CACHE STRING
     "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: implicit conversion mode (NONE, SAFE, UNSAFE)"
 )
-print_aligned(STATUS CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+csl_print_aligned(STATUS CSL_MP_TUPLE__IMPLICIT_CONVERSION)
 
 set(CSL_MP_TUPLE__IMPLICIT_CONVERSION__allowed_values
     NONE
@@ -11,7 +11,7 @@ set(CSL_MP_TUPLE__IMPLICIT_CONVERSION__allowed_values
     UNSAFE # Drop-in replacement for <tuple>, as -isystem
 )
 
-cache_entry_to_int(
+csl_cache_entry_to_int(
     ID      CSL_MP_TUPLE__IMPLICIT_CONVERSION
     OUT_VAR CSL_MP_TUPLE__IMPLICIT_CONVERSION_value
 )

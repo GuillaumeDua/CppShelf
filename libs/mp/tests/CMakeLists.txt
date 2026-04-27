@@ -40,7 +40,7 @@ function(csl_mp_make_test_target)
     	list(GET definition_pair 0 key)
     	list(GET definition_pair 1 value)
 
-		cache_entry_to_int(
+		csl_cache_entry_to_int(
 			ID 			${key}
 			OUT_VAR 	value_as_int
 			FORCE_VALUE ${value}

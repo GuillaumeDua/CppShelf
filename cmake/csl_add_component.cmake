@@ -1,5 +1,7 @@
+include_guard(GLOBAL)
+
 include(CMakeParseArguments)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/print_aligned.cmake)
+include(csl/print_aligned)
 
 ### Components - Targets - csl_lib::<name>
 function(csl_add_component)

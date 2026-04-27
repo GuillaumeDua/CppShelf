@@ -4,35 +4,35 @@ include(CMakeDependentOption)
 
 # CSL_AG__VERBOSE_BUILD
 option(CSL_AG__VERBOSE_BUILD "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: verbose build (might use additional useful build messages)" OFF)
-print_aligned(STATUS CSL_AG__VERBOSE_BUILD)
+csl_print_aligned(STATUS CSL_AG__VERBOSE_BUILD)
 if (CSL_AG__VERBOSE_BUILD)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__VERBOSE_BUILD)
 endif()
 
 # CSL_AG__ENABLE_BITFIELDS_SUPPORT
 option(CSL_AG__ENABLE_BITFIELDS_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable bitfields support (slower compilation)" OFF)
-print_aligned(STATUS CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+csl_print_aligned(STATUS CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 if (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_IOSTREAM_SUPPORT
 option(CSL_AG__ENABLE_IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
-print_aligned(STATUS CSL_AG__ENABLE_IOSTREAM_SUPPORT)
+csl_print_aligned(STATUS CSL_AG__ENABLE_IOSTREAM_SUPPORT)
 if (CSL_AG__ENABLE_IOSTREAM_SUPPORT)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_IOSTREAM_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_FORMAT_SUPPORT
 option(CSL_AG__ENABLE_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
-print_aligned(STATUS CSL_AG__ENABLE_FORMAT_SUPPORT)
+csl_print_aligned(STATUS CSL_AG__ENABLE_FORMAT_SUPPORT)
 if (CSL_AG__ENABLE_FORMAT_SUPPORT)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_FORMAT_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_FMTLIB_SUPPORT
 option(CSL_AG__ENABLE_FMTLIB_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable fmt support" OFF)
-print_aligned(STATUS CSL_AG__ENABLE_FMTLIB_SUPPORT)
+csl_print_aligned(STATUS CSL_AG__ENABLE_FMTLIB_SUPPORT)
 if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
 
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT)
@@ -71,14 +71,14 @@ cmake_dependent_option(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT "[${CMAKE_PROJECT_NAM
     "EXISTS ${PROJECT_SOURCE_DIR}/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp"
     OFF
 )
-print_aligned(STATUS CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT)
+csl_print_aligned(STATUS CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT)
 
 # --- code generation ---
 
 ## CSL_AG__MAX_FIELDS_SUPPORTED_COUNT
 set(CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT 32)
 set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT "${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT}" CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
-print_aligned(STATUS CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
+csl_print_aligned(STATUS CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
 if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
     message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT is not a valid number")
 endif()
