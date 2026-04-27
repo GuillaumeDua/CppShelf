@@ -47,3 +47,7 @@ docs/output
 # Others
 local
 .clangd
+
+# Claude
+CLAUDE.md
+.claude
