@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 option(CSL_STRICT_WARNINGS "[${PROJECT_NAME}] strict warnings" OFF)
 
 add_library(csl_compile_warnings INTERFACE)

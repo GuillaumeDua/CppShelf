@@ -18,14 +18,19 @@ endif()
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
+set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
+
+# Internal modules
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_add_component.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_compile_warnings.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/print_aligned.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cache_entry_to_int.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/make_subdirectory_list.cmake)
+# Exported modules
+include(csl/print_aligned)
+include(csl/cache_entry_to_int)
+include(csl/make_subdirectory_list)
 
 ## Components - detection, list
-MAKE_SUBDIRECTORY_LIST(
+csl_make_subdirectory_list(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/libs
     RESULT      CSL_COMPONENTS_LIST
 )
@@ -35,13 +40,13 @@ list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
 ### Components - build
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
-print_aligned(STATUS CSL_BUILD_ALL)
+csl_print_aligned(STATUS CSL_BUILD_ALL)
 
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
     option(CSL_BUILD_${component_name} "CSL: Build ${component_name}" ${CSL_BUILD_ALL})
-    print_aligned(STATUS CSL_BUILD_${component_name}
+    csl_print_aligned(STATUS CSL_BUILD_${component_name}
         depends CSL_BUILD_ALL
     )
 
@@ -69,12 +74,12 @@ set(CSL_OPTIONS_LIST
 )
 foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" ON)
-    print_aligned(STATUS CSL_${option_name}_ALL)
+    csl_print_aligned(STATUS CSL_${option_name}_ALL)
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
         option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}_ALL})
-        print_aligned(STATUS CSL_${option_name}_${component_name}
+        csl_print_aligned(STATUS CSL_${option_name}_${component_name}
             depends CSL_${option_name}_ALL
         )
     endforeach()
@@ -86,13 +91,14 @@ message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggrega
 message(STATUS "[${PROJECT_NAME}] Adding components ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
 
-list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_test_idx)
-if (_csl_test_idx GREATER -1)
-    list(REMOVE_AT CSL_ENABLED_COMPONENTS_LIST ${_csl_test_idx})
+list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_test_index)
+if (_csl_test_index GREATER -1)
+    list(REMOVE_AT CSL_ENABLED_COMPONENTS_LIST ${_csl_test_index})
     list(INSERT CSL_ENABLED_COMPONENTS_LIST 0 test)
 endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/${component_name})
     add_dependencies(${PROJECT_NAME} csl::${component_name})
