@@ -26,6 +26,7 @@ function(csl_mp_make_test_target)
     target_link_libraries(${target_name}
         PRIVATE
             ${PROJECT_NAME}::${component_name}
+            csl_compile_warnings
     )
     target_include_directories(${target_name}
         PRIVATE

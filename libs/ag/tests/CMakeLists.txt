@@ -15,6 +15,7 @@ target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
 		${PROJECT_NAME}::test
+		csl_compile_warnings
 )
 
 add_test(
@@ -37,6 +38,7 @@ target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
 		${PROJECT_NAME}::test
+		csl_compile_warnings
 )
 
 add_test(
@@ -91,6 +93,7 @@ target_link_libraries(${test_name}
 		${PROJECT_NAME}::${component_name}
 		fmt::fmt-header-only
 		GTest::gtest_main
+		csl_compile_warnings
 )
 
 # add_test(

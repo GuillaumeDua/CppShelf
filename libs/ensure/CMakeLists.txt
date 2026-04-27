@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT ensure)
+csl_add_component(NAME ensure)

@@ -13,6 +13,7 @@ foreach(example_name IN LISTS ${component_name}_EXAMPLES_LIST)
     target_link_libraries(${target_name}
         PRIVATE
             ${PROJECT_NAME}::${component_name}
+            csl_compile_warnings
     )
 
     add_test(

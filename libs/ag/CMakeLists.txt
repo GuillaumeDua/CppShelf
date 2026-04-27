@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT ag)
+csl_add_component(NAME ag)

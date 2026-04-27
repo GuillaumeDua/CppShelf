@@ -11,6 +11,7 @@ add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
 target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
+		csl_compile_warnings
 )
 
 add_test(

@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT typeinfo)
+csl_add_component(NAME typeinfo)

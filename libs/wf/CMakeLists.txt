@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT wf)
+csl_add_component(NAME wf)

@@ -1,1 +1,1 @@
-csl_add_component(COMPONENT mp)
+csl_add_component(NAME mp)
