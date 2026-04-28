@@ -35,7 +35,7 @@ csl_make_subdirectory_list(
     RESULT      CSL_COMPONENTS_LIST
 )
 message(VERBOSE "[${PROJECT_NAME}] Available components: [${CSL_COMPONENTS_LIST}]")
-message(STATUS "[${PROJECT_NAME}] Global configuration")
+message(STATUS  "[${PROJECT_NAME}] Global configuration")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
 ### Components - build
@@ -64,7 +64,7 @@ if (${CSL_ENABLED_COMPONENTS_LIST_length} EQUAL 0)
     return()
 endif()
 
-#### Common  options (opt-outs)
+#### Common options (opt-outs)
 set(CSL_OPTIONS_LIST
     TEST # TECH-DEBT: clang sanitizers, etc.
     EXAMPLE
@@ -87,8 +87,22 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
+# csl::test auto-enable: Any component test relies may on csl::test
+list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_auto_test_index)
+if (_csl_auto_test_index EQUAL -1)
+    foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+        if (CSL_TEST_${component_name}
+            AND NOT component_name STREQUAL "test"
+        )
+            message(VERBOSE "[${PROJECT_NAME}] csl::test auto-enabled (required by at least [csl::${component_name}] tests)")
+            list(APPEND CSL_ENABLED_COMPONENTS_LIST test)
+            break()
+        endif()
+    endforeach()
+endif()
+
 message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
-message(STATUS "[${PROJECT_NAME}] Adding components ...")
+message(STATUS  "[${PROJECT_NAME}] Adding components ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
 
 list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_test_index)
