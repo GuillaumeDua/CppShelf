@@ -35,6 +35,7 @@ else()
     set(_csl_root ${CMAKE_SOURCE_DIR})
 endif()
 
+message("[${PROJECT_NAME}] Importing csl cmake modules as [${CSL_CMAKE_MODULE_PATH}]")
 list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
 include(csl/make_subdirectory_list)
 include(csl/cache_entry_to_int)

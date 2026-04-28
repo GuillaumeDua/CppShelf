@@ -2,6 +2,11 @@
 build/
 Testing/
 
+# CMake - integration test
+test/integration/CMakeCache.txt
+test/integration/CMakeFiles
+test/integration/_deps
+
 # LLVM
 .cache/clangd
 
