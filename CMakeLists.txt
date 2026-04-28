@@ -30,6 +30,12 @@ include(csl/print_aligned)
 include(csl/cache_entry_to_int)
 include(csl/make_subdirectory_list)
 
+## Build informations
+message(STATUS  "[${PROJECT_NAME}] Build informations")
+list(APPEND CMAKE_MESSAGE_INDENT "  ")
+csl_print_build_info()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
+
 ## Components - detection, list
 csl_make_subdirectory_list(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/libs
@@ -121,6 +127,7 @@ foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
+# TODO: better integration in top-level CMakeLists.txt ? or remove ?
 option(CSL_INTEGRATION_TEST "[${PROJECT_NAME}] Build integration test" OFF)
 csl_print_aligned(STATUS CSL_INTEGRATION_TEST)
 if (CSL_INTEGRATION_TEST)
