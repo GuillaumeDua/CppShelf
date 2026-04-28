@@ -1,5 +1,7 @@
 include_guard(GLOBAL)
 
+set(CSL_PRINT_ALIGNED_DEFAULT_WIDTH 50 CACHE STRING "csl/print_aligned: default column width")
+
 function(csl_check_option option_name)
     message(CHECK_START "${option_name}")
     if (${option_name})
@@ -13,7 +15,7 @@ endfunction()
 function(csl_print_aligned log_level variable)
 
     if (NOT DEFINED variable)
-        message(FATAL_ERROR "[csl_print_aligned] argument [variable] is not defined")
+        message(FATAL_ERROR "[csl/print_aligned] argument [variable] is not defined")
     endif()
 
     set(options "")
@@ -32,7 +34,7 @@ function(csl_print_aligned log_level variable)
     endif()
 
     if (NOT DEFINED arg_width OR arg_width STREQUAL "")
-        set(arg_width 40)
+        set(arg_width ${CSL_PRINT_ALIGNED_DEFAULT_WIDTH})
     endif()
 
     if (NOT DEFINED arg_filler_char OR arg_filler_char STREQUAL "")
@@ -44,7 +46,7 @@ function(csl_print_aligned log_level variable)
     endif()
 
     if (NOT "${arg_width}" MATCHES "^[0-9]+$")
-        message(FATAL_ERROR "[csl_print_aligned] argument [arg_width] must be a non-negative integer, got [${arg_width}]")
+        message(FATAL_ERROR "[csl/print_aligned] argument [arg_width] must be a non-negative integer, got [${arg_width}]")
     endif()
 
     if ("${CMAKE_MESSAGE_INDENT}" STREQUAL "")
@@ -60,10 +62,27 @@ function(csl_print_aligned log_level variable)
     if (padding_length GREATER 0)
         string(REPEAT "${arg_filler_char}" ${padding_length} padding)
     else()
-        set(padding " ")
+        message(AUTHOR_WARNING
+            "[csl/print_aligned] padding overflow for [${variable}]: width=${arg_width}, label=${label_length}, name=${name_length}."
+            "Consider using argument [width <size>] or increasing the cache entry [CSL_PRINT_ALIGNED_DEFAULT_WIDTH]"
+        )
+        set(padding "")
     endif()
 
-
-
     message(${log_level} "${label}${variable} ${padding} ${${variable}}")
+
+endfunction()
+
+function(csl_print_build_info)
+    csl_print_aligned(STATUS CMAKE_BUILD_TYPE)
+    csl_print_aligned(STATUS CMAKE_CURRENT_BINARY_DIR)
+    csl_print_aligned(STATUS CMAKE_CURRENT_SOURCE_DIR)
+    csl_print_aligned(STATUS CMAKE_INSTALL_PREFIX)
+    csl_print_aligned(STATUS CMAKE_GENERATOR)
+    csl_print_aligned(STATUS CMAKE_SYSTEM_NAME)
+    csl_print_aligned(STATUS CMAKE_SYSTEM_PROCESSOR)
+    csl_print_aligned(STATUS CMAKE_CXX_COMPILER)
+    csl_print_aligned(STATUS CMAKE_CXX_COMPILER_ID)
+    csl_print_aligned(STATUS CMAKE_CXX_COMPILER_VERSION)
+    csl_print_aligned(STATUS CMAKE_CXX_STANDARD)
 endfunction()
