@@ -19,7 +19,7 @@ include(CMakeDependentOption)
 include(CMakeParseArguments)
 
 message("[${PROJECT_NAME}] Exporting csl cmake modules as [${CMAKE_CURRENT_SOURCE_DIR}/cmake]")
-set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE PATH "csl: path to exported cmake modules")
 list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
 
 # Internal modules
