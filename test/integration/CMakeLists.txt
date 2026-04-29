@@ -29,31 +29,31 @@ set(
 macro(import_csl)
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
-    if (NOT TARGET csl)
-        message(STATUS "[${PROJECT_NAME}] using GIT_REPOSITORY=[${${PROJECT_NAME}_GIT_REPOSITORY}] with GIT_TAG=[${${PROJECT_NAME}_GIT_TAG}] ...")
-
-        set(CSL_BUILD_ALL       ON  CACHE BOOL "" FORCE)
-        set(CSL_TEST_ALL        OFF CACHE BOOL "" FORCE)
-        set(CSL_EXAMPLE_ALL     OFF CACHE BOOL "" FORCE)
-        set(CSL_BENCHMARK_ALL   OFF CACHE BOOL "" FORCE)
-        set(CSL_DOC_ALL         OFF CACHE BOOL "" FORCE)
-
-        include(FetchContent)
-        FetchContent_Declare(csl
-            GIT_REPOSITORY  ${${PROJECT_NAME}_GIT_REPOSITORY}
-            GIT_TAG         ${${PROJECT_NAME}_GIT_TAG}
-        )
-        FetchContent_MakeAvailable(csl)
-
-        if (NOT csl_SOURCE_DIR OR "${csl_SOURCE_DIR}" STREQUAL "")
-            message(FATAL_ERROR "[${PROJECT_NAME}] import_csl: unexpected csl_SOURCE_DIR=[${csl_SOURCE_DIR}]")
-        endif()
-
-        message(STATUS "[${PROJECT_NAME}] Importing [csl] cmake modules from [${CSL_CMAKE_MODULE_PATH}]")
-        list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
-    else()
-        message(STATUS "[${PROJECT_NAME}] [csl] target already exists.")
+    if (TARGET csl)
+        message(FATAL_ERROR "[${PROJECT_NAME}] target [csl] already exists, which breaks such an integration test logic")
     endif()
+
+    message(STATUS "[${PROJECT_NAME}] using GIT_REPOSITORY=[${${PROJECT_NAME}_GIT_REPOSITORY}] with GIT_TAG=[${${PROJECT_NAME}_GIT_TAG}] ...")
+
+    set(CSL_BUILD_ALL       ON  CACHE BOOL "" FORCE)
+    set(CSL_TEST_ALL        OFF CACHE BOOL "" FORCE)
+    set(CSL_EXAMPLE_ALL     OFF CACHE BOOL "" FORCE)
+    set(CSL_BENCHMARK_ALL   OFF CACHE BOOL "" FORCE)
+    set(CSL_DOC_ALL         OFF CACHE BOOL "" FORCE)
+
+    include(FetchContent)
+    FetchContent_Declare(csl
+        GIT_REPOSITORY  ${${PROJECT_NAME}_GIT_REPOSITORY}
+        GIT_TAG         ${${PROJECT_NAME}_GIT_TAG}
+    )
+    FetchContent_MakeAvailable(csl)
+
+    if (NOT csl_SOURCE_DIR OR "${csl_SOURCE_DIR}" STREQUAL "")
+        message(FATAL_ERROR "[${PROJECT_NAME}] import_csl: unexpected csl_SOURCE_DIR=[${csl_SOURCE_DIR}]")
+    endif()
+
+    message(STATUS "[${PROJECT_NAME}] Importing [csl] cmake modules from [${CSL_CMAKE_MODULE_PATH}]")
+    list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
 
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endmacro()

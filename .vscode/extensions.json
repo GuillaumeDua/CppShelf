@@ -21,7 +21,8 @@
         "ms-azuretools.vscode-docker",
         "gruntfuggly.todo-tree",
         "matepek.vscode-catch2-test-adapter",
-        "jeff-hykin.better-shellscript-syntax"
+        "jeff-hykin.better-shellscript-syntax",
+        "takumii.markdowntable"
     ],
     "unwantedRecommendations": []
 }

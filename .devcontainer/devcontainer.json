@@ -38,7 +38,8 @@
                 "yzhang.markdown-all-in-one",
                 "cschlosser.doxdocgen",
                 "ms-azuretools.vscode-docker",
-                "github.vscode-github-actions"
+                "github.vscode-github-actions",
+                "TakumiI.markdowntable"
             ]
         },
         "postCreateCommand": {
