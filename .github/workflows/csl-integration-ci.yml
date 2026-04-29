@@ -53,4 +53,3 @@ jobs:
       run: |
         bash build.sh "${{ env.build_dir }}"  \
           -Dcsl_integration_test_GIT_TAG=${{ github.head_ref || github.ref_name }}
-s
