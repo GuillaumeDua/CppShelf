@@ -1,6 +1,7 @@
 include_guard(GLOBAL)
 
-set(CSL_PRINT_ALIGNED_DEFAULT_WIDTH 50 CACHE STRING "csl/print_aligned: default column width")
+set(CSL_PRINT_ALIGNED_DEFAULT_WIDTH                    50 CACHE STRING "csl/print_aligned: default column width")
+set(CSL_PRINT_ALIGNED_ACCOUNT_FOR_CMAKE_MESSAGE_INDENT ON CACHE BOOL   "csl/print_aligned: account for CMAKE_MESSAGE_INDENT in padding calculation")
 
 function(csl_check_option option_name)
     message(CHECK_START "${option_name}")
@@ -57,7 +58,13 @@ function(csl_print_aligned log_level variable)
 
     string(LENGTH "${label}" label_length)
     string(LENGTH "${variable}" name_length)
-    math(EXPR padding_length "${arg_width} - ${name_length} - ${label_length}")
+    if (CSL_PRINT_ALIGNED_ACCOUNT_FOR_CMAKE_MESSAGE_INDENT)
+        string(JOIN "" _csl_indent_str ${CMAKE_MESSAGE_INDENT})
+        string(LENGTH "${_csl_indent_str}" _csl_indent_length)
+    else()
+        set(_csl_indent_length 0)
+    endif()
+    math(EXPR padding_length "${arg_width} - ${name_length} - ${label_length} - ${_csl_indent_length}")
 
     if (padding_length GREATER 0)
         string(REPEAT "${arg_filler_char}" ${padding_length} padding)

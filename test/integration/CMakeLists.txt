@@ -49,10 +49,10 @@ macro(import_csl)
             message(FATAL_ERROR "[${PROJECT_NAME}] import_csl: unexpected csl_SOURCE_DIR=[${csl_SOURCE_DIR}]")
         endif()
 
-        message(STATUS "[${PROJECT_NAME}] Importing csl cmake modules from [${CSL_CMAKE_MODULE_PATH}]")
+        message(STATUS "[${PROJECT_NAME}] Importing [csl] cmake modules from [${CSL_CMAKE_MODULE_PATH}]")
         list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
     else()
-        message(STATUS "[${PROJECT_NAME}] csl target already exists.")
+        message(STATUS "[${PROJECT_NAME}] [csl] target already exists.")
     endif()
 
     list(POP_BACK CMAKE_MESSAGE_INDENT)
