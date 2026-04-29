@@ -126,10 +126,3 @@ foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
-
-# TODO: better integration in top-level CMakeLists.txt ? or remove ?
-option(CSL_INTEGRATION_TEST "[${PROJECT_NAME}] Build integration test" OFF)
-csl_print_aligned(STATUS CSL_INTEGRATION_TEST)
-if (CSL_INTEGRATION_TEST)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test/integration)
-endif()
