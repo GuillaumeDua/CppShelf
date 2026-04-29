@@ -45,6 +45,7 @@ macro(import_csl)
     FetchContent_Declare(csl
         GIT_REPOSITORY  ${${PROJECT_NAME}_GIT_REPOSITORY}
         GIT_TAG         ${${PROJECT_NAME}_GIT_TAG}
+        GIT_SHALLOW     FALSE
     )
     FetchContent_MakeAvailable(csl)
 
