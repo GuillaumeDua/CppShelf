@@ -19,3 +19,6 @@
     #define CSL_DIAG_POP
     #define CSL_DIAG_DISABLE(warningName)
 #endif
+
+#undef CSL_PRAGMA_STRINGIFY
+#undef CSL_PRAGMA_STRINGIFY_HELPER
