@@ -66,10 +66,10 @@ namespace test::function::factory::cat {
         csl::mp::functions::cat(
             std::tuple{ 1, 2 },
             csl::mp::tuple{ '3' },
-            std::array<double, 1>{ 4.F },
-            std::pair{ 5, 6 }
+            std::array<double, 1>{ 4. },
+            std::pair{ 5, 6.F }
         )
-        == csl::mp::tuple{ 1, 2, '3', 4.F, 5, 6 }
+        == csl::mp::tuple{ 1, 2, '3', 4., 5, 6.F }
     );
 }
 namespace test::function::factory::cat_result {

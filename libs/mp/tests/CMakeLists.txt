@@ -1,10 +1,10 @@
 set(component_name mp)
 
 function(csl_mp_make_test_target)
-    
+
 	set(options)
     set(oneValueArgs   RESULT)
-    set(multiValueArgs DEFINITIONS)
+    set(multiValueArgs DEFINITIONS DISABLED_WARNINGS)
 
     cmake_parse_arguments(arg
         "${options}"
@@ -40,18 +40,27 @@ function(csl_mp_make_test_target)
     	list(GET definition_pair 0 key)
     	list(GET definition_pair 1 value)
 
-		csl_cache_entry_to_int(
-			ID 			${key}
-			OUT_VAR 	value_as_int
-			FORCE_VALUE ${value}
-		)
+        get_property(_strings CACHE "${key}" PROPERTY STRINGS)
+        if (_strings)
+            list(FIND _strings "${value}" value_as_int)
+            if (value_as_int EQUAL -1)
+                message(FATAL_ERROR "[csl_mp_make_test_target] invalid value [${value}] for [${key}]. Allowed: [${_strings}]")
+            endif()
+        else()
+            set(value_as_int "${value}")
+        endif()
+
 		message(VERBOSE "[csl_mp_make_test_target] Setting compile definition: ${key}=${value} (${value_as_int})")
 
 		target_compile_definitions(${target_name}
 			PUBLIC
 				FORCE_${key}=${value_as_int} # handled on the C++ side, overrides ${key}
-		)		
-	endforeach(definition IN LISTS arg_DEFINITIONS)
+		)
+	endforeach()
+
+    if (arg_DISABLED_WARNINGS)
+        target_compile_options(${target_name} PRIVATE ${arg_DISABLED_WARNINGS})
+    endif()
 	list(POP_BACK CMAKE_MESSAGE_INDENT)
 
     add_test(
@@ -69,13 +78,15 @@ endfunction()
 
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
-foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION__allowed_values)
+get_property(CSL_MP_TUPLE__IMPLICIT_CONVERSION_allowed_values CACHE CSL_MP_TUPLE__IMPLICIT_CONVERSION PROPERTY STRINGS)
+foreach(value IN LISTS CSL_MP_TUPLE__IMPLICIT_CONVERSION_allowed_values)
 
 	set(DEFINITIONS CSL_MP_TUPLE__IMPLICIT_CONVERSION=${value})
 
 	csl_mp_make_test_target(
-		DEFINITIONS ${DEFINITIONS}
-		RESULT      target_name
+		DEFINITIONS       ${DEFINITIONS}
+		DISABLED_WARNINGS ${CSL_MP_TUPLE__IMPLICIT_CONVERSION_${value}_test_disabled_warnings}
+		RESULT            target_name
 	)
 	add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests
 		${target_name}

@@ -27,7 +27,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_add_component.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_compile_warnings.cmake)
 # Exported modules
 include(csl/print_aligned)
-include(csl/cache_entry_to_int)
+include(csl/cache_entry_conversion)
 include(csl/make_subdirectory_list)
 
 ## Build informations
