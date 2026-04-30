@@ -60,7 +60,7 @@ endmacro()
 import_csl()
 
 include(csl/make_subdirectory_list)
-include(csl/cache_entry_to_int)
+include(csl/cache_entry_conversion)
 include(csl/print_aligned)
 
 csl_make_subdirectory_list(
