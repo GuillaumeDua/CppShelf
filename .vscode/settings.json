@@ -28,7 +28,6 @@
         "CSL_BUILD_ALL": true,
         "CSL_TEST_ALL": true,
         "CSL_EXAMPLE_ALL": true,
-        "CSL_INTEGRATION_TEST": true,
         // CSL OPT-INS
         // TODO(Guss): test matrix
         // csl::ensure
