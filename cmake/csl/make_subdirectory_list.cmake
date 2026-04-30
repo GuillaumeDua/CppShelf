@@ -2,7 +2,7 @@ include_guard(GLOBAL)
 
 include(CMakeParseArguments)
 
-MACRO(csl_make_subdirectory_list)
+macro(csl_make_subdirectory_list)
 
     set(options)
     set(oneValueArgs
@@ -24,16 +24,16 @@ MACRO(csl_make_subdirectory_list)
         message(FATAL_ERROR "[csl_make_subdirectory_list] error: KEYWORDS_MISSING_VALUES = [${csl_make_subdirectory_list_KEYWORDS_MISSING_VALUES}]")
     endif()
 
-    FILE(
+    file(
         GLOB children_directories
         RELATIVE ${csl_make_subdirectory_list_DIRECTORY}
         ${csl_make_subdirectory_list_DIRECTORY}/*)
 
-    SET(result "")
-    FOREACH(directory_name ${children_directories})
-        IF(IS_DIRECTORY ${csl_make_subdirectory_list_DIRECTORY}/${directory_name})
-            LIST(APPEND result ${directory_name})
-        ENDIF()
-    ENDFOREACH()
-    SET(${csl_make_subdirectory_list_RESULT} ${result})
-ENDMACRO()
+    set(result "")
+    foreach(directory_name ${children_directories})
+        if (IS_DIRECTORY ${csl_make_subdirectory_list_DIRECTORY}/${directory_name})
+            list(APPEND result ${directory_name})
+        endif()
+    endforeach()
+    set(${csl_make_subdirectory_list_RESULT} ${result})
+endmacro()
