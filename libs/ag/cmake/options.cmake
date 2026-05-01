@@ -86,5 +86,7 @@ endif()
 if (NOT ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT} STREQUAL ${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT})
     message(STATUS "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: custom CSL_AG__MAX_FIELDS_SUPPORTED_COUNT requested, generating code ...")
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/generate_cpp_code.cmake)
-    ag_generate_cpp_code()
+    ag_generate_cpp_code(
+        CSL_AG_HPP_PATH ${PROJECT_SOURCE_DIR}/libs/ag/includes/ag/csl/ag.hpp
+    )
 endif()

@@ -10,9 +10,17 @@
 
 function(ag_generate_cpp_code)
 
-    set(csl_ag_hpp_path ${PROJECT_SOURCE_DIR}/libs/ag/includes/ag/csl/ag.hpp)
-    if (NOT EXISTS ${csl_ag_hpp_path})
-        message(FATAL "[${CMAKE_PROJECT_NAME}::${component_name}] : missing file ${csl_ag_hpp_path}")
+    set(options)
+    set(oneValueArgs CSL_AG_HPP_PATH)
+    set(multiValueArgs)
+    cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if (NOT DEFINED arg_CSL_AG_HPP_PATH)
+        set(arg_CSL_AG_HPP_PATH ${PROJECT_SOURCE_DIR}/libs/ag/includes/ag/csl/ag.hpp)
+    endif()
+
+    if (NOT EXISTS ${arg_CSL_AG_HPP_PATH})
+        message(FATAL "[${CMAKE_PROJECT_NAME}::${component_name}] : missing file ${arg_CSL_AG_HPP_PATH}")
     endif()
 
     set(AG_MAX_FIELDS_COUNT ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT})
@@ -116,7 +124,7 @@ function(ag_generate_cpp_code)
     # injects into ag/csl/ag.hpp
 
     file(READ ${csl_ag__cmake_generated_code__filepath} csl_ag_hpp_to_inject)
-    file(READ ${csl_ag_hpp_path} csl_ag_hpp_file_content)
+    file(READ ${arg_CSL_AG_HPP_PATH} csl_ag_hpp_file_content)
     string(REGEX REPLACE
         "(\\/\\/ GENERATED CONTENT, DO NOT EDIT MANUALLY !\n)(.*)(\\/\\/ END OF GENERATED CONTENT)"
         "\\1${csl_ag_hpp_to_inject}\\3"
@@ -129,5 +137,5 @@ function(ag_generate_cpp_code)
         return()
     endif()
 
-    FILE(WRITE ${csl_ag_hpp_path} "${csl_ag_hpp_file_content_with_injection}")
+    FILE(WRITE ${arg_CSL_AG_HPP_PATH} "${csl_ag_hpp_file_content_with_injection}")
 endfunction()
