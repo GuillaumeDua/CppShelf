@@ -69,18 +69,13 @@ var NAVTREE =
       [ "std::tuple and aggregate types homogeneity", "index.html#autotoc_md35", null ],
       [ "Current limitations", "index.html#autotoc_md36", null ],
       [ "(Internal details) Where's the magic ?", "index.html#autotoc_md37", null ]
-    ] ],
-    [ "Classes", "annotated.html", [
-      [ "Class List", "annotated.html", "annotated_dup" ],
-      [ "Class Index", "classes.html", null ],
-      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ]
     ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"annotated.html"
+"index.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
