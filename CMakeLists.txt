@@ -94,14 +94,16 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
-# csl::test auto-enable: Any component test relies may on csl::test
+# Tests enabled ?
+# - csl::test auto-enable: Any component test relies may on csl::test
+# - Catch2
 list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_auto_test_index)
 if (_csl_auto_test_index EQUAL -1)
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
         if (CSL_TEST_${component_name}
             AND NOT component_name STREQUAL "test"
         )
-            message(VERBOSE "[${PROJECT_NAME}] csl::test auto-enabled (required by at least [csl::${component_name}] tests)")
+            message(VERBOSE "[${PROJECT_NAME}] csl::test and Catch2 auto-enabled (required by at least [csl::${component_name}] tests)")
             list(APPEND CSL_ENABLED_COMPONENTS_LIST test)
             break()
         endif()
