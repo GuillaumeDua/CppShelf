@@ -9,3 +9,4 @@ if (NOT TARGET Catch2::Catch2)
         VERSION             3.14.0
     )
 endif()
+
