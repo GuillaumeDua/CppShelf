@@ -7,6 +7,6 @@
 # error "[Test] csl::ag : expect CSL_AG__ENABLE_BITFIELDS_SUPPORT=ON"
 #endif
 
-#include "includes/tests/ag/size.hpp"
+#include <tests/ag/size.hpp>
 
 auto main() -> int {}
