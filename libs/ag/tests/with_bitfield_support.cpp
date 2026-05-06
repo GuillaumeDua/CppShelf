@@ -7,6 +7,14 @@
 # error "[Test] csl::ag : expect CSL_AG__ENABLE_BITFIELDS_SUPPORT=ON"
 #endif
 
+#include <tests/ag/details/mp.hpp>
+#include <tests/ag/conversion/to_tuple.hpp>
+#include <tests/ag/conversion/to_tuple_view.hpp>
+#include <tests/ag/conversion/make.hpp>
 #include <tests/ag/size.hpp>
+#include <tests/ag/element.hpp>
+#include <tests/ag/get.hpp>
+#include <tests/ag/custom_tuple_like_interface.hpp>
+#include <tests/ag/concepts.hpp>
 
 auto main() -> int {}

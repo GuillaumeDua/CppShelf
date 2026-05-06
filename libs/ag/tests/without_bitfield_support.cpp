@@ -1,6 +1,7 @@
 // Force CSL_AG__ENABLE_BITFIELDS_SUPPORT=OFF. See tests/ag/with_bitfield_support.cpp
 #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 # undef CSL_AG__ENABLE_BITFIELDS_SUPPORT
+# define CSL_AG__ENABLE_BITFIELDS_SUPPORT false // force disable bitfield support. Prefer using CMake cache instead CSL_AG__ENABLE_BITFIELDS_SUPPORT=OFF
 #endif
 #include <csl/ag.hpp>
 #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
