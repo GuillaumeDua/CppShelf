@@ -1,4 +1,5 @@
 #include <csl/ensure.hpp>
+#include <csl/test/types/semantic.hpp>
 
 #include <type_traits>
 #include <string>
@@ -31,12 +32,12 @@ namespace test::utils::type_traits {
 }
 
 namespace test::strong_type::details::comparison {
-    struct eq_comparable_t{ bool operator==(const eq_comparable_t&) const { return {}; } };
-    struct not_eq_comparable_t{ bool operator not_eq(const not_eq_comparable_t&) const { return {}; } };
-    struct less_than_comparable { bool operator< (const less_than_comparable & ) const { return {}; } };
-    struct less_or_eq_comparable{ bool operator<=(const less_or_eq_comparable &) const { return {}; } };
-    struct greater_than_comparable { bool operator> (const greater_than_comparable & ) const { return {}; } };
-    struct greater_or_eq_comparable{ bool operator>=(const greater_or_eq_comparable &) const { return {}; } };
+    using csl::test::types::semantic::eq_comparable;
+    using csl::test::types::semantic::not_eq_comparable;
+    using csl::test::types::semantic::less_than_comparable;
+    using csl::test::types::semantic::less_or_eq_comparable;
+    using csl::test::types::semantic::greater_than_comparable;
+    using csl::test::types::semantic::greater_or_eq_comparable;
 }
 
 namespace test::strong_type::details { // NOLINT(*-concat-nested-namespaces)
@@ -47,13 +48,13 @@ namespace comparison {
 }
 namespace comparison::equality {
     // operator==
-    static_assert(cs::equality_with<eq_comparable_t, eq_comparable_t>);
-    static_assert(not cs::equality_with<eq_comparable_t, not_eq_comparable_t>);
+    static_assert(cs::equality_with<eq_comparable, eq_comparable>);
+    static_assert(not cs::equality_with<eq_comparable, not_eq_comparable>);
     static_assert(not cs::equality_with<less_or_eq_comparable, less_or_eq_comparable>);
     // operator not_eq
-    static_assert(cs::not_equality_with<eq_comparable_t, eq_comparable_t>);
-    static_assert(cs::not_equality_with<not_eq_comparable_t, not_eq_comparable_t>);
-    static_assert(not cs::not_equality_with<not_eq_comparable_t, int>);
+    static_assert(cs::not_equality_with<eq_comparable, eq_comparable>);
+    static_assert(cs::not_equality_with<not_eq_comparable, not_eq_comparable>);
+    static_assert(not cs::not_equality_with<not_eq_comparable, int>);
 }
 namespace comparison::less {
     // operator<
@@ -84,11 +85,11 @@ namespace tt = csl::ensure::details::mp::type_traits::comparison;
 }
 namespace comparison::equality {
     // operator==
-    static_assert(tt::is_equality_comparable_v<eq_comparable_t>);
-    static_assert(not tt::is_equality_comparable_v<not_eq_comparable_t>);
+    static_assert(tt::is_equality_comparable_v<eq_comparable>);
+    static_assert(not tt::is_equality_comparable_v<not_eq_comparable>);
     // operator not_eq
-    static_assert(tt::is_not_equality_comparable_v<not_eq_comparable_t>);
-    static_assert(not tt::is_not_equality_comparable_v<eq_comparable_t>);
+    static_assert(tt::is_not_equality_comparable_v<not_eq_comparable>);
+    static_assert(not tt::is_not_equality_comparable_v<eq_comparable>);
 }
 namespace comparison::less {
     // operator<
