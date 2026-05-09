@@ -39,7 +39,8 @@
                 "cschlosser.doxdocgen",
                 "ms-azuretools.vscode-docker",
                 "github.vscode-github-actions",
-                "TakumiI.markdowntable"
+                "TakumiI.markdowntable",
+                "matepek.vscode-catch2-test-adapter"
             ]
         },
         "postCreateCommand": {

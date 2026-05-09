@@ -276,54 +276,49 @@ namespace test::invocation {
     // static_assert(not std::is_invocable_v<func_t, const String &&>);
 }
 
-#include <csl/test/test.hpp>
-namespace test::CPO {
-    using mm = csl::ensure::strong_type<int, struct mm_tag>;
-    // std::hash::operator() does not produce an integral constant
-    void std_hash(){
-        csl_test_expect(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42));
-    }
-    void hasher(){
-        [[maybe_unused]] const auto hasher = csl::ensure::strong_type_hasher{};
-        csl_test_expect(hasher(mm{42}) == std::hash<int>{}(42));
-    }
-    #if __cplusplus >= 202002 // TECH-DEBT: remove when C++17 support is decomissioned
-    void equal_to(){
-        constexpr auto comparator = csl::ensure::strong_type_equal_to{};
-        static_assert(comparator(mm{42}, mm{42}));
-    }
-    void three_way() {
-        constexpr auto comparator = csl::ensure::strong_type_compare_three_way{};
-        static_assert(std::strong_ordering::equal == comparator(mm{42}, mm{42}));
-        static_assert(std::strong_ordering::less == comparator(mm{0}, mm{42}));
-        static_assert(std::strong_ordering::greater == comparator(mm{42}, mm{0}));
-    }
-    #endif
-}
-namespace test::io_ {
-    using mm = csl::ensure::strong_type<int, struct mm_tag>;
-    void shift_to_ostream_support(){
-        #if defined(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
-        using namespace csl::io;
-        std::cout << "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT: value = " << mm{42} << '\n';
-        #endif
-    }
-
-    void fmt_support(){
-        #if defined(CSL_ENSURE__ENABLE_FMT_SUPPORT)
-        fmt::print("CSL_ENSURE__ENABLE_FMT_SUPPORT: value = {}\n", mm{42});
-        #endif
-    }
-}
-
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
+#include <catch2/catch_test_macros.hpp>
 #include <iostream>
-auto main() -> int {
-    test::CPO::std_hash();
-    test::CPO::hasher();
 
-    // opt-ins
-    test::io_::shift_to_ostream_support();
-    test::io_::fmt_support();
+TEST_CASE("ensure::CPO::std_hash", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    CHECK(std::hash<mm>{}(mm{42}) == std::hash<int>{}(42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
+
+TEST_CASE("ensure::CPO::hasher", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    const auto hasher = csl::ensure::strong_type_hasher{};
+    CHECK(hasher(mm{42}) == std::hash<int>{}(42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+
+#if __cplusplus >= 202002
+TEST_CASE("ensure::CPO::equal_to", "[ensure][compile_time]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    constexpr auto comparator = csl::ensure::strong_type_equal_to{};
+    STATIC_REQUIRE(comparator(mm{42}, mm{42})); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+
+TEST_CASE("ensure::CPO::three_way", "[ensure][compile_time]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    constexpr auto comparator = csl::ensure::strong_type_compare_three_way{};
+    STATIC_REQUIRE(std::strong_ordering::equal == comparator(mm{42}, mm{42}));   // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    STATIC_REQUIRE(std::strong_ordering::less  == comparator(mm{0},  mm{42}));   // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    STATIC_REQUIRE(std::strong_ordering::greater == comparator(mm{42}, mm{0}));  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+#endif
+
+#if defined(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
+TEST_CASE("ensure::io::ostream", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    using namespace csl::io;
+    std::cout << "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT: value = " << mm{42} << '\n'; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+#endif
+
+#if defined(CSL_ENSURE__ENABLE_FMT_SUPPORT)
+TEST_CASE("ensure::io::fmt", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    fmt::print("CSL_ENSURE__ENABLE_FMT_SUPPORT: value = {}\n", mm{42}); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+#endif

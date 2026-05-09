@@ -1,6 +1,8 @@
 set(component_name ag)
 set(TEST_LIST "")
 
+include(Catch)
+
 # Test: default (no bitfield support)
 set(test_name test_${PROJECT_NAME}_${component_name}_compile_time)
 list(APPEND TEST_LIST ${test_name})
@@ -15,13 +17,11 @@ target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
 		${PROJECT_NAME}::test
+		Catch2::Catch2WithMain
 		csl_compile_warnings
 )
 
-add_test(
-	NAME 	${PROJECT_NAME}_test_${component_name}
-	COMMAND $<TARGET_FILE:${test_name}>
-)
+catch_discover_tests(${test_name})
 
 # --- Tests: opt-ins---
 # Test: with bitfield support (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
@@ -38,13 +38,11 @@ target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
 		${PROJECT_NAME}::test
+		Catch2::Catch2WithMain
 		csl_compile_warnings
 )
 
-add_test(
-	NAME 	${PROJECT_NAME}_test_${component_name}_bitfield_support
-	COMMAND $<TARGET_FILE:${test_name}>
-)
+catch_discover_tests(${test_name})
 
 # Test: with fmtlib support (CSL_AG__ENABLE_FMTLIB_SUPPORT)
 set(test_name test_${PROJECT_NAME}_${component_name}_fmtlib_support_runtime)
@@ -76,5 +74,4 @@ target_link_libraries(${test_name}
 		csl_compile_warnings
 )
 
-include("${Catch2_SOURCE_DIR}/extras/Catch.cmake")
 catch_discover_tests(${test_name})

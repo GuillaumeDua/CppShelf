@@ -1,6 +1,8 @@
-#undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
 #if not defined(FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION)
 #    error "FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION is not set"
+#endif
+#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION)
+#   undef CSL_MP_TUPLE__IMPLICIT_CONVERSION
 #endif
 #define CSL_MP_TUPLE__IMPLICIT_CONVERSION FORCE_CSL_MP_TUPLE__IMPLICIT_CONVERSION
 
@@ -64,9 +66,8 @@ namespace test::nth {
 
 // #include <iostream> // debug only
 
-auto main() -> int {
+#include <catch2/catch_test_macros.hpp>
 
-    // using namespace csl::mp;
-    // std::cout << "1 == " << last_index_of_v<int,
-    //     char, char, int, bool> << '\n';
+TEST_CASE("mp::compile_time", "[mp][compile_time]") {
+    // compile-time assertions verified via static_assert in included headers above
 }

@@ -1,28 +1,23 @@
 #include <csl/typeinfo.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-namespace test::type_name {
-    static_assert(csl::typeinfo::type_name<int{ 42 }>() == "int"); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+namespace test::value_name::enums {
+    enum global_ns_colors : int { red, blue, yellow, orange, green, purple };
 }
-namespace test::value_name {
+
+TEST_CASE("typeinfo::type_name", "[typeinfo][compile_time]") {
+    STATIC_REQUIRE(csl::typeinfo::type_name<int{ 42 }>() == "int"); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+
+TEST_CASE("typeinfo::value_name", "[typeinfo][compile_time]") {
 #if defined(__GNUC__) or defined(__clang__)
-    static_assert(csl::typeinfo::value_name<int{ 42 }>() == "42"); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    STATIC_REQUIRE(csl::typeinfo::value_name<int{ 42 }>() == "42"); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 #else // MSVC
-    static_assert(csl::typeinfo::value_name<int(42)>() == "0x2a");
+    STATIC_REQUIRE(csl::typeinfo::value_name<int(42)>() == "0x2a");
 #endif
 }
-namespace test::value_name::enums {
 
-    enum global_ns_colors : int {
-        red,
-        blue,
-        yellow,
-        orange,
-        green,
-        purple
-    };
-
-    static_assert(csl::typeinfo::type_name<global_ns_colors::red>() == "test::value_name::enums::global_ns_colors");
-    static_assert(csl::typeinfo::value_name<global_ns_colors::red>() == "test::value_name::enums::red");
+TEST_CASE("typeinfo::value_name::enums", "[typeinfo][compile_time]") {
+    STATIC_REQUIRE(csl::typeinfo::type_name<test::value_name::enums::global_ns_colors::red>() == "test::value_name::enums::global_ns_colors");
+    STATIC_REQUIRE(csl::typeinfo::value_name<test::value_name::enums::global_ns_colors::red>() == "test::value_name::enums::red");
 }
-
-auto main() -> int {}

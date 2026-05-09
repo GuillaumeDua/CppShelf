@@ -9,3 +9,5 @@ if (NOT TARGET Catch2::Catch2)
     )
 endif()
 
+list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
