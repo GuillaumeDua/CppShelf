@@ -250,7 +250,7 @@ namespace test::tuples::compare::tuple {
             // NOTE: C++23
             static_assert(std::equality_comparable_with<lhs_t, rhs_t>);
 
-#if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
             [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
             static_assert(lhs_t{42, 'a'} == lhs_t{42, 'a'});
             static_assert(lhs_t{{}, 'a'} != lhs_t{42, 'a'});
@@ -265,20 +265,23 @@ namespace test::tuples::compare::tuple {
                 lhs_t{} <=> rhs_t{};
             });
             static_assert(std::three_way_comparable_with<lhs_t, rhs_t>);
+        #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
             static_assert(lhs_t{0.F, {}} < rhs_t{1.F, {}});
             static_assert(lhs_t{0.F, {}} < rhs_t{0.F, 1});
+        #endif
         }
     };
 
     using lhs_t = csl::mp::tuple<float, char>;
     using rhs_t = csl::mp::tuple<double, int>;
 
-    using symetrical_ok = impl<lhs_t, lhs_t>;
-    // #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
-    using asymetrical_ok = impl<lhs_t, rhs_t>;
-    // #endif
+    // tests instanciation
+    template struct impl<lhs_t, lhs_t>; // symetrical
+#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    template struct impl<lhs_t, rhs_t>; // asymetrical
+#endif
 } // namespace test::tuples::compare::tuple
-// QUESTION: #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
+
 namespace test::tuples::compare::tuplelikes {
 
     #if defined(__cpp_lib_tuple_like) and __cpp_lib_tuple_like >= 202311L
