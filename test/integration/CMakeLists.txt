@@ -82,5 +82,5 @@ target_link_libraries(${PROJECT_NAME}
         csl::wf
 )
 
-enable_testing()
+# enable_testing()
 add_test(NAME csl_integration COMMAND ${PROJECT_NAME})
