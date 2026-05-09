@@ -11,10 +11,9 @@ add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
 target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
+		Catch2::Catch2WithMain
 		csl_compile_warnings
 )
 
-add_test(
-	NAME 	${PROJECT_NAME}_test_${component_name}
-	COMMAND $<TARGET_FILE:${test_name}>
-)
+include(Catch)
+catch_discover_tests(${test_name})

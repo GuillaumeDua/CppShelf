@@ -1,5 +1,7 @@
 set(component_name mp)
 
+include(Catch)
+
 function(csl_mp_make_test_target)
 
 	set(options)
@@ -26,6 +28,7 @@ function(csl_mp_make_test_target)
     target_link_libraries(${target_name}
         PRIVATE
             ${PROJECT_NAME}::${component_name}
+            Catch2::Catch2WithMain
             csl_compile_warnings
     )
     target_include_directories(${target_name}
@@ -63,10 +66,7 @@ function(csl_mp_make_test_target)
     endif()
 	list(POP_BACK CMAKE_MESSAGE_INDENT)
 
-    add_test(
-        NAME    ${PROJECT_NAME}_test_${component_name}.${arg_DEFINITIONS_joined}
-        COMMAND $<TARGET_FILE:${target_name}>
-    )
+    catch_discover_tests(${target_name})
 
 	message(VERBOSE "[csl_mp_make_test_target] Generated ${target_name}")
 

@@ -1,4 +1,5 @@
 #include <csl/functional.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <type_traits>
 
 namespace test::sample {
@@ -25,145 +26,120 @@ namespace test::sample {
     };
 }
 
-namespace test::function {
+TEST_CASE("functional::function_trait", "[functional][compile_time]") {
 
-    using trait = csl::functional::function_trait<decltype(sample::func)>;
-    static_assert(std::is_same_v<trait::arguments_type, csl::functional::arguments<int>>);
-    static_assert(std::is_same_v<trait::result_type, char>);
-    static_assert(std::tuple_size_v<trait::arguments_type> == 1);
-    static_assert(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, int>);
-}
-namespace test::member_function {
-    using trait = csl::functional::function_trait<decltype(&sample::user_defined_type::mem_func)>;
-    static_assert(std::is_same_v<trait::arguments_type, csl::functional::arguments<sample::user_defined_type, int>>);
-    static_assert(std::is_same_v<trait::result_type, char>);
-    static_assert(std::tuple_size_v<trait::arguments_type> == 2);
-    static_assert(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, sample::user_defined_type>);
-    static_assert(std::is_same_v<std::tuple_element_t<1, trait::arguments_type>, int>);
-}
-namespace test::lambda {
+    SECTION("function") {
+        using trait = csl::functional::function_trait<decltype(test::sample::func)>;
+        STATIC_REQUIRE(std::is_same_v<trait::arguments_type, csl::functional::arguments<int>>);
+        STATIC_REQUIRE(std::is_same_v<trait::result_type, char>);
+        STATIC_REQUIRE(std::tuple_size_v<trait::arguments_type> == 1);
+        STATIC_REQUIRE(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, int>);
+    }
 
-    using trait = csl::functional::function_trait<sample::lambda_const_t>;
-    static_assert(std::is_same_v<trait::arguments_type, csl::functional::arguments<int>>);
-    static_assert(std::is_same_v<trait::result_type, char>);
-    static_assert(std::tuple_size_v<trait::arguments_type> == 1);
-    static_assert(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, int>);
-}
-namespace test::concepts {
+    SECTION("member_function") {
+        using trait = csl::functional::function_trait<decltype(&test::sample::user_defined_type::mem_func)>;
+        STATIC_REQUIRE(std::is_same_v<trait::arguments_type, csl::functional::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(std::is_same_v<trait::result_type, char>);
+        STATIC_REQUIRE(std::tuple_size_v<trait::arguments_type> == 2);
+        STATIC_REQUIRE(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, test::sample::user_defined_type>);
+        STATIC_REQUIRE(std::is_same_v<std::tuple_element_t<1, trait::arguments_type>, int>);
+    }
 
-    namespace ns = csl::functional;
-
-    // simple_callable
-    static_assert(ns::concepts::simple_callable<decltype(sample::lambda_const)>);
-    static_assert(ns::concepts::simple_callable<decltype(sample::lambda_mutable)>);
-    static_assert(ns::concepts::simple_callable<decltype(sample::lambda_const_noexcept)>);
-    static_assert(ns::concepts::simple_callable<decltype(sample::func)>);
-    static_assert(ns::concepts::simple_callable<decltype(sample::func_noexcept)>);
-    static_assert(ns::concepts::simple_callable<decltype(&sample::user_defined_type::static_mem_func)>);
-    static_assert(ns::concepts::simple_callable<decltype(&sample::user_defined_type::static_mem_func_noexcept)>);
-    static_assert(ns::concepts::simple_callable<decltype(&sample::user_defined_type::mem_func)>);
-    static_assert(ns::concepts::simple_callable<decltype(&sample::user_defined_type::mem_func_noexcept)>);
-    static_assert(ns::concepts::simple_callable<decltype(&sample::user_defined_type::mem_func_const)>);
-    static_assert(ns::concepts::simple_callable<decltype(&sample::user_defined_type::mem_func_const_noexcept)>);
-
-    // invocable_with
-    static_assert(ns::concepts::invocable_with<decltype(sample::lambda_const), ns::arguments<int>>);
-    static_assert(ns::concepts::invocable_with<decltype(sample::lambda_mutable), ns::arguments<int>>);
-    static_assert(ns::concepts::invocable_with<decltype(sample::lambda_const_noexcept), ns::arguments<int>>);
-    static_assert(ns::concepts::invocable_with<decltype(sample::func), ns::arguments<int>>);
-    static_assert(ns::concepts::invocable_with<decltype(sample::func_noexcept), ns::arguments<int>>);
-    static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::static_mem_func), ns::arguments<int>>);
-    static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::static_mem_func_noexcept), ns::arguments<int>>);
-
-    static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::mem_func), ns::arguments<sample::user_defined_type, int>>);
-    static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::mem_func_noexcept), ns::arguments<sample::user_defined_type, int>>);
-    static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::mem_func_const), ns::arguments<sample::user_defined_type, int>>);
-    static_assert(ns::concepts::invocable_with<decltype(&sample::user_defined_type::mem_func_const_noexcept), ns::arguments<sample::user_defined_type, int>>);
-
-    // nothrow_invocable_with
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::lambda_const), ns::arguments<int>>);
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::lambda_mutable), ns::arguments<int>>);
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::lambda_const_noexcept), ns::arguments<int>>);
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(sample::func), ns::arguments<int>>);
-    static_assert(ns::concepts::nothrow_invocable_with<decltype(sample::func_noexcept), ns::arguments<int>>);
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::static_mem_func), ns::arguments<int>>);
-    static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::static_mem_func_noexcept), ns::arguments<int>>);
-
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func), ns::arguments<sample::user_defined_type, int>>);
-    static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_noexcept), ns::arguments<sample::user_defined_type, int>>);
-    static_assert(not ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_const), ns::arguments<sample::user_defined_type, int>>);
-    static_assert(ns::concepts::nothrow_invocable_with<decltype(&sample::user_defined_type::mem_func_const_noexcept), ns::arguments<sample::user_defined_type, int>>);
-}
-
-namespace test::overloads_traits::utils {
-
-    template <typename overloaded_t>
-    constexpr void check(){
-
-        using trait = csl::functional::overload_trait_t<overloaded_t>;
-
-        static_assert(std::tuple_size_v<trait> == 3);
-
-        // overload: argument types
-        static_assert(std::is_same_v<
-            typename std::tuple_element_t<0, trait>::arguments_type,
-            csl::functional::arguments<>
-        >);
-        static_assert(std::is_same_v<
-            typename std::tuple_element_t<1, trait>::arguments_type,
-            csl::functional::arguments<int>
-        >);
-        static_assert(std::is_same_v<
-            typename std::tuple_element_t<2, trait>::arguments_type,
-            csl::functional::arguments<char, bool>
-        >);
-        // overload: result types
-        static_assert(std::is_same_v<bool,   typename std::tuple_element_t<0, trait>::result_type>);
-        static_assert(std::is_same_v<float,  typename std::tuple_element_t<1, trait>::result_type>);
-        static_assert(std::is_same_v<double, typename std::tuple_element_t<2, trait>::result_type>);
+    SECTION("lambda") {
+        using trait = csl::functional::function_trait<test::sample::lambda_const_t>;
+        STATIC_REQUIRE(std::is_same_v<trait::arguments_type, csl::functional::arguments<int>>);
+        STATIC_REQUIRE(std::is_same_v<trait::result_type, char>);
+        STATIC_REQUIRE(std::tuple_size_v<trait::arguments_type> == 1);
+        STATIC_REQUIRE(std::is_same_v<std::tuple_element_t<0, trait::arguments_type>, int>);
     }
 }
-namespace test::overloads_traits::overload {
 
+TEST_CASE("functional::concepts::simple_callable", "[functional][compile_time]") {
+    namespace ns = csl::functional;
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(test::sample::lambda_const)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(test::sample::lambda_mutable)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(test::sample::lambda_const_noexcept)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(test::sample::func)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(test::sample::func_noexcept)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(&test::sample::user_defined_type::static_mem_func)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(&test::sample::user_defined_type::static_mem_func_noexcept)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(&test::sample::user_defined_type::mem_func)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(&test::sample::user_defined_type::mem_func_noexcept)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(&test::sample::user_defined_type::mem_func_const)>);
+    STATIC_REQUIRE(ns::concepts::simple_callable<decltype(&test::sample::user_defined_type::mem_func_const_noexcept)>);
+}
+
+TEST_CASE("functional::concepts::invocable_with", "[functional][compile_time]") {
+    namespace ns = csl::functional;
+
+    SECTION("simple callables") {
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(test::sample::lambda_const), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(test::sample::lambda_mutable), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(test::sample::lambda_const_noexcept), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(test::sample::func), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(test::sample::func_noexcept), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(&test::sample::user_defined_type::static_mem_func), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(&test::sample::user_defined_type::static_mem_func_noexcept), ns::arguments<int>>);
+    }
+
+    SECTION("member functions") {
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(&test::sample::user_defined_type::mem_func), ns::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(&test::sample::user_defined_type::mem_func_noexcept), ns::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(&test::sample::user_defined_type::mem_func_const), ns::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(ns::concepts::invocable_with<decltype(&test::sample::user_defined_type::mem_func_const_noexcept), ns::arguments<test::sample::user_defined_type, int>>);
+    }
+}
+
+TEST_CASE("functional::concepts::nothrow_invocable_with", "[functional][compile_time]") {
+    namespace ns = csl::functional;
+
+    SECTION("simple callables") {
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(test::sample::lambda_const), ns::arguments<int>>);
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(test::sample::lambda_mutable), ns::arguments<int>>);
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(test::sample::lambda_const_noexcept), ns::arguments<int>>);
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(test::sample::func), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::nothrow_invocable_with<decltype(test::sample::func_noexcept), ns::arguments<int>>);
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(&test::sample::user_defined_type::static_mem_func), ns::arguments<int>>);
+        STATIC_REQUIRE(ns::concepts::nothrow_invocable_with<decltype(&test::sample::user_defined_type::static_mem_func_noexcept), ns::arguments<int>>);
+    }
+
+    SECTION("member functions") {
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(&test::sample::user_defined_type::mem_func), ns::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(ns::concepts::nothrow_invocable_with<decltype(&test::sample::user_defined_type::mem_func_noexcept), ns::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(not ns::concepts::nothrow_invocable_with<decltype(&test::sample::user_defined_type::mem_func_const), ns::arguments<test::sample::user_defined_type, int>>);
+        STATIC_REQUIRE(ns::concepts::nothrow_invocable_with<decltype(&test::sample::user_defined_type::mem_func_const_noexcept), ns::arguments<test::sample::user_defined_type, int>>);
+    }
+}
+
+TEST_CASE("functional::overload_trait", "[functional][compile_time]") {
     constexpr auto overloaded = csl::functional::overload {
         []() -> bool { return {}; },
         [](int) -> float { return {}; },
         [](char, bool) -> double { return {}; }
     };
     using overloaded_t = std::decay_t<decltype(overloaded)>;
+    using trait = csl::functional::overload_trait_t<overloaded_t>;
 
-    constexpr void do_check(){ utils::check<overloaded_t>(); }
+    STATIC_REQUIRE(std::tuple_size_v<trait> == 3);
+
+    STATIC_REQUIRE(std::is_same_v<
+        typename std::tuple_element_t<0, trait>::arguments_type,
+        csl::functional::arguments<>
+    >);
+    STATIC_REQUIRE(std::is_same_v<
+        typename std::tuple_element_t<1, trait>::arguments_type,
+        csl::functional::arguments<int>
+    >);
+    STATIC_REQUIRE(std::is_same_v<
+        typename std::tuple_element_t<2, trait>::arguments_type,
+        csl::functional::arguments<char, bool>
+    >);
+
+    STATIC_REQUIRE(std::is_same_v<bool,   typename std::tuple_element_t<0, trait>::result_type>);
+    STATIC_REQUIRE(std::is_same_v<float,  typename std::tuple_element_t<1, trait>::result_type>);
+    STATIC_REQUIRE(std::is_same_v<double, typename std::tuple_element_t<2, trait>::result_type>);
 }
 
 // TODO(Guss): overload_set https://godbolt.org/z/YG1x9z3qo
 //  Fs...
 //  T, T::MemFs...
-
-// namespace test::overloads_traits::function {
-    
-//     auto func() -> bool { return {}; }
-//     auto func(int) -> float { return {}; }
-//     auto func(char, bool) -> double { return {}; }
-
-//     constexpr auto overloaded = csl::functional::overload {
-//         static_cast<bool(*)()>(&func)
-//     };
-//     using overloaded_t = std::decay_t<decltype(overloaded)>;
-    
-//     using overloaded_t = std::decay_t<decltype(&func)>;
-
-//     constexpr static void do_checks(){ utils::check<overloaded_t>(); }
-// }
-// namespace test::overloads_traits::user_defined_functor {
-    
-//     struct type {
-//         auto operator()() -> bool { return {}; }
-//         auto operator()(int) -> float { return {}; }
-//         auto operator()(char, bool) -> double { return {}; }
-//     };
-
-//     constexpr static void do_checks(){ utils::check<type>(); }
-// }
-
-auto main() -> int {}
-

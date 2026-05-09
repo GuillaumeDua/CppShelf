@@ -18,4 +18,8 @@
 #include <tests/ag/custom_tuple_like_interface.hpp>
 #include <tests/ag/concepts.hpp>
 
-auto main() -> int {}
+#include <catch2/catch_test_macros.hpp>
+
+TEST_CASE("ag::compile_time (no bitfield support)", "[ag][compile_time]") {
+    // compile-time assertions verified via static_assert in included headers above
+}
