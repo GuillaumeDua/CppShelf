@@ -50,6 +50,7 @@ add_test(
 set(test_name test_${PROJECT_NAME}_${component_name}_fmtlib_support_runtime)
 
 if (NOT TARGET fmt::fmt-header-only)
+	include(csl/get_cpm)
     CPMAddPackage(
         NAME              fmt
         GITHUB_REPOSITORY fmtlib/fmt
