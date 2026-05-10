@@ -247,7 +247,6 @@ namespace test::tuples::compare::tuple {
             static_assert(lhs_t{{}, 'a'} != lhs_t{1.F, 'a'});
             static_assert(lhs_t{42, {}} != lhs_t{42.F, 'a'});
 
-            // NOTE: C++23
             static_assert(std::equality_comparable_with<lhs_t, rhs_t>);
 
 #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION

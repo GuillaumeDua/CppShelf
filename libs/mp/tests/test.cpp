@@ -16,58 +16,18 @@
 #include <tests/mp/functions.hpp>
 // #include <tests/mp/flat.hpp>
 
-// pack: legacy algos to refactor/move
-#if false
-namespace test::index_of {
-
-    using namespace csl::mp;
-
-    using pack_type = pack<double, char, int, float, int, bool>;
-    // static_assert(2 ==       index_of_v<int, pack_type>);
-    // static_assert(2 == first_index_of_v<int, pack_type>);
-    // static_assert(1 ==      rindex_of_v<int, pack_type>);
-    // static_assert(1 ==  last_index_of_v<int, pack_type>);
-}
-
-namespace test::nth {
-    using pack_type = csl::mp::pack<int, char, double, bool, float>;
-    static_assert(std::is_same_v<
-        csl::mp::nth_t<1, pack_type>,
-        char
-    >);
-    static_assert(
-        csl::mp::index_of_v<char, pack_type> == 1
-    );
-}
-#endif
-// namespace test::index {
-//     using namespace csl::mp;
-
-//     static_assert(4 == index_of_v<bool,
-//         char, char, int, char, bool, int, bool>);
-//     static_assert(1 == last_index_of_v<int,
-//         char, char, int, bool>);
-
-//     static_assert(2 == index_of_v<int,
-//         char, char, int, int, bool>);
-//     static_assert(1 == last_index_of_v<int,
-//         char, char, int, int, bool>);
-
-//     static_assert(2 == index_of_v<int,
-//         pack<char, char, int, bool>>);
-//     static_assert(1 == last_index_of_v<int,
-//         pack<char, char, int, bool>>);
-
-//     static_assert(2 == index_of_v<int,
-//         pack<char, char, int, int, bool>>);
-//     static_assert(1 == last_index_of_v<int,
-//         pack<char, char, int, int, bool>>);
-// }
-
-// #include <iostream> // debug only
-
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("mp::compile_time", "[mp][compile_time]") {
+#if CSL_MP_TUPLE__IMPLICIT_CONVERSION == 0
+#  define CSL_MP_TUPLE__IMPLICIT_CONVERSION_STR "NONE"
+#elif CSL_MP_TUPLE__IMPLICIT_CONVERSION == 1
+#  define CSL_MP_TUPLE__IMPLICIT_CONVERSION_STR "SAFE"
+#elif CSL_MP_TUPLE__IMPLICIT_CONVERSION == 2
+#  define CSL_MP_TUPLE__IMPLICIT_CONVERSION_STR "UNSAFE"
+#else
+# error "Unexpected CSL_MP_TUPLE__IMPLICIT_CONVERSION value"
+#endif
+
+TEST_CASE("mp::compile_time [IMPLICIT_CONVERSION=" CSL_MP_TUPLE__IMPLICIT_CONVERSION_STR "]", "[mp][compile_time]") {
     // compile-time assertions verified via static_assert in included headers above
 }

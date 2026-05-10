@@ -14,8 +14,8 @@ set_property(CACHE CSL_MP_TUPLE__IMPLICIT_CONVERSION PROPERTY STRINGS
 
 # Warnings suppressed in tests per conversion mode
 set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE_test_disabled_warnings   "")
-set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE_test_disabled_warnings   -Wno-conversion)
-set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE_test_disabled_warnings -Wno-conversion -Wno-sign-conversion)
+set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE_test_disabled_warnings   -Wno-conversion -Wno-double-promotion)
+set(CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE_test_disabled_warnings -Wno-conversion -Wno-sign-conversion -Wno-double-promotion)
 
 csl_cache_entry_to_property_index(
     ID      CSL_MP_TUPLE__IMPLICIT_CONVERSION
