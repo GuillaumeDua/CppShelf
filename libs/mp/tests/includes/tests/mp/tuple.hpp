@@ -249,7 +249,7 @@ namespace test::tuples::compare::tuple {
 
             static_assert(std::equality_comparable_with<lhs_t, rhs_t>);
 
-#if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+#if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
             [[maybe_unused]] constexpr static auto narrowing = csl::mp::tuple<char>{42};
             static_assert(lhs_t{42, 'a'} == lhs_t{42, 'a'});
             static_assert(lhs_t{{}, 'a'} != lhs_t{42, 'a'});
@@ -264,9 +264,11 @@ namespace test::tuples::compare::tuple {
                 lhs_t{} <=> rhs_t{};
             });
             static_assert(std::three_way_comparable_with<lhs_t, rhs_t>);
-        #if defined(CSL_MP_TUPLE__IMPLICIT_CONVERSION) and CSL_MP_TUPLE__IMPLICIT_CONVERSION
+        #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
             static_assert(lhs_t{0.F, {}} < rhs_t{1.F, {}});
-            static_assert(lhs_t{0.F, {}} < rhs_t{0.F, 1});
+        #  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
+            static_assert(lhs_t{0.F, {}} < rhs_t{0.F, 1}); // narrowing: char{int} — UNSAFE only
+        #  endif
         #endif
         }
     };

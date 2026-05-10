@@ -10,7 +10,7 @@
 //  - csl::mp::concepts::tuple_like<T> evaluates to true (based on P2165).
 //  - csl::mp::concepts::uniqued<T> -> tuple_element<indexes, T>... contains no duplicates
 //  If a given tuple-like type T instanciation is considered not valid,
-//  then LESS performant algorithms implementations may be selected to provide similar functionalities, as a best-effort.
+//      then LESS performant algorithms implementations may be selected to provide similar functionalities, as a best-effort.
 
 // About [csl::mp::tuple] vs. other [tuple-like]
 //
@@ -41,8 +41,11 @@
 //  - std::three_way_comparable_with<T1, T2>
 //  - Any construction of T1 from a possibly-cvref-qualified T2 value
 
-// TODO(Guillaume) refactor with fixed_string + template specialization https://github.com/GuillaumeDua/CppShelf/issues/299
-namespace csl::mp::details::pp_options {
+#if __cplusplus < 202002L
+ #error "csl/mp.hpp requires C++20 or greater"
+#endif
+
+namespace csl::mp::_::pp_options {
 
     #define CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE   0
     #define CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE   1
@@ -65,12 +68,6 @@ namespace csl::mp::details::pp_options {
     #endif
 }
 
-// ---
-
-#if __cplusplus < 202002L
- #error "csl/mp.hpp requires C++20 or greater"
-#endif
-
 #include <compare>
 #include <type_traits>
 #include <concepts>
@@ -89,18 +86,14 @@ namespace csl::mp::details::pp_options {
 // NOTE: Implement such a macro as a function would return a ref on a temporary
 // template <typename T>
 // [[nodiscard]] constexpr static auto fwd_maybe_cast(std::convertible_to<T> auto && value) noexcept -> decltype(auto) {
-//     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
-//         return static_cast<T&&>(value);
-//     // QUESTION: if SAFE, then safe_cast<T>(value) to prevent narrowing conversions ?
-//     //   But costly: check value against numeric_limits min/max, etc. -> out of scope
-//     #else
-//         return std::forward<decltype(value)>(value);
-//     #endif
+//     return static_cast<?>(value);
 // }
-#if CSL_MP_TUPLE__IMPLICIT_CONVERSION
- #define csl_fwd_maybe_cast(T, value) static_cast<T &&>(value) // NOLINT(*-macro-*)
-#else
+#if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE
  #define csl_fwd_maybe_cast(T, value) static_cast<decltype(value) &&>(value) // NOLINT(*-macro-*)
+#elif CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+ #define csl_fwd_maybe_cast(T, value) T{value} // NOLINT(*-macro-*) — brace-init rejects narrowing
+#else // UNSAFE
+ #define csl_fwd_maybe_cast(T, value) static_cast<T &&>(value) // NOLINT(*-macro-*)
 #endif
 
 #if defined(__clang__)
@@ -251,6 +244,9 @@ namespace csl::mp::concepts {
 
     template <typename T>
     concept std_array = type_traits::is_std_array_v<std::remove_cvref_t<T>>;
+
+    template <typename To, typename ... From>
+    concept non_narrowing_constructible_from = requires { To{std::declval<From>()... }; };
 } // namespace csl::mp::concepts
 
 // csl::mp relies on STL's tuplelike API, rather than adapting to it
@@ -651,31 +647,37 @@ namespace csl::mp::details {
         template <typename T>
         using by_type_ = decltype(deduce_index(type_identity<T>{}));
 
-    // Conversion support: unsafe use are handled by the compiler -Wconversion
-    #if not CSL_MP_TUPLE__IMPLICIT_CONVERSION
+    // Conversion support
+    #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE
         constexpr explicit tuple_storage(std::convertible_to<Ts> auto &&... args) // NOLINT(*-missing-std-forward)
             noexcept((true and ... and std::is_nothrow_constructible_v<Ts, decltype(args)>))
         requires(sizeof...(Ts) == sizeof...(args) and (true and ... and std::constructible_from<Ts, decltype(args)>))
             : tuple_member<indexes, Ts>{
                   csl_fwd(args)
               }... {}
-    #else
+    #else // SAFE or UNSAFE
         template <typename...>
         friend struct tuple_storage;
-        // #endif
 
         template <typename... Us>
         constexpr explicit tuple_storage(Us &&... args) // NOLINT(*-missing-std-forward)
             noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us &&>))
-        requires(sizeof...(Ts) == sizeof...(Us) and (true and ... and std::constructible_from<Ts, Us &&>))
+        requires(
+            sizeof...(Ts) == sizeof...(Us)
+            and (true and ... and
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+                 csl::mp::concepts::non_narrowing_constructible_from<Ts, Us &&>
+#  else // UNSAFE
+                 std::constructible_from<Ts, Us &&>
+#  endif
+            )
+        )
             : tuple_member<indexes, Ts>{
-
-                  // Drop-in replacement for std::tuple
-                  // As <tuple> is -isystem, implicit members conversions do not produce warnings
-                  // The cmake option and pp-definition `CSL_MP_TUPLE__IMPLICIT_CONVERSION=0|1` toggles this behavior off/on
-                  //
-                  // csl_fwd_maybe_cast(Ts, csl_fwd(args))
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+                  Ts{csl_fwd(args)}
+#  else // UNSAFE
                   static_cast<copy_cvref_t<decltype(args), Ts>>(args)
+#  endif
               }... {}
 
     #if defined(csl_compiler_is_gcc) // up to at least gcc-13.3.0
@@ -690,17 +692,30 @@ namespace csl::mp::details {
             noexcept((true and ... and std::is_nothrow_constructible_v<Ts, Us &&>))
         requires(
             sizeof...(Ts) == sizeof...(Us)
-            and (true and ... and std::constructible_from<Ts, Us &&>)
+            and (true and ... and
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+                 csl::mp::concepts::non_narrowing_constructible_from<Ts, Us &&>
+#  else // UNSAFE
+                 std::constructible_from<Ts, Us &&>
+#  endif
+            )
         )
             : tuple_storage{
                   static_cast<tuple_member<indexes, Us> &&>(std::move(other)).value...
               } {
         }
         template <typename... Us>
-        constexpr explicit tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other) noexcept((true and ... and std::is_nothrow_constructible_v<Ts, const Us &>))
+        constexpr explicit tuple_storage(const tuple_storage<tuple_member<indexes, Us>...> & other)
+            noexcept((true and ... and std::is_nothrow_constructible_v<Ts, const Us &>))
         requires(
             sizeof...(Ts) == sizeof...(Us)
-            and (true and ... and std::constructible_from<Ts, const Us &>)
+            and (true and ... and
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+                 csl::mp::concepts::non_narrowing_constructible_from<Ts, const Us &>
+#  else // UNSAFE
+                 std::constructible_from<Ts, const Us &>
+#  endif
+            )
         )
             : tuple_storage{
                   static_cast<const tuple_member<indexes, Us> &>(other).value...
@@ -892,16 +907,19 @@ namespace csl::mp {
         = default;
         constexpr ~tuple() = default;
 
-    // Converting constructors: safe use are handled by the compiler -Wconversion
+    // Converting assignment: enabled only with implicit conversion
     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
 
         // operator=
         // storage conversion
-        template <std::convertible_to<Ts> ... Us>
+        template <typename... Us>
         constexpr auto & operator=(tuple<Us...> && other)
         noexcept((true and ... and std::is_nothrow_assignable_v<Ts&, Us&&>))
         requires
                 (sizeof...(Ts) == sizeof...(Us))
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+            and (true and ... and concepts::non_narrowing_constructible_from<Ts, Us&&>)
+#  endif
             and (true and ... and std::is_assignable_v<Ts, Us&&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -909,11 +927,14 @@ namespace csl::mp {
             }(std::make_index_sequence<sizeof...(Ts)>{});
             return *this;
         }
-        template <std::convertible_to<Ts> ... Us>
+        template <typename... Us>
         constexpr auto & operator=(const tuple<Us...> & other)
         noexcept((true and ... and std::is_nothrow_assignable_v<Ts&, const Us&>))
         requires
                 (sizeof...(Ts) == sizeof...(Us))
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+            and (true and ... and concepts::non_narrowing_constructible_from<Ts, const Us&>)
+#  endif
             and (true and ... and std::is_assignable_v<Ts&, const Us&>)
         {
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
@@ -957,7 +978,7 @@ namespace csl::mp {
         : storage{ csl_fwd(args)... }
         {}
 
-    // Converting constructors: safe use are handled by the compiler -Wconversion
+    // Converting constructors: enabled only with implicit conversion
     #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
         template <typename...>
         friend struct tuple;
@@ -969,7 +990,13 @@ namespace csl::mp {
         noexcept(std::is_nothrow_constructible_v<decltype(storage), decltype(std::move(other.storage))>)
         requires
             (sizeof...(Ts) == sizeof...(Us))
-        and (true and ... and std::constructible_from<Ts, Us&&>)
+        and (true and ... and
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+             concepts::non_narrowing_constructible_from<Ts, Us &&>
+#  else // UNSAFE
+             std::constructible_from<Ts, Us&&>
+#  endif
+        )
         : storage{ std::move(std::move(other).storage) }
         {}
         // Constructor: converting copy
@@ -977,7 +1004,13 @@ namespace csl::mp {
         constexpr explicit(not (true and ... and std::convertible_to<Ts, const Us &>))
         tuple(const tuple<Us...> & other)
         noexcept(std::is_nothrow_constructible_v<decltype(storage), decltype(other.storage)>)
-        requires (true and ... and std::constructible_from<Ts, const Us&>)
+        requires (true and ... and
+#  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
+             concepts::non_narrowing_constructible_from<Ts, const Us &>
+#  else // UNSAFE
+             std::constructible_from<Ts, const Us&>
+#  endif
+        )
         : storage{ other.storage }
         {}
     #endif // CSL_MP_TUPLE__IMPLICIT_CONVERSION
