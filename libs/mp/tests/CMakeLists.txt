@@ -62,7 +62,10 @@ function(csl_mp_make_test_target)
 	endforeach()
 
     if (arg_DISABLED_WARNINGS)
-        target_compile_options(${target_name} PRIVATE ${arg_DISABLED_WARNINGS})
+        # NOTE: linked after so it can override csl_compile_warnings
+        add_library(${target_name}.disabled_warnings INTERFACE)
+        target_compile_options(${target_name}.disabled_warnings INTERFACE ${arg_DISABLED_WARNINGS})
+        target_link_libraries(${target_name} PRIVATE ${target_name}.disabled_warnings)
     endif()
 	list(POP_BACK CMAKE_MESSAGE_INDENT)
 
