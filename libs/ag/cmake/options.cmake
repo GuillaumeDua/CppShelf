@@ -75,10 +75,8 @@ if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
     message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT is not a valid number")
 endif()
 
-set(_ag_generated_file "${CMAKE_CURRENT_BINARY_DIR}/csl/ag_generated.hpp")
-
 include(${PROJECT_SOURCE_DIR}/libs/ag/cmake/details/generate_cpp_code.cmake)
-ag_generate_cpp_code(OUTPUT_FILE "${_ag_generated_file}")
+ag_generate_cpp_code(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
     "${CMAKE_CURRENT_BINARY_DIR}"
