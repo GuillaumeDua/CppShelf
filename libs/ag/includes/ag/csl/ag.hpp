@@ -230,10 +230,9 @@ namespace csl::ag::details::generated {
     }
 }
 
-// --- generated: implementations ---
-// TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
-#if __has_include(<csl/ag_generated.hpp>)
-#  include <csl/ag_generated.hpp>
+// --- generated: configuration ---
+#if __has_include(<csl/ag_configuration.hpp>)
+#  include <csl/ag_configuration.hpp>
 #else
 namespace csl::ag::configuration {
     constexpr static auto max_supported_fields_count = std::size_t{32};
@@ -318,12 +317,11 @@ namespace csl::ag::details {
 
 // --- tuple adapter ---
 namespace csl::ag::details {
+    // Declaration only: body defined after generated specializations so the non-dependent
+    // qualified lookup of details::generated::make_to_tuple<size> sees all N variants.
     [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
     // -> std::type_identity<std::tuple<field_Ts...>>
-    {
-        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
-        return details::generated::make_to_tuple<size>(csl_fwd(value));
-    }
+    ;
 
     template <typename T>
     using to_tuple_t = mp::copy_cvref_t<
@@ -334,7 +332,7 @@ namespace csl::ag::details {
     template <typename owner_type>
     [[nodiscard]] constexpr static concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
         using tuple_t = to_tuple_t<std::remove_cvref_t<owner_type>>;
-        
+
         constexpr auto size = std::tuple_size_v<tuple_t>;
         static_assert(size == sizeof...(values));
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
@@ -345,8 +343,11 @@ namespace csl::ag::details {
     }
 }
 
-// Fallback embedded specializations (raw header-only; skipped when building through CMake)
-#if not __has_include(<csl/ag_generated.hpp>)
+// --- generated: implementations ---
+// TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
+#if __has_include(<csl/ag_generated.hpp>)
+#  include <csl/ag_generated.hpp>
+#else
 namespace csl::ag::details::generated {
 #pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
@@ -676,6 +677,18 @@ template <std::size_t N> requires (N == 32) // NOLINT
 }
 #endif
 
+// --- tuple adapter: make_to_tuple definition ---
+// Defined here so details::generated::make_to_tuple<size> (non-dependent qualified name)
+// resolves against all generated specializations above, not just the base template.
+namespace csl::ag::details {
+    [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
+    // -> std::type_identity<std::tuple<field_Ts...>>
+    {
+        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
+        return details::generated::make_to_tuple<size>(csl_fwd(value));
+    }
+}
+
 // --- API ---
 namespace csl::ag {
 
@@ -871,16 +884,16 @@ namespace csl::ag {
     struct to_template_type_nttp_ttps_tag{};
 
     template <typename T>
-    constexpr inline static auto to(){ return to_complete_type_tag<T>{}; };
+    constexpr static auto to(){ return to_complete_type_tag<T>{}; };
     template <template <typename...> typename T>
-    constexpr inline static auto to(){ return to_template_type_ttps_tag<T>{}; };
+    constexpr static auto to(){ return to_template_type_ttps_tag<T>{}; };
     template <template <typename, auto...> typename T> 
-    constexpr inline static auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
+    constexpr static auto to(){ return to_template_type_ttp_nttps_tag<T>{}; };
     template <template <auto, typename ...> typename T>
-    constexpr inline static auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
+    constexpr static auto to(){ return to_template_type_nttp_ttps_tag<T>{}; };
 
     template <typename T>
-    [[nodiscard]] constexpr inline static auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
+    [[nodiscard]] constexpr static auto operator|(csl::ag::concepts::aggregate auto && value, to_complete_type_tag<T>)
     {
         return csl::ag::make<T>(csl_fwd(value));
     }
@@ -901,7 +914,8 @@ namespace csl::ag {
     }
 }
 namespace csl::ag::views {
-    constexpr inline static auto all = all_view_tag{};
+
+    [[maybe_unused]] constexpr inline static auto all = all_view_tag{};
     template <typename T>
     using all_t = decltype(std::declval<T>());
 
