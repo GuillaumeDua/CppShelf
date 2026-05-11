@@ -10,8 +10,9 @@
 #     for N in [1 .. CSL_AG__MAX_FIELDS_SUPPORTED_COUNT].
 #
 # Both files are consumed by ag.hpp via __has_include.
-# ag_configuration.hpp is included early (before fields_count).
-# ag_generated.hpp is included late (after make_tuple_view, inside namespace csl::ag::details::generated).
+#
+#   ag_configuration.hpp is included early (before fields_count).
+#   ag_generated.hpp is included late (after make_tuple_view, inside namespace csl::ag::details::generated).
 
 function(ag_generate_cpp_code)
 
