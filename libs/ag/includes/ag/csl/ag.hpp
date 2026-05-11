@@ -205,19 +205,37 @@ namespace csl::ag::concepts {
 	concept structured_bindable = tuple_like<T> or aggregate<T>;
 }
 
-// --- generated: details ---
-#if __has_include(<csl/ag_generated.hpp>)
-#  include <csl/ag_generated.hpp>  // defines CSL_AG__MAX_FIELDS_SUPPORTED_COUNT and the specializations
-#endif
-#if not defined(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
-#  define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32  // fallback for raw header-only usage
-// WIP: move all fallback code here
-#endif
+// generated : interface
+namespace csl::ag::details::generated {
+    template <std::size_t N>
+    [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto &&) noexcept
+    // -> std::type_identity<std::tuple<csl::ag::element<I, value_t>...>>
+    {
+        static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+    }
+    template <std::size_t>
+    [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept
+    // -> std::tuple<decltype(get<I>(value))...>
+    {
+        static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
+    }
 
+    template <std::size_t N> requires (N == 0) // NOLINT
+        [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto &&) noexcept {
+        return std::type_identity<std::tuple<>>{};
+    }
+    template <std::size_t N> requires (N == 0) // NOLINT
+        [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept {
+        return std::tuple{};
+    }
+}
+
+// WIP: fields_count safety need CSL_AG__MAX_FIELDS_SUPPORTED_COUNT, but generated code needs field_count
+// need to fix it, or come up with another safety mechanism
+
+// --- fields count ---
 namespace csl::ag::details {
-
-#pragma region fields_count
-    
+   
     #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     # if defined(CSL_AG__VERBOSE_BUILD)
     #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
@@ -288,42 +306,19 @@ namespace csl::ag::details {
 	template <concepts::aggregate T>
     requires std::is_empty_v<T>
     constexpr inline static std::size_t fields_count<T> = 0;
-    
-#pragma endregion
-#pragma region to_tuple
-	// generated : interface
-    namespace generated {
-        template <std::size_t N>
-        [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto &&) noexcept
-		// -> std::type_identity<std::tuple<csl::ag::element<I, value_t>...>>
-        {
-            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
-        }
-        template <std::size_t>
-        [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept
-		// -> std::tuple<decltype(get<I>(value))...>
-        {
-            static_assert([](){ return false; }(), "[csl] exceed maxmimum members count");
-        }
 
-        // WIP
-        template <std::size_t N> requires (N == 0) // NOLINT
-         [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto &&) noexcept {
-        	return std::type_identity<std::tuple<>>{};
-        }
-        template <std::size_t N> requires (N == 0) // NOLINT
-         [[nodiscard]] constexpr auto to_tuple_view_impl(concepts::aggregate auto &&) noexcept {
-        	return std::tuple{};
-        }
+    [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
+    // -> std::type_identity<std::tuple<field_Ts...>>
+    {
+        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
+        return details::generated::make_to_tuple<size>(csl_fwd(value));
     }
 
-    consteval auto make_to_tuple(concepts::aggregate auto && value) /* -> std::type_identity<std::tuple<field_Ts...>>*/;
     template <typename T>
     using to_tuple_t = mp::copy_cvref_t<
         T,
         typename std::remove_cvref_t<decltype(csl::ag::details::make_to_tuple(std::declval<std::remove_cvref_t<T>>()))>::type
     >;
-#pragma endregion
 
     template <typename owner_type>
     [[nodiscard]] constexpr static concepts::tuple_like auto make_tuple_view(auto && ... values) noexcept {
@@ -339,8 +334,14 @@ namespace csl::ag::details {
     }
 }
 
-// Fallback embedded specializations — only used when not building through CMake
-#if not __has_include(<csl/ag_generated.hpp>)
+// --- generated: implementations ---
+// TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
+#if __has_include(<csl/ag_generated.hpp>)
+#  include <csl/ag_generated.hpp>  // defines CSL_AG__MAX_FIELDS_SUPPORTED_COUNT and the specializations
+#else
+// Fallback embedded specializations
+//  only used when not building through CMake (e.g direct file inclusion, etc.)
+#  define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32
 namespace csl::ag::details::generated {
 #pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
@@ -668,15 +669,8 @@ template <std::size_t N> requires (N == 32) // NOLINT
 #pragma endregion
 // END OF GENERATED CONTENT
 }
-#endif // not __has_include(<csl/ag_generated.hpp>)
-namespace csl::ag::details {
-    [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
-    // -> std::type_identity<std::tuple<field_Ts...>>
-    {
-        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
-        return details::generated::make_to_tuple<size>(csl_fwd(value));
-    }
-}
+#endif
+
 // --- API ---
 namespace csl::ag {
 
