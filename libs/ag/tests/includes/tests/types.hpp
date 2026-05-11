@@ -3,7 +3,6 @@
 #include <tuple>
 #include <string_view>
 #include <array>
-#include <vector>
 
 namespace test::ag::types {
 

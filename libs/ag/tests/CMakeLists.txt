@@ -1,54 +1,9 @@
 set(component_name ag)
-set(TEST_LIST "")
 
 include(Catch)
 
-# Test: default (no bitfield support)
-set(test_name test_${PROJECT_NAME}_${component_name}_compile_time)
-list(APPEND TEST_LIST ${test_name})
-
-add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/without_bitfield_support.cpp)
-target_include_directories(${test_name}
-	PRIVATE
-		${CMAKE_CURRENT_SOURCE_DIR}/includes
-)
-add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
-target_link_libraries(${test_name}
-	PRIVATE
-		${PROJECT_NAME}::${component_name}
-		${PROJECT_NAME}::test
-		Catch2::Catch2WithMain
-		csl_compile_warnings
-)
-
-catch_discover_tests(${test_name})
-
-# --- Tests: opt-ins---
-# Test: with bitfield support (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-set(test_name test_${PROJECT_NAME}_${component_name}_bitfield_support_compile_time)
-list(APPEND TEST_LIST ${test_name})
-
-add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/with_bitfield_support.cpp)
-target_include_directories(${test_name}
-	PRIVATE
-		${CMAKE_CURRENT_SOURCE_DIR}/includes
-)
-add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
-target_link_libraries(${test_name}
-	PRIVATE
-		${PROJECT_NAME}::${component_name}
-		${PROJECT_NAME}::test
-		Catch2::Catch2WithMain
-		csl_compile_warnings
-)
-
-catch_discover_tests(${test_name})
-
-# Test: with fmtlib support (CSL_AG__ENABLE_FMTLIB_SUPPORT)
-set(test_name test_${PROJECT_NAME}_${component_name}_fmtlib_support_runtime)
-
 if (NOT TARGET fmt::fmt-header-only)
-	include(csl/get_cpm)
+    include(csl/get_cpm)
     CPMAddPackage(
         NAME              fmt
         GITHUB_REPOSITORY fmtlib/fmt
@@ -56,22 +11,80 @@ if (NOT TARGET fmt::fmt-header-only)
     )
 endif()
 
-add_executable(${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp)
-target_compile_definitions(${test_name} PRIVATE CSL_AG__ENABLE_FMTLIB_SUPPORT)
-target_include_directories(${test_name}
-	PRIVATE
-		${CMAKE_CURRENT_SOURCE_DIR}/includes
-)
-add_dependencies(${test_name}
-	${PROJECT_NAME}::${component_name}
-	fmt::fmt-header-only
-)
-target_link_libraries(${test_name}
-	PRIVATE
-		${PROJECT_NAME}::${component_name}
-		fmt::fmt-header-only
-		Catch2::Catch2WithMain
-		csl_compile_warnings
-)
+# ---------------------------------------------------------------------------
+# Helper: create one test target with a given source + opt-in definitions.
+#
+# Named arguments:
+#   NAME        — logical name used in the target name (e.g. "compile_time")
+#   SOURCE      — single source file
+#   DEFINITIONS — list of FORCE_* compile definitions  (e.g. FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=1)
+#   EXTRA_LIBS  — additional link targets  (e.g. fmt::fmt-header-only)
+#   RESULT      — optional variable to receive the generated target name
+# ---------------------------------------------------------------------------
+function(csl_ag_make_test_target)
+    cmake_parse_arguments(arg "" "NAME;SOURCE;RESULT" "DEFINITIONS;EXTRA_LIBS" ${ARGN})
 
-catch_discover_tests(${test_name})
+    # Build a readable suffix from each FORCE_CSL_AG__ENABLE_<X>_SUPPORT=<0|1>
+    set(suffix_parts "")
+    foreach(def IN LISTS arg_DEFINITIONS)
+        if(def MATCHES "FORCE_CSL_AG__ENABLE_(.+)_SUPPORT=0")
+            string(TOLOWER "${CMAKE_MATCH_1}" part)
+            list(APPEND suffix_parts "no_${part}")
+        elseif(def MATCHES "FORCE_CSL_AG__ENABLE_(.+)_SUPPORT=1")
+            string(TOLOWER "${CMAKE_MATCH_1}" part)
+            list(APPEND suffix_parts "${part}")
+        else()
+            list(APPEND suffix_parts "${def}")
+        endif()
+    endforeach()
+    list(JOIN suffix_parts "." suffix)
+
+    set(target_name "test.${PROJECT_NAME}_${component_name}.${arg_NAME}.${suffix}")
+
+    add_executable(${target_name} ${arg_SOURCE})
+    target_compile_definitions(${target_name} PRIVATE ${arg_DEFINITIONS})
+    target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/includes)
+    target_link_libraries(${target_name}
+        PRIVATE
+            ${PROJECT_NAME}::${component_name}
+            Catch2::Catch2WithMain
+            csl_compile_warnings
+            ${arg_EXTRA_LIBS}
+    )
+    catch_discover_tests(${target_name})
+
+    message(VERBOSE "[csl_ag_make_test_target] Generated ${target_name}")
+
+    if(arg_RESULT)
+        set(${arg_RESULT} ${target_name} PARENT_SCOPE)
+    endif()
+endfunction()
+
+# ---------------------------------------------------------------------------
+# Test matrix: foreach bitfield in {0, 1}
+#   - compile_time.cpp  (core static_assert suite)
+#   - fmtlib_support.cpp  (fmt formatter runtime + static_assert suite)
+# ---------------------------------------------------------------------------
+add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
+
+foreach(bitfields IN ITEMS 0 1)
+
+    csl_ag_make_test_target(
+        NAME        compile_time
+        SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/compile_time.cpp
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+        EXTRA_LIBS  ${PROJECT_NAME}::test
+        RESULT      target_name
+    )
+    add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+    csl_ag_make_test_target(
+        NAME        fmtlib
+        SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+        EXTRA_LIBS  fmt::fmt-header-only
+        RESULT      target_name
+    )
+    add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+endforeach()
