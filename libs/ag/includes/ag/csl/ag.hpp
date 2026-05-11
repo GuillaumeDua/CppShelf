@@ -278,7 +278,10 @@ namespace csl::ag::details {
         static_assert(
             field_indice <= CSL_AG__MAX_FIELDS_SUPPORTED_COUNT,
             "[csl::ag] fields_count: field_indice exceeds CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
-            "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT before including <csl/ag.hpp>."
+            "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT before including <csl/ag.hpp>. "
+        #if defined (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+            "Consider disabling CSL_AG__ENABLE_BITFIELDS_SUPPORT, or using much higher CSL_AG__MAX_FIELDS_SUPPORTED_COUNT value"
+        #endif
         );
         return fields_count_impl<T, field_indice>();
     }();

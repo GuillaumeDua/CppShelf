@@ -67,18 +67,10 @@ add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
 foreach(bitfields IN ITEMS 0 1)
 
-    # Bitfield mode starts from sizeof(T)*CHAR_BIT bits; large test types exceed the default
-    # CSL_AG__MAX_FIELDS_SUPPORTED_COUNT=32, so override it per-target (does not affect target name).
-    if (bitfields)
-        set(_ag_test_extra_defs CSL_AG__MAX_FIELDS_SUPPORTED_COUNT=4096)
-    else()
-        set(_ag_test_extra_defs "")
-    endif()
-
     csl_ag_make_test_target(
         NAME        compile_time
         SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/compile_time.cpp
-        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} ${_ag_test_extra_defs}
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
         EXTRA_LIBS  ${PROJECT_NAME}::test
         RESULT      target_name
     )
@@ -87,7 +79,7 @@ foreach(bitfields IN ITEMS 0 1)
     csl_ag_make_test_target(
         NAME        fmtlib_support
         SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp
-        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} ${_ag_test_extra_defs}
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
         EXTRA_LIBS  fmt::fmt-header-only
         RESULT      target_name
     )
