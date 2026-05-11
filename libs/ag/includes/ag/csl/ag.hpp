@@ -230,8 +230,15 @@ namespace csl::ag::details::generated {
     }
 }
 
-// WIP: fields_count safety need CSL_AG__MAX_FIELDS_SUPPORTED_COUNT, but generated code needs field_count
-// need to fix it, or come up with another safety mechanism
+// --- generated: implementations ---
+// TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
+#if __has_include(<csl/ag_generated.hpp>)
+#  include <csl/ag_generated.hpp>
+#else
+namespace csl::ag::configuration {
+    constexpr static auto max_supported_fields_count = std::size_t{32};
+}
+#endif
 
 // --- fields count ---
 namespace csl::ag::details {
@@ -250,8 +257,7 @@ namespace csl::ag::details {
 
         static_assert(indice not_eq 0,
             "[csl::ag] fields_count: cannot determine T's field count. "
-            "The type likely has more fields than CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
-            "Consider increasing CSL_AG__MAX_FIELDS_SUPPORTED_COUNT"
+            "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
         );
 
         if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
@@ -275,8 +281,7 @@ namespace csl::ag::details {
 
         static_assert(indice not_eq 0,
             "[csl::ag] fields_count: cannot determine T's field count. "
-            "The type likely has more fields than CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
-            "Consider increasing CSL_AG__MAX_FIELDS_SUPPORTED_COUNT"
+            "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
         );
 
         if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
@@ -293,20 +298,26 @@ namespace csl::ag::details {
             * sizeof(std::byte) * CHAR_BIT
         #endif
         ;
+        // In non-bitfield mode sizeof(T) >= field_count (each field >= 1 byte), so the assert is meaningful.
+        // In bitfield mode sizeof(T)*CHAR_BIT >> field_count typically; cap instead to bound recursion depth.
+#if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
         static_assert(
-            field_indice <= CSL_AG__MAX_FIELDS_SUPPORTED_COUNT,
-            "[csl::ag] fields_count: field_indice exceeds CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
-            "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT before including <csl/ag.hpp>. "
-        #if defined (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-            "Consider disabling CSL_AG__ENABLE_BITFIELDS_SUPPORT, or using much higher CSL_AG__MAX_FIELDS_SUPPORTED_COUNT value"
-        #endif
+            field_indice <= configuration::max_supported_fields_count,
+            "[csl::ag] fields_count: sizeof(T) exceeds csl::ag::configuration::max_supported_fields_count. "
+            "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT when building with CMake."
         );
         return fields_count_impl<T, field_indice>();
+#else
+        return fields_count_impl<T, std::min(field_indice, configuration::max_supported_fields_count)>();
+#endif
     }();
 	template <concepts::aggregate T>
     requires std::is_empty_v<T>
     constexpr inline static std::size_t fields_count<T> = 0;
+}
 
+// --- tuple adapter ---
+namespace csl::ag::details {
     [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
     // -> std::type_identity<std::tuple<field_Ts...>>
     {
@@ -334,14 +345,8 @@ namespace csl::ag::details {
     }
 }
 
-// --- generated: implementations ---
-// TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
-#if __has_include(<csl/ag_generated.hpp>)
-#  include <csl/ag_generated.hpp>  // defines CSL_AG__MAX_FIELDS_SUPPORTED_COUNT and the specializations
-#else
-// Fallback embedded specializations
-//  only used when not building through CMake (e.g direct file inclusion, etc.)
-#  define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32
+// Fallback embedded specializations (raw header-only; skipped when building through CMake)
+#if not __has_include(<csl/ag_generated.hpp>)
 namespace csl::ag::details::generated {
 #pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT

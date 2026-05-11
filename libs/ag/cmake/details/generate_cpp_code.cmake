@@ -21,7 +21,9 @@ function(ag_generate_cpp_code)
     string(APPEND content "#pragma once\n")
     string(APPEND content "// GENERATED CONTENT, DO NOT EDIT MANUALLY !\n")
     string(APPEND content "// Generated with CSL_AG__MAX_FIELDS_SUPPORTED_COUNT = ${N}\n")
-    string(APPEND content "#define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT ${N}\n")
+    string(APPEND content "namespace csl::ag::configuration {\n")
+    string(APPEND content "    constexpr static auto max_supported_fields_count = std::size_t{${N}};\n")
+    string(APPEND content "}\n")
     string(APPEND content "namespace csl::ag::details::generated {\n")
 
     # --- make_to_tuple<N, T> ---
