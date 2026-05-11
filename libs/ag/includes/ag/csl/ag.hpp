@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <stdexcept>
 
+// TODO(Guillaume) constexpr inline function -> constexpr
+
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ag::details::unevaluated {
@@ -231,7 +233,7 @@ namespace csl::ag::details::generated {
 }
 
 // --- generated: configuration ---
-#if __has_include(<csl/ag_configuration.hpp>)
+#if not defined(CSL_AG__FORCE_EMBEDDED_GENERATED_CODE) and __has_include(<csl/ag_configuration.hpp>)
 #  include <csl/ag_configuration.hpp>
 #else
 namespace csl::ag::configuration {
@@ -345,7 +347,7 @@ namespace csl::ag::details {
 
 // --- generated: implementations ---
 // TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
-#if __has_include(<csl/ag_generated.hpp>)
+#if not defined(CSL_AG__FORCE_EMBEDDED_GENERATED_CODE) and __has_include(<csl/ag_generated.hpp>)
 #  include <csl/ag_generated.hpp>
 #else
 namespace csl::ag::details::generated {
