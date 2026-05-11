@@ -207,9 +207,14 @@ namespace csl::ag::concepts {
 namespace csl::ag::details {
 
 #pragma region fields_count
+    
+    #if not defined(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
+    #  error "CSL_AG__MAX_FIELDS_SUPPORTED_COUNT not defined"
+    #endif
+
     #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     # if defined(CSL_AG__VERBOSE_BUILD)
-    #  pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
+    #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
     # endif
 	template <concepts::aggregate T, std::size_t indice>
     requires (std::default_initializable<T>)
@@ -232,7 +237,9 @@ namespace csl::ag::details {
             return fields_count_impl<T, indice - 1>();
     }
     #else
-    # pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
+    # if defined(CSL_AG__VERBOSE_BUILD)
+    #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
+    # endif
     #endif
 
     template <concepts::aggregate T, std::size_t indice>
@@ -253,13 +260,20 @@ namespace csl::ag::details {
     }
 
 	template <concepts::aggregate T>
-    constexpr inline static std::size_t fields_count = fields_count_impl<
-        T,
-        sizeof(T)
+    constexpr inline static std::size_t fields_count = []() consteval -> std::size_t {
+        constexpr std::size_t starting_index =
+            sizeof(T)
         #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-        * sizeof(std::byte) * CHAR_BIT
+            * sizeof(std::byte) * CHAR_BIT
         #endif
-    >();
+        ;
+        static_assert(
+            starting_index <= CSL_AG__MAX_FIELDS_SUPPORTED_COUNT,
+            "[csl::ag] fields_count: type size exceeds CSL_AG__MAX_FIELDS_SUPPORTED_COUNT."
+            "Define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT to a larger value before including csl/ag.hpp"
+        );
+        return fields_count_impl<T, starting_index>();
+    }();
 	template <concepts::aggregate T>
     requires std::is_empty_v<T>
     constexpr inline static std::size_t fields_count<T> = 0;
@@ -317,7 +331,7 @@ namespace csl::ag::details {
 // --- generated: details ---
 namespace csl::ag::details::generated {
 // GENERATED CONTENT, DO NOT EDIT MANUALLY !
-// Generated code with CSL_AG_MAX_FIELDS_COUNT_OPTION = 32
+// Generated code with CSL_AG__MAX_FIELDS_SUPPORTED_COUNT = 32
 #pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
  [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {

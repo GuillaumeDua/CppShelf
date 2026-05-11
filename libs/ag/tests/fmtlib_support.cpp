@@ -1,12 +1,19 @@
-// Force CSL_AG__ENABLE_FMTLIB_SUPPORT=ON
-#if not defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
-# define CSL_AG__ENABLE_FMTLIB_SUPPORT true // force fmtlib support. Prefer using CMake cache instead CSL_AG__ENABLE_FMTLIB_SUPPORT=ON
+#if not defined(FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+#  error "FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT is not set"
 #endif
-#include <csl/ag.hpp>
-#if not defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
-# error "[Test] csl::ag : expect CSL_AG__ENABLE_FMTLIB_SUPPORT=ON"
+#undef  CSL_AG__ENABLE_BITFIELDS_SUPPORT
+#if FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT
+#  define CSL_AG__ENABLE_BITFIELDS_SUPPORT true
 #endif
 
+#define CSL_AG__ENABLE_FMTLIB_SUPPORT true
+#if FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT
+#  define CSL_AG_BITFIELDS_STR "ON"
+#else
+#  define CSL_AG_BITFIELDS_STR "OFF"
+#endif
+
+#include <csl/ag.hpp>
 #include <tests/types.hpp>
 
 // TODO: test if bitfield support is ON
@@ -227,7 +234,7 @@ R"({
 #pragma endregion
 } // namespace
 
-TEMPLATE_TEST_CASE("csl::ag::fmt default formatter", "[ag][fmt]",
+TEMPLATE_TEST_CASE("csl::ag::fmt default formatter [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][fmt]",
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -239,7 +246,7 @@ TEMPLATE_TEST_CASE("csl::ag::fmt default formatter", "[ag][fmt]",
     CHECK(fmt::format("{}", f::value) == f::default_formatter_expected_result);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::fmt default formatter :n", "[ag][fmt]",
+TEMPLATE_TEST_CASE("csl::ag::fmt default formatter :n [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][fmt]",
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -251,7 +258,7 @@ TEMPLATE_TEST_CASE("csl::ag::fmt default formatter :n", "[ag][fmt]",
     CHECK(fmt::format("{:n}", f::value) == f::default_formatter_n_expected_result);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::fmt indented formatter", "[ag][fmt]",
+TEMPLATE_TEST_CASE("csl::ag::fmt indented formatter [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][fmt]",
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -266,3 +273,5 @@ TEMPLATE_TEST_CASE("csl::ag::fmt indented formatter", "[ag][fmt]",
         == f::indented_formatter_expected_result
     );
 }
+
+#undef CSL_AG_BITFIELDS_STR
