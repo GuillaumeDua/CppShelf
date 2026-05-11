@@ -204,14 +204,20 @@ namespace csl::ag::concepts {
 	template <typename T>
 	concept structured_bindable = tuple_like<T> or aggregate<T>;
 }
+
+// --- generated: details ---
+#if __has_include(<csl/ag_generated.hpp>)
+#  include <csl/ag_generated.hpp>  // defines CSL_AG__MAX_FIELDS_SUPPORTED_COUNT and the specializations
+#endif
+#if not defined(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
+#  define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32  // fallback for raw header-only usage
+// WIP: move all fallback code here
+#endif
+
 namespace csl::ag::details {
 
 #pragma region fields_count
     
-    #if not defined(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
-    #  error "CSL_AG__MAX_FIELDS_SUPPORTED_COUNT not defined"
-    #endif
-
     #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     # if defined(CSL_AG__VERBOSE_BUILD)
     #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
@@ -224,10 +230,11 @@ namespace csl::ag::details {
         static_assert(not std::is_reference_v<T>);
         static_assert(not std::is_empty_v<T>);
 
-        if constexpr (indice == 0) {
-            static_assert(indice != 0, "csl::ag::details::fields_count (w/o ref) : Cannot evalute T's field count");
-            return {}; // no-return
-        }
+        static_assert(indice not_eq 0,
+            "[csl::ag] fields_count: cannot determine T's field count. "
+            "The type likely has more fields than CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
+            "Consider increasing CSL_AG__MAX_FIELDS_SUPPORTED_COUNT"
+        );
 
         if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
             return indice;
@@ -248,10 +255,11 @@ namespace csl::ag::details {
         static_assert(not std::is_reference_v<T>);
         static_assert(not std::is_empty_v<T>);
 
-        if constexpr (indice == 0) {
-            static_assert(indice != 0, "csl::ag::details::fields_count (with ref) : Cannot evalute T's field count");
-            return {}; // no-return
-        }
+        static_assert(indice not_eq 0,
+            "[csl::ag] fields_count: cannot determine T's field count. "
+            "The type likely has more fields than CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
+            "Consider increasing CSL_AG__MAX_FIELDS_SUPPORTED_COUNT"
+        );
 
         if constexpr (concepts::aggregate_constructible_from_n_values<T, indice>)
             return indice;
@@ -261,18 +269,18 @@ namespace csl::ag::details {
 
 	template <concepts::aggregate T>
     constexpr inline static std::size_t fields_count = []() consteval -> std::size_t {
-        constexpr std::size_t starting_index =
+        constexpr std::size_t field_indice =
             sizeof(T)
         #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
             * sizeof(std::byte) * CHAR_BIT
         #endif
         ;
         static_assert(
-            starting_index <= CSL_AG__MAX_FIELDS_SUPPORTED_COUNT,
-            "[csl::ag] fields_count: type size exceeds CSL_AG__MAX_FIELDS_SUPPORTED_COUNT."
-            "Define CSL_AG__MAX_FIELDS_SUPPORTED_COUNT to a larger value before including csl/ag.hpp"
+            field_indice <= CSL_AG__MAX_FIELDS_SUPPORTED_COUNT,
+            "[csl::ag] fields_count: field_indice exceeds CSL_AG__MAX_FIELDS_SUPPORTED_COUNT. "
+            "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT before including <csl/ag.hpp>."
         );
-        return fields_count_impl<T, starting_index>();
+        return fields_count_impl<T, field_indice>();
     }();
 	template <concepts::aggregate T>
     requires std::is_empty_v<T>
@@ -328,10 +336,9 @@ namespace csl::ag::details {
     }
 }
 
-// --- generated: details ---
+// Fallback embedded specializations — only used when not building through CMake
+#if not __has_include(<csl/ag_generated.hpp>)
 namespace csl::ag::details::generated {
-// GENERATED CONTENT, DO NOT EDIT MANUALLY !
-// Generated code with CSL_AG__MAX_FIELDS_SUPPORTED_COUNT = 32
 #pragma region make_to_tuple<N,T>
 template <std::size_t N> requires (N == 1) // NOLINT
  [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value) noexcept {
@@ -658,6 +665,7 @@ template <std::size_t N> requires (N == 32) // NOLINT
 #pragma endregion
 // END OF GENERATED CONTENT
 }
+#endif // not __has_include(<csl/ag_generated.hpp>)
 namespace csl::ag::details {
     [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
     // -> std::type_identity<std::tuple<field_Ts...>>

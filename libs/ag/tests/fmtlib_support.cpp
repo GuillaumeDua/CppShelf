@@ -16,7 +16,6 @@
 #include <csl/ag.hpp>
 #include <tests/types.hpp>
 
-// TODO: test if bitfield support is ON
 // WIP: check possible clash with user-defined formatters -> complete, partial/generics, etc.
 
 namespace types = test::ag::types;
