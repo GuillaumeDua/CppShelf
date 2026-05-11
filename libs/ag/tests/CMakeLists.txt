@@ -15,7 +15,7 @@ endif()
 # Helper: create one test target with a given source + opt-in definitions.
 #
 # Named arguments:
-#   NAME        — logical name used in the target name (e.g. "compile_time")
+#	NAME        — logical name used in the target name (e.g. "compile_time")
 #   SOURCE      — single source file
 #   DEFINITIONS — list of FORCE_* compile definitions  (e.g. FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=1)
 #   EXTRA_LIBS  — additional link targets  (e.g. fmt::fmt-header-only)
@@ -33,8 +33,6 @@ function(csl_ag_make_test_target)
         elseif(def MATCHES "FORCE_CSL_AG__ENABLE_(.+)_SUPPORT=1")
             string(TOLOWER "${CMAKE_MATCH_1}" part)
             list(APPEND suffix_parts "${part}")
-        else()
-            list(APPEND suffix_parts "${def}")
         endif()
     endforeach()
     list(JOIN suffix_parts "." suffix)
@@ -62,26 +60,34 @@ endfunction()
 
 # ---------------------------------------------------------------------------
 # Test matrix: foreach bitfield in {0, 1}
-#   - compile_time.cpp  (core static_assert suite)
-#   - fmtlib_support.cpp  (fmt formatter runtime + static_assert suite)
+#   - compile_time.cpp  	(core static_assert suite)
+#   - fmtlib_support.cpp  	(fmt formatter runtime + static_assert suite)
 # ---------------------------------------------------------------------------
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
 foreach(bitfields IN ITEMS 0 1)
 
+    # Bitfield mode starts from sizeof(T)*CHAR_BIT bits; large test types exceed the default
+    # CSL_AG__MAX_FIELDS_SUPPORTED_COUNT=32, so override it per-target (does not affect target name).
+    if (bitfields)
+        set(_ag_test_extra_defs CSL_AG__MAX_FIELDS_SUPPORTED_COUNT=4096)
+    else()
+        set(_ag_test_extra_defs "")
+    endif()
+
     csl_ag_make_test_target(
         NAME        compile_time
         SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/compile_time.cpp
-        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} ${_ag_test_extra_defs}
         EXTRA_LIBS  ${PROJECT_NAME}::test
         RESULT      target_name
     )
     add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
     csl_ag_make_test_target(
-        NAME        fmtlib
+        NAME        fmtlib_support
         SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp
-        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} ${_ag_test_extra_defs}
         EXTRA_LIBS  fmt::fmt-header-only
         RESULT      target_name
     )

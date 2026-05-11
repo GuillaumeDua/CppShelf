@@ -38,20 +38,12 @@ if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT)
 
     if (NOT TARGET fmt::fmt-header-only AND NOT TARGET fmt::fmt)
-
-        message(STATUS "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] - fetching [fmt] library ...")
-    
-        if (NOT TARGET fmt::fmt-header-only)
-            list(APPEND CMAKE_MESSAGE_INDENT "  ")
-            set(FETCHCONTENT_QUIET ON)
-            include(FetchContent)
-            FetchContent_Declare(fmt
-                GIT_REPOSITORY  https://github.com/fmtlib/fmt.git
-                GIT_TAG         main
-            )
-            FetchContent_MakeAvailable(fmt)
-            list(POP_BACK CMAKE_MESSAGE_INDENT)
-        endif()
+        include(csl/get_cpm)
+        CPMAddPackage(
+            NAME              fmt
+            GITHUB_REPOSITORY fmtlib/fmt
+            GIT_TAG           12.1.0
+        )
     endif()
 
     if (TARGET fmt::fmt-header-only)
@@ -76,17 +68,18 @@ csl_print_aligned(STATUS CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT)
 # --- code generation ---
 
 ## CSL_AG__MAX_FIELDS_SUPPORTED_COUNT
-set(CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT 32)
+set(CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT 128)
 set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT "${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT}" CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
 csl_print_aligned(STATUS CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
 if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
     message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT is not a valid number")
 endif()
 
-if (NOT ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT} STREQUAL ${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT})
-    message(STATUS "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: custom CSL_AG__MAX_FIELDS_SUPPORTED_COUNT requested, generating code ...")
-    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/generate_cpp_code.cmake)
-    ag_generate_cpp_code(
-        CSL_AG_HPP_PATH ${PROJECT_SOURCE_DIR}/libs/ag/includes/ag/csl/ag.hpp
-    )
-endif()
+set(_ag_generated_file "${CMAKE_CURRENT_BINARY_DIR}/csl/ag_generated.hpp")
+
+include(${PROJECT_SOURCE_DIR}/libs/ag/cmake/details/generate_cpp_code.cmake)
+ag_generate_cpp_code(OUTPUT_FILE "${_ag_generated_file}")
+
+target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
