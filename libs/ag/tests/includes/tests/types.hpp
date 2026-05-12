@@ -39,6 +39,7 @@ namespace test::ag::types {
         std::array<char, 3> a;
         std::pair<int, int> p;
     };
+    // NOTE: sizeof(field_4_nested_range) == 80
     struct field_4_nested_range {
         std::string_view sv;
         std::array<char, 3> a_c;
