@@ -243,57 +243,92 @@ namespace csl::ag::configuration {
 }
 #endif
 
-// --- fields count ---
+// --- fields count probing ---
 namespace csl::ag::details {
-   
+
     #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     # if defined(CSL_AG__VERBOSE_BUILD)
     #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
     # endif
-	template <concepts::aggregate T, std::size_t field_detection_indice>
-    requires (std::default_initializable<T>)
-    [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
-    // faster algorithm if T is default_initializable (ref fields can be initialized),
-    // and no fields is a bitfield.
-        static_assert(not std::is_reference_v<T>);
-        static_assert(not std::is_empty_v<T>);
 
-        static_assert(field_detection_indice not_eq 0,
-            "[csl::ag] fields_count: cannot determine T's field count. "
-            "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
-        );
+    // Fast path (default_initializable T, no bitfields).
+    //  f(N) = aggregate_constructible_from_n_values<T,N> is monotone:
+    //    TRUE  for all N in [0, field_count]
+    //    FALSE for all N > field_count
+    //  Ascending exponential probe + binary search → O(log field_count) instantiations.
+    namespace fast_path {
 
-        if constexpr (concepts::aggregate_constructible_from_n_values<T, field_detection_indice>)
-            return field_detection_indice;
-        else if constexpr (not concepts::aggregate_constructible_from_n_values<T, (field_detection_indice / 2) + 1>)
-            return fields_count_impl<T, field_detection_indice / 2>();
-        else
-            return fields_count_impl<T, field_detection_indice - 1>();
+        // Phase 2: binary search in (lower_limit, higher_limit].
+        //  invariant: f(lower_limit)=TRUE, f(higher_limit)=FALSE.
+        template <
+            concepts::aggregate T,
+            std::size_t lower_limit,
+            std::size_t higher_limit
+        >
+        requires (std::default_initializable<T>)
+        [[nodiscard]] consteval auto bisect() noexcept -> std::size_t {
+            if constexpr (lower_limit + 1 == higher_limit)
+                return lower_limit;
+            else {
+                constexpr auto mid = lower_limit + ((higher_limit - lower_limit) / 2);
+                if constexpr (concepts::aggregate_constructible_from_n_values<T, mid>)
+                    return bisect<T, mid, higher_limit>();
+                else
+                    return bisect<T, lower_limit, mid>();
+            }
+        }
+
+        // Phase 1: exponential probe — lower_limit is the last known TRUE.
+        //  Doubles until f(2*lower_limit)=FALSE or 2*lower_limit exceeds the cap, then hands off to bisect.
+        template <concepts::aggregate T, std::size_t lower_limit>
+        requires (std::default_initializable<T>)
+        [[nodiscard]] consteval auto probe() noexcept -> std::size_t {
+            static_assert(lower_limit <= configuration::max_supported_fields_count,
+                "[csl::ag] fields_count: cannot determine T's field count. "
+                "The type likely has more fields than csl::ag::configuration::max_supported_fields_count.");
+            constexpr std::size_t higher_limit = lower_limit * 2;
+            if constexpr (
+                higher_limit > configuration::max_supported_fields_count
+                or not concepts::aggregate_constructible_from_n_values<T, higher_limit>
+            )
+                return bisect<T, lower_limit, higher_limit>();
+            else
+                return probe<T, higher_limit>();
+        }
     }
+
     #else
     # if defined(CSL_AG__VERBOSE_BUILD)
     #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [enabled], slower algorithm selected")
     # endif
     #endif
 
-    template <concepts::aggregate T, std::size_t field_detection_indice>
-    [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
-    // costly algorithm
-        static_assert(not std::is_reference_v<T>);
-        static_assert(not std::is_empty_v<T>);
-
-        static_assert(field_detection_indice not_eq 0,
-            "[csl::ag] fields_count: cannot determine T's field count. "
-            "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
-        );
-
-        if constexpr (concepts::aggregate_constructible_from_n_values<T, field_detection_indice>)
-            return field_detection_indice;
-        else
-            return fields_count_impl<T, field_detection_indice - 1>();
+    // Slow path: linear descent from field_detection_indice.
+    //
+    //  Used for non-default_initializable T and any T with bitfield support.
+    //  f(N) is non-monotone for non-default_initializable T:
+    //  - FALSE below the last non-default-initializable field
+    //  - TRUE in [L, field_count]
+    //  - FALSE above
+    //  Binary search is unsafe (a FALSE below L would shrink higher_limit past field_count);
+    //  linear descent from an upper bound > field_count is the only safe approach.
+    namespace slow_path {
+        template <concepts::aggregate T, std::size_t field_detection_indice>
+        [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
+            static_assert(not std::is_reference_v<T>);
+            static_assert(not std::is_empty_v<T>);
+            static_assert(field_detection_indice not_eq 0,
+                "[csl::ag] fields_count: cannot determine T's field count. "
+                "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
+            );
+            if constexpr (concepts::aggregate_constructible_from_n_values<T, field_detection_indice>)
+                return field_detection_indice;
+            else
+                return fields_count_impl<T, field_detection_indice - 1>();
+        }
     }
 
-	template <concepts::aggregate T>
+    template <concepts::aggregate T>
     constexpr inline static std::size_t fields_count = []() consteval -> std::size_t {
         constexpr std::size_t field_detection_indice =
             sizeof(T) / alignof(T)
@@ -301,20 +336,22 @@ namespace csl::ag::details {
             * sizeof(std::byte) * CHAR_BIT
         #endif
         ;
-        // In non-bitfield mode sizeof(T) >= field_count (each field >= 1 byte), so the assert is meaningful.
-        // In bitfield mode sizeof(T)*CHAR_BIT >> field_count typically; cap instead to bound recursion depth.
 #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
-        static_assert(
-            field_detection_indice <= configuration::max_supported_fields_count,
-            "[csl::ag] fields_count: sizeof(T) exceeds csl::ag::configuration::max_supported_fields_count. "
-            "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT when building with CMake."
-        );
-        return fields_count_impl<T, field_detection_indice>();
+        if constexpr (std::default_initializable<T>)
+            return fast_path::probe<T, 1>();
+        else {
+            static_assert(
+                field_detection_indice <= configuration::max_supported_fields_count,
+                "[csl::ag] fields_count: sizeof(T)/alignof(T) exceeds csl::ag::configuration::max_supported_fields_count. "
+                "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT when building with CMake."
+            );
+            return slow_path::fields_count_impl<T, field_detection_indice>();
+        }
 #else
-        return fields_count_impl<T, std::min(field_detection_indice, configuration::max_supported_fields_count)>();
+        return slow_path::fields_count_impl<T, std::min(field_detection_indice, configuration::max_supported_fields_count)>();
 #endif
     }();
-	template <concepts::aggregate T>
+    template <concepts::aggregate T>
     requires std::is_empty_v<T>
     constexpr inline static std::size_t fields_count<T> = 0;
 }
