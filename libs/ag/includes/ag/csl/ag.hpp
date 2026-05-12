@@ -296,7 +296,7 @@ namespace csl::ag::details {
 	template <concepts::aggregate T>
     constexpr inline static std::size_t fields_count = []() consteval -> std::size_t {
         constexpr std::size_t field_detection_indice =
-            sizeof(T)
+            sizeof(T) / alignof(T)
         #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
             * sizeof(std::byte) * CHAR_BIT
         #endif
@@ -311,7 +311,7 @@ namespace csl::ag::details {
         );
         return fields_count_impl<T, field_detection_indice>();
 #else
-        return fields_count_impl<T, std::min(field_indice, configuration::max_supported_fields_count)>();
+        return fields_count_impl<T, std::min(field_detection_indice, configuration::max_supported_fields_count)>();
 #endif
     }();
 	template <concepts::aggregate T>
