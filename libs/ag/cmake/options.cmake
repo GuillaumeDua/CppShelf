@@ -67,17 +67,28 @@ csl_print_aligned(STATUS CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT)
 
 # --- code generation ---
 
+# CSL_AG__USE_EMBEDDED_IMPLEMENTATION
+option(CSL_AG__USE_EMBEDDED_IMPLEMENTATION "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: force use of embedded implementation instead of CMake-generated files (faster, header-only mode)" OFF)
+csl_print_aligned(STATUS CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
+if (CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
+    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
+endif()
+
 ## CSL_AG__MAX_FIELDS_SUPPORTED_COUNT
-set(CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT 256)
-set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT "${CSL_AG__DEFAULT_MAX_FIELDS_SUPPORTED_COUNT}" CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
+if (CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
+    set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32  CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect (fixed to 32 when CSL_AG__USE_EMBEDDED_IMPLEMENTATION is ON)" FORCE)
+else()
+    set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 256 CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
+endif()
 csl_print_aligned(STATUS CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
 if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
     message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT is not a valid number")
 endif()
 
-include(${PROJECT_SOURCE_DIR}/libs/ag/cmake/details/generate_cpp_code.cmake)
-ag_generate_cpp_code(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-
-target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
+if (NOT CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/generate_cpp_code.cmake)
+    ag_generate_cpp_code(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+    target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
     "${CMAKE_CURRENT_BINARY_DIR}"
 )
+endif()
