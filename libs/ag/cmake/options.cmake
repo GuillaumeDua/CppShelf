@@ -74,11 +74,13 @@ if (CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
 endif()
 
+# TODO(Guillaume) max supported sizeof
+
 ## CSL_AG__MAX_FIELDS_SUPPORTED_COUNT
 if (CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
     set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32  CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect (fixed to 32 when CSL_AG__USE_EMBEDDED_IMPLEMENTATION is ON)" FORCE)
 else()
-    set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 256 CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
+    set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 64 CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
 endif()
 csl_print_aligned(STATUS CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
 if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
