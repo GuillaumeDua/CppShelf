@@ -7,7 +7,7 @@
 #     Partial specializations for:
 #       - make_to_tuple<N, T>        (consteval, returns std::type_identity<std::tuple<...>>)
 #       - to_tuple_view_impl<N, T>   (constexpr, returns make_tuple_view<...>(...))
-#     for N in [1 .. CSL_AG__MAX_FIELDS_SUPPORTED_COUNT].
+#     for N in [1 .. CSL_AG__MAX_SUPPORTED_FIELDS_COUNT].
 #
 # Both files are consumed by ag.hpp via __has_include.
 #
@@ -22,7 +22,7 @@ function(ag_generate_cpp_code)
         message(FATAL_ERROR "[ag_generate_cpp_code] OUTPUT_DIR argument is required")
     endif()
 
-    set(N ${CSL_AG__MAX_FIELDS_SUPPORTED_COUNT})
+    set(N ${CSL_AG__MAX_SUPPORTED_FIELDS_COUNT})
     set(outdir "${arg_OUTPUT_DIR}/csl")
     file(MAKE_DIRECTORY "${outdir}")
 
@@ -31,7 +31,7 @@ function(ag_generate_cpp_code)
     set(config_content "")
     string(APPEND config_content "#pragma once\n")
     string(APPEND config_content "// GENERATED CONTENT, DO NOT EDIT MANUALLY !\n")
-    string(APPEND config_content "// Generated with CSL_AG__MAX_FIELDS_SUPPORTED_COUNT = ${N}\n")
+    string(APPEND config_content "// Generated with CSL_AG__MAX_SUPPORTED_FIELDS_COUNT = ${N}\n")
     string(APPEND config_content "namespace csl::ag::configuration {\n")
     string(APPEND config_content "    constexpr static auto max_supported_fields_count = std::size_t{${N}};\n")
     string(APPEND config_content "}\n")
@@ -52,7 +52,7 @@ function(ag_generate_cpp_code)
     set(impl_content "")
     string(APPEND impl_content "#pragma once\n")
     string(APPEND impl_content "// GENERATED CONTENT, DO NOT EDIT MANUALLY !\n")
-    string(APPEND impl_content "// Generated with CSL_AG__MAX_FIELDS_SUPPORTED_COUNT = ${N}\n")
+    string(APPEND impl_content "// Generated with CSL_AG__MAX_SUPPORTED_FIELDS_COUNT = ${N}\n")
     string(APPEND impl_content "namespace csl::ag::details::generated {\n")
 
     # --- make_to_tuple<N, T> ---

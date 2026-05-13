@@ -343,7 +343,7 @@ namespace csl::ag::details {
             static_assert(
                 field_detection_indice <= configuration::max_supported_fields_count,
                 "[csl::ag] fields_count: sizeof(T)/alignof(T) exceeds csl::ag::configuration::max_supported_fields_count. "
-                "Increase CSL_AG__MAX_FIELDS_SUPPORTED_COUNT when building with CMake."
+                "Increase CSL_AG__MAX_SUPPORTED_FIELDS_COUNT when building with CMake."
             );
             return slow_path::fields_count_impl<T, field_detection_indice>();
         }

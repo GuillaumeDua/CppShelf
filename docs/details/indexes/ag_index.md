@@ -173,11 +173,11 @@ If you plan to use features of this library with aggregate types containing bitf
 
 #### Highier limit for aggregate field count
 
-This library relies on a **CMake** cache variable `CSL_AG__MAX_FIELDS_SUPPORTED_COUNT` to generate code in order to properly handle aggregate types with fields up to this value.
+This library relies on a **CMake** cache variable `CSL_AG__MAX_SUPPORTED_FIELDS_COUNT` to generate code in order to properly handle aggregate types with fields up to this value.
 
-By default, `CSL_AG__MAX_FIELDS_SUPPORTED_COUNT` is set to `128`, meaning the library supports aggregate types with up to 128 fields.
+By default, `CSL_AG__MAX_SUPPORTED_FIELDS_COUNT` is set to `128`, meaning the library supports aggregate types with up to 128 fields.
 
-To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_FIELDS_SUPPORTED_COUNT` to a greater integral value.
+To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_FIELDS_COUNT` to a greater integral value.
 
 > ❔ **Question** : What if I don't use **CMake** ?
 > 

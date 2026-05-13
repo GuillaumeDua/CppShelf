@@ -76,15 +76,15 @@ endif()
 
 # TODO(Guillaume) max supported sizeof
 
-## CSL_AG__MAX_FIELDS_SUPPORTED_COUNT
+## CSL_AG__MAX_SUPPORTED_FIELDS_COUNT
 if (CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
-    set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 32  CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect (fixed to 32 when CSL_AG__USE_EMBEDDED_IMPLEMENTATION is ON)" FORCE)
+    set(CSL_AG__MAX_SUPPORTED_FIELDS_COUNT 32  CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect (fixed to 32 when CSL_AG__USE_EMBEDDED_IMPLEMENTATION is ON)" FORCE)
 else()
-    set(CSL_AG__MAX_FIELDS_SUPPORTED_COUNT 64 CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
+    set(CSL_AG__MAX_SUPPORTED_FIELDS_COUNT 64 CACHE STRING "csl::${csl_add_component_NAME} : max fields count for aggregate to reflect")
 endif()
-csl_print_aligned(STATUS CSL_AG__MAX_FIELDS_SUPPORTED_COUNT)
-if (NOT CSL_AG__MAX_FIELDS_SUPPORTED_COUNT MATCHES "^[0-9]+$")
-    message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_FIELDS_SUPPORTED_COUNT is not a valid number")
+csl_print_aligned(STATUS CSL_AG__MAX_SUPPORTED_FIELDS_COUNT)
+if (NOT CSL_AG__MAX_SUPPORTED_FIELDS_COUNT MATCHES "^[0-9]+$")
+    message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_SUPPORTED_FIELDS_COUNT is not a valid number")
 endif()
 
 if (NOT CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
