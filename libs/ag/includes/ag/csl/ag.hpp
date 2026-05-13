@@ -244,7 +244,7 @@ namespace csl::ag::configuration {
 #endif
 
 // --- fields count probing ---
-namespace csl::ag::details {
+namespace csl::ag::details::probing {
 
     #if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     # if defined(CSL_AG__VERBOSE_BUILD)
@@ -256,46 +256,49 @@ namespace csl::ag::details {
     //    TRUE  for all N in [0, field_count]
     //    FALSE for all N > field_count
     //  Ascending exponential probe + binary search → O(log field_count) instantiations.
-    namespace fast_path {
+    template <concepts::aggregate T>
+    requires (std::default_initializable<T>)
+    struct fast_path {
 
         // Phase 2: binary search in (lower_limit, higher_limit].
         //  invariant: f(lower_limit)=TRUE, f(higher_limit)=FALSE.
         template <
-            concepts::aggregate T,
             std::size_t lower_limit,
             std::size_t higher_limit
         >
-        requires (std::default_initializable<T>)
-        [[nodiscard]] consteval auto bisect() noexcept -> std::size_t {
+        [[nodiscard]] consteval static auto bisect() noexcept -> std::size_t {
+
             if constexpr (lower_limit + 1 == higher_limit)
                 return lower_limit;
             else {
                 constexpr auto mid = lower_limit + ((higher_limit - lower_limit) / 2);
                 if constexpr (concepts::aggregate_constructible_from_n_values<T, mid>)
-                    return bisect<T, mid, higher_limit>();
+                    return bisect<mid, higher_limit>();
                 else
-                    return bisect<T, lower_limit, mid>();
+                    return bisect<lower_limit, mid>();
             }
         }
 
         // Phase 1: exponential probe — lower_limit is the last known TRUE.
         //  Doubles until f(2*lower_limit)=FALSE or 2*lower_limit exceeds the cap, then hands off to bisect.
-        template <concepts::aggregate T, std::size_t lower_limit>
-        requires (std::default_initializable<T>)
-        [[nodiscard]] consteval auto probe() noexcept -> std::size_t {
+        template <std::size_t lower_limit>
+        [[nodiscard]] consteval static auto probe() noexcept -> std::size_t {
+
             static_assert(lower_limit <= configuration::max_supported_fields_count,
                 "[csl::ag] fields_count: cannot determine T's field count. "
-                "The type likely has more fields than csl::ag::configuration::max_supported_fields_count.");
+                "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
+            );
+
             constexpr std::size_t higher_limit = lower_limit * 2;
             if constexpr (
                 higher_limit > configuration::max_supported_fields_count
                 or not concepts::aggregate_constructible_from_n_values<T, higher_limit>
             )
-                return bisect<T, lower_limit, higher_limit>();
+                return bisect<lower_limit, higher_limit>();
             else
-                return probe<T, higher_limit>();
+                return probe<higher_limit>();
         }
-    }
+    };
 
     #else
     # if defined(CSL_AG__VERBOSE_BUILD)
@@ -312,21 +315,26 @@ namespace csl::ag::details {
     //  - FALSE above
     //  Binary search is unsafe (a FALSE below L would shrink higher_limit past field_count);
     //  linear descent from an upper bound > field_count is the only safe approach.
-    namespace slow_path {
-        template <concepts::aggregate T, std::size_t field_detection_indice>
-        [[nodiscard]] consteval auto fields_count_impl() noexcept -> std::size_t {
-            static_assert(not std::is_reference_v<T>);
-            static_assert(not std::is_empty_v<T>);
+    template <concepts::aggregate T>
+    struct slow_path {
+
+        static_assert(not std::is_reference_v<T>);
+        static_assert(not std::is_empty_v<T>);
+
+        template <std::size_t field_detection_indice>
+        [[nodiscard]] consteval static auto probe() noexcept -> std::size_t {
+            
             static_assert(field_detection_indice not_eq 0,
                 "[csl::ag] fields_count: cannot determine T's field count. "
                 "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
             );
+
             if constexpr (concepts::aggregate_constructible_from_n_values<T, field_detection_indice>)
                 return field_detection_indice;
             else
-                return fields_count_impl<T, field_detection_indice - 1>();
+                return probe<field_detection_indice - 1>();
         }
-    }
+    };
 
     template <concepts::aggregate T>
     constexpr inline static std::size_t fields_count = []() consteval -> std::size_t {
@@ -336,19 +344,19 @@ namespace csl::ag::details {
             * sizeof(std::byte) * CHAR_BIT
         #endif
         ;
-#if not defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+#if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+        return slow_path<T>::template probe<std::min(field_detection_indice, configuration::max_supported_fields_count)>();
+#else
         if constexpr (std::default_initializable<T>)
-            return fast_path::probe<T, 1>();
+            return fast_path<T>::template probe<1>();
         else {
             static_assert(
                 field_detection_indice <= configuration::max_supported_fields_count,
                 "[csl::ag] fields_count: sizeof(T)/alignof(T) exceeds csl::ag::configuration::max_supported_fields_count. "
                 "Increase CSL_AG__MAX_SUPPORTED_FIELDS_COUNT when building with CMake."
             );
-            return slow_path::fields_count_impl<T, field_detection_indice>();
+            return slow_path<T>::template probe<field_detection_indice>();
         }
-#else
-        return slow_path::fields_count_impl<T, std::min(field_detection_indice, configuration::max_supported_fields_count)>();
 #endif
     }();
     template <concepts::aggregate T>
@@ -725,7 +733,7 @@ namespace csl::ag::details {
     [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
     // -> std::type_identity<std::tuple<field_Ts...>>
     {
-        constexpr auto size = fields_count<std::remove_cvref_t<decltype(value)>>;
+        constexpr auto size = details::probing::fields_count<std::remove_cvref_t<decltype(value)>>;
         return details::generated::make_to_tuple<size>(csl_fwd(value));
     }
 }
@@ -740,7 +748,7 @@ namespace csl::ag {
     // --- inner API ---
     // size
     template <csl::ag::concepts::aggregate T>
-    struct size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
+    struct size : std::integral_constant<std::size_t, details::probing::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
 	constexpr inline static auto size_v = size<T>::value;
 
@@ -767,7 +775,7 @@ namespace csl::ag {
     //  -       type && => std::tuple<      A&&,       B&, const C&&>;
     [[nodiscard]] constexpr auto to_tuple_view(concepts::aggregate auto && value) noexcept {
         using type = std::remove_cvref_t<decltype(value)>;
-        return details::generated::to_tuple_view_impl<details::fields_count<type>>(std::forward<decltype(value)>(value));
+        return details::generated::to_tuple_view_impl<details::probing::fields_count<type>>(std::forward<decltype(value)>(value));
     }
     // TODO(Guss): view -> tuple + is_product;
     //  - is_view
@@ -788,7 +796,7 @@ namespace csl::ag {
     // --- tuple-like ---
     // tuple_size
     template <csl::ag::concepts::aggregate T>
-    struct tuple_size : std::integral_constant<std::size_t, details::fields_count<std::remove_reference_t<T>>>{};
+    struct tuple_size : std::integral_constant<std::size_t, details::probing::fields_count<std::remove_reference_t<T>>>{};
 	template <csl::ag::concepts::aggregate T>
 	constexpr inline static auto tuple_size_v = tuple_size<T>::value;
 
