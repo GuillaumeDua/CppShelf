@@ -233,8 +233,8 @@ namespace csl::ag::details::generated {
 }
 
 // --- generated: configuration ---
-#if not defined(CSL_AG__USE_EMBEDDED_IMPLEMENTATION) and __has_include(<csl/ag_configuration.hpp>)
-#  include <csl/ag_configuration.hpp>
+#if not defined(CSL_AG__USE_EMBEDDED_IMPLEMENTATION) and __has_include(<csl/ag/generated/configuration.hpp>)
+#  include <csl/ag/generated/configuration.hpp>
 #else
 namespace csl::ag::configuration {
     constexpr static auto max_supported_fields_count = std::size_t{32};
@@ -395,8 +395,8 @@ namespace csl::ag::details {
 }
 
 // --- generated: implementations ---
-#if not defined(CSL_AG__USE_EMBEDDED_IMPLEMENTATION) and __has_include(<csl/ag_generated.hpp>)
-#  include <csl/ag_generated.hpp>
+#if not defined(CSL_AG__USE_EMBEDDED_IMPLEMENTATION) and __has_include(<csl/ag/generated/to_tuple.hpp>)
+#  include <csl/ag/generated/to_tuple.hpp>
 #else
 namespace csl::ag::details::generated {
 #pragma region make_to_tuple<N,T>
