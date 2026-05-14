@@ -233,8 +233,6 @@ namespace csl::ag::details::generated {
 }
 
 // --- generated: configuration ---
-
-
 #if not defined(CSL_AG__USE_EMBEDDED_IMPLEMENTATION) and __has_include(<csl/ag_configuration.hpp>)
 #  include <csl/ag_configuration.hpp>
 #else
@@ -242,6 +240,16 @@ namespace csl::ag::configuration {
     constexpr static auto max_supported_fields_count = std::size_t{32};
 }
 #endif
+
+namespace csl::ag::configuration {
+    [[maybe_unused]] constexpr static auto is_bitfield_supported = 
+    #if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT)
+        true
+    #else
+        false
+    #endif
+    ;
+}
 
 // --- fields count probing ---
 namespace csl::ag::details::probing {
@@ -251,17 +259,19 @@ namespace csl::ag::details::probing {
     #   pragma message("csl::ag : CSL_AG__ENABLE_BITFIELDS_SUPPORT [disabled], faster algorithm selected")
     # endif
 
-    // Fast path (default_initializable T, no bitfields).
+    // Fast path (default_initializable T, no bitfields)
+    //
     //  f(N) = aggregate_constructible_from_n_values<T,N> is monotone:
-    //    TRUE  for all N in [0, field_count]
-    //    FALSE for all N > field_count
+    //  - true:  all N in [0, field_count]
+    //  - false: for all N > field_count
+    //
     //  Ascending exponential probe + binary search → O(log field_count) instantiations.
     template <concepts::aggregate T>
     requires (std::default_initializable<T>)
     struct fast_path {
 
         // Phase 2: binary search in (lower_limit, higher_limit].
-        //  invariant: f(lower_limit)=TRUE, f(higher_limit)=FALSE.
+        //  invariant: f(lower_limit)=true, f(higher_limit)=false.
         template <
             std::size_t lower_limit,
             std::size_t higher_limit
@@ -279,8 +289,8 @@ namespace csl::ag::details::probing {
             }
         }
 
-        // Phase 1: exponential probe — lower_limit is the last known TRUE.
-        //  Doubles until f(2*lower_limit)=FALSE or 2*lower_limit exceeds the cap, then hands off to bisect.
+        // Phase 1: exponential probe: lower_limit is the last known true.
+        //  Doubles until f(2*lower_limit)=false, or 2*lower_limit exceeds configuration::max_supported_fields_count, then hands off to bisect.
         template <std::size_t lower_limit>
         [[nodiscard]] consteval static auto probe() noexcept -> std::size_t {
 
@@ -306,14 +316,16 @@ namespace csl::ag::details::probing {
     # endif
     #endif
 
-    // Slow path: linear descent from field_detection_indice.
+    // Slow path: linear descent from field_detection_indice
     //
-    //  Used for non-default_initializable T and any T with bitfield support.
+    //  Used for non-default_initializable T, or any T with bitfield support.
+    //
     //  f(N) is non-monotone for non-default_initializable T:
-    //  - FALSE below the last non-default-initializable field
-    //  - TRUE in [L, field_count]
-    //  - FALSE above
-    //  Binary search is unsafe (a FALSE below L would shrink higher_limit past field_count);
+    //  - false: below the last non-default-initializable field
+    //  - true: in [L, field_count]
+    //  - false: above
+    //
+    //  Binary search is unsafe (a `false` below L would shrink higher_limit past field_count);
     //  linear descent from an upper bound > field_count is the only safe approach.
     template <concepts::aggregate T>
     struct slow_path {
@@ -366,8 +378,9 @@ namespace csl::ag::details::probing {
 
 // --- tuple adapter ---
 namespace csl::ag::details {
-    // Declaration only: body defined after generated specializations so the non-dependent
-    // qualified lookup of details::generated::make_to_tuple<size> sees all N variants.
+
+    // Declaration only: body defined after generated specializations,
+    // so the non-dependent qualified lookup of details::generated::make_to_tuple<size> sees all N variants.
     [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
     // -> std::type_identity<std::tuple<field_Ts...>>
     ;
@@ -393,7 +406,6 @@ namespace csl::ag::details {
 }
 
 // --- generated: implementations ---
-// TODO(Guillaume): add cmake option CSL_AG__USE_EMBEDDED_GENERATED_CODE to force using embedded impl.
 #if not defined(CSL_AG__USE_EMBEDDED_IMPLEMENTATION) and __has_include(<csl/ag_generated.hpp>)
 #  include <csl/ag_generated.hpp>
 #else
@@ -727,8 +739,7 @@ template <std::size_t N> requires (N == 32) // NOLINT
 #endif
 
 // --- tuple adapter: make_to_tuple definition ---
-// Defined here so details::generated::make_to_tuple<size> (non-dependent qualified name)
-// resolves against all generated specializations above, not just the base template.
+// Defined here so `details::generated::make_to_tuple<size>` (non-dependent qualified name) resolves against all generated specializations above, not just the base template.
 namespace csl::ag::details {
     [[nodiscard]] consteval auto make_to_tuple(concepts::aggregate auto && value)
     // -> std::type_identity<std::tuple<field_Ts...>>
@@ -765,9 +776,11 @@ namespace csl::ag {
 	using element_t = typename element<N, T>::type;
 
     // tuple-view
+    //
     //  factory that creates a lightweight accessor to an existing aggregate value,
     //  extending owner's value-semantic to owned values,
     //  while preserving value-semantic of ref-qualified values
+    //
     //  ex:
     //  - struct type{ A v0; B & v1; const C && v2 }
     //  -       type &  => std::tuple<      A&,        B&, const C&&>;
