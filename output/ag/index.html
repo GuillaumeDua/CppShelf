@@ -231,9 +231,9 @@ Bitfields support</h4>
 </blockquote>
 <h4><a class="anchor" id="autotoc_md13"></a>
 Highier limit for aggregate field count</h4>
-<p>This library relies on a <b>CMake</b> cache variable <code>CSL_AG__MAX_FIELDS_SUPPORTED_COUNT</code> to generate code in order to properly handle aggregate types with fields up to this value.</p>
-<p>By default, <code>CSL_AG__MAX_FIELDS_SUPPORTED_COUNT</code> is set to <code>128</code>, meaning the library supports aggregate types with up to 128 fields.</p>
-<p>To extend such support, edit your <b>CMake</b> cache to set <code>CSL_AG__MAX_FIELDS_SUPPORTED_COUNT</code> to a greater integral value.</p>
+<p>This library relies on a <b>CMake</b> cache variable <code>CSL_AG__MAX_SUPPORTED_FIELDS_COUNT</code> to generate code in order to properly handle aggregate types with fields up to this value.</p>
+<p>By default, <code>CSL_AG__MAX_SUPPORTED_FIELDS_COUNT</code> is set to <code>128</code>, meaning the library supports aggregate types with up to 128 fields.</p>
+<p>To extend such support, edit your <b>CMake</b> cache to set <code>CSL_AG__MAX_SUPPORTED_FIELDS_COUNT</code> to a greater integral value.</p>
 <blockquote class="doxtable">
 <p>❔ <b>Question</b> : What if I don't use <b>CMake</b> ?</p>
 <p>Then the library will always use the default value. </p>
