@@ -245,8 +245,10 @@ namespace csl::mp::concepts {
     template <typename T>
     concept std_array = type_traits::is_std_array_v<std::remove_cvref_t<T>>;
 
-    template <typename To, typename ... From>
-    concept non_narrowing_constructible_from = requires { To{std::declval<From>()... }; };
+    template <typename To, typename... From>
+    concept non_narrowing_constructible_from =
+        (std::is_reference_v<To> and std::constructible_from<To, From...>) // bindability
+        or requires { To{std::declval<From>()...}; }; // constructibility
 } // namespace csl::mp::concepts
 
 // csl::mp relies on STL's tuplelike API, rather than adapting to it
@@ -674,7 +676,7 @@ namespace csl::mp::details {
         )
             : tuple_member<indexes, Ts>{
 #  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
-                  Ts{csl_fwd(args)}
+                  csl_fwd(args)
 #  else // UNSAFE
                   static_cast<copy_cvref_t<decltype(args), Ts>>(args)
 #  endif
