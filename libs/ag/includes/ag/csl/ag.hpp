@@ -296,6 +296,7 @@ namespace csl::ag::details::probing {
                 "[csl::ag] fields_count: cannot determine T's field count. "
                 "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
             );
+            return {};
         }
         template <std::size_t lower_limit>
         [[nodiscard]] consteval static auto probe() noexcept -> std::size_t {
@@ -327,6 +328,7 @@ namespace csl::ag::details::probing {
                 "[csl::ag] fields_count: cannot determine T's field count. "
                 "The type likely has more fields than csl::ag::configuration::max_supported_fields_count."
             );
+            return {};
         }
         template <std::size_t field_detection_indice>
         [[nodiscard]] consteval static auto probe() noexcept -> std::size_t {
