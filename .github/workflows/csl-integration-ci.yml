@@ -26,8 +26,8 @@ jobs:
       fail-fast: false
       matrix:
         configuration:
-          - { CMAKE_C_COMPILER: clang, CMAKE_CXX_COMPILER: clang++, version: 19 }
-          - { CMAKE_C_COMPILER: gcc,   CMAKE_CXX_COMPILER: g++,     version: 14 }
+          - { CMAKE_C_COMPILER: clang, CMAKE_CXX_COMPILER: clang++, version: 'latest-stable' }
+          - { CMAKE_C_COMPILER: gcc,   CMAKE_CXX_COMPILER: g++,     version: 'latest-stable' }
 
     env:
       build_dir: ${{ github.workspace }}/out/integration/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
