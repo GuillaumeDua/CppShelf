@@ -6,8 +6,8 @@
       "name": "base",
       "hidden": true,
       "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/build/install/${presetName}",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS":  "ON",
         "CMAKE_CXX_SCAN_FOR_MODULES":     "OFF",

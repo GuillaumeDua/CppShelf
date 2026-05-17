@@ -81,8 +81,15 @@ function(csl_print_aligned log_level variable)
 endfunction()
 
 function(csl_print_build_info)
-    csl_print_aligned(STATUS CMAKE_BUILD_TYPE)
-    csl_print_aligned(STATUS CMAKE_DEFAULT_BUILD_TYPE)
+    
+    get_property(_is_GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(_is_GENERATOR_IS_MULTI_CONFIG)
+        csl_print_aligned(STATUS CMAKE_CONFIGURATION_TYPES)
+        csl_print_aligned(STATUS CMAKE_DEFAULT_BUILD_TYPE)
+    else()
+        csl_print_aligned(STATUS CMAKE_BUILD_TYPE)
+    endif()
+
     csl_print_aligned(STATUS CMAKE_CURRENT_BINARY_DIR)
     csl_print_aligned(STATUS CMAKE_CURRENT_SOURCE_DIR)
     csl_print_aligned(STATUS CMAKE_INSTALL_PREFIX)
