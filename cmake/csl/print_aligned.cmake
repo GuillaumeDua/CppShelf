@@ -43,7 +43,7 @@ function(csl_print_aligned log_level variable)
     endif()
 
     if (NOT DEFINED ${variable})
-        set(variable "<undefined>")
+        set(${variable} "<undefined>")
     endif()
 
     if (NOT "${arg_width}" MATCHES "^[0-9]+$")
@@ -82,6 +82,7 @@ endfunction()
 
 function(csl_print_build_info)
     csl_print_aligned(STATUS CMAKE_BUILD_TYPE)
+    csl_print_aligned(STATUS CMAKE_DEFAULT_BUILD_TYPE)
     csl_print_aligned(STATUS CMAKE_CURRENT_BINARY_DIR)
     csl_print_aligned(STATUS CMAKE_CURRENT_SOURCE_DIR)
     csl_print_aligned(STATUS CMAKE_INSTALL_PREFIX)

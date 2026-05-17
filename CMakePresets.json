@@ -1,0 +1,74 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 22, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS":  "ON",
+        "CMAKE_CXX_SCAN_FOR_MODULES":     "OFF",
+        "CMAKE_CONFIGURATION_TYPES":      "Debug;Release",
+        "CMAKE_DEFAULT_BUILD_TYPE":       "Debug",
+        "CSL_STRICT_WARNINGS":  { "type": "BOOL", "value": "ON"  },
+        "CSL_BUILD_ALL":        { "type": "BOOL", "value": "OFF" },
+        "CSL_BENCHMARK_ALL":    { "type": "BOOL", "value": "OFF" },
+        "CSL_DOC_ALL":          { "type": "BOOL", "value": "OFF" },
+        "CSL_EXAMPLE_ALL":      { "type": "BOOL", "value": "OFF" },
+        "CSL_TEST_ALL":         { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "libcxx",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS":        "-stdlib=libc++",
+        "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++ -lc++abi"
+      }
+    },
+    {
+      "name": "clang-libstdcxx",
+      "displayName": "Clang + libstdc++",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
+    },
+    {
+      "name": "clang-libcxx",
+      "displayName": "Clang + libc++",
+      "inherits": ["libcxx", "base"],
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
+    },
+    {
+      "name": "gcc",
+      "displayName": "GCC + libstdc++",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "g++" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "base-build", "hidden": true },
+    { "name": "clang-libstdcxx-debug",   "inherits": "base-build", "configurePreset": "clang-libstdcxx", "configuration": "Debug"   },
+    { "name": "clang-libstdcxx-release", "inherits": "base-build", "configurePreset": "clang-libstdcxx", "configuration": "Release" },
+    { "name": "clang-libcxx-debug",      "inherits": "base-build", "configurePreset": "clang-libcxx",    "configuration": "Debug"   },
+    { "name": "clang-libcxx-release",    "inherits": "base-build", "configurePreset": "clang-libcxx",    "configuration": "Release" },
+    { "name": "gcc-debug",               "inherits": "base-build", "configurePreset": "gcc",             "configuration": "Debug"   },
+    { "name": "gcc-release",             "inherits": "base-build", "configurePreset": "gcc",             "configuration": "Release" }
+  ],
+  "testPresets": [
+    {
+      "name": "base-test",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "execution": { "jobs": 10 }
+    },
+    { "name": "clang-libstdcxx-debug",   "inherits": "base-test", "configurePreset": "clang-libstdcxx", "configuration": "Debug"   },
+    { "name": "clang-libstdcxx-release", "inherits": "base-test", "configurePreset": "clang-libstdcxx", "configuration": "Release" },
+    { "name": "clang-libcxx-debug",      "inherits": "base-test", "configurePreset": "clang-libcxx",    "configuration": "Debug"   },
+    { "name": "clang-libcxx-release",    "inherits": "base-test", "configurePreset": "clang-libcxx",    "configuration": "Release" },
+    { "name": "gcc-debug",               "inherits": "base-test", "configurePreset": "gcc",             "configuration": "Debug"   },
+    { "name": "gcc-release",             "inherits": "base-test", "configurePreset": "gcc",             "configuration": "Release" }
+  ]
+}
