@@ -199,9 +199,12 @@ for version in "${gcc_versions_to_install[@]}"; do
     log "installing ${version} ..."
 
     apt install -qq -y --no-install-recommends                                  \
-            gcc-${version}          g++-${version}                              \
-            gcc-${version}-multilib g++-${version}-multilib                     \
+            gcc-${version} g++-${version}                                       \
         || error "installation of [${version}] failed"
+    # multilib is best-effort: not always available for new toolchain versions
+    apt install -qq -y --no-install-recommends                                  \
+            gcc-${version}-multilib g++-${version}-multilib                     \
+        || log "multilib for [${version}] not available, skipping"
     # ISSUE: inconsistency: Not available for g++-13
     #   g++-{}-aarch64-linux-gnu g++-{}-arm-linux-gnueabihf         \
     #   g++-{}-powerpc64-linux-gnu g++-{}-powerpc64le-linux-gnu  g++-{}-powerpc-linux-gnu      \
