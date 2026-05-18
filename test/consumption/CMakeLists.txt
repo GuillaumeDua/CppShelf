@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
-project(csl_integration_test LANGUAGES CXX)
+project(csl_consumption_test LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD          23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,7 +30,7 @@ macro(import_csl)
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     if (TARGET csl)
-        message(FATAL_ERROR "[${PROJECT_NAME}] target [csl] already exists, which breaks such an integration test logic")
+        message(FATAL_ERROR "[${PROJECT_NAME}] target [csl] already exists, which breaks such a consumption test logic")
     endif()
 
     message(STATUS "[${PROJECT_NAME}] using GIT_REPOSITORY=[${${PROJECT_NAME}_GIT_REPOSITORY}] with GIT_TAG=[${${PROJECT_NAME}_GIT_TAG}] ...")
@@ -83,4 +83,4 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # enable_testing()
-add_test(NAME csl_integration COMMAND ${PROJECT_NAME})
+add_test(NAME csl_consumption COMMAND ${PROJECT_NAME})
