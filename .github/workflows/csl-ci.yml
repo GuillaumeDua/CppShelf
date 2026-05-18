@@ -61,6 +61,10 @@ jobs:
     - name: 📦 CMake configure
       run: |
         cmake --preset ${{ matrix.configuration.preset }} \
+          -DCSL_BUILD_ALL:BOOL=FALSE     \
+          -DCSL_BENCHMARK_ALL:BOOL=FALSE \
+          -DCSL_EXAMPLE_ALL:BOOL=FALSE   \
+          -DCSL_TEST_ALL:BOOL=FALSE      \
           -DCSL_BUILD_${{ matrix.CSL_component }}:BOOL=TRUE      \
           -DCSL_BENCHMARK_${{ matrix.CSL_component }}:BOOL=TRUE  \
           -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
