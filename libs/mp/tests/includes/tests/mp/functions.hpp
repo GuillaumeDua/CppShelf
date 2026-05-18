@@ -369,8 +369,8 @@ namespace test::tuples::algorithm::fold::heterogeneous {
 }
 namespace test::tuples::algorithm::fold::accumulation_order {
 
-    // GCC < 15: complain about that a named constexpr variable "not usable in a constant expression" due to basic_string internals.
-    #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 15)
+    // GCC < 16 (regression): named constexpr variable "not usable in a constant expression" due to basic_string _M_data() internals.
+    #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 16)
     #else
         // expression_accumulator(a, b) = "(a,b)" to check internal behavior:
         //   fold_left  = f(f(f(init, x), y), z) = "(((_,x),y),z)"
