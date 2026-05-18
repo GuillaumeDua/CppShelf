@@ -1,4 +1,4 @@
-name: csl integration CI
+name: csl consumption CI
 
 on:
   pull_request:
@@ -16,9 +16,9 @@ defaults:
     shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
 
 jobs:
-  integration_test:
+  consumption_test:
 
-    name: Integration (${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }})
+    name: Consumption (${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -30,7 +30,7 @@ jobs:
           - { CMAKE_C_COMPILER: gcc,   CMAKE_CXX_COMPILER: g++,     version: 'latest-stable' }
 
     env:
-      build_dir: ${{ github.workspace }}/build/integration/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
+      build_dir: ${{ github.workspace }}/build/consumption/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -50,10 +50,10 @@ jobs:
         sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
 
     - name: 📦 Configure, build and test
-      working-directory: ${{ github.workspace }}/test/integration
+      working-directory: ${{ github.workspace }}/test/consumption
       env:
         CMAKE_C_COMPILER:   ${{ matrix.configuration.CMAKE_C_COMPILER }}
         CMAKE_CXX_COMPILER: ${{ matrix.configuration.CMAKE_CXX_COMPILER }}
       run: |
         bash build.sh "${{ env.build_dir }}"  \
-          -Dcsl_integration_test_GIT_TAG=${{ github.head_ref || github.ref_name }}
+          -Dcsl_consumption_test_GIT_TAG=${{ github.head_ref || github.ref_name }}
