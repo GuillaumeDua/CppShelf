@@ -30,7 +30,7 @@ jobs:
           - { CMAKE_C_COMPILER: gcc,   CMAKE_CXX_COMPILER: g++,     version: 'latest-stable' }
 
     env:
-      build_dir: ${{ github.workspace }}/out/integration/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
+      build_dir: ${{ github.workspace }}/build/integration/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
 
     steps:
     - uses: actions/checkout@v4
