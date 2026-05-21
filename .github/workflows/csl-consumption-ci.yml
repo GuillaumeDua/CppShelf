@@ -57,3 +57,16 @@ jobs:
       run: |
         bash build.sh "${{ env.build_dir }}"  \
           -Dcsl_consumption_test_GIT_TAG=${{ github.head_ref || github.ref_name }}
+
+  consumption_passed:
+    name: Consumption passed
+    needs: consumption_test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result
+        run: |
+          if [[ "${{ needs.consumption_test.result }}" != "success" ]]; then
+            echo "Consumption jobs failed or were cancelled"
+            exit 1
+          fi
