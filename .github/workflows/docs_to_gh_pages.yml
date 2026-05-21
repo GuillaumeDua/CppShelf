@@ -1,14 +1,16 @@
 name: Deploy-doc-to-GitHub-Pages
 
 on:
-  push:
-    branches:
-      - main
-permissions: 
+  workflow_run:
+    workflows: ["csl CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
   contents: write
 jobs:
   docs_to_gh_pages:
-
+    if: github.event.workflow_run.conclusion == 'success'
     concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-22.04 # ubuntu-latest currently is ubuntu-20.04
 
