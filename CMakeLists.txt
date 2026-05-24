@@ -72,7 +72,7 @@ if (${CSL_ENABLED_COMPONENTS_LIST_length} EQUAL 0)
 endif()
 
 #### Common options (opt-outs)
-set(CSL_OPTIONS_LIST
+set(
     TEST # TECH-DEBT: clang sanitizers, etc.
     EXAMPLE
     INSTALL
@@ -80,7 +80,7 @@ set(CSL_OPTIONS_LIST
     BENCHMARK
 )
 foreach(option_name IN LISTS CSL_OPTIONS_LIST)
-    option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" ON)
+    option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" OFF)
     csl_print_aligned(STATUS CSL_${option_name}_ALL)
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
@@ -127,3 +127,12 @@ foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
+
+# Documentation
+if (CSL_DOC_ALL)
+    include(csl/graphviz)
+    csl_graphviz(
+        TARGET       ${PROJECT_NAME}
+        OPTIONS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CMakeGraphVizOptions.cmake"
+    )
+endif()

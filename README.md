@@ -37,6 +37,8 @@ The libraries here could, once mature enough, become self-contained in a separat
 
 ## Components - nested librairies
 
+![dependency graph](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/csl.svg)
+
 ### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ag/csl/ag.hpp)
 
 A **tuple-like** interface for **aggregates** type.
