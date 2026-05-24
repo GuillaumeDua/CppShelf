@@ -1,0 +1,6 @@
+set(GRAPHVIZ_GRAPH_NAME          "csl")
+set(GRAPHVIZ_EXECUTABLES         FALSE)
+set(GRAPHVIZ_EXTERNAL_LIBS       FALSE)
+set(GRAPHVIZ_GENERATE_PER_TARGET FALSE)
+set(GRAPHVIZ_GENERATE_DEPENDERS  FALSE)
+set(GRAPHVIZ_IGNORE_TARGETS      "fmt.*|Catch2.*|test[._].*|example_.*|.*\\.disabled_warnings|csl_compile_warnings")

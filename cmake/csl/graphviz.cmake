@@ -3,14 +3,14 @@ include_guard(GLOBAL)
 # csl_graphviz(
 #   TARGET        <target-name>
 #   OPTIONS_FILE  <path/to/CMakeGraphVizOptions.cmake>
-#   [OUTPUT_DIR   <dir>]          # default: <binary_dir>/graphviz
-#   [FORMAT       png|svg|...]    # default: svg; skipped if dot is not found
+#   [OUTPUT_DIR   <dir>]          # default: <source_dir>/docs
+#   [FORMAT       svg|png|...]    # default: svg; skipped if dot is not found
 # )
 #
 # Creates a custom target `csl_graphviz_<target>` that:
 #   1. Copies OPTIONS_FILE into CMAKE_BINARY_DIR as CMakeGraphVizOptions.cmake
-#   2. Runs cmake --graphviz to produce <target>.dot and per-target <target>.dot.target.<target>
-#   3. If the dot executable is found, renders the per-target dot to <target>.<format>
+#   2. Runs cmake --graphviz to produce the overall <target>.dot
+#   3. If the dot executable is found, renders it to <target>.<format>
 function(csl_graphviz)
 
     set(options)
@@ -32,27 +32,24 @@ function(csl_graphviz)
     if (NOT DEFINED arg_TARGET)
         message(FATAL_ERROR "[csl_graphviz] TARGET argument is required")
     endif ()
-    if (NOT TARGET arg_TARGET)
-        message(FATAL_ERROR "[csl_graphviz] TARGET argument is not a target")
+    if (NOT TARGET ${arg_TARGET})
+        message(FATAL_ERROR "[csl_graphviz] TARGET [${arg_TARGET}] is not a known CMake target")
     endif ()
     if (NOT DEFINED arg_OPTIONS_FILE)
         message(FATAL_ERROR "[csl_graphviz] OPTIONS_FILE argument is required")
     endif ()
 
     if (NOT DEFINED arg_OUTPUT_DIR)
-        set(arg_OUTPUT_DIR "${CMAKE_BINARY_DIR}/graphviz")
+        set(arg_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/docs")
     endif ()
     if (NOT DEFINED arg_FORMAT)
         set(arg_FORMAT "svg")
     endif ()
 
-    # cmake --graphviz=<prefix> produces:
-    #   <prefix>                      full project graph
-    #   <prefix>.target.<target>      per-target graph
-    set(_dot_prefix   "${arg_OUTPUT_DIR}/${arg_TARGET}")
-    set(_dot_all      "${_dot_prefix}.dot")
-    set(_dot_target   "${_dot_all}.target.${arg_TARGET}")
-    set(_image_file   "${_dot_prefix}.${arg_FORMAT}")
+    # cmake --graphviz=<prefix> produces the overall graph at <prefix>
+    set(_dot_prefix "${arg_OUTPUT_DIR}/${arg_TARGET}")
+    set(_dot_all    "${_dot_prefix}.dot")
+    set(_image_file "${_dot_prefix}.${arg_FORMAT}")
 
     find_program(_found_dot_exe NAMES dot)
 
@@ -66,13 +63,13 @@ function(csl_graphviz)
 
     if (_found_dot_exe)
         set(_render_command
-            COMMAND "${_found_dot_exe}" "-T${arg_FORMAT}" "${_dot_target}" -o "${_image_file}"
+            COMMAND "${_found_dot_exe}" "-T${arg_FORMAT}" "${_dot_all}" -o "${_image_file}"
         )
         set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_image_file}")
     else()
         message(STATUS "[csl_graphviz] dot executable not found — image rendering skipped")
         set(_render_command)
-        set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_dot_target}")
+        set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_dot_all}")
     endif ()
 
     add_custom_target(csl_graphviz_${arg_TARGET}
