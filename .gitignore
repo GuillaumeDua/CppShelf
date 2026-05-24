@@ -1,6 +1,8 @@
 # CMake
 build/
 Testing/
+CMakeFiles/
+CMakeCache.txt
 
 # CMake - integration test
 test/integration/CMakeCache.txt
