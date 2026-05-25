@@ -1,0 +1,40 @@
+digraph "csl" {
+node [
+  fontsize = "12"
+];
+subgraph clusterLegend {
+  label = "Legend";
+  color = black;
+  edge [ style = invis ];
+  legendNode0 [ label = "Executable", shape = egg ];
+  legendNode1 [ label = "Static Library", shape = octagon ];
+  legendNode2 [ label = "Shared Library", shape = doubleoctagon ];
+  legendNode3 [ label = "Module Library", shape = tripleoctagon ];
+  legendNode4 [ label = "Interface Library", shape = pentagon ];
+  legendNode5 [ label = "Object Library", shape = hexagon ];
+  legendNode6 [ label = "Unknown Library", shape = septagon ];
+  legendNode7 [ label = "Custom Target", shape = box ];
+  legendNode0 -> legendNode1 [ style = solid ];
+  legendNode0 -> legendNode2 [ style = solid ];
+  legendNode0 -> legendNode3;
+  legendNode1 -> legendNode4 [ label = "Interface", style = dashed ];
+  legendNode2 -> legendNode5 [ label = "Private", style = dotted ];
+  legendNode3 -> legendNode6 [ style = solid ];
+  legendNode0 -> legendNode7;
+}
+    "node0" [ label = "csl\n(csl::csl)", shape = pentagon ];
+    "node1" [ label = "csl_ag\n(csl::ag)", shape = pentagon ];
+    "node0" -> "node1" [ style = dashed ] // csl -> csl_ag
+    "node2" [ label = "csl_ensure\n(csl::ensure)", shape = pentagon ];
+    "node0" -> "node2" [ style = dashed ] // csl -> csl_ensure
+    "node3" [ label = "csl_functional\n(csl::functional)", shape = pentagon ];
+    "node0" -> "node3" [ style = dashed ] // csl -> csl_functional
+    "node4" [ label = "csl_mp\n(csl::mp)", shape = pentagon ];
+    "node0" -> "node4" [ style = dashed ] // csl -> csl_mp
+    "node5" [ label = "csl_test\n(csl::test)", shape = pentagon ];
+    "node0" -> "node5" [ style = dashed ] // csl -> csl_test
+    "node6" [ label = "csl_typeinfo\n(csl::typeinfo)", shape = pentagon ];
+    "node0" -> "node6" [ style = dashed ] // csl -> csl_typeinfo
+    "node7" [ label = "csl_wf\n(csl::wf)", shape = pentagon ];
+    "node0" -> "node7" [ style = dashed ] // csl -> csl_wf
+}
