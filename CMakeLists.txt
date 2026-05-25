@@ -129,7 +129,17 @@ endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 # Documentation
-if (CSL_DOC_ALL)
+set(CSL_DOC_ANY ${CSL_DOC_ALL})
+if (NOT CSL_DOC_ANY)
+    foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+        if (CSL_DOC_${component_name})
+            set(CSL_DOC_ANY ON)
+            break()
+        endif()
+    endforeach()
+endif()
+
+if (CSL_DOC_ANY)
     include(csl/graphviz)
     csl_graphviz(
         TARGET       ${PROJECT_NAME}
