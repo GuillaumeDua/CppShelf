@@ -39,6 +39,11 @@ jobs:
           sudo mkdir -p docs/output/wf/
           sudo doxygen docs/details/wf.Doxyfile
 
+      - name: Dependency graph
+        run: |
+          cmake -B build -DCSL_DOC_ALL=ON
+          cmake --build build --target csl_graphviz_csl
+
       - name: Generates host page (README)
         run: |
           cp README.md docs/

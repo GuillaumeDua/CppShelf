@@ -53,6 +53,17 @@ function(csl_graphviz)
 
     find_program(_found_dot_exe NAMES dot)
 
+    if (_found_dot_exe)
+        set(_render_command
+            COMMAND "${_found_dot_exe}" "-T${arg_FORMAT}" "${_dot_all}" -o "${_image_file}"
+        )
+        set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_image_file}")
+    else()
+        message(WARNING "[csl_graphviz] dot executable not found — image rendering skipped")
+        set(_render_command)
+        set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_dot_all}")
+    endif ()
+
     set(_generate_commands
         COMMAND ${CMAKE_COMMAND} -E make_directory "${arg_OUTPUT_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -60,17 +71,6 @@ function(csl_graphviz)
             "${CMAKE_BINARY_DIR}/CMakeGraphVizOptions.cmake"
         COMMAND ${CMAKE_COMMAND} "--graphviz=${_dot_all}" "${CMAKE_BINARY_DIR}"
     )
-
-    if (_found_dot_exe)
-        set(_render_command
-            COMMAND "${_found_dot_exe}" "-T${arg_FORMAT}" "${_dot_all}" -o "${_image_file}"
-        )
-        set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_image_file}")
-    else()
-        message(STATUS "[csl_graphviz] dot executable not found — image rendering skipped")
-        set(_render_command)
-        set(_comment "[csl_graphviz] ${arg_TARGET} -> ${_dot_all}")
-    endif ()
 
     add_custom_target(csl_graphviz_${arg_TARGET}
         ${_generate_commands}
