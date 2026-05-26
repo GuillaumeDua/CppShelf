@@ -1,0 +1,20 @@
+@INCLUDE               = ../../../doc/Doxyfile
+
+PROJECT_NAME           = "csl::typeinfo"
+PROJECT_BRIEF          = "Type introspection utilities."
+
+OUTPUT_DIRECTORY       = ./doc/output/typeinfo
+
+STRIP_FROM_PATH        = ./libs/typeinfo/includes/typeinfo
+STRIP_FROM_INC_PATH    = ./libs/typeinfo/includes/typeinfo
+
+INPUT                  = ./libs/typeinfo/includes/typeinfo \
+                         ./libs/typeinfo/README.md
+
+USE_MDFILE_AS_MAINPAGE = ./libs/typeinfo/README.md
+
+INCLUDE_PATH           = ./libs/typeinfo/includes/typeinfo
+
+EXCLUDE_SYMBOLS        = *::details::*
+
+EXAMPLE_PATH           = ./libs/typeinfo/examples
