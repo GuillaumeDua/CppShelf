@@ -40,7 +40,7 @@ function(csl_graphviz)
     endif ()
 
     if (NOT DEFINED arg_OUTPUT_DIR)
-        set(arg_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/docs")
+        set(arg_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/doc")
     endif ()
     if (NOT DEFINED arg_FORMAT)
         set(arg_FORMAT "svg")
