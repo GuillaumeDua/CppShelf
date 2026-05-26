@@ -1,0 +1,57 @@
+name: documentation
+
+on:
+  workflow_run:
+    workflows: ["csl CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download doxygen-awesome-css
+        run: |
+          mkdir -p doc/doxygen-awesome
+          BASE="https://raw.githubusercontent.com/jothepro/doxygen-awesome-css/v2.3.4"
+          for f in \
+            doxygen-awesome.css \
+            doxygen-awesome-sidebar-only.css \
+            doxygen-awesome-sidebar-only-darkmode-toggle.css \
+            doxygen-awesome-darkmode-toggle.js \
+            doxygen-awesome-fragment-copy-button.js \
+            doxygen-awesome-interactive-toc.js \
+            doxygen-awesome-paragraph-link.js; do
+            wget -q "$BASE/$f" -O "doc/doxygen-awesome/$f"
+          done
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Generate documentation
+        run: |
+          for lib in ag wf mp ensure functional typeinfo; do
+            doxygen libs/$lib/doc/Doxyfile
+          done
+
+      - name: Prepare deployment
+        run: |
+          cp README.md doc/
+          cp doc/details/_config.yml doc/
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.3.3
+        with:
+          branch: gh-pages
+          folder: doc

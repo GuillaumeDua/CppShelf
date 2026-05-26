@@ -1,0 +1,20 @@
+@INCLUDE               = ../../../doc/Doxyfile
+
+PROJECT_NAME           = "csl::functional"
+PROJECT_BRIEF          = "Functional programming utilities."
+
+OUTPUT_DIRECTORY       = ./doc/output/functional
+
+STRIP_FROM_PATH        = ./libs/functional/includes/functional
+STRIP_FROM_INC_PATH    = ./libs/functional/includes/functional
+
+INPUT                  = ./libs/functional/includes/functional \
+                         ./libs/functional/README.md
+
+USE_MDFILE_AS_MAINPAGE = ./libs/functional/README.md
+
+INCLUDE_PATH           = ./libs/functional/includes/functional
+
+EXCLUDE_SYMBOLS        = *::details::*
+
+EXAMPLE_PATH           = ./libs/functional/examples
