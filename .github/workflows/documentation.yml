@@ -27,11 +27,6 @@ jobs:
       - name: Generate documentation
         run: bash scripts/generate_doc.sh
 
-      - name: Prepare deployment
-        run: |
-          cp README.md doc/
-          cp doc/details/_config.yml doc/
-
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
