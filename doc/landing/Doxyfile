@@ -8,7 +8,8 @@ OUTPUT_DIRECTORY       = ./doc/output
 STRIP_FROM_PATH        =
 STRIP_FROM_INC_PATH    =
 
-INPUT                  = ./doc/index.md
+INPUT                  = ./doc/index.md \
+                         ./doc/landing/pages.dox
 
 USE_MDFILE_AS_MAINPAGE = ./doc/index.md
 
