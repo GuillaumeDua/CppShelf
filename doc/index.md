@@ -9,20 +9,20 @@ Collection of single-header, header-only C++ libraries.
 
 ![dependency graph](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/doc/images/csl.svg)
 
-| Library                                                                              | Description                                 | API docs                   |
-| ------------------------------------------------------------------------------------ | ------------------------------------------- | :------------------------- |
-| 📦 [ag](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ag)                 | Tuple-like interface for aggregates         | [docs](ag/)         |
-| 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/wf)                 | Generic eDSL builder / workflow pattern     | [docs](wf/)         |
-| 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/mp)                 | C++ template-metaprogramming utilities      | [docs](mp/)         |
-| 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/functional) | Function & overload traits                  | [docs](functional/) |
-| 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/typeinfo)     | Compile-time demangler for types & values   | [docs](typeinfo/)   |
-| ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ensure)          | Interface-safety, configurable strong types | [docs](ensure/)     |
+| Library                                                                              | Description                                 | API docs                | C++17 | C++20 |  C++23  |
+| ------------------------------------------------------------------------------------ | ------------------------------------------- | :---------------------- | :---: | :---: | :-----: |
+| 📦 [ag](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ag)                 | Tuple-like interface for aggregates         | @subpage lib_ag         |  ❌   |  ✅   |   ✅    |
+| 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/wf)                 | Generic eDSL builder / workflow pattern     | @subpage lib_wf         |  ❌   |  ✅   | planned |
+| 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/mp)                 | C++ template-metaprogramming utilities      | @subpage lib_mp         |  ❌   |  ✅   |   ✅    |
+| 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/functional) | Function & overload traits                  | @subpage lib_functional |  ❌   |  ✅   |   ✅    |
+| 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/typeinfo)     | Compile-time demangler for types & values   | @subpage lib_typeinfo   |  ❌   |  ✅   |   ✅    |
+| ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ensure)          | Interface-safety, configurable strong types | @subpage lib_ensure     |  ✅   |  ✅   |   ✅    |
 
 ---
 
 ## CMake modules
 
-[Full documentation](cmake/)
+@subpage lib_cmake
 
 | Module                       | Description                                                                                                     |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -31,16 +31,3 @@ Collection of single-header, header-only C++ libraries.
 | `csl/graphviz`               | Custom target that runs `cmake --graphviz` and renders the result with `dot` and `svg`                          |
 | `csl/list_subdirectories`    | Populates a variable with all immediate subdirectories of a given path                                          |
 | `csl/print_aligned`          | Aligned-column status output for CMake configure-time logging                                                   |
-
----
-
-## C++ standard support
-
-| Library        | C++17 | C++20 |  C++23  |
-| -------------- | :---: | :---: | :-----: |
-| 📦 ag         |  ❌   |  ✅   |   ✅    |
-| 🌊 wf         |  ❌   |  ✅   | planned |
-| 🧙 mp         |  ❌   |  ✅   |   ✅    |
-| 🔬 functional |  ❌   |  ✅   |   ✅    |
-| 🔎 typeinfo   |  ❌   |  ✅   |   ✅    |
-| ☔ ensure      |  ✅   |  ✅   |   ✅    |

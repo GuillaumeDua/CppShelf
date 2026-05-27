@@ -1,0 +1,55 @@
+/**
+ * @page lib_ag 📦 ag
+ * @htmlonly
+ * <script>window.location.replace("ag/index.html");</script>
+ * <noscript><a href="ag/index.html">📦 ag documentation</a></noscript>
+ * @endhtmlonly
+ */
+
+/**
+ * @page lib_wf 🌊 wf
+ * @htmlonly
+ * <script>window.location.replace("wf/index.html");</script>
+ * <noscript><a href="wf/index.html">🌊 wf documentation</a></noscript>
+ * @endhtmlonly
+ */
+
+/**
+ * @page lib_mp 🧙 mp
+ * @htmlonly
+ * <script>window.location.replace("mp/index.html");</script>
+ * <noscript><a href="mp/index.html">🧙 mp documentation</a></noscript>
+ * @endhtmlonly
+ */
+
+/**
+ * @page lib_functional 🔬 functional
+ * @htmlonly
+ * <script>window.location.replace("functional/index.html");</script>
+ * <noscript><a href="functional/index.html">🔬 functional documentation</a></noscript>
+ * @endhtmlonly
+ */
+
+/**
+ * @page lib_typeinfo 🔎 typeinfo
+ * @htmlonly
+ * <script>window.location.replace("typeinfo/index.html");</script>
+ * <noscript><a href="typeinfo/index.html">🔎 typeinfo documentation</a></noscript>
+ * @endhtmlonly
+ */
+
+/**
+ * @page lib_ensure ☔ ensure
+ * @htmlonly
+ * <script>window.location.replace("ensure/index.html");</script>
+ * <noscript><a href="ensure/index.html">☔ ensure documentation</a></noscript>
+ * @endhtmlonly
+ */
+
+/**
+ * @page lib_cmake CMake modules
+ * @htmlonly
+ * <script>window.location.replace("cmake/index.html");</script>
+ * <noscript><a href="cmake/index.html">CMake modules documentation</a></noscript>
+ * @endhtmlonly
+ */
