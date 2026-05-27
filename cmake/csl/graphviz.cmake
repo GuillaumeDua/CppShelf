@@ -3,7 +3,7 @@ include_guard(GLOBAL)
 # csl_graphviz(
 #   TARGET        <target-name>
 #   OPTIONS_FILE  <path/to/CMakeGraphVizOptions.cmake>
-#   [OUTPUT_DIR   <dir>]          # default: <source_dir>/docs
+#   [OUTPUT_DIR   <dir>]          # default: <source_dir>/doc/images
 #   [FORMAT       svg|png|...]    # default: svg; skipped if dot is not found
 # )
 #
@@ -40,7 +40,7 @@ function(csl_graphviz)
     endif ()
 
     if (NOT DEFINED arg_OUTPUT_DIR)
-        set(arg_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/doc")
+        set(arg_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/doc/images")
     endif ()
     if (NOT DEFINED arg_FORMAT)
         set(arg_FORMAT "svg")

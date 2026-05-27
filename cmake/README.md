@@ -35,7 +35,7 @@ include(csl/graphviz)
 csl_graphviz(
     TARGET       <target-name>
     OPTIONS_FILE <path/to/CMakeGraphVizOptions.cmake>
-    [OUTPUT_DIR  <dir>]       # default: <source_dir>/doc
+    [OUTPUT_DIR  <dir>]       # default: <source_dir>/doc/images
     [FORMAT      svg|png|...] # default: svg; skipped if dot is not found
 )
 ```

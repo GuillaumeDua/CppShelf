@@ -37,10 +37,12 @@ for doxyfile in libs/*/doc/Doxyfile; do
     lib="${lib##libs/}"
     [[ "${lib}" == "test" ]] && continue
     echo "  [${lib}]"
+    mkdir -p "doc/output/${lib}"
     doxygen "${doxyfile}"
 done
 
 echo "  [cmake]"
+mkdir -p "doc/output/cmake"
 doxygen "cmake/doc/Doxyfile"
 
 echo "Done: doc/output/"
