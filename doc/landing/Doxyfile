@@ -1,0 +1,17 @@
+@INCLUDE               = doc/Doxyfile
+
+PROJECT_NAME           = "C++ Shelf"
+PROJECT_BRIEF          = "Collection of single-header, header-only C++ libraries."
+
+OUTPUT_DIRECTORY       = ./doc/output
+
+STRIP_FROM_PATH        =
+STRIP_FROM_INC_PATH    =
+
+INPUT                  = ./doc/index.md
+
+USE_MDFILE_AS_MAINPAGE = ./doc/index.md
+
+INCLUDE_PATH           =
+EXCLUDE_SYMBOLS        =
+HAVE_DOT               = NO
