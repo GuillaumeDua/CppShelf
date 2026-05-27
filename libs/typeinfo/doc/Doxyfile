@@ -1,4 +1,4 @@
-@INCLUDE               = ../../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "csl::typeinfo"
 PROJECT_BRIEF          = "Type introspection utilities."

@@ -50,6 +50,7 @@ x86
 
 # docs
 doc/output
+doc/doxygen-awesome/
 
 # Others
 local

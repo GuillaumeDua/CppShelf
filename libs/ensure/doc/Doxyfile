@@ -1,4 +1,4 @@
-@INCLUDE               = ../../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "csl::ensure"
 PROJECT_BRIEF          = "Assertion and contract utilities."

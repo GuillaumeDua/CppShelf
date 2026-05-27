@@ -1,4 +1,4 @@
-@INCLUDE               = ../../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "📦 csl::ag"
 PROJECT_BRIEF          = "Tuple-like interface for aggregate types."
