@@ -59,11 +59,11 @@ macro(import_csl)
 endmacro()
 import_csl()
 
-include(csl/make_subdirectory_list)
+include(csl/list_subdirectories)
 include(csl/cache_entry_conversion)
 include(csl/print_aligned)
 
-csl_make_subdirectory_list(
+csl_list_subdirectories(
     DIRECTORY   ${csl_SOURCE_DIR}/libs
     RESULT      _csl_components
 )

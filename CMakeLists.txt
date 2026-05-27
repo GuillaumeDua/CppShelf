@@ -28,7 +28,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_compile_warnings.cmake)
 # Exported modules
 include(csl/print_aligned)
 include(csl/cache_entry_conversion)
-include(csl/make_subdirectory_list)
+include(csl/list_subdirectories)
 
 ## Build informations
 message(STATUS  "[${PROJECT_NAME}] Build informations")
@@ -37,7 +37,7 @@ csl_print_build_info()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 ## Components - detection, list
-csl_make_subdirectory_list(
+csl_list_subdirectories(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/libs
     RESULT      CSL_COMPONENTS_LIST
 )

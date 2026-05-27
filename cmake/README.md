@@ -50,11 +50,11 @@ Creates a custom target `csl_graphviz_<target>` that:
 
 ---
 
-## `csl/make_subdirectory_list`
+## `csl/list_subdirectories`
 
 ```cmake
-include(csl/make_subdirectory_list)
-csl_make_subdirectory_list(DIRECTORY <dir> RESULT <output-var>)
+include(csl/list_subdirectories)
+csl_list_subdirectories(DIRECTORY <dir> RESULT <output-var>)
 ```
 
 Macro that populates `<output-var>` with a list of all subdirectories directly under `<dir>`.
