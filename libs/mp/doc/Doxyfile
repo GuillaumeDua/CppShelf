@@ -1,4 +1,4 @@
-@INCLUDE               = ../../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "🧙 csl::mp"
 PROJECT_BRIEF          = "C++ template metaprogramming utilities."

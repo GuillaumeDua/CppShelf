@@ -1,4 +1,4 @@
-@INCLUDE               = ../../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "csl::functional"
 PROJECT_BRIEF          = "Functional programming utilities."

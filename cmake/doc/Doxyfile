@@ -1,4 +1,4 @@
-@INCLUDE               = ../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "csl cmake modules"
 PROJECT_BRIEF          = "CMake utilities for CppShelf."

@@ -1,4 +1,4 @@
-@INCLUDE               = ../../../doc/Doxyfile
+@INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "🌊 csl::wf"
 PROJECT_BRIEF          = "Generic eDSL builder — as a route pattern — to best translate workflow/use-cases in C++."
