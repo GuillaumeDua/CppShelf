@@ -21,9 +21,11 @@ Fails with a fatal error if the cache entry has no `STRINGS` property or if the 
 
 ```cmake
 include(csl/get_cpm)
+csl_get_cpm([VERSION <version>])
 ```
 
-Downloads [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) at a pinned version (`0.42.1`) and includes it.
+Downloads [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) at the pinned default version (`0.42.1`) and includes it.
+Pass `VERSION` to override the pinned version.
 Respects `CPM_SOURCE_CACHE` and `ENV{CPM_SOURCE_CACHE}` for the download location; falls back to `${CMAKE_BINARY_DIR}/cmake/`.
 
 ---

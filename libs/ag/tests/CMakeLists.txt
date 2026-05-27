@@ -4,6 +4,7 @@ include(Catch)
 
 if (NOT TARGET fmt::fmt-header-only)
     include(csl/get_cpm)
+    csl_get_cpm()
     CPMAddPackage(
         NAME              fmt
         GITHUB_REPOSITORY fmtlib/fmt
