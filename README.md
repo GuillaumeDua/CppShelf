@@ -37,7 +37,7 @@ The libraries here could, once mature enough, become self-contained in a separat
 
 ## Components - nested librairies
 
-![dependency graph](https://github.com/GuillaumeDua/CppShelf/blob/main/doc/csl.svg)
+![dependency graph](https://github.com/GuillaumeDua/CppShelf/blob/main/doc/images/csl.svg)
 
 ### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/ag/includes/ag/csl/ag.hpp)
 
