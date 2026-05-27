@@ -32,6 +32,11 @@ fetch_doxygen_awesome() {
 }
 fetch_doxygen_awesome
 
+echo "  [landing]"
+mkdir -p "doc/output"
+touch "doc/output/.nojekyll"
+doxygen "doc/landing/Doxyfile"
+
 for doxyfile in libs/*/doc/Doxyfile; do
     lib="${doxyfile%%/doc/Doxyfile}"
     lib="${lib##libs/}"

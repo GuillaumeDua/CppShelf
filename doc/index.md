@@ -7,22 +7,22 @@ Collection of single-header, header-only C++ libraries.
 
 ## Libraries
 
-![dependency graph](images/csl.svg)
+![dependency graph](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/doc/images/csl.svg)
 
 | Library                                                                              | Description                                 | API docs                   |
 | ------------------------------------------------------------------------------------ | ------------------------------------------- | :------------------------- |
-| 📦 [ag](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ag)                 | Tuple-like interface for aggregates         | [docs](output/ag/)         |
-| 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/wf)                 | Generic eDSL builder / workflow pattern     | [docs](output/wf/)         |
-| 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/mp)                 | C++ template-metaprogramming utilities      | [docs](output/mp/)         |
-| 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/functional) | Function & overload traits                  | [docs](output/functional/) |
-| 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/typeinfo)     | Compile-time demangler for types & values   | [docs](output/typeinfo/)   |
-| ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ensure)          | Interface-safety, configurable strong types | [docs](output/ensure/)     |
+| 📦 [ag](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ag)                 | Tuple-like interface for aggregates         | [docs](ag/)         |
+| 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/wf)                 | Generic eDSL builder / workflow pattern     | [docs](wf/)         |
+| 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/mp)                 | C++ template-metaprogramming utilities      | [docs](mp/)         |
+| 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/functional) | Function & overload traits                  | [docs](functional/) |
+| 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/typeinfo)     | Compile-time demangler for types & values   | [docs](typeinfo/)   |
+| ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ensure)          | Interface-safety, configurable strong types | [docs](ensure/)     |
 
 ---
 
 ## CMake modules
 
-[Full documentation](output/cmake/)
+[Full documentation](cmake/)
 
 | Module                       | Description                                                                                                     |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |

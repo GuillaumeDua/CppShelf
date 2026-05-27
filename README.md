@@ -44,7 +44,7 @@ The libraries here could, once mature enough, become self-contained in a separat
 A **tuple-like** interface for **aggregates** type.
 
 Project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/ag/),
+[documentation](https://guillaumedua.github.io/CppShelf/ag/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/2)
 
 ### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/wf/includes/wf/csl/wf.hpp)
@@ -52,7 +52,7 @@ Project's
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
 
 See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/wf/),
+[documentation](https://guillaumedua.github.io/CppShelf/wf/),
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
 ### 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/mp/includes/mp/csl/mp.hpp)
@@ -60,7 +60,7 @@ See project's
 A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
 Project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/mp/),
+[documentation](https://guillaumedua.github.io/CppShelf/mp/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/3)
 
 ### 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/functional/includes/functional/csl/functional.hpp)
@@ -68,7 +68,7 @@ Project's
 Function & overload traits
 
 See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/functional/),
+[documentation](https://guillaumedua.github.io/CppShelf/functional/),
 [live demo on godbolt.org](https://godbolt.org/z/Gd7fMKK8e),
 [dashboard](https://github.com/users/GuillaumeDua/projects/5)
 
@@ -78,7 +78,7 @@ Compile-time demangler, for types & values.
 Inconsistent: for educational and debugging purpose only.
 
 See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/typeinfo/),
+[documentation](https://guillaumedua.github.io/CppShelf/typeinfo/),
 [live demo on godbolt.org](https://godbolt.org/z/TsEWf5bGa),
 [dashboard](https://github.com/users/GuillaumeDua/projects/7)
 
@@ -87,7 +87,7 @@ See project's
 Interface-safety related components, including a configurable **strong-type** implementation.
 
 See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/ensure/),
+[documentation](https://guillaumedua.github.io/CppShelf/ensure/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/4)
 
 ---
