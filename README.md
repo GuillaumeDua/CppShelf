@@ -209,8 +209,8 @@ See [demonstration here](https://godbolt.org/z/4aGfEbf8d).
 ```cpp
 #include <iostream>
 
-#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/typeinfo/csl/typeinfo.hpp>
-#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp>
+#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp>
+#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main/libs/ag/includes/ag/csl/typeinfo.hpp>
 
 struct some_model {
     char c = 'A';
