@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 
 # top-level project
 project(csl LANGUAGES CXX)
+
 set(PROJECT_VERSION                 0.3.1) # not relying on latest tag to avoid stale target
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)
 
