@@ -1,7 +1,7 @@
 @INCLUDE               = doc/Doxyfile
 
 PROJECT_NAME           = "csl cmake modules"
-PROJECT_BRIEF          = "CMake utilities for CppShelf."
+PROJECT_BRIEF          = "CppShelf's CMake utilities"
 
 OUTPUT_DIRECTORY       = ./doc/output/cmake
 
