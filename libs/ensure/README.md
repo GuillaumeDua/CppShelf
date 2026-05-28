@@ -7,7 +7,7 @@ Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) — a collection of
 ## Include
 
 ```cpp
-#include <ensure/csl/ensure.hpp>  // dispatches to cxx_17 or >= cxx_20 automatically
+#include <csl/ensure.hpp>  // dispatches to cxx_17 or >= cxx_20 automatically
 ```
 
 The top-level header selects the implementation based on the language standard:
