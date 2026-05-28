@@ -23,8 +23,8 @@ set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE PATH "csl: pat
 list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
 
 # Internal modules
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_add_component.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_compile_warnings.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/add_component.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/compile_warnings.cmake)
 # Exported modules
 include(csl/print_aligned)
 include(csl/cache_entry_conversion)

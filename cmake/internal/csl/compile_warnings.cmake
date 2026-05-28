@@ -6,6 +6,7 @@ add_library(csl_compile_warnings INTERFACE)
 target_compile_options(csl_compile_warnings INTERFACE
 
     $<$<BOOL:${CSL_STRICT_WARNINGS}>:-Werror>
+    
     -Wdouble-promotion
     # -Wpedantic -pedantic-errors
 
