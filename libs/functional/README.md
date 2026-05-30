@@ -2,7 +2,7 @@
 
 Function and overload traits for C++20/23.
 
-Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) — a collection of single-header, header-only C++ libraries.
+Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of single-header, header-only C++ libraries.
 
 ## Include
 
@@ -32,7 +32,7 @@ auto result = std::apply([](int i, float f, std::string_view s) {
 
 ## `overload<Ts...>`
 
-Classic overload set pattern — inherits `operator()` from each `Ts`, creating a single callable that dispatches based on argument types.
+Classic overload set pattern - inherits `operator()` from each `Ts`, creating a single callable that dispatches based on argument types.
 
 ```cpp
 auto visitor = csl::functional::overload{
@@ -56,7 +56,7 @@ Extracts the return type and argument list of any callable `F` as associated typ
 | Member           | Type                                      |
 | ---------------- | ----------------------------------------- |
 | `result_type`    | Return type of `F`                        |
-| `arguments_type` | `arguments<Args...>` — the parameter list |
+| `arguments_type` | `arguments<Args...>` - the parameter list |
 
 > **Limitation**: `function_trait` cannot resolve overloaded free functions.  
 > Taking the address of an overloaded function is ambiguous at the call site,  
@@ -133,7 +133,7 @@ using results = csl::functional::overload_result_t<O>;
 
 ---
 
-## Type traits — `csl::functional::type_traits`
+## Type traits - `csl::functional::type_traits`
 
 Argument-pack-aware variants of the standard `<type_traits>` invocability traits. Instead of a variadic `Ts...`, they take an `arguments<Ts...>` type, enabling the argument list to be stored and forwarded as a single type.
 
@@ -157,7 +157,7 @@ static_assert(csl::functional::type_traits::is_simple_callable_v<F>);
 
 ---
 
-## Concepts — `csl::functional::concepts`
+## Concepts - `csl::functional::concepts`
 
 | Concept                                     | Description                                    |
 | ------------------------------------------- | ---------------------------------------------- |

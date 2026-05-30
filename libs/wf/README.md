@@ -1,8 +1,8 @@
 # csl::wf
 
-Generic eDSL builder — a workflow / pipeline composition library for C++20.
+Generic eDSL builder - a workflow / pipeline composition library for C++20.
 
-Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) — a collection of single-header, header-only C++ libraries.
+Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of single-header, header-only C++ libraries.
 
 > **Note**: this library is no longer under active development. A refactor or cleanup may happen at some point, but no new features are under active plannification.
 
@@ -53,15 +53,15 @@ Tuple-unpacking variants of `invoke`:
 auto args = std::tuple{21};
 
 csl::wf::apply(f, args);                        // f(21)
-csl::wf::apply_before(f, args, 100);            // f(21, 100)  — tuple args first
-csl::wf::apply_after(f, args, 100);             // f(100, 21)  — tuple args last
+csl::wf::apply_before(f, args, 100);            // f(21, 100)  - tuple args first
+csl::wf::apply_after(f, args, 100);             // f(100, 21)  - tuple args last
 ```
 
 All accept an optional leading `ttps<...>` argument.
 
 ---
 
-## Invocation traits — `csl::wf::mp`
+## Invocation traits - `csl::wf::mp`
 
 `ttps`-aware counterparts to the standard `<type_traits>` invocability traits:
 
@@ -117,7 +117,7 @@ The underlying `front_binder<F, ttps<...>, args<...>>` and `back_binder` types a
 
 ### `function_view<F>`
 
-Stores `F` by **lvalue reference**. Cheaper than `std::reference_wrapper` — passes `operator()` through all cvref-qualifications and supports `ttps`.
+Stores `F` by **lvalue reference**. Cheaper than `std::reference_wrapper` - passes `operator()` through all cvref-qualifications and supports `ttps`.
 
 ```cpp
 auto f = [](int x) { return x * 2; };
@@ -169,7 +169,7 @@ r2();
 
 ---
 
-## Route — pipeline composition
+## Route - pipeline composition
 
 `route<Fs...>` chains a sequence of callables: each step receives the return value of the previous step as its argument. Steps that don't accept the current value may discard it (with `allow_discard`) or must accept it (`nodiscard`).
 
@@ -203,9 +203,9 @@ Import with `using namespace csl::wf::operators;`:
 
 | Expression    | Result                                                   |
 | ------------- | -------------------------------------------------------- |
-| `f >>= g`     | `make_continuation(f, g)` — creates or extends a `route` |
-| `f \| g`      | `make_condition(f, g)` — creates an overload set         |
-| `f * N_times` | `make_repetition<N>(f)` — creates a `repeater`           |
+| `f >>= g`     | `make_continuation(f, g)` - creates or extends a `route` |
+| `f \| g`      | `make_condition(f, g)` - creates an overload set         |
+| `f * N_times` | `make_repetition<N>(f)` - creates a `repeater`           |
 | `f \| ref`    | `function_ref{f}`                                        |
 | `f \| cref`   | `function_ref<const F>{f}`                               |
 | `f \| view`   | `function_view{f}`                                       |
@@ -233,7 +233,7 @@ repeat(5);  // -> std::array{10, 10, 10}
 
 ---
 
-## Chain traits — `csl::wf::mp::chain_trait<Fs...>`
+## Chain traits - `csl::wf::mp::chain_trait<Fs...>`
 
 Compile-time introspection of a pipeline:
 

@@ -2,7 +2,7 @@
 
 Compile-time type and value name stringification, without RTTI.
 
-Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) — a collection of single-header, header-only C++ libraries.
+Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of single-header, header-only C++ libraries.
 
 > **Warning**: output is compiler-dependent and not portable across GCC, Clang, and MSVC.  
 > Intended for educational use, logging and debugging, not production serialization.
@@ -15,7 +15,7 @@ Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) — a collection of
 
 ## `type_name_v<T>`
 
-A `constexpr inline` variable template holding the name of `T` as a `std::string_view`, extracted from compiler-provided information at compile time — no RTTI, no allocation.
+A `constexpr inline` variable template holding the name of `T` as a `std::string_view`, extracted from compiler-provided information at compile time - no RTTI, no allocation.
 
 ```cpp
 static_assert(csl::typeinfo::type_name_v<int>               == "int");
@@ -29,17 +29,17 @@ A function form is also available for contexts where the variable template canno
 std::string_view name = csl::typeinfo::type_name<T>();
 ```
 
-`type_name` is also overloaded for non-type template parameters — `type_name<value>()` returns the type of `value`:
+`type_name` is also overloaded for non-type template parameters - `type_name<value>()` returns the type of `value`:
 
 ```cpp
 static_assert(csl::typeinfo::type_name<42>() == "int");
 ```
 
-### Known limitations — `type_name`
+### Known limitations - `type_name`
 
 | Issue                | GCC                                     | Clang                     | MSVC                                                                                |
 | -------------------- | --------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------- |
-| Local type namespace | included (`A::B::my_type`)              | omitted (`my_type`)       | —                                                                                   |
+| Local type namespace | included (`A::B::my_type`)              | omitted (`my_type`)       | -                                                                                   |
 | `std::string` alias  | `std::__cxx11::basic_string<char, ...>` | `std::basic_string<char>` | `std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >` |
 
 See [compiler explorer demo](https://godbolt.org/z/jbfqsf7hK).
@@ -63,7 +63,7 @@ A function form is also available:
 std::string_view name = csl::typeinfo::value_name<V>();
 ```
 
-### Known limitations — `value_name`
+### Known limitations - `value_name`
 
 | Issue                  | GCC / Clang    | MSVC         |
 | ---------------------- | -------------- | ------------ |

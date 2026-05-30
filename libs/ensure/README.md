@@ -1,8 +1,8 @@
 # csl::ensure
 
-Interface-safety utilities for C++17/20/23 — centred on a configurable **strong type** implementation.
+Interface-safety utilities for C++17/20/23 - centred on a configurable **strong type** implementation.
 
-Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) — a collection of single-header, header-only C++ libraries.
+Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of single-header, header-only C++ libraries.
 
 ## Include
 
@@ -94,7 +94,7 @@ cb();
 
 ---
 
-## Type traits — `csl::ensure::type_traits`
+## Type traits - `csl::ensure::type_traits`
 
 | Trait                            | Description                                                     |
 | -------------------------------- | --------------------------------------------------------------- |
@@ -107,7 +107,7 @@ cb();
 
 ---
 
-## Concepts — `csl::ensure::concepts`
+## Concepts - `csl::ensure::concepts`
 
 | Concept                              | Description                                              |
 | ------------------------------------ | -------------------------------------------------------- |
