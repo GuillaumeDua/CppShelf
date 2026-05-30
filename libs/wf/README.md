@@ -246,3 +246,9 @@ using pipe = csl::wf::mp::chain_trait<
 static_assert(pipe::is_invocable<int>);
 static_assert(std::same_as<pipe::invoke_result_t<int>, std::string>);
 ```
+
+---
+
+## Example
+
+@include overview.cpp

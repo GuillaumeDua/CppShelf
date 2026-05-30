@@ -169,3 +169,9 @@ fmt::print("{}\n", meters{ 42 });   // prints: 42
 ```
 
 Requires `<fmt/core.h>` and `<fmt/format.h>` to be available.
+
+---
+
+## Example
+
+@include overview.cpp
