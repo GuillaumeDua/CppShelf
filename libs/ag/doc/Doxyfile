@@ -1,0 +1,19 @@
+@INCLUDE               = doc/Doxyfile
+
+PROJECT_NAME           = "📦 csl::ag"
+PROJECT_BRIEF          = "Tuple-like interface for aggregate types."
+PROJECT_LOGO           = ./doc/details/images/github_emoji_unicode_1f4e6.png
+
+OUTPUT_DIRECTORY       = ./doc/output/ag
+
+STRIP_FROM_PATH        = ./libs/ag/includes/ag
+STRIP_FROM_INC_PATH    = ./libs/ag/includes/ag
+
+INPUT                  = ./libs/ag/includes/ag \
+                         ./libs/ag/README.md
+
+USE_MDFILE_AS_MAINPAGE = ./libs/ag/README.md
+
+INCLUDE_PATH           = ./libs/ag/includes/ag
+
+EXCLUDE_SYMBOLS        = *::details::*

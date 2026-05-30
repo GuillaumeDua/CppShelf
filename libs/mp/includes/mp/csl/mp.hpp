@@ -91,7 +91,7 @@ namespace csl::mp::_::pp_options {
 #if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_NONE
  #define csl_fwd_maybe_cast(T, value) static_cast<decltype(value) &&>(value) // NOLINT(*-macro-*)
 #elif CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_SAFE
- #define csl_fwd_maybe_cast(T, value) T{value} // NOLINT(*-macro-*) — brace-init rejects narrowing
+ #define csl_fwd_maybe_cast(T, value) T{value} // NOLINT(*-macro-*) - brace-init rejects narrowing
 #else // UNSAFE
  #define csl_fwd_maybe_cast(T, value) static_cast<T &&>(value) // NOLINT(*-macro-*)
 #endif

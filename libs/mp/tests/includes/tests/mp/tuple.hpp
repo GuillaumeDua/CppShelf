@@ -267,7 +267,7 @@ namespace test::tuples::compare::tuple {
         #if CSL_MP_TUPLE__IMPLICIT_CONVERSION
             static_assert(lhs_t{0.F, {}} < rhs_t{1.F, {}});
         #  if CSL_MP_TUPLE__IMPLICIT_CONVERSION == CSL_MP_TUPLE__IMPLICIT_CONVERSION_UNSAFE
-            static_assert(lhs_t{0.F, {}} < rhs_t{0.F, 1}); // narrowing: char{int} — UNSAFE only
+            static_assert(lhs_t{0.F, {}} < rhs_t{0.F, 1}); // narrowing: char{int} - UNSAFE only
         #  endif
         #endif
         }

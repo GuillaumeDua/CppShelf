@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 
 # top-level project
 project(csl LANGUAGES CXX)
+
 set(PROJECT_VERSION                 0.3.1) # not relying on latest tag to avoid stale target
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)
 
@@ -23,12 +24,12 @@ set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE PATH "csl: pat
 list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
 
 # Internal modules
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_add_component.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl_compile_warnings.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/add_component.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/compile_warnings.cmake)
 # Exported modules
 include(csl/print_aligned)
 include(csl/cache_entry_conversion)
-include(csl/make_subdirectory_list)
+include(csl/list_subdirectories)
 
 ## Build informations
 message(STATUS  "[${PROJECT_NAME}] Build informations")
@@ -37,7 +38,7 @@ csl_print_build_info()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 ## Components - detection, list
-csl_make_subdirectory_list(
+csl_list_subdirectories(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/libs
     RESULT      CSL_COMPONENTS_LIST
 )

@@ -1,14 +1,11 @@
 
-@htmlonly
-@endhtmlonly
-
 <div style="position: absolute; top: 0; right: 0;">
   <a href="https://github.com/GuillaumeDua/CppShelf">
     <img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right"
     style="position: relative; top: 0; right: 0; z-index: 1;">
   </a>
   <a href="https://guillaumedua.github.io/CppShelf/">
-    <img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
+    <img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
     style="position: absolute; top: 0; right: 0; z-index: 3;"
     >
   </a>
@@ -27,7 +24,7 @@ The following example demonstrates some of the features which are available in `
         C++ code (
         <a href="https://godbolt.org/z/x1dGTWddK">
         Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
         )
     </th><th> Console output </th></tr>
     <tr><td>
@@ -68,7 +65,7 @@ By default, the C++ standard allow structured-binding for aggregate types.
         C++ code (
         <a href="https://godbolt.org/z/3EcK9Wc7h">
         Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
         )
     </th></tr>
     <tr><td>
@@ -123,7 +120,7 @@ This library is single-header, header-only. Users may use it in various ways, ho
 
 #### Plain download
 
-- **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
+- **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/libs/ag/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
 - **Clone** the repo, or add it as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your project.
 
 > ⚠️ Proceeding the ways enumerated above is fast & simple. 
@@ -312,7 +309,7 @@ static_assert(csl::ag::size<A>::value == 2);
 static_assert(csl::ag::size_v<A>      == 2);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
 
 Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed using a convenience alias :
 
@@ -331,7 +328,7 @@ static_assert(std::same_as<int,   csl::ag::element_t<0, A>>);
 static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
 Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
 
@@ -357,7 +354,7 @@ static_assert(std::same_as<float&,        csl::ag::view_element_t<1, const A&>>)
 static_assert(std::same_as<const char&&,  csl::ag::view_element_t<2, const A&>>);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
 The `type` nested-type can be accessed using a convenience alias :
 
@@ -398,7 +395,7 @@ while using a `rvalue-reference` will results in a perfect-forwarding that membe
         C++ code (
         <a href="https://godbolt.org/z/Yqh1q3Wea">
         Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
         )
     </th><th> Console output </th></tr>
     <tr><td>
@@ -448,7 +445,7 @@ static_assert(42    == std::get<0>(value_as_tuple));
 static_assert(0.13f == std::get<1>(value_as_tuple));
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv).
 
 Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element) can be use to obtains the conversion result's element types.
 
@@ -458,7 +455,7 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
   C++ code (
   <a href="https://godbolt.org/z/17Es3oooY">
   Try me on compiler-explorer
-  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
   )
   </th><th> Console output </th></tr>
   <tr><td>
@@ -495,7 +492,7 @@ Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tu
   C++ code (
   <a href="https://godbolt.org/z/17Es3oooY">
   Try me on compiler-explorer
-  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
+  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
   )
   </th><th> Console output </th></tr>
   <tr><td>
@@ -571,7 +568,7 @@ int i = 42;
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo).
 
 Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
 
@@ -609,7 +606,7 @@ static_assert(std::same_as<int &,
 // still not propagation for fields 2 and 3 ...
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc).
 
 ### tuplelike interface for aggregates
 
@@ -630,7 +627,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
 
 #### std::get
 
@@ -656,7 +653,7 @@ static_assert(std::same_as<
 42, 0.13
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
 
 Slightly more advanced example :
 
@@ -673,7 +670,7 @@ auto value = A{ .i = 42, .f = 0.13f };
 42 0.13 
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
 
 Note that `constexpr`-ness is preserved :
 
@@ -684,7 +681,7 @@ static_assert(csl::ag::get<0>(value) == 42);    // pass
 static_assert(csl::ag::get<1>(value) == 'c');   // pass
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
 
 ### Pretty-printing
 
@@ -716,7 +713,7 @@ A && : {
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
 
 Advanced example :
 
@@ -780,7 +777,7 @@ C & : {
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
 
 ## std::tuple and aggregate types homogeneity
 
@@ -814,7 +811,7 @@ void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bin
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j6ahehMn1).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j6ahehMn1).
 
 ## Current limitations
 
@@ -853,4 +850,10 @@ auto main() -> int {
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).
+[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).
+
+---
+
+## Example
+
+@include overview.cpp

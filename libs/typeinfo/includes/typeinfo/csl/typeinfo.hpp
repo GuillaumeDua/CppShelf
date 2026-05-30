@@ -6,35 +6,34 @@
 
 // TODO(Guillaume): refactor type_name, value_name when universal template parameter are available
 
-#include <string>
 #include <string_view>
-#include <type_traits>
-#include <utility>
 
 namespace csl::typeinfo::details
 {
     struct type_prefix_tag {
-        constexpr inline static std::string_view value = "T = ";
+        constexpr static std::string_view value = "T = ";
     };
     struct value_prefix_tag {
-        constexpr inline static std::string_view value = "value = ";
+        constexpr static std::string_view value = "value = ";
     };
 
     template <typename prefix_tag_t>
-    constexpr static auto parse_mangling(std::string_view value, std::string_view function)
+    constexpr static auto parse_mangling(std::string_view value, std::string_view function) -> std::string_view
     {
         value.remove_prefix(value.find(function) + std::size(function));
 #if defined(__GNUC__) or defined(__clang__)
         value.remove_prefix(value.find(prefix_tag_t::value) + std::size(prefix_tag_t::value));
-#if defined(__clang__)
+# if defined(__clang__)
         value.remove_suffix(value.length() - value.rfind(']'));
-#elif defined(__GNUC__) // GCC
+# elif defined(__GNUC__) // GCC
         value.remove_suffix(value.length() - value.find(';'));
-#endif
+# endif
 #elif defined(_MSC_VER)
         value.remove_prefix(value.find('<') + 1);
-        if (auto enum_token_pos = value.find("enum "); enum_token_pos == 0)
-            value.remove_prefix(enum_token_pos + sizeof("enum ") - 1);
+        // WARNING(limitation, inconsistency) This should remove all occurences, not just the first.
+        // if (auto pos = value.find("enum ");   pos == 0) value.remove_prefix(pos + sizeof("enum ")   - 1);
+        // if (auto pos = value.find("struct "); pos == 0) value.remove_prefix(pos + sizeof("struct ") - 1);
+        // if (auto pos = value.find("class ");  pos == 0) value.remove_prefix(pos + sizeof("class ")  - 1);
         value.remove_suffix(value.length() - value.rfind(">(void)"));
 #endif
         return value;
@@ -46,7 +45,7 @@ namespace csl::typeinfo
     // [Warning]: Produced outputs ARE NOT portable: inconsistencies exist across compilers (GCC, Clang, msvc-cl)
     //
     // Known limitations :
-    // 
+    //
     //  [type_name]
     //     decl namespace (demo: https://godbolt.org/z/vhr4h4j9Y)
     //            GCC:    namespace is part of the type (ex: A::B::C::type_as_ns<>::func<>(int)::my_type)
@@ -56,6 +55,7 @@ namespace csl::typeinfo
     //            std::basic_string<char>
     //            std::__cxx11::basic_string<char>
     //            std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>
+    //     MSVC: "class "/"struct " prefixes stripped at the top level only
     //
     //  [value_name]
     //     values representation (demo: https://godbolt.org/z/bn9ofo3Pz)
@@ -77,7 +77,7 @@ namespace csl::typeinfo
     }
     template <typename T>
     constexpr inline static auto type_name_v = type_name<T>();
-    
+
     template <auto value>
     [[nodiscard]] constexpr static auto type_name(/*no parameters allowed*/) -> std::string_view
     {

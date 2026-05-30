@@ -1,0 +1,18 @@
+@INCLUDE               = doc/Doxyfile
+
+PROJECT_NAME           = "csl::ensure"
+PROJECT_BRIEF          = "Assertion and contract utilities."
+
+OUTPUT_DIRECTORY       = ./doc/output/ensure
+
+STRIP_FROM_PATH        = ./libs/ensure/includes/ensure
+STRIP_FROM_INC_PATH    = ./libs/ensure/includes/ensure
+
+INPUT                  = ./libs/ensure/includes/ensure \
+                         ./libs/ensure/README.md
+
+USE_MDFILE_AS_MAINPAGE = ./libs/ensure/README.md
+
+INCLUDE_PATH           = ./libs/ensure/includes/ensure
+
+EXCLUDE_SYMBOLS        = *::details::*

@@ -1,6 +1,6 @@
 # C++ Shelf
 
-<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" height="150" style="Padding: 0px 10px 0px 0px"/>
+<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" height="150" style="Padding: 0px 10px 0px 0px"/>
 
 <div style="position: absolute; top: 0; right: 0;">
 <a href="https://github.com/GuillaumeDua/CppShelf">
@@ -9,7 +9,7 @@ style="position: relative; top: 0; right: 0; z-index: 1;">
 </a>
 
 <a href="https://guillaumedua.github.io/CppShelf/">
-<img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
+<img loading="lazy" src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" align="right" class="attachment-full size-full" height="40"
 style="position: absolute; top: 0; right: 0; z-index: 3;"
 >
 </a>
@@ -18,7 +18,7 @@ style="position: absolute; top: 0; right: 0; z-index: 3;"
 [![cmake-Ubuntu-clang](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml)
 [![cmake-Ubuntu-gcc](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml)  
 [![pages-build-deployment](https://github.com/GuillaumeDua/CppShelf/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/pages/pages-build-deployment)
-[![Deploy-doc-to-GitHub-Pages](https://github.com/GuillaumeDua/CppShelf/actions/workflows/docs_to_gh_pages.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/docs_to_gh_pages.yml)  
+[![documentation](https://github.com/GuillaumeDua/CppShelf/actions/workflows/documentation.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/documentation.yml)  
 [![GitHub license](https://img.shields.io/github/license/GuillaumeDua/CppShelf)](https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE)
 ![GitHub top language](https://img.shields.io/github/languages/top/GuillaumeDua/CppShelf)
 [![GitHub issues](https://img.shields.io/github/issues/GuillaumeDua/CppShelf)](https://github.com/GuillaumeDua/CppShelf/issues)
@@ -33,56 +33,61 @@ The libraries here could, once mature enough, become self-contained in a separat
 
 ---
 
-<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="25" height="25" style="Padding: 5px"/>
+<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="25" height="25" style="Padding: 5px"/>
 
 ## Components - nested librairies
 
-![dependency graph](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/csl.svg)
+![dependency graph](https://github.com/GuillaumeDua/CppShelf/blob/main/doc/images/csl.svg)
 
-### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ag/csl/ag.hpp)
+### 📦 [ag](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/ag/includes/ag/csl/ag.hpp)
 
 A **tuple-like** interface for **aggregates** type.
 
 Project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/ag/),
+[documentation](https://guillaumedua.github.io/CppShelf/ag/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/2)
 
-### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/docs/details/markdown/wf.md)
+### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/wf/includes/wf/csl/wf.hpp)
 
 Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
 
 See project's
-[documentation](https://guillaumedua.github.io/CppShelf/output/wf/),
+[documentation](https://guillaumedua.github.io/CppShelf/wf/),
 [dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
-### 🧙‍♂️ [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/mp/csl/mp.hpp)
+### 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/mp/includes/mp/csl/mp.hpp)
 
 A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
 
-Project's [dashboard](https://github.com/users/GuillaumeDua/projects/3)
+Project's
+[documentation](https://guillaumedua.github.io/CppShelf/mp/),
+[dashboard](https://github.com/users/GuillaumeDua/projects/3)
 
-### 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/functional/csl/functional.hpp)
+### 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/functional/includes/functional/csl/functional.hpp)
 
 Function & overload traits
 
 See project's
+[documentation](https://guillaumedua.github.io/CppShelf/functional/),
 [live demo on godbolt.org](https://godbolt.org/z/Gd7fMKK8e),
 [dashboard](https://github.com/users/GuillaumeDua/projects/5)
 
-### 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/typeinfo/csl/typeinfo.hpp)
+### 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp)
 
 Compile-time demangler, for types & values.  
 Inconsistent: for educational and debugging purpose only.
 
 See project's
+[documentation](https://guillaumedua.github.io/CppShelf/typeinfo/),
 [live demo on godbolt.org](https://godbolt.org/z/TsEWf5bGa),
 [dashboard](https://github.com/users/GuillaumeDua/projects/7)
 
-### ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/blob/main/includes/ensure/csl/ensure.hpp)
+### ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/ensure/includes/ensure/csl/ensure.hpp)
 
 Interface-safety related components, including a configurable **strong-type** implementation.
 
 See project's
+[documentation](https://guillaumedua.github.io/CppShelf/ensure/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/4)
 
 ---
@@ -204,8 +209,8 @@ See [demonstration here](https://godbolt.org/z/4aGfEbf8d).
 ```cpp
 #include <iostream>
 
-#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/typeinfo/csl/typeinfo.hpp>
-#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/includes/ag/csl/ag.hpp>
+#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp>
+#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main/libs/ag/includes/ag/csl/typeinfo.hpp>
 
 struct some_model {
     char c = 'A';

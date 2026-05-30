@@ -12,6 +12,7 @@ if (${CSL_ENSURE__ENABLE_FMT_SUPPORT})
 
     if (NOT TARGET fmt::fmt-header-only AND NOT TARGET fmt::fmt)
         include(csl/get_cpm)
+        csl_get_cpm()
         CPMAddPackage(
             NAME              fmt
             GITHUB_REPOSITORY fmtlib/fmt

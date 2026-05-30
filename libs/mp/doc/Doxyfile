@@ -1,0 +1,18 @@
+@INCLUDE               = doc/Doxyfile
+
+PROJECT_NAME           = "🧙 csl::mp"
+PROJECT_BRIEF          = "C++ template metaprogramming utilities."
+
+OUTPUT_DIRECTORY       = ./doc/output/mp
+
+STRIP_FROM_PATH        = ./libs/mp/includes/mp
+STRIP_FROM_INC_PATH    = ./libs/mp/includes/mp
+
+INPUT                  = ./libs/mp/includes/mp \
+                         ./libs/mp/README.md
+
+USE_MDFILE_AS_MAINPAGE = ./libs/mp/README.md
+
+INCLUDE_PATH           = ./libs/mp/includes/mp
+
+EXCLUDE_SYMBOLS        = *::details::*

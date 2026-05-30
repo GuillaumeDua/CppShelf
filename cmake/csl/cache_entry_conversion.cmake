@@ -22,7 +22,7 @@ function(csl_cache_entry_to_property_index)
 
     get_property(_allowed_values CACHE "${arg_ID}" PROPERTY STRINGS)
     if(NOT _allowed_values)
-        message(FATAL_ERROR "[csl_cache_entry_to_property_index] cache entry [${arg_ID}] has no STRINGS property — use set_property(CACHE ${arg_ID} PROPERTY STRINGS ...) to define allowed values")
+        message(FATAL_ERROR "[csl_cache_entry_to_property_index] cache entry [${arg_ID}] has no STRINGS property - use set_property(CACHE ${arg_ID} PROPERTY STRINGS ...) to define allowed values")
     endif()
 
     list(FIND _allowed_values "${${arg_ID}}" _index)

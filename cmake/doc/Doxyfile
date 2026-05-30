@@ -1,0 +1,19 @@
+@INCLUDE               = doc/Doxyfile
+
+PROJECT_NAME           = "csl cmake modules"
+PROJECT_BRIEF          = "CppShelf's CMake utilities"
+
+OUTPUT_DIRECTORY       = ./doc/output/cmake
+
+STRIP_FROM_PATH        =
+STRIP_FROM_INC_PATH    =
+
+INPUT                  = ./cmake/README.md
+
+USE_MDFILE_AS_MAINPAGE = ./cmake/README.md
+
+INCLUDE_PATH           =
+
+EXCLUDE_SYMBOLS        =
+
+HAVE_DOT               = NO
