@@ -67,6 +67,42 @@ Trait composition utilities:
 
 Reference-qualified cv manipulation (P1450): `copy_ref`, `add_const`, `add_volatile`, `add_cv` - preserve reference category across cv qualification.
 
+### Tuples algorithms - `csl::mp::type_traits`
+
+Compile-time operations on the element types of any `tuple_like`. All produce a `::type` alias and a corresponding `_t` shorthand.
+
+**Query:**
+
+| Trait                        | Description                                 |
+| ---------------------------- | ------------------------------------------- |
+| `contains<T, U>` / `_v`      | Whether type `U` appears in `T`             |
+| `index_of<T, U>` / `_v`      | Index of the first occurrence of `U` in `T` |
+| `last_index_of<T, U>` / `_v` | Index of the last occurrence of `U` in `T`  |
+| `count<T, U>` / `_v`         | Number of `U` occurrences in `T`            |
+| `count_if<T, P>` / `_v`      | Number of elements satisfying predicate `P` |
+| `cat_result<Ts...>` / `_t`   | Result type of `cat(Ts{}...)`               |
+
+**Transformation:**
+
+| Trait                         | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `filter<T, P>` / `_t`         | Keep elements satisfying predicate `P`      |
+| `replace<T, From, To>` / `_t` | Replace all occurrences of `From` with `To` |
+| `replace_if<T, P, To>` / `_t` | Replace elements satisfying `P` with `To`   |
+| `unique<T>` / `_t`            | Remove duplicate element types              |
+| `push_back<T, U>` / `_t`      | Append type `U`                             |
+| `push_front<T, U>` / `_t`     | Prepend type `U`                            |
+| `pop_back<T>` / `_t`          | Remove last element type                    |
+| `pop_front<T>` / `_t`         | Remove first element type                   |
+
+**Set operations:**
+
+| Trait                             | Description                           |
+| --------------------------------- | ------------------------------------- |
+| `set_union<T1, T2>` / `_t`        | Types in `T1` or `T2` (no duplicates) |
+| `set_intersection<T1, T2>` / `_t` | Types present in both `T1` and `T2`   |
+| `set_difference<T1, T2>` / `_t`   | Types in `T1` that are not in `T2`    |
+
 ---
 
 ## Concepts - `csl::mp::concepts`
@@ -109,3 +145,9 @@ Concepts:
 | P1450    | Reference-aware `copy_ref`, `add_const`, `add_volatile`, `add_cv` |
 | P2445    | `forward_like<T>(u)`                                              |
 | P2165    | `tuple_like`, `pair_like`, `tuple_element` concepts               |
+
+---
+
+## Example
+
+@include overview.cpp

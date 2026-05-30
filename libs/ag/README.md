@@ -851,3 +851,9 @@ auto main() -> int {
 ```
 
 [<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).
+
+---
+
+## Example
+
+@include overview.cpp
