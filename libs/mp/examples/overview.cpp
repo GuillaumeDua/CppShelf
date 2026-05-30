@@ -1,8 +1,6 @@
 #include <csl/mp.hpp>
 
 #include <array>
-#include <cassert>
-#include <string>
 
 // tuple
 static_assert(csl::mp::size_v<csl::mp::tuple<int, float, bool>> == 3);
@@ -39,22 +37,22 @@ static_assert(csl::mp::type_traits::count_v<T, int>           == 2);
 static_assert(csl::mp::type_traits::count_if_v<T, std::is_integral> == 3); // int, int, bool
 
 // transformation
-using filtered   = csl::mp::type_traits::filter_t<T, std::is_integral>;
+using filtered     = csl::mp::type_traits::filter_t<T, std::is_integral>;
 static_assert(std::is_same_v<filtered, csl::mp::tuple<int, int, bool>>);
 
-using replaced   = csl::mp::type_traits::replace_t<T, float, double>;
+using replaced     = csl::mp::type_traits::replace_t<T, float, double>;
 static_assert(std::is_same_v<replaced, csl::mp::tuple<int, double, int, bool>>);
 
-using replaced_if = csl::mp::type_traits::replace_if_t<T, std::is_floating_point, double>;
+using replaced_if  = csl::mp::type_traits::replace_if_t<T, std::is_floating_point, double>;
 static_assert(std::is_same_v<replaced_if, csl::mp::tuple<int, double, int, bool>>);
 
-using deduped    = csl::mp::type_traits::unique_t<T>;
-static_assert(std::is_same_v<deduped, csl::mp::tuple<int, float, bool>>);
+using deduplicated = csl::mp::type_traits::unique_t<T>;
+static_assert(std::is_same_v<deduplicated, csl::mp::tuple<int, float, bool>>);
 
-using pushed     = csl::mp::type_traits::push_back_t<csl::mp::tuple<int, float>, bool>;
+using pushed       = csl::mp::type_traits::push_back_t<csl::mp::tuple<int, float>, bool>;
 static_assert(std::is_same_v<pushed, csl::mp::tuple<int, float, bool>>);
 
-using popped     = csl::mp::type_traits::pop_front_t<csl::mp::tuple<int, float, bool>>;
+using popped       = csl::mp::type_traits::pop_front_t<csl::mp::tuple<int, float, bool>>;
 static_assert(std::is_same_v<popped, csl::mp::tuple<float, bool>>);
 
 // set operations
@@ -73,42 +71,53 @@ static_assert(std::is_same_v<d, csl::mp::tuple<int>>);
 auto main(int, char*[]) -> int
 {
     // tuple construction and access
-    auto t = csl::mp::make_tuple(42, 3.14f, std::string{"hello"});
-    assert(t.get<0>() == 42);          // by index // NOLINT(*-assert)
-    assert(t.get<std::string>() == "hello");  // by type // NOLINT(*-assert)
-    assert(t[csl::mp::index_t<1>{}] == 3.14f); // operator[] // NOLINT(*-assert)
+    constexpr auto t = csl::mp::make_tuple(42, 3.14f, true);
+    static_assert(t.get<0>()                   == 42);
+    static_assert(t.get<bool>()                == true);
+    static_assert(t[csl::mp::index_t<1>{}]     == 3.14f);
+    static_assert(t[std::type_identity<int>{}] == 42);
 
     // cat
-    auto a = csl::mp::make_tuple(1, 2);
-    auto b = csl::mp::make_tuple(3.0f);
-    auto c = csl::mp::cat(a, b);
+    constexpr auto a = csl::mp::make_tuple(1, 2);
+    constexpr auto b = csl::mp::make_tuple(3.0f);
+    constexpr auto c = csl::mp::cat(a, b);
     static_assert(csl::mp::size_v<decltype(c)> == 3);
+    static_assert(std::get<2>(c) == 3.0f);
 
     // for_each
-    int sum = 0;
-    csl::mp::functions::for_each(csl::mp::make_tuple(1, 2, 3), [&](auto v) { sum += v; });
-    assert(sum == 6); // NOLINT(*-assert)
+    constexpr auto sum = [] {
+        int s = 0;
+        csl::mp::functions::for_each(csl::mp::make_tuple(1, 2, 3), [&s](auto v) { s += v; });
+        return s;
+    }();
+    static_assert(sum == 6);
 
     // for_each_enumerate
-    csl::mp::functions::for_each_enumerate(
-        csl::mp::make_tuple(10, 20, 30),
-        [](std::size_t i, auto v) { assert(v == static_cast<int>((i + 1) * 10)); } // NOLINT(*-assert)
-    );
+    constexpr auto enumerate_ok = [] {
+        bool ok = true;
+        csl::mp::functions::for_each_enumerate(
+            csl::mp::make_tuple(10, 20, 30),
+            [&ok](std::size_t i, auto v) { ok = ok and (v == static_cast<int>((i + 1) * 10)); }
+        );
+        return ok;
+    }();
+    static_assert(enumerate_ok);
 
-    // fold_left: sum
-    auto total = csl::mp::functions::fold_left(
-        csl::mp::make_tuple(1, 2, 3, 4), std::plus<int>{}, 0
+    // fold_left
+    static_assert(
+        csl::mp::functions::fold_left(csl::mp::make_tuple(1, 2, 3, 4), std::plus<int>{}, 0) == 10
     );
-    assert(total == 10); // NOLINT(*-assert)
 
     // all_of / any_of / none_of
-    auto ints = csl::mp::make_tuple(2, 4, 6);
-    assert(csl::mp::functions::all_of (ints, [](int v) { return v % 2 == 0; })); // NOLINT(*-assert)
-    assert(csl::mp::functions::any_of (ints, [](int v) { return v == 4; }));     // NOLINT(*-assert)
-    assert(csl::mp::functions::none_of(ints, [](int v) { return v > 10; }));     // NOLINT(*-assert)
+    constexpr auto ints = csl::mp::make_tuple(2, 4, 6);
+    static_assert(csl::mp::functions::all_of (ints, [](int v) { return v % 2 == 0; }));
+    static_assert(csl::mp::functions::any_of (ints, [](int v) { return v == 4; }));
+    static_assert(csl::mp::functions::none_of(ints, [](int v) { return v > 10; }));
 
     // P2445: forward_like
-    auto owner = std::string{"hello"};
-    auto && fwd = csl::mp::forward_like<std::string&&>(owner); // rvalue ref to owner
-    (void)fwd;
+    auto owner = 42;
+    static_assert(std::is_same_v<
+        decltype(csl::mp::forward_like<int&&>(owner)),
+        int&&
+    >);
 }
