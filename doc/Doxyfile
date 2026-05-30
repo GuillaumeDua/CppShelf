@@ -1,4 +1,4 @@
-# Base Doxyfile for CppShelf — @INCLUDE this from libs/<name>/doc/Doxyfile
+# Base Doxyfile for CppShelf - @INCLUDE this from libs/<name>/doc/Doxyfile
 # and override the project-specific tags listed at the top of this file.
 #
 # All paths are relative to the repo root (where doxygen is invoked from).

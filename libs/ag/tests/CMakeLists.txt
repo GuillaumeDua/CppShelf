@@ -16,11 +16,11 @@ endif()
 # Helper: create one test target with a given source + opt-in definitions.
 #
 # Named arguments:
-#	NAME        — logical name used in the target name (e.g. "compile_time")
-#   SOURCE      — single source file
-#   DEFINITIONS — list of FORCE_* compile definitions  (e.g. FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=1)
-#   EXTRA_LIBS  — additional link targets  (e.g. fmt::fmt-header-only)
-#   RESULT      — optional variable to receive the generated target name
+#	NAME        - logical name used in the target name (e.g. "compile_time")
+#   SOURCE      - single source file
+#   DEFINITIONS - list of FORCE_* compile definitions  (e.g. FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=1)
+#   EXTRA_LIBS  - additional link targets  (e.g. fmt::fmt-header-only)
+#   RESULT      - optional variable to receive the generated target name
 # ---------------------------------------------------------------------------
 function(csl_ag_make_test_target)
     cmake_parse_arguments(arg "" "NAME;SOURCE;RESULT" "DEFINITIONS;EXTRA_LIBS" ${ARGN})

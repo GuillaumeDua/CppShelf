@@ -2,7 +2,7 @@
 
 Lightweight, minimalistic `C++17` testing utilities shared across `CppShelf` component test suites.
 
-Not a general-purpose testing framework — prefer `Catch2` or `GoogleTest` for that.  
+Not a general-purpose testing framework - prefer `Catch2` or `GoogleTest` for that.  
 Automatically enabled by the build system when any component's tests are enabled.
 
 ## Headers
