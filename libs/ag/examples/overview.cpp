@@ -50,7 +50,7 @@ auto main(int, char*[]) -> int
     }();
     static_assert(indexed_ok);
 
-    // --- for_each_zipped: parallel iteration over multiple tuple-likes ---
+    // --- for_each_zipped: simultaneous element-wise iteration over multiple tuple-likes ---
     constexpr auto zip_ok = [] {
         int dot = 0;
         csl::ag::for_each_zipped(
