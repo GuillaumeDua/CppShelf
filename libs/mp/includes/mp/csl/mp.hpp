@@ -1316,7 +1316,7 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::tuple_like T>
     struct is_homogeneous<T> : std::bool_constant<
         []<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            return (true and ... and std::same_as<csl::mp::element<0, T>, csl::mp::element<indexes, T>>);
+            return (true and ... and std::same_as<csl::mp::element_t<0, T>, csl::mp::element_t<indexes, T>>);
         }(std::make_index_sequence<csl::mp::size_v<T>>{})
     >{};
     template <typename T>
