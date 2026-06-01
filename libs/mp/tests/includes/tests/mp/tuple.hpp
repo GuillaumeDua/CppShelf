@@ -134,6 +134,37 @@ namespace test::tuples::empty {
     static_assert(csl::mp::concepts::empty<csl::mp::tuple<>>);
     static_assert(not csl::mp::concepts::empty<csl::mp::tuple<int>>);
 } // namespace test::tuples::empty
+namespace test::tuples::homogeneous {
+
+    // non-tuple-like -> false
+    static_assert(not csl::mp::type_traits::is_homogeneous_v<int>);
+
+    // empty -> true
+    static_assert(csl::mp::type_traits::is_homogeneous_v<csl::mp::tuple<>>);
+    static_assert(csl::mp::type_traits::is_homogeneous_v<std::tuple<>>);
+    static_assert(csl::mp::type_traits::is_homogeneous_v<std::array<int, 0>>);
+
+    // single element -> true
+    static_assert(csl::mp::type_traits::is_homogeneous_v<csl::mp::tuple<int>>);
+    static_assert(csl::mp::type_traits::is_homogeneous_v<std::tuple<int>>);
+
+    // homogeneous: all elements same type
+    static_assert(csl::mp::type_traits::is_homogeneous_v<std::array<int, 3>>);
+    static_assert(csl::mp::type_traits::is_homogeneous_v<csl::mp::tuple<int, int, int>>);
+    static_assert(csl::mp::type_traits::is_homogeneous_v<std::tuple<int, int>>);
+    static_assert(csl::mp::type_traits::is_homogeneous_v<std::pair<int, int>>);
+
+    // heterogeneous -> false
+    static_assert(not csl::mp::type_traits::is_homogeneous_v<std::pair<int, char>>);
+    static_assert(not csl::mp::type_traits::is_homogeneous_v<std::tuple<int, char>>);
+    static_assert(not csl::mp::type_traits::is_homogeneous_v<csl::mp::tuple<int, char>>);
+    static_assert(not csl::mp::type_traits::is_homogeneous_v<csl::mp::tuple<int, int, char>>);
+
+    // concept
+    static_assert(csl::mp::concepts::homogeneous<std::array<int, 3>>);
+    static_assert(not csl::mp::concepts::homogeneous<std::pair<int, char>>);
+    static_assert(not csl::mp::concepts::homogeneous<int>);
+} // namespace test::tuples::homogeneous
 
 namespace test::tuples::type_gettable {
     static_assert(csl::mp::type_traits::is_type_gettable_v<csl::mp::tuple<int>, int>);
