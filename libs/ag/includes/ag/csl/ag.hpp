@@ -1051,13 +1051,35 @@ namespace csl::ag {
 
 // --- universal API ---
 // homogeneous API for tuple-likes and csl::ag::concepts::aggregates
-namespace csl::tuplelike::concepts {
+//
+// [Design] WHY this does NOT specialize std::tuple_size / std::tuple_element for non-STL aggregates:
+//
+//  The generated code (included at line ~400 from generated/to_tuple.hpp) defines
+//  make_to_tuple<N> using structured bindings:
+//      auto && [ v0, v1, ... ] = value;
+//  C++ selects the binding strategy at template instantiation time:
+//    - std::tuple_size<T> absent  ->  aggregate-field binding  (no get<I> needed)
+//    - std::tuple_size<T> present ->  tuple-like binding, which calls get<I>(value)
+//                                     via unqualified lookup + ADL
+//
+//  If std::tuple_size<T> were specialized for non-STL aggregates,
+//  then the generated make_to_tuple<N> templates would require get<I>(value) to be ADL-findable for T.
+//  csl::ag::get is defined AFTER the generated include, so it is not visible via non-ADL unqualified lookup at the template definition site.
+//  For user-defined aggregate types outside namespace csl::ag, ADL does not search
+//  csl::ag either — making get<I> irrecoverably unfindable for them.
+//
+//  The generated code exists because C++ has no introspection for aggregate field types:
+//  make_to_tuple<N> uses structured bindings at consteval time to capture field types
+//  as a std::tuple via decltype, producing the std::type_identity<std::tuple<Ts...>>
+//  that drives csl::ag::element<I, T> and csl::ag::to_tuple_t<T>.
+
+namespace csl::ag::tuplelike::concepts {
     template <typename T>
     concept non_stl_aggregate = csl::ag::concepts::aggregate<T>
         and not csl::ag::concepts::tuple_like<T>
     ;
 }
-namespace csl::tuplelike {
+namespace csl::ag::tuplelike {
 
     // size
     template <typename T>
@@ -1100,9 +1122,9 @@ namespace csl::tuplelike {
         using value_type = std::remove_cvref_t<decltype(value)>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             ((
-                std::invoke(csl_fwd(f), csl::tuplelike::get<indexes>(csl_fwd(value)))
+                std::invoke(csl_fwd(f), csl::ag::tuplelike::get<indexes>(csl_fwd(value)))
             ), ...);
-        }(std::make_index_sequence<csl::tuplelike::size_v<value_type>>{});
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
     }
     // - for_each_enumerated
     template <typename T>
@@ -1112,18 +1134,18 @@ namespace csl::tuplelike {
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             ((
                 csl_fwd(f).template operator()<indexes>(
-                    csl::tuplelike::get<indexes>(csl_fwd(value))
+                    csl::ag::tuplelike::get<indexes>(csl_fwd(value))
                 )
             ), ...);
-        }(std::make_index_sequence<csl::tuplelike::size_v<value_type>>{});
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
     }
-    // WIP - for_each_zipped
-    template <typename... Ts>
-    constexpr void for_each_zipped(auto&& f, Ts&&... tuple_likes) {
-        constexpr std::size_t min_size = std::min({std::tuple_size_v<std::remove_reference_t<Ts>>...});
+    template <typename ... Ts>
+    requires (true and ... and csl::ag::concepts::structured_bindable<std::remove_cvref_t<Ts>>)
+    constexpr void for_each_zipped(auto && f, Ts &&... values) {
+        constexpr std::size_t min_size = std::min({size_v<std::remove_reference_t<Ts>>...});
 
         const auto invoke_at_index = [&]<std::size_t index>() constexpr {
-            f(std::get<index>(std::forward<decltype(tuple_likes)>(tuple_likes))...);
+            f(std::get<index>(std::forward<decltype(values)>(values))...);
         };
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
@@ -1513,8 +1535,8 @@ namespace csl::ag::io::details::type_traits {
     template <csl::ag::concepts::structured_bindable T, typename Char>
     struct is_fmt_formattable<T, Char> {
         constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and fmt::is_formattable<csl::tuplelike::element_t<indexes, T>>::value);
-        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+            return (true and ... and fmt::is_formattable<csl::ag::tuplelike::element_t<indexes, T>>::value);
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
     };
     template <typename T, typename Char>
     constexpr inline static auto is_fmt_formattable_v = is_fmt_formattable<T, Char>::value;
@@ -1588,11 +1610,11 @@ namespace csl::ag::io::details {
         return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
             return std::tuple<
                 fmt::formatter<
-                    decorators::depthen_view_t<csl::tuplelike::element_t<indexes, T>, depth + 1>,
+                    decorators::depthen_view_t<csl::ag::tuplelike::element_t<indexes, T>, depth + 1>,
                     Char
                 >...
             >{};
-        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
     }
 }
 
@@ -1632,7 +1654,7 @@ public:
     constexpr auto parse(fmt::format_parse_context& ctx) {
 
         // propagate range/tuple-like formats - {:n}
-        csl::tuplelike::for_each(
+        csl::ag::tuplelike::for_each(
             formatters,
             [&](auto && f) constexpr {
                 using formatter_type = std::remove_cvref_t<decltype(f)>;
@@ -1686,7 +1708,7 @@ public:
             }
             ctx.advance_to(
                 std::get<indexes>(formatters).format(
-                    csl::tuplelike::get<indexes>(value),
+                    csl::ag::tuplelike::get<indexes>(value),
                     ctx
                 )
             );
@@ -1694,7 +1716,7 @@ public:
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
             (format_element_at.template operator()<indexes>(), ...);
-        }(std::make_index_sequence<csl::tuplelike::size_v<T>>{});
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
 
         // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("\n{: ^{}}}}"), "", depth * 3);
         *ctx.out()++ = '\n';

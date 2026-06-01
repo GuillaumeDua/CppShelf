@@ -1,6 +1,6 @@
 #include <csl/ensure.hpp>
 
-#include <unordered_map>
+#include <cassert>
 
 using meters  = csl::ensure::strong_type<int, struct meter_tag>;
 using seconds = csl::ensure::strong_type<int, struct second_tag>;
@@ -24,7 +24,7 @@ auto main(int, char*[]) -> int
 {
     // explicit construction, implicit conversion to underlying
     meters  m{ 42 };
-    seconds s{ 10 };
+    [[maybe_unused]] seconds s{ 10 };
     // m = s;  // error: incompatible types
 
     int& ref = m;               // implicit lvalue ref

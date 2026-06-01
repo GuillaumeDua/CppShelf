@@ -40,9 +40,9 @@ auto main(int, char*[]) -> int
     static_assert(channel_sum == 60);
 
     // --- for_each_enumerated: field index as NTTP ---
-    constexpr auto indexed_ok = [] {
+    constexpr auto indexed_ok = [&p] {
         bool ok = true;
-        csl::tuplelike::for_each_enumerated(p, [&ok]<std::size_t I>(auto v) {
+        csl::ag::tuplelike::for_each_enumerated(p, [&ok]<std::size_t I>(auto v) {
             if constexpr (I == 0) ok = ok and (v == 3);
             if constexpr (I == 1) ok = ok and (v == 4);
         });
@@ -53,7 +53,7 @@ auto main(int, char*[]) -> int
     // --- for_each_zipped: simultaneous element-wise iteration over multiple tuple-likes ---
     constexpr auto zip_ok = [] {
         int dot = 0;
-        csl::ag::for_each_zipped(
+        csl::ag::tuplelike::for_each_zipped(
             [&dot](auto a, auto b) { dot += a * b; },
             point{1, 2}, point{3, 4}
         );

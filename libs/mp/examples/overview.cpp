@@ -1,6 +1,7 @@
 #include <csl/mp.hpp>
 
 #include <array>
+#include <tuple>
 
 // tuple
 static_assert(csl::mp::size_v<csl::mp::tuple<int, float, bool>> == 3);
@@ -12,7 +13,7 @@ static_assert(    csl::mp::concepts::tuple_like<std::pair<int, float>>);
 static_assert(    csl::mp::concepts::tuple_like<std::array<int, 3>>);
 static_assert(    csl::mp::concepts::pair_like<std::pair<int, float>>);
 static_assert(not csl::mp::concepts::pair_like<std::tuple<int, float, bool>>);
-static_assert(    csl::mp::concepts::instance<std::tuple, std::tuple<int, float>>);
+static_assert(    csl::mp::concepts::instance<std::tuple<int, float>, std::tuple>);
 
 // type traits
 static_assert(    csl::mp::type_traits::is_homogeneous_v<std::array<int, 3>>);
@@ -71,23 +72,23 @@ static_assert(std::is_same_v<d, csl::mp::tuple<int>>);
 auto main(int, char*[]) -> int
 {
     // tuple construction and access
-    constexpr auto t = csl::mp::make_tuple(42, 3.14f, true);
+    constexpr auto t = csl::mp::functions::make_tuple(42, 3.14f, true);
     static_assert(t.get<0>()                   == 42);
     static_assert(t.get<bool>()                == true);
     static_assert(t[csl::mp::index_t<1>{}]     == 3.14f);
     static_assert(t[std::type_identity<int>{}] == 42);
 
     // cat
-    constexpr auto a = csl::mp::make_tuple(1, 2);
-    constexpr auto b = csl::mp::make_tuple(3.0f);
-    constexpr auto c = csl::mp::cat(a, b);
+    constexpr auto a = csl::mp::functions::make_tuple(1, 2);
+    constexpr auto b = csl::mp::functions::make_tuple(3.0f);
+    constexpr auto c = csl::mp::functions::cat(a, b);
     static_assert(csl::mp::size_v<decltype(c)> == 3);
-    static_assert(std::get<2>(c) == 3.0f);
+    static_assert(get<2>(c) == 3.0f);
 
     // for_each
     constexpr auto sum = [] {
         int s = 0;
-        csl::mp::functions::for_each(csl::mp::make_tuple(1, 2, 3), [&s](auto v) { s += v; });
+        csl::mp::functions::for_each(csl::mp::functions::make_tuple(1, 2, 3), [&s](auto v) { s += v; });
         return s;
     }();
     static_assert(sum == 6);
@@ -96,7 +97,7 @@ auto main(int, char*[]) -> int
     constexpr auto enumerate_ok = [] {
         bool ok = true;
         csl::mp::functions::for_each_enumerate(
-            csl::mp::make_tuple(10, 20, 30),
+            csl::mp::functions::make_tuple(10, 20, 30),
             [&ok](std::size_t i, auto v) { ok = ok and (v == static_cast<int>((i + 1) * 10)); }
         );
         return ok;
@@ -105,11 +106,11 @@ auto main(int, char*[]) -> int
 
     // fold_left
     static_assert(
-        csl::mp::functions::fold_left(csl::mp::make_tuple(1, 2, 3, 4), std::plus<int>{}, 0) == 10
+        csl::mp::functions::fold_left(csl::mp::functions::make_tuple(1, 2, 3, 4), std::plus<int>{}, 0) == 10
     );
 
     // all_of / any_of / none_of
-    constexpr auto ints = csl::mp::make_tuple(2, 4, 6);
+    constexpr auto ints = csl::mp::functions::make_tuple(2, 4, 6);
     static_assert(csl::mp::functions::all_of (ints, [](int v) { return v % 2 == 0; }));
     static_assert(csl::mp::functions::any_of (ints, [](int v) { return v == 4; }));
     static_assert(csl::mp::functions::none_of(ints, [](int v) { return v > 10; }));
