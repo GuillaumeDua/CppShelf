@@ -165,6 +165,32 @@ namespace test::tuples::homogeneous {
     static_assert(not csl::mp::concepts::homogeneous<std::pair<int, char>>);
     static_assert(not csl::mp::concepts::homogeneous<int>);
 } // namespace test::tuples::homogeneous
+namespace test::tuples::constrained_by {
+
+    // non-tuple-like -> false
+    static_assert(not csl::mp::type_traits::is_constrained_by_v<int, std::is_integral>);
+
+    // empty -> true (vacuously)
+    static_assert(csl::mp::type_traits::is_constrained_by_v<csl::mp::tuple<>, std::is_integral>);
+    static_assert(csl::mp::type_traits::is_constrained_by_v<std::tuple<>, std::is_integral>);
+    static_assert(csl::mp::type_traits::is_constrained_by_v<std::array<int, 0>, std::is_integral>);
+
+    // all elements satisfy predicate -> true
+    static_assert(csl::mp::type_traits::is_constrained_by_v<std::array<int, 3>, std::is_integral>);
+    static_assert(csl::mp::type_traits::is_constrained_by_v<std::tuple<int, long>, std::is_integral>);
+    static_assert(csl::mp::type_traits::is_constrained_by_v<csl::mp::tuple<int, long, short>, std::is_integral>);
+    static_assert(csl::mp::type_traits::is_constrained_by_v<std::pair<float, double>, std::is_floating_point>);
+
+    // not all elements satisfy predicate -> false
+    static_assert(not csl::mp::type_traits::is_constrained_by_v<std::tuple<int, float>, std::is_integral>);
+    static_assert(not csl::mp::type_traits::is_constrained_by_v<std::pair<int, float>, std::is_integral>);
+    static_assert(not csl::mp::type_traits::is_constrained_by_v<csl::mp::tuple<int, float>, std::is_integral>);
+
+    // concept
+    static_assert(csl::mp::concepts::constrained_by<std::array<int, 3>, std::is_integral>);
+    static_assert(not csl::mp::concepts::constrained_by<std::pair<int, float>, std::is_integral>);
+    static_assert(not csl::mp::concepts::constrained_by<int, std::is_integral>);
+} // namespace test::tuples::constrained_by
 
 namespace test::tuples::type_gettable {
     static_assert(csl::mp::type_traits::is_type_gettable_v<csl::mp::tuple<int>, int>);

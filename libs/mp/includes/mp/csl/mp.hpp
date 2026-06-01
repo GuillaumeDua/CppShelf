@@ -1328,7 +1328,7 @@ namespace csl::mp::type_traits {
     template <csl::mp::concepts::tuple_like T, template <typename> typename predicate>
     struct is_constrained_by<T, predicate> : std::bool_constant<
         []<std::size_t... indexes>(std::index_sequence<indexes...>) {
-            return (true and ... and predicate<csl::mp::element<indexes, T>>::value);
+            return (true and ... and predicate<csl::mp::element_t<indexes, T>>::value);
         }(std::make_index_sequence<csl::mp::size_v<T>>{})
     >{};
     template <typename T, template <typename> typename predicate>

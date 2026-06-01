@@ -73,7 +73,7 @@ if (${CSL_ENABLED_COMPONENTS_LIST_length} EQUAL 0)
 endif()
 
 #### Common options (opt-outs)
-set(
+set(CSL_OPTIONS_LIST
     TEST # TECH-DEBT: clang sanitizers, etc.
     EXAMPLE
     INSTALL
