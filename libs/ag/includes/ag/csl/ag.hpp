@@ -1145,7 +1145,7 @@ namespace csl::ag::tuplelike {
         constexpr std::size_t min_size = std::min({size_v<std::remove_reference_t<Ts>>...});
 
         const auto invoke_at_index = [&]<std::size_t index>() constexpr {
-            f(std::get<index>(std::forward<decltype(values)>(values))...);
+            f(get<index>(std::forward<decltype(values)>(values))...);
         };
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
