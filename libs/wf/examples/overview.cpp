@@ -3,75 +3,85 @@
 #include <cassert>
 #include <string>
 
-// --- type traits ---
+// csl::wf: composable, type-safe callable invocation.
 
-using F = decltype([]<typename T>(T v) { return v; });
+// --- compile-time invocability ---
+using typed_identity = decltype([]<typename T>(T v) { return v; });
 
-static_assert(    csl::wf::mp::is_invocable_v<F, csl::wf::mp::ttps<int>, int>);
-static_assert(not csl::wf::mp::is_invocable_v<F, csl::wf::mp::ttps<int>, float>);
-static_assert(    csl::wf::mp::is_invocable_with_v<F, csl::wf::mp::ttps<int>, csl::wf::mp::args<int>>);
+static_assert(    csl::wf::mp::is_invocable_v<typed_identity, csl::wf::mp::ttps<int>, int        >);
+static_assert(    csl::wf::mp::is_invocable_v<typed_identity, csl::wf::mp::ttps<int>, float      >); // implicit convertion
+static_assert(not csl::wf::mp::is_invocable_v<typed_identity, csl::wf::mp::ttps<int>, std::string>);
+static_assert(    csl::wf::mp::is_invocable_with_v<
+    typed_identity,
+    csl::wf::mp::ttps<int>,
+    csl::wf::mp::args<int>
+>);
 
 auto main(int, char*[]) -> int
 {
-    // --- invoke with template parameters ---
-    auto typed = []<typename T>(T v) { return v * 2; };
-    assert(csl::wf::invoke<int>(typed, 21) == 42); // NOLINT(*-assert)
+    // --- invoke with explicit template parameters ---
+    // std::invoke cannot deduce the lambda's ttp T, csl::wf::invoke can.
+    auto scale = []<typename T>(T v) { return v * T{2}; };
+    assert(csl::wf::invoke<int>(scale, 21) == 42); // NOLINT(*-assert)
 
-    // --- apply / apply_before / apply_after ---
+    // --- tuple unpacking ---
+    // apply_before : f(tuple..., extras...) - packed args prepended
+    // apply_after  : f(extras..., tuple...) - packed args appended
     auto add = [](int a, int b) { return a + b; };
-    auto args = std::tuple{10, 32};
-    assert(csl::wf::apply(add, args) == 42);           // NOLINT(*-assert)
-    assert(csl::wf::apply_after (add, std::tuple{32}, 10) == 42); // NOLINT(*-assert)
-    assert(csl::wf::apply_before(add, std::tuple{10}, 32) == 42); // NOLINT(*-assert)
+    assert(csl::wf::apply       (add, std::tuple{10, 32})    == 42); // NOLINT(*-assert)
+    assert(csl::wf::apply_before(add, std::tuple{10}, 32)    == 42); // NOLINT(*-assert)
+    assert(csl::wf::apply_after (add, std::tuple{32}, 10)    == 42); // NOLINT(*-assert)
 
-    // --- bind_front / bind_back ---
-    auto add10 = csl::wf::bind_front(add, 10);
-    assert(add10(32) == 42); // NOLINT(*-assert)
+    // --- partial application ---
+    auto add10   = csl::wf::bind_front(add, 10);
+    auto add10_b = csl::wf::bind_back (add, 10);
+    assert(add10  (32) == 42); // NOLINT(*-assert)
+    assert(add10_b(32) == 42); // NOLINT(*-assert)
 
-    auto add10_back = csl::wf::bind_back(add, 10);
-    assert(add10_back(32) == 42); // NOLINT(*-assert)
-
-    // --- function_ref: non-owning, rebindable ---
-    auto square = [](int x) { return x * x; };
-    csl::wf::function_ref ref{square};
-    assert(ref(6) == 36); // NOLINT(*-assert)
-
-    // --- route: pipeline composition ---
+    // --- pipeline: make_continuation chains callables left-to-right ---
+    // invoke the result before `using namespace csl::wf::operators`:
+    // the unconstrained >>= from that namespace conflicts with chain_invoke's internal fold.
     auto pipeline = csl::wf::make_continuation(
-        [](int x)         { return x * 2; },
-        [](int x)         { return std::to_string(x); },
-        [](std::string s) { return s + "!"; }
+        [](int x) { return x * 2; },
+        [](int x) { return std::to_string(x) + "!"; }
     );
     assert(pipeline(21) == "42!"); // NOLINT(*-assert)
 
     // --- eDSL operators ---
     using namespace csl::wf::operators;
 
+    // >>= : operator form of make_continuation (type-stable pipelines)
     auto process =
-        [](int x) { return x + 1; }
-        >>= [](int x) { return x * 10; };
-    assert(process(3) == 40); // NOLINT(*-assert)
+        [](int x) { return x * 10; }
+    >>= [](int x) { return x + 2; }
+    >>= [](int x) { return std::to_string(x); };
+    assert(process(4) == std::string{42}); // NOLINT(*-assert)
 
-    auto handle = [](int x)    { return x > 0; }
-                | [](float x)  { return x > 0.f; };
-    assert(handle(1));    // NOLINT(*-assert)
-    assert(handle(1.f));  // NOLINT(*-assert)
+    // | : overload set - dispatches on argument type at call time
+    auto is_positive =
+        [](int   x) { return x > 0; }
+    |   [](float x) { return x > 0.F; };
+    assert(is_positive(1));   // NOLINT(*-assert)
+    assert(is_positive(1.F)); // NOLINT(*-assert)
 
-    // --- repeater ---
-    using namespace csl::wf::literals;  // _times
+    // * N_times : invoke N times per call
+    using namespace csl::wf::literals;
+
     int count = 0;
-    auto tick = [&count] { ++count; } * 3_times;
-    tick();
-    assert(count == 3); // NOLINT(*-assert)
+    ([&count]{ ++count; } * 5_times)();
+    assert(count == 5); // NOLINT(*-assert)
 
-    // repeater flattening
-    auto double_repeat = ([&count]{ ++count; } * 2_times) * 3_times;
+    // repeaters compose: (2_times) * (3_times) = 6 calls total
     count = 0;
-    double_repeat();
+    ([&count]{ ++count; } * 2_times * 3_times)();
     assert(count == 6); // NOLINT(*-assert)
 
-    // --- function_view via operator| ---
-    auto f = [](int x) { return x - 1; };
-    auto view = f | csl::wf::operators::view;
-    assert(view(43) == 42); // NOLINT(*-assert)
+    // --- non-owning callable wrappers ---
+    // ref  : pointer-like (stores address, rebindable between same-type instances)
+    // view : reference-like (stores reference, default-constructible)
+    auto f   = [](int x) { return x - 1; };
+    auto fref = f | ref;
+    auto fvw  = f | csl::wf::operators::view; // qualified: avoids shadowing the imported 'view' tag
+    assert(fref(43) == 42); // NOLINT(*-assert)
+    assert(fvw (43) == 42); // NOLINT(*-assert)
 }
