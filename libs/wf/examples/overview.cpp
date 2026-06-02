@@ -3,8 +3,6 @@
 #include <cassert>
 #include <string>
 
-using namespace csl::wf::literals;  // _times
-
 // --- type traits ---
 
 using F = decltype([]<typename T>(T v) { return v; });
@@ -60,6 +58,7 @@ auto main(int, char*[]) -> int
     assert(handle(1.f));  // NOLINT(*-assert)
 
     // --- repeater ---
+    using namespace csl::wf::literals;  // _times
     int count = 0;
     auto tick = [&count] { ++count; } * 3_times;
     tick();

@@ -1066,7 +1066,7 @@ namespace csl::ag {
 //  then the generated make_to_tuple<N> templates would require get<I>(value) to be ADL-findable for T.
 //  csl::ag::get is defined AFTER the generated include, so it is not visible via non-ADL unqualified lookup at the template definition site.
 //  For user-defined aggregate types outside namespace csl::ag, ADL does not search
-//  csl::ag either — making get<I> irrecoverably unfindable for them.
+//  csl::ag either - making get<I> irrecoverably unfindable for them.
 //
 //  The generated code exists because C++ has no introspection for aggregate field types:
 //  make_to_tuple<N> uses structured bindings at consteval time to capture field types

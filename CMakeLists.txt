@@ -28,8 +28,12 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/add_component.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/compile_warnings.cmake)
 # Exported modules
 include(csl/print_aligned)
-include(csl/cache_entry_conversion)
+include(csl/cache/entry_conversion)
+include(csl/cache/multi_cache_support)
+include(csl/cache/print_build_info)
 include(csl/list_subdirectories)
+
+csl_symlink_compile_commands()
 
 ## Build informations
 message(STATUS  "[${PROJECT_NAME}] Build informations")
