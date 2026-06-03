@@ -40,7 +40,7 @@ auto main(int, char*[]) -> int
     meters a{1}, b{2};
     assert(a < b);                   // NOLINT(*-assert)
     assert(a != b);                  // NOLINT(*-assert)
-    assert((a <=> b) < 0);           // NOLINT(*-assert)
+    assert(std::is_lt(a <=> b));      // NOLINT(*-assert)
     assert(a < 2);                   // vs raw underlying // NOLINT(*-assert)
 
     // invocation: operator() forwarded when T is callable
