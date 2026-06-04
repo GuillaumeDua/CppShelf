@@ -55,7 +55,7 @@ auto main(int, char*[]) -> int
         [](int x) { return x * 10; }
     >>= [](int x) { return x + 2; }
     >>= [](int x) { return std::to_string(x); };
-    assert(process(4) == std::string{42}); // NOLINT(*-assert)
+    assert(process(4) == std::string{"42"}); // NOLINT(*-assert)
 
     // | : overload set - dispatches on argument type at call time
     auto is_positive =
