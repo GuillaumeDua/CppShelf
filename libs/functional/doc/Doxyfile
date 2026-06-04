@@ -1,6 +1,7 @@
 @INCLUDE               = doc/Doxyfile
 
-PROJECT_NAME           = "csl::functional"
+PROJECT_NAME           = "📞 csl::functional"
+PROJECT_LOGO           = ./doc/details/images/github_emoji_unicode_1f4de.png
 PROJECT_BRIEF          = "Functional programming utilities."
 
 OUTPUT_DIRECTORY       = ./doc/output/functional
