@@ -35,10 +35,10 @@ auto main(int, char*[]) -> int
     [[maybe_unused]] constexpr auto mass = kilograms{ 10 };
     // mass = distance;  // won't compile: incompatible strong types
 
-    // implicit const ref — opt-in escape hatch, e.g. for legacy APIs
-    [[maybe_unused]] const int& raw = distance;
-    assert(raw                                               == 42);
-    static_assert(distance.underlying()                      == 42);
+    // implicit const ref - opt-in escape hatch, e.g. for legacy APIs
+    [[maybe_unused]] const int& distance_underlying_ref = distance;
+    assert(distance_underlying_ref                            == 42);
+    static_assert(distance.underlying()                       == 42);
     static_assert(csl::ensure::to_underlying(distance) == 42);
 
     // unwrap: strips strong type, or passes through unchanged if already raw
@@ -59,7 +59,7 @@ auto main(int, char*[]) -> int
     constexpr auto offset = calibrator{ [](int x) { return x + 1; } };
     static_assert(offset(41) == 42);
 
-    // --- STL: std::hash specialised automatically ---
+    // --- STL: std::hash specializsed automatically ---
     auto readings = std::unordered_map<sensor_id, meters>{
         { sensor_id{ 7 }, meters{ 250 } },
         { sensor_id{ 9 }, meters{ 480 } },

@@ -948,7 +948,10 @@ namespace csl::wf {
         using type = F;
 
         constexpr explicit function_view(auto && value)
-        noexcept(std::is_nothrow_constructible_v<F, decltype(value)>)
+        noexcept(
+                std::is_nothrow_constructible_v<F, decltype(value)>
+            and not std::equality_comparable_with<decltype(value), decltype(nullptr)>
+        )
         requires (not std::same_as<function_view, std::remove_cvref_t<decltype(value)>>)
         : storage{ std::forward<F&>(value) }
         {
@@ -1024,7 +1027,10 @@ namespace csl::wf {
         using type = F;
 
         constexpr explicit function_ref(auto && value)
-        noexcept(std::is_nothrow_constructible_v<storage_type, decltype(std::addressof(value))>)
+        noexcept(
+                std::is_nothrow_constructible_v<storage_type, decltype(std::addressof(value))>
+            and not std::equality_comparable_with<decltype(value), decltype(nullptr)>
+        )
         requires (not std::same_as<function_ref, std::remove_cvref_t<decltype(value)>>)
         : storage{ std::addressof(std::forward<F&>(value)) }
         {
