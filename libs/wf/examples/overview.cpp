@@ -21,7 +21,7 @@ auto main(int, char*[]) -> int
 {
     // --- invoke with explicit template parameters ---
     // std::invoke cannot deduce the lambda's ttp T, csl::wf::invoke can.
-    auto scale = []<typename T>(T v) { return v * T{2}; };
+    [[maybe_unused]] auto scale = []<typename T>(T v) { return v * T{2}; };
     assert(csl::wf::invoke<int>(scale, 21) == 42); // NOLINT(*-assert)
 
     // --- tuple unpacking ---
@@ -33,15 +33,15 @@ auto main(int, char*[]) -> int
     assert(csl::wf::apply_after (add, std::tuple{32}, 10)    == 42); // NOLINT(*-assert)
 
     // --- partial application ---
-    auto add10   = csl::wf::bind_front(add, 10);
-    auto add10_b = csl::wf::bind_back (add, 10);
+    [[maybe_unused]] auto add10   = csl::wf::bind_front(add, 10);
+    [[maybe_unused]] auto add10_b = csl::wf::bind_back (add, 10);
     assert(add10  (32) == 42); // NOLINT(*-assert)
     assert(add10_b(32) == 42); // NOLINT(*-assert)
 
     // --- pipeline: make_continuation chains callables left-to-right ---
     // invoke the result before `using namespace csl::wf::operators`:
     // the unconstrained >>= from that namespace conflicts with chain_invoke's internal fold.
-    auto pipeline = csl::wf::make_continuation(
+    [[maybe_unused]] auto pipeline = csl::wf::make_continuation(
         [](int x) { return x * 2; },
         [](int x) { return std::to_string(x) + "!"; }
     );
@@ -51,14 +51,14 @@ auto main(int, char*[]) -> int
     using namespace csl::wf::operators;
 
     // >>= : operator form of make_continuation (type-stable pipelines)
-    auto process =
+    [[maybe_unused]] auto process =
         [](int x) { return x * 10; }
     >>= [](int x) { return x + 2; }
     >>= [](int x) { return std::to_string(x); };
     assert(process(4) == std::string{"42"}); // NOLINT(*-assert)
 
     // | : overload set - dispatches on argument type at call time
-    auto is_positive =
+    [[maybe_unused]] auto is_positive =
         [](int   x) { return x > 0; }
     |   [](float x) { return x > 0.F; };
     assert(is_positive(1));   // NOLINT(*-assert)
@@ -80,8 +80,8 @@ auto main(int, char*[]) -> int
     // ref  : pointer-like (stores address, rebindable between same-type instances)
     // view : reference-like (stores reference, default-constructible)
     auto f   = [](int x) { return x - 1; };
-    auto fref = f | ref;
-    auto fvw  = f | csl::wf::operators::view; // qualified: avoids shadowing the imported 'view' tag
+    [[maybe_unused]] auto fref = f | ref;
+    [[maybe_unused]] auto fvw  = f | csl::wf::operators::view; // qualified: avoids shadowing the imported 'view' tag
     assert(fref(43) == 42); // NOLINT(*-assert)
     assert(fvw (43) == 42); // NOLINT(*-assert)
 }
