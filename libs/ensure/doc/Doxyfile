@@ -1,6 +1,7 @@
 @INCLUDE               = doc/Doxyfile
 
-PROJECT_NAME           = "csl::ensure"
+PROJECT_NAME           = "🛡️ csl::ensure"
+PROJECT_LOGO           = ./doc/details/images/github_emoji_unicode_1f6e1.png
 PROJECT_BRIEF          = "Assertion and contract utilities."
 
 OUTPUT_DIRECTORY       = ./doc/output/ensure
@@ -14,5 +15,7 @@ INPUT                  = ./libs/ensure/includes/ensure \
 USE_MDFILE_AS_MAINPAGE = ./libs/ensure/README.md
 
 INCLUDE_PATH           = ./libs/ensure/includes/ensure
+
+EXCLUDE                = ./libs/ensure/includes/ensure/csl/cxx_17
 
 EXCLUDE_SYMBOLS        = *::details::*
