@@ -77,3 +77,9 @@ See [compiler explorer demo](https://godbolt.org/z/cf96MnKfY).
 ## Live demo
 
 - [godbolt.org](https://godbolt.org/z/Wd4EhcYr6)
+
+---
+
+## Example
+
+@include overview.cpp

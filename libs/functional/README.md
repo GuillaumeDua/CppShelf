@@ -169,3 +169,9 @@ static_assert(csl::functional::type_traits::is_simple_callable_v<F>);
 template <csl::functional::concepts::simple_callable F>
 void register_callback(F && f);
 ```
+
+---
+
+## Example
+
+@include overview.cpp
