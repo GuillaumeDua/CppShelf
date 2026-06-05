@@ -1,10 +1,9 @@
 name: csl CI
 
 on:
-  pull_request:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - gh-pages
   workflow_dispatch:
 
 concurrency:
