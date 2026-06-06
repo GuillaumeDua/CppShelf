@@ -1099,7 +1099,7 @@ namespace csl::ag::tuplelike {
     template <std::size_t I, csl::ag::concepts::tuple_like T>
     struct element<I, T> : std::tuple_element<I, T>{};
     template <std::size_t I, typename T>
-    using element_t = element<I, T>::type;
+    using element_t = typename element<I, T>::type;
 
     // get
     template <std::size_t index, typename T>
@@ -1115,6 +1115,15 @@ namespace csl::ag::tuplelike {
 
     // algorithms
     // REFACTO: concept for possibly-qualified-structured_bindable
+    // - apply
+    template <typename T>
+    requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
+    constexpr auto apply(auto && f, T && value) -> decltype(auto) {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr -> decltype(auto) {
+            return std::invoke(csl_fwd(f), csl::ag::tuplelike::get<indexes>(csl_fwd(value))...);
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
+    }
     // - for_each
     template <typename T>
     requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
