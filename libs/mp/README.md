@@ -12,7 +12,7 @@ Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of s
 
 ---
 
-## `tuple<Ts...>`
+## tuple<Ts...>
 
 A drop-in replacement for `std::tuple` with a richer access syntax and full STL interoperability (`std::get`, `std::tuple_size`, `std::tuple_element`, structured bindings).
 
@@ -36,7 +36,7 @@ Factory functions mirror the standard:
 
 ---
 
-## Algorithms - `csl::mp::functions`
+## Algorithms - csl::mp::functions
 
 All algorithms operate on a value of any `tuple_like` type (including `csl::mp::tuple`, `std::tuple`, `std::pair`, `std::array`).
 
@@ -53,7 +53,7 @@ All algorithms operate on a value of any `tuple_like` type (including `csl::mp::
 
 ---
 
-## Type traits - `csl::mp::type_traits`
+## Type traits - csl::mp::type_traits
 
 Trait composition utilities:
 
@@ -67,7 +67,7 @@ Trait composition utilities:
 
 Reference-qualified cv manipulation (P1450): `copy_ref`, `add_const`, `add_volatile`, `add_cv` - preserve reference category across cv qualification.
 
-### Tuples algorithms - `csl::mp::type_traits`
+### Tuples algorithms - csl::mp::type_traits
 
 Compile-time operations on the element types of any `tuple_like`. All produce a `::type` alias and a corresponding `_t` shorthand.
 
@@ -105,7 +105,7 @@ Compile-time operations on the element types of any `tuple_like`. All produce a 
 
 ---
 
-## Concepts - `csl::mp::concepts`
+## Concepts - csl::mp::concepts
 
 | Concept                                  | Description                               |
 | ---------------------------------------- | ----------------------------------------- |
@@ -116,7 +116,7 @@ Compile-time operations on the element types of any `tuple_like`. All produce a 
 
 ---
 
-## Sequences - `csl::mp::concepts::sequence`
+## Sequences - csl::mp::concepts::sequence
 
 Type traits (`csl::mp`): `is_sequence<T>` / `_v`, `is_index_sequence<T>` / `_v`, `reverse_t<T>`, `make_reverse_index_sequence<N>`, `to_tuplelike<T>` / `_t`.
 

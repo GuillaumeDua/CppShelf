@@ -29,7 +29,7 @@ Two tag types carry the extra information through the API:
 
 ## Invocation
 
-### `invoke`
+### invoke
 
 ```cpp
 csl::wf::invoke<ttps...>(f, args...);
@@ -45,7 +45,7 @@ csl::wf::invoke<int>(f, 21);      // calls f.operator()<int>(21) -> 42
 csl::wf::invoke(f, 21);           // calls std::invoke(f, 21)
 ```
 
-### `apply` / `apply_before` / `apply_after`
+### apply / apply_before / apply_after
 
 Tuple-unpacking variants of `invoke`:
 
@@ -61,7 +61,7 @@ All accept an optional leading `ttps<...>` argument.
 
 ---
 
-## Invocation traits - `csl::wf::mp`
+## Invocation traits - csl::wf::mp
 
 `ttps`-aware counterparts to the standard `<type_traits>` invocability traits:
 
@@ -89,7 +89,7 @@ Combined pack form (takes both `ttps<...>` and `args<...>` as single types):
 
 Type-correct alternatives to `std::bind_front` / `std::bind_back` that also support binding template type parameters.
 
-### `bind_front` / `bind_back`
+### bind_front / bind_back
 
 ```cpp
 auto add = [](int a, int b) { return a + b; };
@@ -115,7 +115,7 @@ The underlying `front_binder<F, ttps<...>, args<...>>` and `back_binder` types a
 
 ## Non-owning wrappers
 
-### `function_view<F>`
+### function_view<F>
 
 Stores `F` by **lvalue reference**. Cheaper than `std::reference_wrapper` - passes `operator()` through all cvref-qualifications and supports `ttps`.
 
@@ -125,7 +125,7 @@ csl::wf::function_view view{f};
 view(21);  // -> 42
 ```
 
-### `function_ref<F>`
+### function_ref<F>
 
 Stores `F` by **pointer**. Rebindable, swappable, nullable-checked on construction.
 
@@ -140,7 +140,7 @@ Both throw `std::invalid_argument` if constructed from `nullptr`.
 
 ## Repetition
 
-### `invoke_n_times<N>(f, args...)`
+### invoke_n_times<N>(f, args...)
 
 Calls `f(args...)` exactly `N` times. Returns `void` if `f` returns `void`, otherwise an `std::array<result_t, N>`.
 
@@ -152,7 +152,7 @@ auto results = csl::wf::invoke_n_times<3>([](int x){ return x * 2; }, 21);
 // results == std::array{42, 42, 42}
 ```
 
-### `repeater<N, F>`
+### repeater<N, F>
 
 A callable wrapper that repeats its call `N` times on each `operator()` invocation. Repeated `repeater`s flatten their counts multiplicatively.
 
@@ -233,7 +233,7 @@ repeat(5);  // -> std::array{10, 10, 10}
 
 ---
 
-## Chain traits - `csl::wf::mp::chain_trait<Fs...>`
+## Chain traits - csl::wf::mp::chain_trait<Fs...>
 
 Compile-time introspection of a pipeline:
 
