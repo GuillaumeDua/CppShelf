@@ -1,5 +1,5 @@
 
-<div style="position: absolute; top: 0; right: 0;">
+<div style="position: absolute; top: 0; right: 17px;">
   <a href="https://github.com/GuillaumeDua/CppShelf">
     <img loading="lazy" width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1" align="right"
     style="position: relative; top: 0; right: 0; z-index: 1;">
@@ -48,7 +48,7 @@ std::cout << "value: " << value << '\n';
 
 </td><td>
 
-```
+```text
 value: S& : {
    [0] char : A
    [1] int : 42
@@ -235,13 +235,13 @@ struct my_aggregate{ char c = 'a'; A a = A{ .i = 13} };
 
 - Compact presentation:
 
-```
+```text
 my_aggregate: { char: 'c', A: { int: 13 } }
 ```
 
 - Pretty presentation:
 
-```
+```text
 my_aggregate: {
     char: 'c',
     A: {
@@ -421,7 +421,7 @@ constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
 
 </td><td>
 
-```
+```text
 42 0.13
 ```
 </td></tr></table>
@@ -652,7 +652,7 @@ static_assert(std::same_as<
 >);
 ```
 
-```
+```text
 42, 0.13
 ```
 
@@ -669,7 +669,7 @@ auto value = A{ .i = 42, .f = 0.13f };
 }(std::make_index_sequence<csl::ag::size_v<A>>{});
 ```
 
-```
+```text
 42 0.13 
 ```
 
@@ -690,7 +690,7 @@ static_assert(csl::ag::get<1>(value) == 'c');   // pass
 
 #### csl::ag::apply
 
-Analogous to [`std::apply`](https://en.cppreference.com/w/cpp/utility/apply), but operates directly on an aggregate — unpacking its fields as arguments to a callable, without a prior `to_tuple` conversion.
+Analogous to [`std::apply`](https://en.cppreference.com/w/cpp/utility/apply), but operates directly on an aggregate - unpacking its fields as arguments to a callable, without a prior `to_tuple` conversion.
 
 ```cpp
 struct A{ int i; float f; };
@@ -723,7 +723,7 @@ There are two way to pretty-print aggregate types :
 - using the legacy C++'s way : `std::ostream& operator<<(std::ostream&, T&&)` overload
 - using the `fmt` or `std::format` library
 
-#### using std::ostream :
+#### using std::ostream
 
 Simple example :
 
@@ -739,7 +739,7 @@ auto main() -> int {
 }
 ```
 
-```
+```text
 A && : {
    [0] int : 42
    [1] float : 0.13
@@ -788,7 +788,7 @@ auto main() -> int {
 
 Output :
 
-```yaml
+```text
 C & : {
    [0] A & : {
       [0] int : 13
@@ -811,6 +811,72 @@ C & : {
 ```
 
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
+
+#### using fmt
+
+Requires `CSL_AG__ENABLE_FMTLIB_SUPPORT` (opt-in, off by default).  
+Enable via CMake or by defining the macro before including the header:
+
+```cpp
+#define CSL_AG__ENABLE_FMTLIB_SUPPORT true
+#include <csl/ag.hpp>
+#include <fmt/format.h>
+```
+
+> If `fmt::fmt-header-only` is not available as a CMake target, it will be fetched automatically via `FetchContent`.  
+> fmtlib >= 11 is required for the `:n` specifier.
+
+This specializes `fmt::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
+
+Three format modes are available:
+
+| Format string                              | Output style                                                 |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| `"{}"`                                     | compact - fields wrapped in `{}`, nested aggregates recursed |
+| `"{:n}"`                                   | no outer brackets                                            |
+| `"{}"` on `value \| csl::ag::io::indented` | indented multi-line                                          |
+
+Example:
+
+```cpp
+struct point { int x; int y; };
+struct rect  { point top_left; point bottom_right; };
+
+constexpr auto r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };
+
+fmt::print("{}\n",   r);                         // compact
+fmt::print("{:n}\n", r);                         // no brackets
+fmt::print("{}\n",   r | csl::ag::io::indented); // indented
+```
+
+Compact (`{}`):
+
+```text
+{{0, 0}, {10, 5}}
+```
+
+No brackets (`{:n}`):
+
+```text
+{0, 0}{10, 5}
+```
+
+Indented (`| csl::ag::io::indented`):
+
+```text
+{
+    {
+        0,
+        0
+    },
+    {
+        10,
+        5
+    }
+}
+```
+
+Mixed-content aggregates (containing tuple-likes and ranges) are also supported - tuples render as `(...)`, arrays and other ranges as `[...]`.
 
 ## Homogeneity API with tuple-likes
 
@@ -853,18 +919,33 @@ As-is, this implementation internally relies on structured-binding, which design
 
 ## (Internal details) Where's the magic ?
 
-Everything has its own dirty secrets, and this library is no exception.  
+Every magic has its own dirty secrets under the hood, and this library is no exception.  
 
-Internally, and for each given aggregate type, it recursively check if a value of the later is constructible from an aggregate-initialization using `N` implicitly-castable-to-anything parameters values.  
+Internally, the library determines the field count of a given aggregate type by probing `aggregate_constructible_from_n_values<T, N>` - whether `T` is constructible from `N` implicitly-castable-to-anything values - via `csl::ag::details::probing`.
 
-> The initial `N` value is `sizeof(T)`.
+Two strategies are used depending on the type:
 
-If the result is a failure, then another attempt using `N-1` is done, up to 1 (included).
+### **Fast path** - for default_initializable<T> without bitfield support
 
-See `csl::ag::concepts::aggregate_with_n_fields<T, size>`
+`f(N) = aggregate_constructible_from_n_values<T, N>` is monotone (true for all N ≤ field_count, false beyond), so:
+
+1. **Exponential probe**: start at N=1 and double until `f(2N)` is false or the cap is exceeded - O(log field_count) instantiations.
+2. **Binary search** in the bracketed range - O(log field_count) instantiations.
+
+Total cost: **O(log field_count)** template instantiations.
+
+### **Slow path** - for non default_initializable<T> or when bitfield support is enabled
+
+Monotonicity cannot be assumed, so binary search would be unsafe. Instead, a linear descent from a tight upper bound is used:
+
+- Without bitfields: upper bound is `sizeof(T) / alignof(T)`.
+- With bitfields: upper bound is `sizeof(T) / alignof(T) * CHAR_BIT`.
+
+See `csl::ag::concepts::aggregate_constructible_from_n_values<T, N>` and `csl::ag::details::probing`.
 
 ```cpp
 auto main() -> int {
+
     struct A{ char a, b, c, d, e, f, g, h; };
     static_assert(sizeof(A) == 8);
     static_assert(csl::ag::size_v<A> == 8);
