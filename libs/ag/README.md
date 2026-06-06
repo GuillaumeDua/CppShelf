@@ -91,13 +91,14 @@ This library provides a way to obtain such information, and internally use it to
 
 ---
 
-This library is divided in five distinct parts :
+This library is divided in six distinct parts :
 
-- [#1](#aggregate-related-concepts) Aggregates-related concepts
-- [#2](#aggregate-related-type-traits) Aggregates-related type-traits
-- [#3](#to-tuple-conversion-for-aggregate-types) Conversion to tuples for aggregate types (owning or not)
-- [#4](#tuplelike-interface-for-aggregates) A tuplelike interface for aggregates types
-- [#5 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
+- [#1](#concepts) Concepts
+- [#2](#type-traits) Type-traits
+- [#3](#to-tuple-conversion) to-tuple conversion (owning or non-owning)
+- [#4](#tuplelike-interface) tuplelike interface
+- [#5](#functional-api) Functional API (`apply`, `for_each`)
+- [#6 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
 
 ---
 
@@ -108,7 +109,7 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 - `csl::ag::size<T>` gives the fields count in a given aggregate type type  
   (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `to_tuple` or `to_tuple_view` conversion)
-- `csl::ag::get<size_t N>(aggregate auto value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
+- `csl::ag::get<size_t N>(aggregate auto && value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
 
 ---
 
@@ -152,6 +153,7 @@ struct S {
     char && c;
 };
 static_assert(csl::ag::size_v<S> == 5); // ☣️ UB by default
+                                        // 💡 well-defined with CSL_AG__ENABLE_BITFIELDS_SUPPORT=ON
 ```
 
 If you plan to use features of this library with aggregate types containing bitfields, you must first enable such support either using one of the two following ways :
@@ -159,12 +161,13 @@ If you plan to use features of this library with aggregate types containing bitf
 - Using `CMake`, edit the cache to set the `CSL_AG__ENABLE_BITFIELDS_SUPPORT` option to `on`.  
   or
 - Using plain **C++**, define the preprocessor variable `CSL_AG__ENABLE_BITFIELDS_SUPPORT`.
+
   ```cpp
   #define CSL_AG__ENABLE_BITFIELDS_SUPPORT true
   ```
 
 > ❔ **Question** : Why such option exists ?
-> 
+>
 > The (compile-time) algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one.  
 > One might want to challenge his/her project's design in order to avoid such high performance cost.
 
@@ -254,7 +257,7 @@ except for nested-namespaces named `details`.
 
 In other words, the library provides **no guarantee** to any direct use of namespaces named with a pattern like `csl::ag::*::details::*`.
 
-### Aggregate-related concepts
+### Concepts
 
 All concepts that are part of the public interface are defined in the namespace `csl::ag::concepts`.
 
@@ -297,7 +300,7 @@ This does not mean that `T` has `N` fields : it can be more.
 
 See the [structured_binding documentation](https://en.cppreference.com/w/cpp/language/structured_binding) for more details.
 
-### Aggregate-related type-traits
+### Type-traits
 
 #### csl::ag::size<T>
 
@@ -309,7 +312,7 @@ static_assert(csl::ag::size<A>::value == 2);
 static_assert(csl::ag::size_v<A>      == 2);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
 
 Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed using a convenience alias :
 
@@ -328,7 +331,7 @@ static_assert(std::same_as<int,   csl::ag::element_t<0, A>>);
 static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
 Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
 
@@ -340,7 +343,7 @@ using element_t = typename element<N, T>::type;
 #### csl::ag::view_element<std::size_t, concepts::aggregate>
 
 In a similar way to `csl::ag::element<std::size_t, T>`, `csl::ag::view_element<std::size_t,T>` is a type-identity for a field's type of a given aggregate view type.  
-For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view) section.
+For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view-lightweight-accessor) section.
 
 ```cpp
 struct A{ int i; float & f; const char && c; };
@@ -354,7 +357,7 @@ static_assert(std::same_as<float&,        csl::ag::view_element_t<1, const A&>>)
 static_assert(std::same_as<const char&&,  csl::ag::view_element_t<2, const A&>>);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
 
 The `type` nested-type can be accessed using a convenience alias :
 
@@ -363,7 +366,7 @@ template <std::size_t N, concepts::aggregate T>
 using view_element_t = typename view_element<N, T>::type;
 ```
 
-### to-tuple conversion for aggregate types
+### to-tuple conversion
 
 This library provides two ways to convert an aggregate's value to [std::tuple](https://en.cppreference.com/w/cpp/utility/tuple), distinguishing between proprietary and non-proprietary tuples of values.
 
@@ -445,7 +448,7 @@ static_assert(42    == std::get<0>(value_as_tuple));
 static_assert(0.13f == std::get<1>(value_as_tuple));
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv).
 
 Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element) can be use to obtains the conversion result's element types.
 
@@ -568,7 +571,7 @@ int i = 42;
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo).
 
 Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
 
@@ -606,9 +609,9 @@ static_assert(std::same_as<int &,
 // still not propagation for fields 2 and 3 ...
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc).
 
-### tuplelike interface for aggregates
+### tuplelike interface
 
 #### std::tuple_element
 
@@ -627,7 +630,7 @@ static_assert(std::same_as<
 >);
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
 
 #### std::get
 
@@ -653,7 +656,7 @@ static_assert(std::same_as<
 42, 0.13
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
 
 Slightly more advanced example :
 
@@ -670,7 +673,7 @@ auto value = A{ .i = 42, .f = 0.13f };
 42 0.13 
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
 
 Note that `constexpr`-ness is preserved :
 
@@ -681,7 +684,37 @@ static_assert(csl::ag::get<0>(value) == 42);    // pass
 static_assert(csl::ag::get<1>(value) == 'c');   // pass
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
+
+### Functional API
+
+#### csl::ag::apply
+
+Analogous to [`std::apply`](https://en.cppreference.com/w/cpp/utility/apply), but operates directly on an aggregate — unpacking its fields as arguments to a callable, without a prior `to_tuple` conversion.
+
+```cpp
+struct A{ int i; float f; };
+auto value = A{ .i = 42, .f = 0.13f };
+
+auto result = csl::ag::apply([](auto && ... fields){
+    return (fields + ...);
+}, value);
+// result == 42.13f
+```
+
+#### csl::ag::for_each
+
+Invokes a callable once per field, in order.
+
+```cpp
+struct A{ int i; float f; };
+auto value = A{ .i = 42, .f = 0.13f };
+
+csl::ag::for_each([](auto && field){
+    std::cout << field << ' ';
+}, value);
+// output: 42 0.13
+```
 
 ### Pretty-printing
 
@@ -713,7 +746,7 @@ A && : {
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
 
 Advanced example :
 
@@ -777,9 +810,9 @@ C & : {
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
 
-## std::tuple and aggregate types homogeneity
+## Homogeneity API with tuple-likes
 
 As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.
 
@@ -788,30 +821,26 @@ void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bin
 
     using value_type = std::remove_cvref_t<decltype(value)>;
 
-    constexpr auto size = []() constexpr { // work-around for ADL issue
-        if constexpr (csl::ag::concepts::tuplelike<value_type>)
-            return std::tuple_size_v<value_type>;
-        else if constexpr (csl::ag::concepts::aggregate<value_type>)
-            return csl::ag::size_v<value_type>;
-        else
-            static_assert(sizeof(value_type) and false, "Unexpected type"); // NOLINT
-    }();
+    using namespace csl::ag::tuplelike; // size, get, element
 
-  const auto do_stuffs = [&]<size_t index>(){
-    auto && element_value = std::get<index>(std::forward<decltype(value)>(value));
-    using element_value_type = decltype(element_value);
-    using element_type = std::tuple_element_t<index, value_type>;
+    constexpr auto size = size_v<value_type>;
 
-    // do stuffs with element_value, element_type ...
-  };
+    const auto do_stuffs = [&]<size_t index>(){
 
-  [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-      ((do_stuffs.template operator()<indexes>()), ...);  
-  }(std::make_index_sequence<size>{});
+        auto && element_value = get<index>(std::forward<decltype(value)>(value));
+        using element_value_type = decltype(element_value);
+        using element_type = element_t<index, value_type>;
+
+        // do stuffs with element_value, element_type ...
+    };
+
+    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        ((do_stuffs.template operator()<indexes>()), ...);  
+    }(std::make_index_sequence<size>{});
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/j6ahehMn1).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8fv1rfK6s).
 
 ## Current limitations
 
@@ -819,7 +848,7 @@ As-is, this implementation internally relies on structured-binding, which design
 
 - Compile-time evaluation is limited.
 - By-default behaviors injections, using STL extension/customization point (e.g injecting in the `std` namespace definitions for `get`/`tuple_element`/`tuple_size(_v)` won't work).
-- Aggregate types with more fields than their size are currently not supported.
+- Aggregate types with more fields than their size are currently not supported, but that's non-sense from a design perspective anyway.
 - Ill-formed aggregate types using union-fields are not supported
 
 ## (Internal details) Where's the magic ?
@@ -850,10 +879,12 @@ auto main() -> int {
 }
 ```
 
-[<img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).
 
 ---
 
 ## Example
 
 @include overview.cpp
+
+[ce-icon]: https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true
