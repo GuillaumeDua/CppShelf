@@ -43,7 +43,6 @@ S value{ 'A', 41 }; ++std::get<1>(value);
 
 using namespace csl::ag::io;
 std::cout << "value: " << value << '\n';
-// (wip) compatibility with `fmt` and `std::print` will be available soon
 ```
 
 </td><td>
@@ -54,6 +53,7 @@ value: S& : {
    [1] int : 42
 }
 ```
+
 </td></tr></table>
 
 ## Introduction
@@ -98,7 +98,7 @@ This library is divided in six distinct parts :
 - [#3](#to-tuple-conversion) to-tuple conversion (owning or non-owning)
 - [#4](#tuplelike-interface) tuplelike interface
 - [#5](#functional-api) Functional API (`apply`, `for_each`)
-- [#6 (WIP)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
+- [#6 (Experimentale)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
 
 ---
 
@@ -191,7 +191,7 @@ To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_
 > 
 > 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
 
-#### Formatting and printing (experimentale, WIP)
+#### Formatting and printing (experimentale)
 
 ⚠️ This section is **experimentale**, and **SHOULD NOT** be used in production.  
 Breaking changes are very likely, as the API is instable **for now**.
@@ -202,9 +202,10 @@ All options in this section are opt-ins *(`OFF` by default)*
 
   ```cpp
   const auto formatted = std::format("my aggregate = {}", my_aggregate{});
-  std::print("{}", my_aggregate_value);   // default presentation (compact)
-  std::print("{:c}", my_aggregate_value); // compact presentation
-  std::print("{:p}", my_aggregate_value); // pretty  presentation
+  // formatted == "my aggregate = {'a', {13}}"
+  std::print("{}", my_aggregate_value);   // default presentation (compact) → {'a', {13}}
+  std::print("{:c}", my_aggregate_value); // compact presentation           → {'a', {13}}
+  std::print("{:p}", my_aggregate_value); // pretty  presentation           → see below
   ```
 
 - `CSL_AG__ENABLE_FMTLIB_SUPPORT`: makes `csl::ag` depends on the `fmt` library, and add `fmt::formatter<csl::ag::aggregate T>`.
@@ -213,9 +214,10 @@ All options in this section are opt-ins *(`OFF` by default)*
 
   ```cpp
   const auto formatted = fmt::format("my aggregate = {}", my_aggregate{});
-  fmt::print("{}", my_aggregate_value);   // default presentation (compact)
-  fmt::print("{:c}", my_aggregate_value); // compact presentation
-  fmt::print("{:p}", my_aggregate_value); // pretty  presentation
+  // formatted == "my aggregate = {'a', {13}}"
+  fmt::print("{}", my_aggregate_value);   // default presentation (compact) → {'a', {13}}
+  fmt::print("{:c}", my_aggregate_value); // compact presentation           → {'a', {13}}
+  fmt::print("{:p}", my_aggregate_value); // pretty  presentation           → see below
   ```
 
 - `CSL_AG__ENABLE_IOSTREAM_SUPPORT`: add `csl::ag::io::operator<<(const csl::io::indented_ostream os, csl::ag::concepts::structured_bindable auto && value)`
