@@ -927,7 +927,7 @@ Internally, the library determines the field count of a given aggregate type by 
 
 Two strategies are used depending on the type:
 
-### **Fast path** - for default_initializable<T> without bitfield support
+### Fast path - for default_initializable<T> without bitfield support
 
 `f(N) = aggregate_constructible_from_n_values<T, N>` is monotone (true for all N ≤ field_count, false beyond), so:
 
@@ -936,7 +936,7 @@ Two strategies are used depending on the type:
 
 Total cost: **O(log field_count)** template instantiations.
 
-### **Slow path** - for non default_initializable<T> or when bitfield support is enabled
+### Slow path - for non default_initializable<T> or when bitfield support is enabled
 
 Monotonicity cannot be assumed, so binary search would be unsafe. Instead, a linear descent from a tight upper bound is used:
 

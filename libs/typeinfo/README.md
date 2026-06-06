@@ -13,7 +13,7 @@ Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of s
 #include <typeinfo/csl/typeinfo.hpp>
 ```
 
-## `type_name_v<T>`
+## type_name_v<T>
 
 A `constexpr inline` variable template holding the name of `T` as a `std::string_view`, extracted from compiler-provided information at compile time - no RTTI, no allocation.
 
@@ -35,7 +35,7 @@ std::string_view name = csl::typeinfo::type_name<T>();
 static_assert(csl::typeinfo::type_name<42>() == "int");
 ```
 
-### Known limitations - `type_name`
+### Known limitations - type_name
 
 | Issue                | GCC                                     | Clang                     | MSVC                                                                                |
 | -------------------- | --------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------- |
@@ -46,7 +46,7 @@ See [compiler explorer demo](https://godbolt.org/z/jbfqsf7hK).
 
 ---
 
-## `value_name_v<V>`
+## value_name_v<V>
 
 A `constexpr inline` variable template holding the string representation of the non-type template argument `V` as a `std::string_view`.
 
@@ -63,7 +63,7 @@ A function form is also available:
 std::string_view name = csl::typeinfo::value_name<V>();
 ```
 
-### Known limitations - `value_name`
+### Known limitations - value_name
 
 | Issue                  | GCC / Clang    | MSVC         |
 | ---------------------- | -------------- | ------------ |

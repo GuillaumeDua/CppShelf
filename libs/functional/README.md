@@ -12,7 +12,7 @@ Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of s
 
 ---
 
-## `arguments<Ts...>`
+## arguments<Ts...>
 
 Represents a packed argument list as a single type, with a tuplelike interface.  
 Enables argument lists to be stored, passed, and reasoned about as types rather than template parameter packs.
@@ -30,7 +30,7 @@ auto result = std::apply([](int i, float f, std::string_view s) {
 
 ---
 
-## `overload<Ts...>`
+## overload<Ts...>
 
 Classic overload set pattern - inherits `operator()` from each `Ts`, creating a single callable that dispatches based on argument types.
 
@@ -49,7 +49,7 @@ The deduction guide ensures clean construction from lambdas or any callable.
 
 ---
 
-## `function_trait<F>`
+## function_trait<F>
 
 Extracts the return type and argument list of any callable `F` as associated types.
 
@@ -133,7 +133,7 @@ using results = csl::functional::overload_result_t<O>;
 
 ---
 
-## Type traits - `csl::functional::type_traits`
+## Type traits - csl::functional::type_traits
 
 Argument-pack-aware variants of the standard `<type_traits>` invocability traits. Instead of a variadic `Ts...`, they take an `arguments<Ts...>` type, enabling the argument list to be stored and forwarded as a single type.
 
@@ -157,7 +157,7 @@ static_assert(csl::functional::type_traits::is_simple_callable_v<F>);
 
 ---
 
-## Concepts - `csl::functional::concepts`
+## Concepts - csl::functional::concepts
 
 | Concept                                     | Description                                    |
 | ------------------------------------------- | ---------------------------------------------- |

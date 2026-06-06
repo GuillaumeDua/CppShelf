@@ -19,7 +19,7 @@ The top-level header selects the implementation based on the language standard:
 
 ---
 
-## `strong_type<T, tag>`
+## strong_type<T, tag>
 
 `csl::ensure::strong_type<T, tag>` wraps a value of type `T` behind a distinct identity given by `tag`, preventing accidental mixing of otherwise identical types.
 
@@ -94,7 +94,7 @@ cb();
 
 ---
 
-## Type traits - `csl::ensure::type_traits`
+## Type traits - csl::ensure::type_traits
 
 | Trait                            | Description                                                     |
 | -------------------------------- | --------------------------------------------------------------- |
@@ -107,7 +107,7 @@ cb();
 
 ---
 
-## Concepts - `csl::ensure::concepts`
+## Concepts - csl::ensure::concepts
 
 | Concept                              | Description                                              |
 | ------------------------------------ | -------------------------------------------------------- |
@@ -146,7 +146,7 @@ CPO types are also provided for use as explicit comparators/hashers in container
 
 Enabled via preprocessor defines before including the header.
 
-### `CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT`
+### CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT
 
 Adds `operator<<` for `std::ostream`, delegating to the underlying type's stream operator:
 
@@ -157,7 +157,7 @@ Adds `operator<<` for `std::ostream`, delegating to the underlying type's stream
 std::cout << meters{ 42 } << '\n';  // prints: 42
 ```
 
-### `CSL_ENSURE__ENABLE_FMT_SUPPORT`
+### CSL_ENSURE__ENABLE_FMT_SUPPORT
 
 Adds a `fmt::formatter` specialisation, delegating to the underlying type's formatter:
 
