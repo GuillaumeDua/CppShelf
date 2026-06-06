@@ -187,21 +187,21 @@ namespace csl::ag::concepts {
         constexpr static auto valid_tuple_elements_v = []<std::size_t... I>(std::index_sequence<I...>) constexpr {
             return (true and ... and tuple_element<T, I>);
         }(std::make_index_sequence<std::tuple_size_v<T>>{});
+
+        template <typename T>  // T must be unqualified
+        concept unqualified_tuple_like =
+            not std::is_reference_v<T>
+            and requires {
+                typename std::tuple_size<T>::type;
+                requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
+            }
+            and valid_tuple_elements_v<T>
+        ;
     }
     template <typename T>
-    concept tuple_like =
-        not std::is_reference_v<T>
-        and requires {
-            typename std::tuple_size<T>::type;
-            requires std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, std::size_t>;
-        }
-        and details::valid_tuple_elements_v<T>
-        // and []<std::size_t... I>(std::index_sequence<I...>) constexpr {
-        //     return (tuple_element<T, I> && ...);
-        // }(std::make_index_sequence<std::tuple_size_v<T>>{})
-    ;
+    concept tuple_like = details::unqualified_tuple_like<std::remove_cvref_t<T>>;
     template <typename T>
-    concept pair_like = tuple_like<T> and std::tuple_size_v<T> == 2;
+    concept pair_like = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == 2;
 
 	template <typename T>
 	concept structured_bindable = tuple_like<T> or aggregate<T>;
