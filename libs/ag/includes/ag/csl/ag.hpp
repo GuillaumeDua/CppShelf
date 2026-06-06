@@ -989,7 +989,7 @@ namespace csl::ag::details::options::detection {
 namespace csl::ag::concepts {
     template <typename T>
     concept opt_in_std_tuple_interface =
-        concepts::aggregate<std::remove_cvref_t<T>>
+        concepts::aggregate<T>
     and csl::ag::details::options::detection::std_tuple_interface_v<std::remove_cvref_t<T>>
     ;
 }
@@ -1102,32 +1102,25 @@ namespace csl::ag::tuplelike {
     using element_t = typename element<I, T>::type;
 
     // get
-    template <std::size_t index, typename T>
-    requires concepts::non_stl_aggregate<std::remove_cvref_t<T>>
-    constexpr auto get(T && value) -> decltype(auto) {
+    template <std::size_t index>
+    constexpr auto get(concepts::non_stl_aggregate auto && value) -> decltype(auto) {
         return csl::ag::get<index>(csl_fwd(value));
     }
-    template <std::size_t index, typename T>
-    requires csl::ag::concepts::tuple_like<std::remove_cvref_t<T>>
-    constexpr auto get(T && value) -> decltype(auto) {
+    template <std::size_t index>
+    constexpr auto get(csl::ag::concepts::tuple_like auto && value) -> decltype(auto) {
         return std::get<index>(csl_fwd(value));
     }
 
     // algorithms
-    // REFACTO: concept for possibly-qualified-structured_bindable
     // - apply
-    template <typename T>
-    requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
-    constexpr auto apply(auto && f, T && value) -> decltype(auto) {
+    constexpr auto apply(auto && f, csl::ag::concepts::structured_bindable auto && value) -> decltype(auto) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         return [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr -> decltype(auto) {
             return std::invoke(csl_fwd(f), csl::ag::tuplelike::get<indexes>(csl_fwd(value))...);
         }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
     }
     // - for_each
-    template <typename T>
-    requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
-    constexpr auto for_each(T && value, auto && f) -> decltype(auto) {
+    constexpr auto for_each(csl::ag::concepts::structured_bindable auto && value, auto && f) -> decltype(auto) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             ((
@@ -1136,9 +1129,7 @@ namespace csl::ag::tuplelike {
         }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
     }
     // - for_each_enumerated
-    template <typename T>
-    requires csl::ag::concepts::structured_bindable<std::remove_cvref_t<T>>
-    constexpr auto for_each_enumerated(T && value, auto && f) -> decltype(auto) {
+    constexpr auto for_each_enumerated(csl::ag::concepts::structured_bindable auto && value, auto && f) -> decltype(auto) {
         using value_type = std::remove_cvref_t<decltype(value)>;
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) constexpr {
             ((
@@ -1149,7 +1140,7 @@ namespace csl::ag::tuplelike {
         }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
     }
     template <typename ... Ts>
-    requires (true and ... and csl::ag::concepts::structured_bindable<std::remove_cvref_t<Ts>>)
+    requires (true and ... and csl::ag::concepts::structured_bindable<Ts>)
     constexpr void for_each_zipped(auto && f, Ts &&... values) {
         constexpr std::size_t min_size = std::min({size_v<std::remove_reference_t<Ts>>...});
 
