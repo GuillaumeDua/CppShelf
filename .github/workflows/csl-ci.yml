@@ -14,6 +14,9 @@ defaults:
   run:
     shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
 
+env:
+  CPM_SOURCE_CACHE: ~/.cache/CPM
+
 jobs:
   build_and_test:
 
@@ -39,6 +42,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Cache CPM packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/CPM
+        key: cpm-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/cmake/**') }}
+        restore-keys: cpm-${{ runner.os }}-
 
     - name: Install clang
       if: matrix.configuration.compiler == 'clang'

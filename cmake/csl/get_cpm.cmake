@@ -27,12 +27,27 @@ macro(csl_get_cpm)
 
     if (NOT EXISTS "${_csl_get_cpm_location}")
         message(STATUS "[csl_get_cpm] Downloading CPM.cmake v${_csl_get_cpm_arg_VERSION} to ${_csl_get_cpm_location}")
+        get_filename_component(_csl_get_cpm_dir "${_csl_get_cpm_location}" DIRECTORY)
+        file(MAKE_DIRECTORY "${_csl_get_cpm_dir}")
         file(DOWNLOAD
             "https://github.com/cpm-cmake/CPM.cmake/releases/download/v${_csl_get_cpm_arg_VERSION}/CPM.cmake"
             "${_csl_get_cpm_location}"
+            STATUS _csl_download_status
         )
+        list(GET _csl_download_status 0 _csl_download_error)
+        if (_csl_download_error)
+            list(GET _csl_download_status 1 _csl_download_message)
+            message(FATAL_ERROR "[csl_get_cpm] Failed to download CPM.cmake: ${_csl_download_message}")
+        endif ()
+        unset(_csl_get_cpm_dir)
+        unset(_csl_download_status)
+        unset(_csl_download_error)
+        unset(_csl_download_message)
     endif()
 
+    if (NOT EXISTS "${_csl_get_cpm_location}")
+        message(FATAL_ERROR "[csl_get_cpm] CPM.cmake not found at: ${_csl_get_cpm_location}")
+    endif ()
     include("${_csl_get_cpm_location}")
 
     unset(_csl_get_cpm_arg_VERSION)

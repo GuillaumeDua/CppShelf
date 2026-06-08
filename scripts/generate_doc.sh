@@ -3,6 +3,17 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+DOXYGEN_VERSION=
+
+fetch_doxygen() {
+    wget https://github.com/doxygen/doxygen/releases/download/Release_${DOXYGEN_VERSION//./_}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+    tar xzvf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+    cd doxygen-${DOXYGEN_VERSION}
+    sudo make install
+    cd ..
+    rm -rf doxygen-${DOXYGEN_VERSION}* # Clean up
+}
+
 if ! command -v doxygen &>/dev/null; then
     echo "error: doxygen not found" >&2
     exit 1
