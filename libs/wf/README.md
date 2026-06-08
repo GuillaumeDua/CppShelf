@@ -4,7 +4,8 @@ Generic eDSL builder - a workflow / pipeline composition library for C++20.
 
 Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of single-header, header-only C++ libraries.
 
-> **Note**: this library is no longer under active development. A refactor or cleanup may happen at some point, but no new features are under active plannification.
+> **Note**: this library is no longer under active development.  
+> A refactor or cleanup may happen at some point, but no new features are under active plannification.
 
 ## Include
 

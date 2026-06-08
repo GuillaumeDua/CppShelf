@@ -385,7 +385,7 @@ This library provides two ways to convert an aggregate's value to [std::tuple](h
   - Field types that already are references will remain unchanged : `csl::ag::element_t` is strictly equivalent to `std::tuple_element_t`.
   - Field types that are not references will acquire the cvref-qualifier of the source aggregate value.
 
-  See the [Non-owning conversion (view)](#non-owning-conversion-view) section hereunder.
+  See the [Non-owning conversion (view, lightweight accessor)](#non-owning-conversion-view-lightweight-accessor) section hereunder.
 
 #### Owning conversion
 
