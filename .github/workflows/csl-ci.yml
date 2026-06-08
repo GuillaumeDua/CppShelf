@@ -14,8 +14,6 @@ defaults:
   run:
     shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
 
-env:
-  CPM_SOURCE_CACHE: ~/.cache/CPM
 
 jobs:
   build_and_test:
@@ -42,6 +40,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set CPM cache path
+      run: echo "CPM_SOURCE_CACHE=$HOME/.cache/CPM" >> $GITHUB_ENV
 
     - name: Cache CPM packages
       uses: actions/cache@v4

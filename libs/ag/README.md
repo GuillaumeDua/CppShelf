@@ -93,12 +93,12 @@ This library provides a way to obtain such information, and internally use it to
 
 This library is divided in six distinct parts :
 
-- [#1](#concepts) Concepts
-- [#2](#type-traits) Type-traits
-- [#3](#to-tuple-conversion) to-tuple conversion (owning or non-owning)
-- [#4](#tuplelike-interface) tuplelike interface
-- [#5](#functional-api) Functional API (`apply`, `for_each`)
-- [#6 (Experimentale)](#pretty-printing) Pretty-printing (using `std::ostream & operator<<` overloads or `fmt`)
+- <a href="#concepts">#1 - Concepts</a>
+- <a href="#type-traits">#2 - Type-traits</a>
+- <a href="#to-tuple-conversion">#3 - to-tuple conversion (owning or non-owning)</a>
+- <a href="#tuplelike-interface">#4 - tuplelike interface</a>
+- <a href="#functional-api">#5 - Functional API (`apply`, `for_each`)</a>
+- <a href="#formatting-and-printing">#6 - Formatting and printing</a>
 
 ---
 
@@ -718,7 +718,7 @@ csl::ag::for_each([](auto && field){
 // output: 42 0.13
 ```
 
-### Pretty-printing
+### Formatting and printing
 
 There are two way to pretty-print aggregate types :
 
