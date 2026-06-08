@@ -64,7 +64,8 @@ fetch_doxygen() {
     echo "Downloading doxygen ${DOXYGEN_VERSION}..."
     wget -q "${url}" -O "${tmpdir}/doxygen.tar.gz"
     tar xzf "${tmpdir}/doxygen.tar.gz" -C "${tmpdir}"
-    sudo make -C "${tmpdir}/doxygen-${DOXYGEN_VERSION}" install
+    mkdir -p "$HOME/.local/bin"
+    install -m 755 "${tmpdir}/doxygen-${DOXYGEN_VERSION}/bin/doxygen" "$HOME/.local/bin/doxygen"
 }
 
 if [[ "$(installed_doxygen_version)" == "${DOXYGEN_VERSION}" ]]; then

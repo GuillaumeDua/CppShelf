@@ -25,6 +25,11 @@ macro(csl_get_cpm)
         set(_csl_get_cpm_location "${CMAKE_BINARY_DIR}/cmake/CPM_${_csl_get_cpm_arg_VERSION}.cmake")
     endif()
 
+    # expand `~` -> $HOME
+    if (_csl_get_cpm_location MATCHES "^~")
+        string(REGEX REPLACE "^~" "$ENV{HOME}" _csl_get_cpm_location "${_csl_get_cpm_location}")
+    endif ()
+
     if (NOT EXISTS "${_csl_get_cpm_location}")
         message(STATUS "[csl_get_cpm] Downloading CPM.cmake v${_csl_get_cpm_arg_VERSION} to ${_csl_get_cpm_location}")
         get_filename_component(_csl_get_cpm_dir "${_csl_get_cpm_location}" DIRECTORY)
