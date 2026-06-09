@@ -24,9 +24,15 @@ include(csl/get_cpm)
 csl_get_cpm([VERSION <version>])
 ```
 
-Downloads [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) at the pinned default version (`0.42.1`) and includes it.
-Pass `VERSION` to override the pinned version.
+Downloads [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) and includes it.
+Retries up to 5 times on transient network failures.
 Respects `CPM_SOURCE_CACHE` and `ENV{CPM_SOURCE_CACHE}` for the download location; falls back to `${CMAKE_BINARY_DIR}/cmake/`.
+
+Cache entries:
+
+| Variable                      | Default  | Description                                          |
+| ----------------------------- | -------- | ---------------------------------------------------- |
+| `CSL_GET_CPM_DEFAULT_VERSION` | `0.42.1` | CPM.cmake version used when `VERSION` is not passed. Can be overridden via `-DCSL_GET_CPM_DEFAULT_VERSION=<ver>` |
 
 ---
 
