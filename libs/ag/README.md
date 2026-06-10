@@ -19,34 +19,32 @@ The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
 
 The following example demonstrates some of the features which are available in `csl::ag`.
 
-<table>
-    <tr><th>
-        C++ code (
-        <a href="https://godbolt.org/z/x1dGTWddK">
-        Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
-        )
-    </th><th> Console output </th></tr>
-    <tr><td>
-
+<!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
+#include <csl/ag.hpp>
+#include <iostream>
+
 struct S { char c; int i; };
 
 static_assert(
     csl::ag::concepts::aggregate<S> and
     csl::ag::size_v<S> == 2
 );
-static_assert(std::same_as<char,  csl::ag::element_t<0, S>>);
-static_assert(std::same_as<int,   csl::ag::element_t<1, S>>);
+static_assert(std::same_as<char, csl::ag::element_t<0, S>>);
+static_assert(std::same_as<int,  csl::ag::element_t<1, S>>);
 
-S value{ 'A', 41 }; ++std::get<1>(value);
+auto main() -> int {
+    S value{ 'A', 41 };
+    ++std::get<1>(value);
 
-using namespace csl::ag::io;
-std::cout << "value: " << value << '\n';
+    using namespace csl::ag::io;
+    std::cout << "value: " << value << '\n';
+}
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/x1dGTWddK)
+<!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
-</td><td>
-
+Output:
 ```text
 value: S& : {
    [0] char : A
@@ -54,32 +52,26 @@ value: S& : {
 }
 ```
 
-</td></tr></table>
-
 ## Introduction
 
 By default, the C++ standard allow structured-binding for aggregate types.
 
-<table>
-    <tr><th>
-        C++ code (
-        <a href="https://godbolt.org/z/3EcK9Wc7h">
-        Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
-        )
-    </th></tr>
-    <tr><td>
-
+<!-- EXAMPLE_BEGIN: 02_structured_binding.cpp -->
 ```cpp
-struct type{ int i; char c; };
-auto value = type{ 42, 'A' }; // NOLINT
+#include <csl/ag.hpp>
+#include <cassert>
 
-[[maybe_unused]] auto && [ v0, v1 ] = value;
-assert(v0 == 42);   // pass
-assert(v1 == 'A');  // pass
+auto main() -> int {
+    struct type { int i; char c; };
+    auto value = type{ 42, 'A' }; // NOLINT
+
+    [[maybe_unused]] auto && [v0, v1] = value;
+    assert(v0 == 42);
+    assert(v1 == 'A');
+}
 ```
-
-</td></tr></table>
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h)
+<!-- EXAMPLE_END: 02_structured_binding.cpp -->
 
 However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
 
@@ -308,13 +300,18 @@ See the [structured_binding documentation](https://en.cppreference.com/w/cpp/lan
 
 Integral constant type which value represents the count of fields for a given aggregate type.
 
+<!-- EXAMPLE_BEGIN: 03_size.cpp -->
 ```cpp
-struct A{ int i; float f; };
+#include <csl/ag.hpp>
+
+struct A { int i; float f; };
 static_assert(csl::ag::size<A>::value == 2);
 static_assert(csl::ag::size_v<A>      == 2);
-```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T).
+auto main() -> int {}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T)
+<!-- EXAMPLE_END: 03_size.cpp -->
 
 Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed using a convenience alias :
 
@@ -327,13 +324,18 @@ constexpr inline static auto size_v = size<T>::value;
 
 Type-identity of a field's type of a given aggregate type.
 
+<!-- EXAMPLE_BEGIN: 04_element.cpp -->
 ```cpp
-struct A{ int i; float f; };
+#include <csl/ag.hpp>
+
+struct A { int i; float f; };
 static_assert(std::same_as<int,   csl::ag::element_t<0, A>>);
 static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
-```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+auto main() -> int {}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo)
+<!-- EXAMPLE_END: 04_element.cpp -->
 
 Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
 
@@ -347,19 +349,24 @@ using element_t = typename element<N, T>::type;
 In a similar way to `csl::ag::element<std::size_t, T>`, `csl::ag::view_element<std::size_t,T>` is a type-identity for a field's type of a given aggregate view type.  
 For more details about aggregate's view, see the [to-tuple non-owning conversion (view)](#non-owning-conversion-view-lightweight-accessor) section.
 
+<!-- EXAMPLE_BEGIN: 05_view_element.cpp -->
 ```cpp
-struct A{ int i; float & f; const char && c; };
+#include <csl/ag.hpp>
+
+struct A { int i; float & f; const char && c; };
 
 static_assert(std::same_as<int&&,        csl::ag::view_element_t<0, A&&>>);
 static_assert(std::same_as<float&,       csl::ag::view_element_t<1, A&&>>);
 static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, A&&>>);
 
-static_assert(std::same_as<const int&,    csl::ag::view_element_t<0, const A&>>);
-static_assert(std::same_as<float&,        csl::ag::view_element_t<1, const A&>>);
-static_assert(std::same_as<const char&&,  csl::ag::view_element_t<2, const A&>>);
-```
+static_assert(std::same_as<const int&,   csl::ag::view_element_t<0, const A&>>);
+static_assert(std::same_as<float&,       csl::ag::view_element_t<1, const A&>>);
+static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, const A&>>);
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo).
+auto main() -> int {}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo)
+<!-- EXAMPLE_END: 05_view_element.cpp -->
 
 The `type` nested-type can be accessed using a convenience alias :
 
@@ -395,44 +402,44 @@ The value of each member-variable of the aggregate's value are [forward](https:/
 Meaning that using a `const-lvalue-reference` of a given type `S` 's value will result in a copy of each of its field that are not ref-qualified,  
 while using a `rvalue-reference` will results in a perfect-forwarding that member-variable.
 
-<table>
-    <tr><th>
-        C++ code (
-        <a href="https://godbolt.org/z/Yqh1q3Wea">
-        Try me on compiler-explorer
-        <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
-        )
-    </th><th> Console output </th></tr>
-    <tr><td>
-
+<!-- EXAMPLE_BEGIN: 06_to_tuple_owning.cpp -->
 ```cpp
-struct A{ int i; float f; };
+#include <csl/ag.hpp>
+#include <iostream>
+#include <utility>
 
-constexpr auto value = A{ .i = 42, .f = 0.13f };
-constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
+struct A { int i; float f; };
 
-[&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    static_assert((std::same_as<
-        csl::ag::element_t<indexes, A>, // { 0: int, 1:float }
-        std::tuple_element_t<indexes, std::remove_cvref_t<decltype(value_as_tuple)>>
-    > and ...));
+auto main() -> int {
+    constexpr auto value = A{ .i = 42, .f = 0.13f };
+    constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
 
-    ((std::cout << std::get<indexes>(value_as_tuple) << ' '), ...);
-}(std::make_index_sequence<csl::ag::size_v<A>>{});
+    [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        static_assert((std::same_as<
+            csl::ag::element_t<indexes, A>,
+            std::tuple_element_t<indexes, std::remove_cvref_t<decltype(value_as_tuple)>>
+        > and ...));
+        ((std::cout << std::get<indexes>(value_as_tuple) << ' '), ...);
+    }(std::make_index_sequence<csl::ag::size_v<A>>{});
+}
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Yqh1q3Wea)
+<!-- EXAMPLE_END: 06_to_tuple_owning.cpp -->
 
-</td><td>
-
+Output:
 ```text
 42 0.13
 ```
-</td></tr></table>
 
 The main advantage here is to use such function in a `constexpr` contexts.  
 A precondition while doing so is that each aggregates field's value must be usable in a constexpr context though (e.g **not** ref-qualified).
 
+<!-- EXAMPLE_BEGIN: 07_to_tuple_type_traits.cpp -->
 ```cpp
-struct A{ int i; float f; };
+#include <csl/ag.hpp>
+#include <utility>
+
+struct A { int i; float f; };
 
 static_assert(std::same_as<
     std::tuple<int, float>,
@@ -441,93 +448,88 @@ static_assert(std::same_as<
 
 static_assert(std::same_as<int, csl::ag::element_t<0, A>>);
 static_assert(std::same_as<int, std::tuple_element_t<0, csl::ag::to_tuple_t<A>>>);
-static_assert(std::same_as<int, std::tuple_element_t<0,decltype(csl::ag::to_tuple(A{}))>>);
+static_assert(std::same_as<int, std::tuple_element_t<0, decltype(csl::ag::to_tuple(A{}))>>);
 
-constexpr auto value = A{ .i = 42, .f = 0.13f };
-constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
+auto main() -> int {
+    constexpr auto value = A{ .i = 42, .f = 0.13f };
+    constexpr auto value_as_tuple = csl::ag::to_tuple(std::move(value));
 
-static_assert(42    == std::get<0>(value_as_tuple));
-static_assert(0.13f == std::get<1>(value_as_tuple));
+    static_assert(42    == std::get<0>(value_as_tuple));
+    static_assert(0.13f == std::get<1>(value_as_tuple));
+}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv)
+<!-- EXAMPLE_END: 07_to_tuple_type_traits.cpp -->
 
 Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element) can be use to obtains the conversion result's element types.
 
 - Example 1 : aggregate type with not-cvref-qualified fields
 
-  <table><tr><th>
-  C++ code (
-  <a href="https://godbolt.org/z/17Es3oooY">
-  Try me on compiler-explorer
-  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
-  )
-  </th><th> Console output </th></tr>
-  <tr><td>
-  
-  ```cpp
-  struct A{ int i; float f; };
-  constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
+<!-- EXAMPLE_BEGIN: 08_to_tuple_example1.cpp -->
+```cpp
+#include <csl/ag.hpp>
+#include <iostream>
 
-  [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-      ((std::cout << std::get<indexes>(value) << ' '), ...);
-  }(std::make_index_sequence<csl::ag::size_v<A>>{});
+auto main() -> int {
+    struct A { int i; float f; };
+    constexpr auto value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });
 
-  static_assert(std::same_as<
-      int,
-      std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
-  >);                      // \-> same as csl::ag::to_tuple_t<A>
-  static_assert(std::same_as<
-      float,
-      std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
-  >);
-  ```
-  
-  </td><td>
-  
-  ```
-  42 0.13 
-  ```
-  
-  </td></tr></table>
+    [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        ((std::cout << std::get<indexes>(value) << ' '), ...);
+    }(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+    static_assert(std::same_as<
+        int,
+        std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+    >);
+    static_assert(std::same_as<
+        float,
+        std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+    >);
+}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY)
+<!-- EXAMPLE_END: 08_to_tuple_example1.cpp -->
+
+Output:
+```text
+42 0.13
+```
 
 - Example 2 : aggregate type with ref-qualified fields
 
-  <table><tr><th>
-  C++ code (
-  <a href="https://godbolt.org/z/17Es3oooY">
-  Try me on compiler-explorer
-  <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px"/> </a>
-  )
-  </th><th> Console output </th></tr>
-  <tr><td>
-  
-  ```cpp
-  struct A{ int & i; float && f; };
-  int i = 42; float f = .13f;
-  /* not constexpr */ auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
+<!-- EXAMPLE_BEGIN: 09_to_tuple_example2.cpp -->
+```cpp
+#include <csl/ag.hpp>
+#include <iostream>
+#include <utility>
 
-  [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-      ((std::cout << std::get<indexes>(value) << ' '), ...);
-  }(std::make_index_sequence<csl::ag::size_v<A>>{});
+auto main() -> int {
+    struct A { int & i; float && f; };
+    int i = 42; float f = .13f;
+    auto value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });
 
-  static_assert(std::same_as<
-      int&,
-      std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
-  >);
-  static_assert(std::same_as<
-      float&&,
-      std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
-  >);
-  ```
-  
-  </td><td>
-  
-  ```
-  42 0.13 
-  ```
-  
-  </td></tr></table>
+    [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        ((std::cout << std::get<indexes>(value) << ' '), ...);
+    }(std::make_index_sequence<csl::ag::size_v<A>>{});
+
+    static_assert(std::same_as<
+        int&,
+        std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+    >);
+    static_assert(std::same_as<
+        float&&,
+        std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+    >);
+}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY)
+<!-- EXAMPLE_END: 09_to_tuple_example2.cpp -->
+
+Output:
+```text
+42 0.13
+```
 
 #### Non-owning conversion (view, lightweight accessor)
 
@@ -539,154 +541,163 @@ Ref-qualified fields type remain unchanged.
 
 The conversion's result type can be access using the `tuple_view(_t)<T>` type-trait.
 
+<!-- EXAMPLE_BEGIN: 10_to_tuple_view.cpp -->
 ```cpp
-struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
-int i = 42;
+#include <csl/ag.hpp>
+#include <utility>
 
-{ // using a rvalue
-    [[maybe_unused]] auto view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });
+auto main() -> int {
+    struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
+    int i = 42;
 
-    static_assert(std::same_as<
-        decltype(view),
-        csl::ag::tuple_view_t<type&&>
-    >);
-    static_assert(std::same_as<
-        decltype(view),
-        std::tuple<int&&, int&, const int&, int&&>
-        //         ^^^^^ cvref-qualified (rvalue-ref) propagation
-    >);
-}
+    { // rvalue source: non-ref fields acquire rvalue-ref qualification
+        [[maybe_unused]] auto view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });
 
-{ // using a const-lvalue
-    const auto & value = type{ i, i, i, std::move(i) };
-    [[maybe_unused]] auto view = csl::ag::to_tuple_view(value);
+        static_assert(std::same_as<
+            decltype(view),
+            csl::ag::tuple_view_t<type&&>
+        >);
+        static_assert(std::same_as<
+            decltype(view),
+            std::tuple<int&&, int&, const int&, int&&>
+        >);
+    }
 
-    static_assert(std::same_as<
-        decltype(view),
-        csl::ag::tuple_view_t<const type&>
-    >);
-    static_assert(std::same_as<
-        decltype(view),
-        std::tuple<const int &, int&, const int &, int&&>
-        //         ^^^^^^^^^^^ cvref-qualified (const-lvalue-ref) propagation
-    >);
+    { // const-lvalue source: non-ref fields acquire const-lvalue-ref qualification
+        const auto & value = type{ i, i, i, std::move(i) };
+        [[maybe_unused]] auto view = csl::ag::to_tuple_view(value);
+
+        static_assert(std::same_as<
+            decltype(view),
+            csl::ag::tuple_view_t<const type&>
+        >);
+        static_assert(std::same_as<
+            decltype(view),
+            std::tuple<const int&, int&, const int&, int&&>
+        >);
+    }
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo)
+<!-- EXAMPLE_END: 10_to_tuple_view.cpp -->
 
 Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
 
+<!-- EXAMPLE_BEGIN: 11_view_element_cvref.cpp -->
 ```cpp
+#include <csl/ag.hpp>
+
 struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
 
-// field 0 IS NOT a reference : cvref-qualifiers propagation
-static_assert(std::same_as<int &&,
-    csl::ag::view_element_t<0, type&&>
->);
-static_assert(std::same_as<int &,
-    csl::ag::view_element_t<0, type&>
->);
-static_assert(std::same_as<const int &&,
-    csl::ag::view_element_t<0, const type&&>
->);
-static_assert(std::same_as<const int &,
-    csl::ag::view_element_t<0, const type&>
->);
+// field 0 is NOT a reference: cvref-qualifier of the aggregate propagates
+static_assert(std::same_as<int &&,       csl::ag::view_element_t<0, type&&>>);
+static_assert(std::same_as<int &,        csl::ag::view_element_t<0, type&>>);
+static_assert(std::same_as<const int &&, csl::ag::view_element_t<0, const type&&>>);
+static_assert(std::same_as<const int &,  csl::ag::view_element_t<0, const type&>>);
 
-// field 0 IS a reference : no cvref-qualifiers propagation
-static_assert(std::same_as<int &,
-    csl::ag::view_element_t<1, type&&>
->);
-static_assert(std::same_as<int &,
-    csl::ag::view_element_t<1, type&>
->);
-static_assert(std::same_as<int &,
-    csl::ag::view_element_t<1, const type&&>
->);
-static_assert(std::same_as<int &,
-    csl::ag::view_element_t<1, const type&>
->);
+// field 1 IS a reference: no cvref-qualifier propagation
+static_assert(std::same_as<int &, csl::ag::view_element_t<1, type&&>>);
+static_assert(std::same_as<int &, csl::ag::view_element_t<1, type&>>);
+static_assert(std::same_as<int &, csl::ag::view_element_t<1, const type&&>>);
+static_assert(std::same_as<int &, csl::ag::view_element_t<1, const type&>>);
 
-// still not propagation for fields 2 and 3 ...
+auto main() -> int {}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc)
+<!-- EXAMPLE_END: 11_view_element_cvref.cpp -->
 
 ### tuplelike interface
 
 #### std::tuple_element
 
+<!-- EXAMPLE_BEGIN: 12_tuple_element.cpp -->
 ```cpp
-struct type{ const int i = 0; char & c; };
-char c = 'c';
-auto value = type{ 42, c }; // NOLINT
+#include <csl/ag.hpp>
 
-static_assert(std::same_as<
-    const int,
-    std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
->);
-static_assert(std::same_as<
-    char&,
-    std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
->);
+auto main() -> int {
+    struct type { const int i = 0; char & c; };
+    char c = 'c';
+    auto value = type{ 42, c }; // NOLINT
+
+    static_assert(std::same_as<
+        const int,
+        std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+    >);
+    static_assert(std::same_as<
+        char&,
+        std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+    >);
+}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9)
+<!-- EXAMPLE_END: 12_tuple_element.cpp -->
 
 #### std::get
 
-Simple example :
+Simple example:
 
+<!-- EXAMPLE_BEGIN: 13_get_simple.cpp -->
 ```cpp
-struct A{ int i; float f; };
-auto value = A { .i = 42, .f = 0.13f };
+#include <csl/ag.hpp>
+#include <iostream>
 
-std::cout << std::get<0>(value) << ", " << std::get<1>(value) << '\n';
+auto main() -> int {
+    struct A { int i; float f; };
+    auto value = A{ .i = 42, .f = 0.13f };
 
-static_assert(std::same_as<
-    int &,
-    decltype(std::get<0>(value))
->);
-static_assert(std::same_as<
-    float &,
-    decltype(std::get<1>(value))
->);
+    std::cout << std::get<0>(value) << ", " << std::get<1>(value) << '\n';
+
+    static_assert(std::same_as<int &,   decltype(std::get<0>(value))>);
+    static_assert(std::same_as<float &, decltype(std::get<1>(value))>);
+}
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5)
+<!-- EXAMPLE_END: 13_get_simple.cpp -->
 
+Output:
 ```text
 42, 0.13
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5).
+Slightly more advanced example:
 
-Slightly more advanced example :
-
+<!-- EXAMPLE_BEGIN: 14_get_advanced.cpp -->
 ```cpp
-struct A{ int i; float f; };
-auto value = A{ .i = 42, .f = 0.13f };
+#include <csl/ag.hpp>
+#include <iostream>
 
-[&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-    ((std::cout << std::get<indexes>(value) << ' '), ...);
-}(std::make_index_sequence<csl::ag::size_v<A>>{});
+auto main() -> int {
+    struct A { int i; float f; };
+    auto value = A{ .i = 42, .f = 0.13f };
+
+    [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
+        ((std::cout << std::get<indexes>(value) << ' '), ...);
+    }(std::make_index_sequence<csl::ag::size_v<A>>{});
+}
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP)
+<!-- EXAMPLE_END: 14_get_advanced.cpp -->
 
+Output:
 ```text
-42 0.13 
+42 0.13
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP).
 
 Note that `constexpr`-ness is preserved :
 
+<!-- EXAMPLE_BEGIN: 15_get_constexpr.cpp -->
 ```cpp
-struct A{ int i; char c; };
-constexpr auto value = A{ 42, 'c' };
-static_assert(csl::ag::get<0>(value) == 42);    // pass
-static_assert(csl::ag::get<1>(value) == 'c');   // pass
-```
+#include <csl/ag.hpp>
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6).
+struct A { int i; char c; };
+constexpr auto value = A{ 42, 'c' };
+static_assert(csl::ag::get<0>(value) == 42);
+static_assert(csl::ag::get<1>(value) == 'c');
+
+auto main() -> int {}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6)
+<!-- EXAMPLE_END: 15_get_constexpr.cpp -->
 
 ### Functional API
 
@@ -694,28 +705,48 @@ static_assert(csl::ag::get<1>(value) == 'c');   // pass
 
 Analogous to [`std::apply`](https://en.cppreference.com/w/cpp/utility/apply), but operates directly on an aggregate - unpacking its fields as arguments to a callable, without a prior `to_tuple` conversion.
 
+<!-- EXAMPLE_BEGIN: 16_apply.cpp -->
 ```cpp
-struct A{ int i; float f; };
-auto value = A{ .i = 42, .f = 0.13f };
+#include <csl/ag.hpp>
 
-auto result = csl::ag::apply([](auto && ... fields){
-    return (fields + ...);
-}, value);
-// result == 42.13f
+auto main() -> int {
+    struct A { int i; float f; };
+    auto value = A{ .i = 42, .f = 0.13f };
+
+    auto result = csl::ag::apply([](auto && ... fields){
+        return (fields + ...);
+    }, value);
+    static_assert(std::same_as<float, decltype(result)>);
+}
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/PENDING)
+<!-- EXAMPLE_END: 16_apply.cpp -->
 
 #### csl::ag::for_each
 
 Invokes a callable once per field, in order.
 
+<!-- EXAMPLE_BEGIN: 17_for_each.cpp -->
 ```cpp
-struct A{ int i; float f; };
-auto value = A{ .i = 42, .f = 0.13f };
+#include <csl/ag.hpp>
+#include <iostream>
 
-csl::ag::for_each([](auto && field){
-    std::cout << field << ' ';
-}, value);
-// output: 42 0.13
+auto main() -> int {
+    struct A { int i; float f; };
+    auto value = A{ .i = 42, .f = 0.13f };
+
+    csl::ag::for_each([](auto && field){
+        std::cout << field << ' ';
+    }, value);
+    std::cout << '\n';
+}
+```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/PENDING)
+<!-- EXAMPLE_END: 17_for_each.cpp -->
+
+Output:
+```text
+42 0.13
 ```
 
 ### Formatting and printing
@@ -729,18 +760,22 @@ There are two way to pretty-print aggregate types :
 
 Simple example :
 
+<!-- EXAMPLE_BEGIN: 18_ostream_simple.cpp -->
 ```cpp
 #include <csl/ag.hpp>
 #include <iostream>
 
 auto main() -> int {
-  using namespace csl::ag::io;
-  
-  struct A{ int i; float f; };
-  std::cout << A{ .i = 42, .f = .13f };
+    using namespace csl::ag::io;
+
+    struct A { int i; float f; };
+    std::cout << A{ .i = 42, .f = .13f };
 }
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83)
+<!-- EXAMPLE_END: 18_ostream_simple.cpp -->
 
+Output:
 ```text
 A && : {
    [0] int : 42
@@ -748,19 +783,20 @@ A && : {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83).
-
 Advanced example :
 
+<!-- EXAMPLE_BEGIN: 19_ostream_advanced.cpp -->
 ```cpp
-#include <iostream>
-#include <tuple>
+#include <csl/ag.hpp>
 #include <array>
+#include <iostream>
+#include <string>
+#include <tuple>
 
-struct A{ int i; float f; };
-struct B{};
-auto & operator<<(std::ostream & os, B) { 
-  return os << "user-defined operator<<(std::ostream&, const B &)";
+struct A { int i; float f; };
+struct B {};
+auto & operator<<(std::ostream & os, B) {
+    return os << "user-defined operator<<(std::ostream&, const B &)";
 }
 struct C {
     A a;
@@ -772,24 +808,23 @@ struct C {
     std::array<char, 3> arr{ 'a', 'b', 'c' };
 };
 
-#include <csl/ag.hpp>
-
 auto main() -> int {
-  using namespace csl::ag::io;
+    using namespace csl::ag::io;
 
-  int i = 42;
-  char c = 'c';
-  auto value = C { 
-    .a = A{ 13, .12f },
-    .b = B{},
-    .i = i, .str = "str", .c = std::move(c)
-  };
-  std::cout << value;
+    int i = 42;
+    char c = 'c';
+    auto value = C{
+        .a = A{ 13, .12f },
+        .b = B{},
+        .i = i, .str = "str", .c = std::move(c)
+    };
+    std::cout << value;
 }
 ```
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT)
+<!-- EXAMPLE_END: 19_ostream_advanced.cpp -->
 
-Output :
-
+Output:
 ```text
 C & : {
    [0] A & : {
@@ -811,8 +846,6 @@ C & : {
    }
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT).
 
 #### using fmt
 
@@ -884,31 +917,36 @@ Mixed-content aggregates (containing tuple-likes and ranges) are also supported 
 
 As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.
 
+<!-- EXAMPLE_BEGIN: 20_homogeneity.cpp -->
 ```cpp
-void do_stuff_with_either_a_tuple_or_aggregate(csl::ag::concepts::structured_bindable auto && value) {
+#include <csl/ag.hpp>
+#include <tuple>
 
+void do_stuff(csl::ag::concepts::structured_bindable auto && value) {
     using value_type = std::remove_cvref_t<decltype(value)>;
+    using namespace csl::ag::tuplelike;
 
-    using namespace csl::ag::tuplelike; // size, get, element
+    constexpr auto sz = size_v<value_type>;
 
-    constexpr auto size = size_v<value_type>;
-
-    const auto do_stuffs = [&]<size_t index>(){
-
-        auto && element_value = get<index>(std::forward<decltype(value)>(value));
-        using element_value_type = decltype(element_value);
-        using element_type = element_t<index, value_type>;
-
-        // do stuffs with element_value, element_type ...
+    const auto process = [&]<std::size_t index>(){
+        [[maybe_unused]] auto && field = get<index>(std::forward<decltype(value)>(value));
+        using field_type = element_t<index, value_type>;
+        (void)static_cast<field_type *>(nullptr);
     };
 
     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        ((do_stuffs.template operator()<indexes>()), ...);  
-    }(std::make_index_sequence<size>{});
+        ((process.template operator()<indexes>()), ...);
+    }(std::make_index_sequence<sz>{});
+}
+
+auto main() -> int {
+    struct A { int i; float f; };
+    do_stuff(A{ .i = 1, .f = 2.f });
+    do_stuff(std::tuple<int, float>{ 1, 2.f });
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8fv1rfK6s).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8fv1rfK6s)
+<!-- EXAMPLE_END: 20_homogeneity.cpp -->
 
 ## Current limitations
 
@@ -945,14 +983,16 @@ Monotonicity cannot be assumed, so binary search would be unsafe. Instead, a lin
 
 See `csl::ag::concepts::aggregate_constructible_from_n_values<T, N>` and `csl::ag::details::probing`.
 
+<!-- EXAMPLE_BEGIN: 21_internal_size.cpp -->
 ```cpp
-auto main() -> int {
+#include <csl/ag.hpp>
 
-    struct A{ char a, b, c, d, e, f, g, h; };
+auto main() -> int {
+    struct A { char a, b, c, d, e, f, g, h; };
     static_assert(sizeof(A) == 8);
     static_assert(csl::ag::size_v<A> == 8);
 
-    struct B{ int a, b; };
+    struct B { int a, b; };
     static_assert(sizeof(B) == 8);
     static_assert(csl::ag::size_v<B> == 2);
 
@@ -961,8 +1001,8 @@ auto main() -> int {
     static_assert(csl::ag::size_v<C> == 1);
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP).
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP)
+<!-- EXAMPLE_END: 21_internal_size.cpp -->
 
 ---
 
