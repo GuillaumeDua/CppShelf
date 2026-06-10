@@ -20,15 +20,16 @@ static_assert(std::is_same_v<csl::ag::element_t<2, rgb>,   std::uint8_t>);
 static_assert(    csl::ag::concepts::aggregate<point>);
 static_assert(not csl::ag::concepts::aggregate<std::tuple<int>>);
 
+// NOLINTBEGIN(*-magic-numbers)
 auto main(int, char*[]) -> int
 {
     // --- element access ---
-    constexpr static auto value = point{ 3, 4 };
+    constexpr static auto value = point{ .x=3, .y=4 };
     static_assert(csl::ag::get<0>(value) == 3);
     static_assert(csl::ag::get<1>(value) == 4);
 
     // --- apply: unpack fields into a callable ---
-    constexpr auto dist_sq = [](int x, int y) { return x * x + y * y; };
+    constexpr auto dist_sq = [](int x, int y) { return (x * x) + (y * y); };
     static_assert(csl::ag::apply(dist_sq, value) == 25);
 
     // --- for_each: visit every field ---
@@ -36,7 +37,7 @@ auto main(int, char*[]) -> int
         int s = 0;
         csl::ag::for_each(
             [&s](auto v) { s += static_cast<int>(v); },
-            rgb{10, 20, 30}
+            rgb{.r=10, .g=20, .b=30}
         );
         return s;
     }();
@@ -58,7 +59,8 @@ auto main(int, char*[]) -> int
         int dot = 0;
         csl::ag::tuplelike::for_each_zipped(
             [&dot](auto a, auto b) { dot += a * b; },
-            point{1, 2}, point{3, 4}
+            point{.x=1, .y=2},
+            point{.x=3, .y=4}
         );
         return dot; // 1*3 + 2*4 == 11
     }();
@@ -81,3 +83,4 @@ auto main(int, char*[]) -> int
     std::print("{}\n", value | csl::ag::io::indented);
 #endif
 }
+// NOLINTEND(*-magic-numbers)
