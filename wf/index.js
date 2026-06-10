@@ -1,25 +1,25 @@
 var index =
 [
-    [ "Include", "index.html#autotoc_md1", null ],
-    [ "Design overview", "index.html#autotoc_md3", null ],
-    [ "Invocation", "index.html#autotoc_md5", [
-      [ "<tt>invoke</tt>", "index.html#autotoc_md6", null ],
-      [ "<tt>apply</tt> / <tt>apply_before</tt> / <tt>apply_after</tt>", "index.html#autotoc_md7", null ]
+    [ "Include", "index.html#include", null ],
+    [ "Design overview", "index.html#design-overview", null ],
+    [ "Invocation", "index.html#invocation", [
+      [ "invoke", "index.html#invoke", null ],
+      [ "apply / apply_before / apply_after", "index.html#apply--apply_before--apply_after", null ]
     ] ],
-    [ "Invocation traits - <tt>csl::wf::mp</tt>", "index.html#autotoc_md9", null ],
-    [ "Binders", "index.html#autotoc_md11", [
-      [ "<tt>bind_front</tt> / <tt>bind_back</tt>", "index.html#autotoc_md12", null ]
+    [ "Invocation traits - csl::wf::mp", "index.html#invocation-traits---cslwfmp", null ],
+    [ "Binders", "index.html#binders", [
+      [ "bind_front / bind_back", "index.html#bind_front--bind_back", null ]
     ] ],
-    [ "Non-owning wrappers", "index.html#autotoc_md14", [
-      [ "<tt>function_view<F></tt>", "index.html#autotoc_md15", null ],
-      [ "<tt>function_ref<F></tt>", "index.html#autotoc_md16", null ]
+    [ "Non-owning wrappers", "index.html#non-owning-wrappers", [
+      [ "function_view&lt;F&gt;", "index.html#function_viewf", null ],
+      [ "function_ref&lt;F&gt;", "index.html#function_reff", null ]
     ] ],
-    [ "Repetition", "index.html#autotoc_md18", [
-      [ "<tt>invoke_n_times<N>(f, args...)</tt>", "index.html#autotoc_md19", null ],
-      [ "<tt>repeater<N, F></tt>", "index.html#autotoc_md20", null ]
+    [ "Repetition", "index.html#repetition", [
+      [ "invoke_n_times&lt;N&gt;(f, args...)", "index.html#invoke_n_timesnf-args", null ],
+      [ "repeater&lt;N, F&gt;", "index.html#repeatern-f", null ]
     ] ],
-    [ "Route - pipeline composition", "index.html#autotoc_md22", null ],
-    [ "eDSL operators", "index.html#autotoc_md24", null ],
-    [ "Chain traits - <tt>csl::wf::mp::chain_trait<Fs...></tt>", "index.html#autotoc_md26", null ],
-    [ "Example", "index.html#autotoc_md28", null ]
+    [ "Route - pipeline composition", "index.html#route---pipeline-composition", null ],
+    [ "eDSL operators", "index.html#edsl-operators", null ],
+    [ "Chain traits - csl::wf::mp::chain_trait&lt;Fs...&gt;", "index.html#chain-traits---cslwfmpchain_traitfs", null ],
+    [ "Example", "index.html#example", null ]
 ];

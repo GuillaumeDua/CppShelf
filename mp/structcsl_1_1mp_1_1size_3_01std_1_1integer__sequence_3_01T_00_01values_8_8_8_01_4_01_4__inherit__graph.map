@@ -1,5 +1,7 @@
 <map id="csl::mp::size&lt; std::integer_sequence&lt; T, values... &gt; &gt;" name="csl::mp::size&lt; std::integer_sequence&lt; T, values... &gt; &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="9,108,165,163"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,168,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,74,89,108,84,108,84,74"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="239,34,395,89"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,191,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,40,239,46,238,51,204,45"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="17,70,179,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,79,238,72,239,77,193,84"/>
 </map>

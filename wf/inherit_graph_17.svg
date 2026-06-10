@@ -11,10 +11,10 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="structcsl_1_1wf_1_1mp_1_1is__applyable.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="structcsl_1_1wf_1_1mp_1_1is__applyable_3_01F_00_01tuple__type_01_4.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="137,-30 0,-30 0,0 137,0 137,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">csl::wf::mp::is_applyable</text>
-<text text-anchor="middle" x="68.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; F,... &gt;</text>
+<text text-anchor="middle" x="68.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; F, tuple_type &gt;</text>
 </a>
 </g>
 </g>

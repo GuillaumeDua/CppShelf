@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['arguments_20ts_20tt_0',['&lt;tt&gt;arguments&lt;Ts...&gt;&lt;/tt&gt;',['../index.html#autotoc_md3',1,'']]]
+  ['arguments_0',['arguments&amp;lt;Ts...&amp;gt;',['../index.html#argumentsts',1,'']]]
 ];

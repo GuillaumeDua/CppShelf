@@ -1,11 +1,11 @@
 var index =
 [
-    [ "Include", "index.html#autotoc_md1", null ],
-    [ "<tt>arguments<Ts...></tt>", "index.html#autotoc_md3", null ],
-    [ "<tt>overload<Ts...></tt>", "index.html#autotoc_md5", null ],
-    [ "<tt>function_trait<F></tt>", "index.html#autotoc_md7", null ],
-    [ "Overload introspection", "index.html#autotoc_md9", null ],
-    [ "Type traits - <tt>csl::functional::type_traits</tt>", "index.html#autotoc_md11", null ],
-    [ "Concepts - <tt>csl::functional::concepts</tt>", "index.html#autotoc_md13", null ],
-    [ "Example", "index.html#autotoc_md15", null ]
+    [ "Include", "index.html#include", null ],
+    [ "arguments&lt;Ts...&gt;", "index.html#argumentsts", null ],
+    [ "overload&lt;Ts...&gt;", "index.html#overloadts", null ],
+    [ "function_trait&lt;F&gt;", "index.html#function_traitf", null ],
+    [ "Overload introspection", "index.html#overload-introspection", null ],
+    [ "Type traits - csl::functional::type_traits", "index.html#type-traits---cslfunctionaltype_traits", null ],
+    [ "Concepts - csl::functional::concepts", "index.html#concepts---cslfunctionalconcepts", null ],
+    [ "Example", "index.html#example", null ]
 ];

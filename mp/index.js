@@ -1,13 +1,13 @@
 var index =
 [
-    [ "Include", "index.html#autotoc_md1", null ],
-    [ "<tt>tuple<Ts...></tt>", "index.html#autotoc_md3", null ],
-    [ "Algorithms - <tt>csl::mp::functions</tt>", "index.html#autotoc_md5", null ],
-    [ "Type traits - <tt>csl::mp::type_traits</tt>", "index.html#autotoc_md7", [
-      [ "Tuples algorithms - <tt>csl::mp::type_traits</tt>", "index.html#autotoc_md8", null ]
+    [ "Include", "index.html#include", null ],
+    [ "tuple&lt;Ts...&gt;", "index.html#tuplets", null ],
+    [ "Algorithms - csl::mp::functions", "index.html#algorithms---cslmpfunctions", null ],
+    [ "Type traits - csl::mp::type_traits", "index.html#type-traits---cslmptype_traits", [
+      [ "Tuples algorithms - csl::mp::type_traits", "index.html#tuples-algorithms---cslmptype_traits", null ]
     ] ],
-    [ "Concepts - <tt>csl::mp::concepts</tt>", "index.html#autotoc_md10", null ],
-    [ "Sequences - <tt>csl::mp::concepts::sequence</tt>", "index.html#autotoc_md12", null ],
-    [ "Standard library proposals implementations", "index.html#autotoc_md14", null ],
-    [ "Example", "index.html#autotoc_md16", null ]
+    [ "Concepts - csl::mp::concepts", "index.html#concepts---cslmpconcepts", null ],
+    [ "Sequences - csl::mp::concepts::sequence", "index.html#sequences---cslmpconceptssequence", null ],
+    [ "Standard library proposals implementations", "index.html#standard-library-proposals-implementations", null ],
+    [ "Example", "index.html#example", null ]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['csl_3a_3aensure_0',['csl::ensure',['../index.html',1,'']]]
+  ['access_0',['Construction and access',['../index.html#construction-and-access',1,'']]],
+  ['and_20access_1',['Construction and access',['../index.html#construction-and-access',1,'']]]
 ];

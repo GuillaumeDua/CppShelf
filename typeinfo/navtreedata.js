@@ -25,15 +25,15 @@
 var NAVTREE =
 [
   [ "csl::typeinfo", "index.html", [
-    [ "Include", "index.html#autotoc_md1", null ],
-    [ "<tt>type_name_v<T></tt>", "index.html#autotoc_md2", [
-      [ "Known limitations - <tt>type_name</tt>", "index.html#autotoc_md3", null ]
+    [ "Include", "index.html#include", null ],
+    [ "type_name_v&lt;T&gt;", "index.html#type_name_vt", [
+      [ "Known limitations - type_name", "index.html#known-limitations---type_name", null ]
     ] ],
-    [ "<tt>value_name_v<V></tt>", "index.html#autotoc_md5", [
-      [ "Known limitations - <tt>value_name</tt>", "index.html#autotoc_md6", null ]
+    [ "value_name_v&lt;V&gt;", "index.html#value_name_vv", [
+      [ "Known limitations - value_name", "index.html#known-limitations---value_name", null ]
     ] ],
-    [ "Live demo", "index.html#autotoc_md8", null ],
-    [ "Example", "index.html#autotoc_md10", null ]
+    [ "Live demo", "index.html#live-demo", null ],
+    [ "Example", "index.html#example", null ]
   ] ]
 ];
 
@@ -42,5 +42,6 @@ var NAVTREEINDEX =
 "index.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+const SYNCONMSG = 'click to disable panel synchronization';
+const SYNCOFFMSG = 'click to enable panel synchronization';
+const LISTOFALLMEMBERS = 'List of all members';

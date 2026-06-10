@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['csl_3a_3afunctional_0',['csl::functional',['../index.html',1,'']]]
+  ['arguments_0',['arguments&amp;lt;Ts...&amp;gt;',['../index.html#argumentsts',1,'']]]
 ];

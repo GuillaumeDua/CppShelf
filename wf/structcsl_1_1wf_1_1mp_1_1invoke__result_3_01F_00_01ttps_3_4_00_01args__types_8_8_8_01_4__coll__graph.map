@@ -1,7 +1,8 @@
 <map id="csl::wf::mp::invoke_result&lt; F, ttps&lt;&gt;, args_types... &gt;" name="csl::wf::mp::invoke_result&lt; F, ttps&lt;&gt;, args_types... &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="29,181,177,236"/>
-<area shape="rect" id="Node000002" href="$structcsl_1_1wf_1_1mp_1_1invoke__result.html" title=" " alt="" coords="5,93,200,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,147,105,181,100,181,100,147"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="27,5,178,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,59,105,93,100,93,100,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="447,5,595,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,13,156,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,27,204,26,399,26,447,27,447,33,399,31,204,31,170,32"/>
+<area shape="rect" id="Node000003" href="$structcsl_1_1wf_1_1mp_1_1invoke__result.html" title=" " alt="" coords="204,41,399,81"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="170,41,204,46,204,51,170,47"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="412,44,446,39,446,45,413,49"/>
 </map>

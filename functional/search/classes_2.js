@@ -4,8 +4,9 @@ var searchData=
   ['overload_5farguments_1',['overload_arguments',['../structcsl_1_1functional_1_1overload__arguments.html',1,'csl::functional']]],
   ['overload_5farguments_3c_20csl_3a_3afunctional_3a_3aoverload_3c_20ts_2e_2e_2e_20_3e_20_3e_2',['overload_arguments&lt; csl::functional::overload&lt; Ts... &gt; &gt;',['../structcsl_1_1functional_1_1overload__arguments_3_01csl_1_1functional_1_1overload_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::functional']]],
   ['overload_5fbases_3',['overload_bases',['../structcsl_1_1functional_1_1overload__bases.html',1,'csl::functional']]],
-  ['overload_5fresult_4',['overload_result',['../structcsl_1_1functional_1_1overload__result.html',1,'csl::functional']]],
-  ['overload_5fresult_3c_20csl_3a_3afunctional_3a_3aoverload_3c_20ts_2e_2e_2e_20_3e_20_3e_5',['overload_result&lt; csl::functional::overload&lt; Ts... &gt; &gt;',['../structcsl_1_1functional_1_1overload__result_3_01csl_1_1functional_1_1overload_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::functional']]],
-  ['overload_5ftrait_6',['overload_trait',['../structcsl_1_1functional_1_1overload__trait.html',1,'csl::functional']]],
-  ['overload_5ftrait_3c_20csl_3a_3afunctional_3a_3aoverload_3c_20ts_2e_2e_2e_20_3e_20_3e_7',['overload_trait&lt; csl::functional::overload&lt; Ts... &gt; &gt;',['../structcsl_1_1functional_1_1overload__trait_3_01csl_1_1functional_1_1overload_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::functional']]]
+  ['overload_5fbases_3c_20ts_2e_2e_2e_20_3e_4',['overload_bases&lt; Ts... &gt;',['../structcsl_1_1functional_1_1overload__bases.html',1,'csl::functional']]],
+  ['overload_5fresult_5',['overload_result',['../structcsl_1_1functional_1_1overload__result.html',1,'csl::functional']]],
+  ['overload_5fresult_3c_20csl_3a_3afunctional_3a_3aoverload_3c_20ts_2e_2e_2e_20_3e_20_3e_6',['overload_result&lt; csl::functional::overload&lt; Ts... &gt; &gt;',['../structcsl_1_1functional_1_1overload__result_3_01csl_1_1functional_1_1overload_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::functional']]],
+  ['overload_5ftrait_7',['overload_trait',['../structcsl_1_1functional_1_1overload__trait.html',1,'csl::functional']]],
+  ['overload_5ftrait_3c_20csl_3a_3afunctional_3a_3aoverload_3c_20ts_2e_2e_2e_20_3e_20_3e_8',['overload_trait&lt; csl::functional::overload&lt; Ts... &gt; &gt;',['../structcsl_1_1functional_1_1overload__trait_3_01csl_1_1functional_1_1overload_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::functional']]]
 ];

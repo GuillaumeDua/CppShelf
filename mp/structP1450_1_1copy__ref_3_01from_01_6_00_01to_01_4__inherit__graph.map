@@ -1,5 +1,7 @@
 <map id="P1450::copy_ref&lt; from &amp;, to &gt;" name="P1450::copy_ref&lt; from &amp;, to &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="15,93,187,133"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,196,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,59,103,93,98,93,98,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,93,277,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,175,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,52,171,91,167,95,121,56"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="199,5,389,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="262,56,216,95,212,91,259,52"/>
 </map>

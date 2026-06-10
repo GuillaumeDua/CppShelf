@@ -25,51 +25,59 @@
 var NAVTREE =
 [
   [ "📦 csl::ag", "index.html", [
-    [ "Overall presentation", "index.html#autotoc_md0", [
-      [ "Overview demo", "index.html#autotoc_md1", null ],
-      [ "Introduction", "index.html#autotoc_md2", null ],
-      [ "Philosophy & design choices", "index.html#autotoc_md5", null ],
-      [ "Getting starting", "index.html#autotoc_md7", [
-        [ "Integration", "index.html#autotoc_md8", [
-          [ "Plain download", "index.html#autotoc_md9", null ],
-          [ "CMake", "index.html#autotoc_md10", null ]
+    [ "Overall presentation", "index.html#overall-presentation", [
+      [ "Overview demo", "index.html#overview-demo", null ],
+      [ "Introduction", "index.html#introduction", null ],
+      [ "Philosophy &amp; design choices", "index.html#philosophy--design-choices", null ],
+      [ "Getting starting", "index.html#getting-starting", [
+        [ "Integration", "index.html#integration", [
+          [ "Plain download", "index.html#plain-download", null ],
+          [ "CMake", "index.html#cmake", null ]
         ] ],
-        [ "Configuration", "index.html#autotoc_md11", [
-          [ "Bitfields support", "index.html#autotoc_md12", null ],
-          [ "Highier limit for aggregate field count", "index.html#autotoc_md13", null ],
-          [ "Formatting and printing (experimentale, WIP)", "index.html#autotoc_md14", null ]
+        [ "Configuration", "index.html#configuration", [
+          [ "Bitfields support", "index.html#bitfields-support", null ],
+          [ "Highier limit for aggregate field count", "index.html#highier-limit-for-aggregate-field-count", null ],
+          [ "Formatting and printing (experimentale)", "index.html#formatting-and-printing-experimentale", null ]
         ] ]
       ] ],
-      [ "Content", "index.html#autotoc_md15", [
-        [ "Aggregate-related concepts", "index.html#autotoc_md16", [
-          [ "unqualified_aggregate<T>", "index.html#autotoc_md17", null ],
-          [ "aggregate<T>", "index.html#autotoc_md18", null ],
-          [ "aggregate_constructible_from<T, args_ts...>", "index.html#autotoc_md19", null ],
-          [ "aggregate_constructible_from_n_values<T, std::size_t N>", "index.html#autotoc_md20", null ],
-          [ "tuplelike<T>", "index.html#autotoc_md21", null ],
-          [ "csl::ag::concepts::structured_bindable<T>", "index.html#autotoc_md22", null ]
+      [ "Content", "index.html#content", [
+        [ "Concepts", "index.html#concepts", [
+          [ "unqualified_aggregate&lt;T&gt;", "index.html#unqualified_aggregatet", null ],
+          [ "aggregate&lt;T&gt;", "index.html#aggregatet", null ],
+          [ "aggregate_constructible_from&lt;T, args_ts...&gt;", "index.html#aggregate_constructible_fromt-args_ts", null ],
+          [ "aggregate_constructible_from_n_values&lt;T, std::size_t N&gt;", "index.html#aggregate_constructible_from_n_valuest-stdsize_t-n", null ],
+          [ "tuplelike&lt;T&gt;", "index.html#tupleliket", null ],
+          [ "csl::ag::concepts::structured_bindable&lt;T&gt;", "index.html#cslagconceptsstructured_bindablet", null ]
         ] ],
-        [ "Aggregate-related type-traits", "index.html#autotoc_md23", [
-          [ "csl::ag::size<T>", "index.html#autotoc_md24", null ],
-          [ "csl::ag::element<std::size_t, concepts::aggregate>", "index.html#autotoc_md25", null ],
-          [ "csl::ag::view_element<std::size_t, concepts::aggregate>", "index.html#autotoc_md26", null ]
+        [ "Type-traits", "index.html#type-traits", [
+          [ "csl::ag::size&lt;T&gt;", "index.html#cslagsizet", null ],
+          [ "csl::ag::element&lt;std::size_t, concepts::aggregate&gt;", "index.html#cslagelementstdsize_t-conceptsaggregate", null ],
+          [ "csl::ag::view_element&lt;std::size_t, concepts::aggregate&gt;", "index.html#cslagview_elementstdsize_t-conceptsaggregate", null ]
         ] ],
-        [ "to-tuple conversion for aggregate types", "index.html#autotoc_md27", [
-          [ "Owning conversion", "index.html#autotoc_md28", null ],
-          [ "Non-owning conversion (view, lightweight accessor)", "index.html#autotoc_md29", null ]
+        [ "to-tuple conversion", "index.html#to-tuple-conversion", [
+          [ "Owning conversion", "index.html#owning-conversion", null ],
+          [ "Non-owning conversion (view, lightweight accessor)", "index.html#non-owning-conversion-view-lightweight-accessor", null ]
         ] ],
-        [ "tuplelike interface for aggregates", "index.html#autotoc_md30", [
-          [ "std::tuple_element", "index.html#autotoc_md31", null ],
-          [ "std::get", "index.html#autotoc_md32", null ]
+        [ "tuplelike interface", "index.html#tuplelike-interface", [
+          [ "std::tuple_element", "index.html#stdtuple_element", null ],
+          [ "std::get", "index.html#stdget", null ]
         ] ],
-        [ "Pretty-printing", "index.html#autotoc_md33", [
-          [ "using std::ostream :", "index.html#autotoc_md34", null ]
+        [ "Functional API", "index.html#functional-api", [
+          [ "csl::ag::apply", "index.html#cslagapply", null ],
+          [ "csl::ag::for_each", "index.html#cslagfor_each", null ]
+        ] ],
+        [ "Formatting and printing", "index.html#formatting-and-printing", [
+          [ "using std::ostream", "index.html#using-stdostream", null ],
+          [ "using fmt", "index.html#using-fmt", null ]
         ] ]
       ] ],
-      [ "std::tuple and aggregate types homogeneity", "index.html#autotoc_md35", null ],
-      [ "Current limitations", "index.html#autotoc_md36", null ],
-      [ "(Internal details) Where's the magic ?", "index.html#autotoc_md37", null ],
-      [ "Example", "index.html#autotoc_md39", null ]
+      [ "Homogeneity API with tuple-likes", "index.html#homogeneity-api-with-tuple-likes", null ],
+      [ "Current limitations", "index.html#current-limitations", null ],
+      [ "(Internal details) Where's the magic ?", "index.html#internal-details-wheres-the-magic-", [
+        [ "Fast path - for default_initializable&lt;T&gt; without bitfield support", "index.html#fast-path---for-default_initializablet-without-bitfield-support", null ],
+        [ "Slow path - for non default_initializable&lt;T&gt; or when bitfield support is enabled", "index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled", null ]
+      ] ],
+      [ "Example", "index.html#example", null ]
     ] ],
     [ "Concepts", "concepts.html", "concepts" ],
     [ "Classes", "annotated.html", [
@@ -85,5 +93,6 @@ var NAVTREEINDEX =
 "annotated.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+const SYNCONMSG = 'click to disable panel synchronization';
+const SYNCOFFMSG = 'click to enable panel synchronization';
+const LISTOFALLMEMBERS = 'List of all members';

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🔬_20functional_0',['🔬 functional',['../lib_functional.html',1,'index']]]
+  ['🔎_20typeinfo_0',['🔎 typeinfo',['../lib_typeinfo.html',1,'index']]]
 ];

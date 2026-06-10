@@ -1,5 +1,7 @@
 <map id="csl::mp::type_traits::is_same_template&lt; T&lt; Ts... &gt;, T&lt; Us... &gt; &gt;" name="csl::mp::type_traits::is_same_template&lt; T&lt; Ts... &gt;, T&lt; Us... &gt; &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,179,133"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="36,5,148,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,44,95,79,89,79,89,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="47,79,221,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,124,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,40,115,77,111,80,80,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="147,5,259,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,43,157,80,153,77,183,40"/>
 </map>

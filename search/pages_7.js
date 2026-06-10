@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wf_0',['🌊 wf',['../lib_wf.html',1,'index']]]
+  ['typeinfo_0',['🔎 typeinfo',['../lib_typeinfo.html',1,'index']]]
 ];

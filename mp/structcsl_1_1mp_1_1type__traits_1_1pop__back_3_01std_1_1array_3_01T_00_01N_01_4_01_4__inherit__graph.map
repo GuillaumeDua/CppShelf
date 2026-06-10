@@ -1,5 +1,7 @@
 <map id="csl::mp::type_traits::pop_back&lt; std::array&lt; T, N &gt; &gt;" name="csl::mp::type_traits::pop_back&lt; std::array&lt; T, N &gt; &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,108,175,163"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="18,5,162,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,74,93,108,87,108,87,74"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="261,89,431,144"/>
+<area shape="rect" id="Node000002" href="$structcsl_1_1mp_1_1type__traits_1_1rebind__N__elements.html" title=" " alt="" coords="5,5,213,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,87,262,95,261,100,226,92"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="37,143,181,197"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,148,261,133,262,138,195,153"/>
 </map>

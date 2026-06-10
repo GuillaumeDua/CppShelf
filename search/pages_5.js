@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['shelf_0',['C++ Shelf',['../index.html',1,'']]]
+  ['modules_0',['modules',['../lib_cmake.html',1,'CMake modules'],['../index.html#cmake-modules',1,'CMake modules']]],
+  ['mp_1',['🧙 mp',['../lib_mp.html',1,'index']]]
 ];

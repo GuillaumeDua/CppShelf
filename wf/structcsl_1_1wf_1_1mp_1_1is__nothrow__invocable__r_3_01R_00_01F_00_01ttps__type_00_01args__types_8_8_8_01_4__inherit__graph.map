@@ -1,7 +1,8 @@
 <map id="csl::wf::mp::is_nothrow_invocable_r&lt; R, F, ttps_type, args_types... &gt;" name="csl::wf::mp::is_nothrow_invocable_r&lt; R, F, ttps_type, args_types... &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="500,13,677,67"/>
-<area shape="rect" id="Node000002" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable__r.html" title=" " alt="" coords="244,5,452,75"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="466,37,500,37,500,43,466,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,20,196,60"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="210,37,244,37,244,43,210,43"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="500,5,677,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,13,196,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,21,244,19,348,17,452,19,500,22,500,27,452,25,348,22,244,25,210,26"/>
+<area shape="rect" id="Node000003" href="$structcsl_1_1wf_1_1mp_1_1is__nothrow__invocable__r.html" title=" " alt="" coords="244,34,452,103"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="210,46,244,51,244,56,209,51"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="465,48,499,43,500,49,466,54"/>
 </map>

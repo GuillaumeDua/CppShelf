@@ -1,5 +1,7 @@
 <map id="csl::mp::type_traits::is_constrained_by&lt; T, predicate &gt;" name="csl::mp::type_traits::is_constrained_by&lt; T, predicate &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="267,57,425,111"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,219,163"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,81,267,81,267,87,232,87"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="267,49,425,104"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="53,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,31,219,41,267,53,266,58,218,46,180,37"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,55,219,213"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,102,266,93,267,99,233,107"/>
 </map>

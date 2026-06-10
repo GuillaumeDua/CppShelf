@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="structcsl_1_1ensure_1_1strong__type__hasher.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="106,-85 0,-85 0,-55 106,-55 106,-85"/>
 <text text-anchor="start" x="8" y="-73" font-family="Helvetica,sans-Serif" font-size="10.00">csl::ensure::strong</text>
 <text text-anchor="middle" x="53" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">_type_hasher</text>

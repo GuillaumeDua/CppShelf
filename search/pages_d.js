@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🧙_20mp_0',['🧙 mp',['../lib_mp.html',1,'index']]]
+  ['🔬_20functional_0',['🔬 functional',['../lib_functional.html',1,'index']]]
 ];

@@ -25,14 +25,14 @@
 var NAVTREE =
 [
   [ "csl cmake modules", "index.html", [
-    [ "<tt>csl/cache_entry_conversion</tt>", "index.html#autotoc_md2", null ],
-    [ "<tt>csl/get_cpm</tt>", "index.html#autotoc_md4", null ],
-    [ "<tt>csl/graphviz</tt>", "index.html#autotoc_md6", null ],
-    [ "<tt>csl/list_subdirectories</tt>", "index.html#autotoc_md8", null ],
-    [ "<tt>csl/print_aligned</tt>", "index.html#autotoc_md10", [
-      [ "<tt>csl_print_aligned</tt>", "index.html#autotoc_md11", null ],
-      [ "<tt>csl_check_option</tt>", "index.html#autotoc_md12", null ],
-      [ "<tt>csl_print_build_info</tt>", "index.html#autotoc_md13", null ]
+    [ "<span class=\"tt\">csl/cache_entry_conversion</span>", "index.html#cslcache_entry_conversion", null ],
+    [ "<span class=\"tt\">csl/get_cpm</span>", "index.html#cslget_cpm", null ],
+    [ "<span class=\"tt\">csl/graphviz</span>", "index.html#cslgraphviz", null ],
+    [ "<span class=\"tt\">csl/list_subdirectories</span>", "index.html#csllist_subdirectories", null ],
+    [ "<span class=\"tt\">csl/print_aligned</span>", "index.html#cslprint_aligned", [
+      [ "<span class=\"tt\">csl_print_aligned</span>", "index.html#csl_print_aligned", null ],
+      [ "<span class=\"tt\">csl_check_option</span>", "index.html#csl_check_option", null ],
+      [ "<span class=\"tt\">csl_print_build_info</span>", "index.html#csl_print_build_info", null ]
     ] ]
   ] ]
 ];
@@ -42,5 +42,6 @@ var NAVTREEINDEX =
 "index.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+const SYNCONMSG = 'click to disable panel synchronization';
+const SYNCOFFMSG = 'click to enable panel synchronization';
+const LISTOFALLMEMBERS = 'List of all members';

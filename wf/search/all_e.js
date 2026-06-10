@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wrappers_0',['Non-owning wrappers',['../index.html#autotoc_md14',1,'']]]
+  ['view_5ftag_5ft_0',['view_tag_t',['../structcsl_1_1wf_1_1operators_1_1view__tag__t.html',1,'csl::wf::operators']]]
 ];

@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['include_0',['Include',['../index.html#autotoc_md1',1,'']]],
-  ['introspection_1',['Overload introspection',['../index.html#autotoc_md9',1,'']]],
+  ['include_0',['Include',['../index.html#include',1,'']]],
+  ['introspection_1',['Overload introspection',['../index.html#overload-introspection',1,'']]],
   ['is_5finvocable_2',['is_invocable',['../structcsl_1_1functional_1_1type__traits_1_1is__invocable.html',1,'csl::functional::type_traits']]],
   ['is_5finvocable_3c_20f_2c_20arguments_3c_20ts_2e_2e_2e_20_3e_20_3e_3',['is_invocable&lt; F, arguments&lt; Ts... &gt; &gt;',['../structcsl_1_1functional_1_1type__traits_1_1is__invocable_3_01F_00_01arguments_3_01Ts_8_8_8_01_4_01_4.html',1,'csl::functional::type_traits']]],
   ['is_5finvocable_5fr_4',['is_invocable_r',['../structcsl_1_1functional_1_1type__traits_1_1is__invocable__r.html',1,'csl::functional::type_traits']]],

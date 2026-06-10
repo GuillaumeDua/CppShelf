@@ -1,5 +1,7 @@
 <map id="P1450::add_const&lt; T &amp;&amp; &gt;" name="P1450::add_const&lt; T &amp;&amp; &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,204,119"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="25,5,184,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,59,107,93,102,93,102,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="96,93,295,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,13,191,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,45,183,91,179,95,121,49"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="215,5,373,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="261,56,212,95,208,91,258,52"/>
 </map>

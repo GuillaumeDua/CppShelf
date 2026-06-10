@@ -1,7 +1,7 @@
 var indexSectionsWithContent =
 {
   0: "aceflmstw☔🌊📦🔎🔬🧙",
-  1: "acefmstw☔🌊📦🔎🔬🧙"
+  1: "aceflmstw☔🌊📦🔎🔬🧙"
 };
 
 var indexSectionNames =

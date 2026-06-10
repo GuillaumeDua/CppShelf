@@ -1,5 +1,7 @@
 <map id="csl::mp::type_traits::value_type&lt; T[N]&gt;" name="csl::mp::type_traits::value_type&lt; T[N]&gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="28,79,184,119"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,207,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,44,109,79,103,79,103,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="111,93,267,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,52,168,91,165,95,118,56"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="193,13,394,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="271,49,214,95,211,91,267,45"/>
 </map>

@@ -1,3 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structcsl_1_1functional_1_1type__traits_1_1is__nothrow__invocable__r.html" title=" " alt="" coords="5,5,217,60"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,107,124,132"/>
+<area shape="rect" id="Node000001" href="$structcsl_1_1functional_1_1type__traits_1_1is__simple__callable_3_01F_00_01std_1_1void__t_3_01ty5d3a64cf3b9024538921dcc70788bbab.html" title=" " alt="" coords="172,5,411,89"/>
+<area shape="poly" id="edge30_Node000000_Node000001" title=" " alt="" coords="118,100,171,83,172,88,119,105"/>
+<area shape="rect" id="Node000003" href="$structcsl_1_1functional_1_1type__traits_1_1is__simple__callable.html" title=" " alt="" coords="196,113,387,168"/>
+<area shape="poly" id="edge31_Node000000_Node000003" title=" " alt="" coords="138,124,196,129,195,134,138,129"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="9,35,121,60"/>
+<area shape="poly" id="edge32_Node000002_Node000001" title=" " alt="" coords="134,45,172,45,172,50,134,50"/>
 </map>

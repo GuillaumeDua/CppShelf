@@ -25,8 +25,8 @@
 var NAVTREE =
 [
   [ "C++ Shelf", "index.html", [
-    [ "Libraries", "index.html#autotoc_md2", null ],
-    [ "CMake modules", "index.html#autotoc_md4", null ],
+    [ "Libraries", "index.html#libraries", null ],
+    [ "CMake modules", "index.html#cmake-modules", null ],
     [ "📦 ag", "lib_ag.html", null ],
     [ "🌊 wf", "lib_wf.html", null ],
     [ "🧙 mp", "lib_mp.html", null ],
@@ -42,5 +42,6 @@ var NAVTREEINDEX =
 "index.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+const SYNCONMSG = 'click to disable panel synchronization';
+const SYNCOFFMSG = 'click to enable panel synchronization';
+const LISTOFALLMEMBERS = 'List of all members';

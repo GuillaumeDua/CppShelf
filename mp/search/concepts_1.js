@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['fake_5fp2481_5falternative_3a_3afwd_5fref_0',['fwd_ref',['../conceptfake__p2481__alternative_1_1fwd__ref.html',1,'fake_p2481_alternative']]]
+  ['empty_0',['empty',['../conceptcsl_1_1mp_1_1concepts_1_1empty.html',1,'csl::mp::concepts'],['../conceptcsl_1_1mp_1_1seq_1_1concepts_1_1empty.html',1,'csl::mp::seq::concepts']]]
 ];

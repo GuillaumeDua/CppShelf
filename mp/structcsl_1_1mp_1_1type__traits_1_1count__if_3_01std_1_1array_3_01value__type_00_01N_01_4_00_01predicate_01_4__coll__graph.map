@@ -1,5 +1,7 @@
 <map id="csl::mp::type_traits::count_if&lt; std::array&lt; value_type, N &gt;, predicate &gt;" name="csl::mp::type_traits::count_if&lt; std::array&lt; value_type, N &gt;, predicate &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,108,232,163"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="7,5,231,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,74,121,108,116,108,116,74"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="277,67,504,121"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="11,5,223,89"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,65,278,72,277,77,237,70"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,113,229,168"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,117,277,111,278,116,243,122"/>
 </map>

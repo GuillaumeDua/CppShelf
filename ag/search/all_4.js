@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['demo_0',['Overview demo',['../index.html#autotoc_md1',1,'']]],
-  ['design_20choices_1',['Philosophy &amp; design choices',['../index.html#autotoc_md5',1,'']]],
-  ['details_20where_20s_20the_20magic_2',['(Internal details) Where&apos;s the magic ?',['../index.html#autotoc_md37',1,'']]],
-  ['download_3',['Plain download',['../index.html#autotoc_md9',1,'']]]
+  ['element_0',['element',['../structcsl_1_1ag_1_1tuplelike_1_1element.html',1,'csl::ag::tuplelike']]],
+  ['element_3c_20i_2c_20t_20_3e_1',['element&lt; I, T &gt;',['../structcsl_1_1ag_1_1tuplelike_1_1element_3_01I_00_01T_01_4.html',1,'csl::ag::tuplelike']]],
+  ['empty_2',['empty',['../structcsl_1_1ag_1_1empty.html',1,'csl::ag::empty&lt; T &gt;'],['../conceptcsl_1_1ag_1_1concepts_1_1empty.html',1,'csl::ag::concepts']]],
+  ['enabled_3',['Slow path - for non default_initializable&amp;lt;T&amp;gt; or when bitfield support is enabled',['../index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled',1,'']]],
+  ['example_4',['Example',['../index.html#example',1,'']]],
+  ['experimentale_5',['Formatting and printing (experimentale)',['../index.html#formatting-and-printing-experimentale',1,'']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['get_5fcpm_20tt_0',['&lt;tt&gt;csl/get_cpm&lt;/tt&gt;',['../index.html#autotoc_md4',1,'']]],
-  ['graphviz_20tt_1',['&lt;tt&gt;csl/graphviz&lt;/tt&gt;',['../index.html#autotoc_md6',1,'']]]
+  ['get_5fcpm_0',['&lt;span class=&quot;tt&quot;&gt;csl/get_cpm&lt;/span&gt;',['../index.html#cslget_cpm',1,'']]],
+  ['graphviz_1',['&lt;span class=&quot;tt&quot;&gt;csl/graphviz&lt;/span&gt;',['../index.html#cslgraphviz',1,'']]]
 ];

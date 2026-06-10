@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['typeinfo_0',['🔎 typeinfo',['../lib_typeinfo.html',1,'index']]]
+  ['shelf_0',['C++ Shelf',['../index.html',1,'']]]
 ];
