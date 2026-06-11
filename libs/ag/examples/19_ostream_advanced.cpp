@@ -9,10 +9,9 @@
 struct A { int i; float f; };
 struct B {};
 
-namespace {
-    auto & operator<<(std::ostream & os, B) {
-        return os << "user-defined operator<<(std::ostream&, const B &)";
-    }
+// Note: must be in the same namespace as B (global here) so ADL finds it from header templates.
+auto & operator<<(std::ostream & os, B) {
+    return os << "user-defined operator<<(std::ostream&, const B &)";
 }
 
 struct C {
