@@ -15,7 +15,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# strip optional leading 'v'
+# strip optional 'v': v2.3.4 -> 2.3.4
 DOXYGEN_VERSION="${DOXYGEN_VERSION#v}"
 DOXYGEN_AWESOME_CSS_VERSION="${DOXYGEN_AWESOME_CSS_VERSION#v}"
 
@@ -42,7 +42,6 @@ if [[ -z "${DOXYGEN_VERSION}" ]]; then
     DOXYGEN_VERSION="${DOXYGEN_VERSION//_/.}"
 fi
 
-# ex: v2.3.4 -> 2.3.4
 if [[ -z "${DOXYGEN_AWESOME_CSS_VERSION}" ]]; then
     tag=$(github_latest_tag "jothepro/doxygen-awesome-css")
     DOXYGEN_AWESOME_CSS_VERSION="${tag#v}"
