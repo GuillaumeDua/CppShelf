@@ -1,3 +1,5 @@
+#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
+
 #include <csl/ag.hpp>
 #include <array>
 #include <iostream>
@@ -6,9 +8,13 @@
 
 struct A { int i; float f; };
 struct B {};
-auto & operator<<(std::ostream & os, B) {
-    return os << "user-defined operator<<(std::ostream&, const B &)";
+
+namespace {
+    auto & operator<<(std::ostream & os, B) {
+        return os << "user-defined operator<<(std::ostream&, const B &)";
+    }
 }
+
 struct C {
     A a;
     B b;
