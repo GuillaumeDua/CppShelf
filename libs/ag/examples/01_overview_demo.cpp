@@ -1,3 +1,4 @@
+#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
 #include <csl/ag.hpp>
 #include <iostream>
 
@@ -12,7 +13,7 @@ static_assert(std::same_as<int,  csl::ag::element_t<1, S>>);
 
 auto main() -> int {
     S value{ 'A', 41 };
-    ++std::get<1>(value);
+    ++csl::ag::get<1>(value);
 
     using namespace csl::ag::io;
     std::cout << "value: " << value << '\n';
