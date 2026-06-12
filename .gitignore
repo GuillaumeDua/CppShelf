@@ -3,6 +3,7 @@ build/
 Testing/
 CMakeFiles/
 CMakeCache.txt
+compile_commands.json
 
 # CMake - integration test
 test/integration/CMakeCache.txt

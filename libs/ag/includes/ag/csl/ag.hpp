@@ -1199,8 +1199,12 @@ namespace csl::ag::io::details {
 
 #if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-#if __has_include(<format>)
-#   include <format>
+#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
+#    if not __has_include(<format>)
+#        error "CSL_AG__ENABLE_FORMAT_SUPPORT is ON, but <format> is missing"
+#    else
+#        include <format>
+#    endif
 #endif
 #include <ostream>
 #include <iomanip>
@@ -1243,8 +1247,6 @@ namespace csl::ag::io::details {
         }
     };
 
-    // Detects types with operator<<(std::ostream &, T).
-    // Checked without csl::ag::io in scope, so our own operator<< is never considered.
     template <typename T>
     concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
         os << v;
@@ -1255,7 +1257,7 @@ namespace csl::ag::io::details {
     template <typename T>
     void write_value(std::ostream & os, T && value) {
         using type = std::remove_cvref_t<T>;
-#if __has_include(<format>)
+#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
         if constexpr (std::formattable<type, char>)
             os << std::format("{}", value);
         else
@@ -1766,10 +1768,16 @@ namespace csl::ag::io {
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
-// TODO(Guss) Opt-in std::format support
+// Opt-in: std::format support
+// Gated by CSL_AG__ENABLE_FORMAT_SUPPORT (same cmake option as fmtlib/iostream).
+// When enabled, write_value inside the iostream section uses std::format as the
+// primary formatting backend (before fmt::format and direct operator<<).
 #if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and not __has_include(<format>)
-    static_assert(false, "csl::ag: [CSL_AG_ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing. Did you forget a dependency ?");
+    static_assert(false, "csl::ag: [CSL_AG__ENABLE_FORMAT_SUPPORT] set to [true], but header <format> is missing.");
 #elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
+
+#pragma message("[csl::ag] CSL_AG__ENABLE_FORMAT_SUPPORT - enabled")
+
 #endif // CSL_AG__ENABLE_FORMAT_SUPPORT
 
 namespace csl::ag::concepts {
