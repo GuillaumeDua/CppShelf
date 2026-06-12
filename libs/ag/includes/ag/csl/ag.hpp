@@ -1185,163 +1185,190 @@ namespace csl::ag::io::details {
 #pragma endregion
 #endif // any IO section
 
+// --- shared: io manipulator types (used by iostream and/or fmtlib) ---
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
+namespace csl::ag::io {
+    struct indented_t {};
+    constexpr inline static indented_t indented{};
+}
+#endif
+
 // --- opt-in: iostream support ---
 // Provides operator<<(std::ostream &, structured_bindable) via csl::ag::io.
 //
 // Design:
-//   - indented_ostream wraps std::ostream & and tracks indentation depth
-//   - operator<< takes indented_ostream (implicitly constructible from std::ostream &),
-//     so user-defined operator<<(std::ostream &, T) overloads are always preferred
-//   - Leaf values are formatted using the best available backend:
-//       std::format > fmt::format > direct operator<<(std::ostream &, T)
+//   - 3 output modes, selected via IO manipulators (one-shot, reset after each print):
+//       os << value                           (default: braced, compact)
+//       os << csl::ag::io::no_braces << value (flat, no outer brackets or separator)
+//       os << csl::ag::io::indented << value  (multiline, depth-indented)
+//   - Leaf values use operator<<(std::ostream &, T) directly
+//   - Recursive for nested structured_bindable types (aggregates and tuple-likes)
+//   - Bracket style: {} for aggregates, [] for range-like tuple-likes, () for other tuple-likes
 //
 // Usage: using namespace csl::ag::io; std::cout << my_aggregate;
 
 #if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
-#    if not __has_include(<format>)
-#        error "CSL_AG__ENABLE_FORMAT_SUPPORT is ON, but <format> is missing"
-#    else
-#        include <format>
-#    endif
-#endif
+#pragma message("[csl::ag] CSL_AG__ENABLE_IOSTREAM_SUPPORT - enabled")
+
 #include <ostream>
-#include <iomanip>
 
 namespace csl::ag::io::details {
-
-    struct indent_t {};
-    constexpr inline indent_t indent{};
-
-    // Wraps a std::ostream& value with an indentation depth context.
-    //  Use deeper() to obtain a child context one level deeper.
-    //  Usage: `std::cout << aggregate` after `using namespace csl::ag::io`.
-    class indented_ostream {
-        constexpr static std::size_t indent_width = 4;
-        std::ostream & os_;
-        std::size_t    depth_;
-
-    public:
-        indented_ostream() = delete;
-        indented_ostream(std::ostream & os, std::size_t depth = 0) noexcept // NOLINT(google-explicit-constructor)
-        : os_{os}, depth_{depth}
-        {}
-        indented_ostream(const indented_ostream &) noexcept = default;
-        indented_ostream(indented_ostream &&)       noexcept = default;
-        ~indented_ostream()                         noexcept = default;
-        indented_ostream & operator=(const indented_ostream &) = delete;
-        indented_ostream & operator=(indented_ostream &&)      = delete;
-
-        [[nodiscard]] std::ostream &    stream() const noexcept { return os_; }
-        [[nodiscard]] std::size_t       depth()  const noexcept { return depth_; }
-        [[nodiscard]] indented_ostream  deeper() const noexcept { return {os_, depth_ + 1}; }
-
-        auto operator<<(indent_t) const -> const indented_ostream & {
-            os_ << std::setw(static_cast<int>(depth_ * indent_width)) << "";
-            return *this;
-        }
-        auto operator<<(const auto & value) const -> const indented_ostream & {
-            os_ << value;
-            return *this;
-        }
-    };
 
     template <typename T>
     concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
         os << v;
     };
 
-    // write_value: write a single leaf value using the best available backend.
-    // Priority: std::format > fmt::format > direct operator<<(std::ostream &, T)
-    template <typename T>
-    void write_value(std::ostream & os, T && value) {
-        using type = std::remove_cvref_t<T>;
-#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
-        if constexpr (std::formattable<type, char>)
-            os << std::format("{}", value);
-        else
-#endif
-#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
-        if constexpr (fmt::is_formattable<type, char>::value)
-            os << fmt::format("{}", value);
-        else
-#endif
-        if constexpr (ostream_formattable<type>)
-            os << value;
-        else
-            static_assert(
-                not std::same_as<type, type>,
-                "[csl::ag::io] field type is not printable: provide operator<<(std::ostream &, T), "
-                "or enable CSL_AG__ENABLE_FORMAT_SUPPORT / CSL_AG__ENABLE_FMTLIB_SUPPORT"
-            );
+    enum class io_mode : long { braced = 0, no_braces = 1, indented = 2 }; // NOLINT(*-enum-size, *-runtime-int) used for ostream::iword
+
+    static inline auto mode_index() noexcept -> int {
+        static const int idx = std::ios_base::xalloc();
+        return idx;
     }
 
-    // Forward declaration to allow print_field -> print mutual recursion
+    template <typename T>
+    concept range_like = requires(std::remove_cvref_t<T> & t) {
+        t.begin();
+        t.end();
+    };
+
+    template <typename T>
+    constexpr auto open_bracket() noexcept -> std::string_view {
+        if constexpr (range_like<T>)
+            return "[";
+        else if constexpr (csl::ag::concepts::tuple_like<T>)
+            return "(";
+        else
+            return "{";
+    }
+    template <typename T>
+    constexpr auto close_bracket() noexcept -> std::string_view {
+        if constexpr (range_like<T>)
+            return "]";
+        else if constexpr (csl::ag::concepts::tuple_like<T>)
+            return ")";
+        else
+            return "}";
+    }
+
+    constexpr static std::size_t indentation_width = 4;
+
+    inline void write_indent(std::ostream & os, std::size_t depth) {
+        constexpr std::size_t max_depth = 32;
+        static constexpr auto buf =
+            []<std::size_t... Is>(std::index_sequence<Is...>) {
+                return std::array<char, sizeof...(Is)>{((void)Is, ' ')...};
+            }(std::make_index_sequence<max_depth * indentation_width>{});
+
+        os.write(
+            buf.data(),
+            static_cast<std::streamsize>(
+                std::min(max_depth, depth) * indentation_width
+            )
+        );
+    }
+
+    // Forward declaration: `print` and `print_field_value` are mutually recursive
     template <csl::ag::concepts::structured_bindable T>
-    void print(indented_ostream os, T && value)
+    void print(std::ostream & os, T && value, io_mode mode, std::size_t depth)
     requires (not std::is_array_v<std::remove_cvref_t<T>>);
 
-    // print_field: print the I-th field of value at the given indentation context.
-    // The caller positions the output to the start of the field line.
-    template <std::size_t I, typename T>
-    void print_field(indented_ostream os, T && value) {
-        using value_type = std::remove_cvref_t<T>;
-        using field_type = std::remove_cvref_t<csl::ag::tuplelike::element_t<I, value_type>>;
-        auto && fv = csl::ag::tuplelike::get<I>(csl_fwd(value));
-
-        os << indent << "[" << I << "] ";
-
-        if constexpr (
-            csl::ag::concepts::structured_bindable<field_type>
-            and not std::is_array_v<field_type>
-            and not ostream_formattable<field_type>
-        ) {
-            // Nested aggregate or tuple-like without user operator<<: recurse.
-            // print() continues output on the same line, right after "[I] ".
-            print(os, csl_fwd(fv));
-        } else if constexpr (not ostream_formattable<field_type>) {
-            // No operator<<: try format backends (compile error if none available)
-            os << type_name_v<field_type> << " : ";
-            write_value(os.stream(), csl_fwd(fv));
-        } else {
-            // Has operator<<: use it directly (respects user-defined output)
-            if constexpr (not csl::ag::concepts::structured_bindable<field_type>)
-                os << type_name_v<field_type> << " : ";
-            os.stream() << fv;
+    // print_field_value: write one field's value to os.
+    template <typename T>
+    void print_field_value(std::ostream & os, T && value, io_mode mode, std::size_t depth) {
+        using type = std::remove_cvref_t<T>;
+        if constexpr (ostream_formattable<type>){
+            os << value;
         }
-        os << '\n';
+        else if constexpr (
+            csl::ag::concepts::structured_bindable<type>
+            and not std::is_array_v<type>
+        ){
+            print(os, csl_fwd(value), mode, depth);
+        }
+        else {
+            static_assert(
+                false,
+                "[csl::ag::io] field type is not printable: provide operator<<(std::ostream &, T)"
+            );
+        }
     }
 
-    // print: recursively format a structured_bindable value with indentation.
-    // Outputs: TypeName {\n  [fields...]  }\n  (caller adds trailing newline if needed)
+    // print: write the full bracketed representation of a structured_bindable.
+    //   braced   (default): {f0, f1, …, fN}
+    //   no_braces:          f0f1…fN  (no outer brackets/separator; inner structs use braced)
+    //   indented:           {\n    f0,\n    f1,\n…\n}  (recursive, depth-aware)
     template <csl::ag::concepts::structured_bindable T>
-    void print(indented_ostream os, T && value)
+    void print(std::ostream & os, T && value, io_mode mode, std::size_t depth)
     requires (not std::is_array_v<std::remove_cvref_t<T>>)
     {
-        using value_type = std::remove_cvref_t<T>;
-        constexpr auto size = csl::ag::tuplelike::size_v<value_type>;
+        using type = std::remove_cvref_t<T>;
+        constexpr auto size = csl::ag::tuplelike::size_v<type>;
 
-        os << type_name_v<value_type> << " {\n";
-        [&]<std::size_t ... Is>(std::index_sequence<Is...>){
-            (print_field<Is>(os.deeper(), csl_fwd(value)), ...);
-        }(std::make_index_sequence<size>{});
-        os << indent << "}";
+        if (mode == io_mode::indented) {
+            os << open_bracket<type>() << '\n';
+            [&]<std::size_t... Is>(std::index_sequence<Is...>){
+                ([&]{
+                    write_indent(os, depth + 1);
+                    print_field_value(os, csl::ag::tuplelike::get<Is>(csl_fwd(value)), io_mode::indented, depth + 1);
+                    if constexpr (Is + 1 < size)
+                        os << ',';
+                    os << '\n';
+                }(), ...);
+            }(std::make_index_sequence<size>{});
+            write_indent(os, depth);
+            os << close_bracket<type>();
+        }
+        else if (mode == io_mode::no_braces) {
+            // No outer brackets or separator; inner structures use braced mode.
+            [&]<std::size_t... Is>(std::index_sequence<Is...>){
+                (
+                    print_field_value(os, csl::ag::tuplelike::get<Is>(csl_fwd(value)), io_mode::braced, 0),
+                    ...
+                );
+            }(std::make_index_sequence<size>{});
+        }
+        else { // braced (default)
+            os << open_bracket<type>();
+            [&]<std::size_t... Is>(std::index_sequence<Is...>){
+                ([&]{
+                    if constexpr (Is > 0)
+                        os << ", ";
+                    print_field_value(os, csl::ag::tuplelike::get<Is>(csl_fwd(value)), io_mode::braced, 0);
+                }(), ...);
+            }(std::make_index_sequence<size>{});
+            os << close_bracket<type>();
+        }
     }
 }
 
 namespace csl::ag::io {
 
-    // operator<<: print a structured_bindable value to an indented_ostream.
-    // indented_ostream is implicitly constructible from std::ostream &, enabling
-    // `std::cout << aggregate` after `using namespace csl::ag::io`.
-    // User-defined operator<<(std::ostream &, T) overloads win over this one
-    // because they match std::ostream & exactly (no conversion required).
-    auto operator<<(details::indented_ostream os, csl::ag::concepts::structured_bindable auto && value) -> std::ostream &
+    // no_braces: no outer brackets mode on the stream, for the next aggregate
+    struct no_braces_t {};
+    constexpr inline no_braces_t no_braces{};
+
+    // Manipulator operators: set mode (one-shot; reset by operator<< below).
+    inline auto operator<<(std::ostream & os, no_braces_t) -> std::ostream & {
+        os.iword(details::mode_index()) = std::to_underlying(details::io_mode::no_braces);
+        return os;
+    }
+    inline auto operator<<(std::ostream & os, indented_t) -> std::ostream & {
+        os.iword(details::mode_index()) = std::to_underlying(details::io_mode::indented);
+        return os;
+    }
+
+    /// @brief operator<<: print a structured_bindable value using the current stream mode.
+    /// User-defined operator<<(std::ostream &, T) wins over this constrained template via overload resolution,
+    /// since perfect/exact match beats constrained template.
+    auto operator<<(std::ostream & os, csl::ag::concepts::structured_bindable auto && value) -> std::ostream &
     requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>)
     {
-        details::print(os, csl_fwd(value));
-        return os.stream();
+        auto mode = static_cast<details::io_mode>(os.iword(details::mode_index()));
+        os.iword(details::mode_index()) = 0; // reset to braced (one-shot semantics)
+        details::print(os, csl_fwd(value), mode, 0);
+        return os;
     }
 }
 
@@ -1758,8 +1785,6 @@ public:
 #pragma endregion
 
 namespace csl::ag::io {
-    struct indented_t {};
-    constexpr inline static indented_t indented{};
     template <csl::ag::concepts::aggregate T>
     [[nodiscard]] auto operator|(const T & value, indented_t){
         return details::decorators::depthen_view_t{ .value = value };
@@ -1769,9 +1794,7 @@ namespace csl::ag::io {
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
 // Opt-in: std::format support
-// Gated by CSL_AG__ENABLE_FORMAT_SUPPORT (same cmake option as fmtlib/iostream).
-// When enabled, write_value inside the iostream section uses std::format as the
-// primary formatting backend (before fmt::format and direct operator<<).
+// Reserved for future use. Currently has no effect on iostream or fmtlib output.
 #if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and not __has_include(<format>)
     static_assert(false, "csl::ag: [CSL_AG__ENABLE_FORMAT_SUPPORT] set to [true], but header <format> is missing.");
 #elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT

@@ -86,16 +86,12 @@ foreach(bitfields IN ITEMS 0 1)
     )
     add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
-    foreach(format_support IN ITEMS 0 1)
-        csl_ag_make_test_target(
-            NAME        iostream_support
-            SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/iostream_support.cpp
-            DEFINITIONS
-                FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
-                FORCE_CSL_AG__ENABLE_FORMAT_SUPPORT=${format_support}
-            RESULT      target_name
-        )
-        add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
-    endforeach()
+    csl_ag_make_test_target(
+        NAME        iostream_support
+        SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/iostream_support.cpp
+        DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+        RESULT      target_name
+    )
+    add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
 endforeach()
