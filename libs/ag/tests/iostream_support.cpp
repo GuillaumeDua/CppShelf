@@ -24,51 +24,52 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+// NOLINTBEGIN(*-avoid-do-while)
+// NOLINTBEGIN(*-use-anonymous-namespace)
+// NOLINTBEGIN(*cert-err58-cpp)
+// NOLINTBEGIN(*-avoid-magic-numbers)
+
 namespace types = test::ag::types;
 
-// Test-local type with user-defined operator<<.
-// Must be at file scope (not anonymous namespace) so ADL finds it from header templates.
 struct printable_t { int value; };
-auto & operator<<(std::ostream & os, printable_t v) { return os << "printable:" << v.value; }
+// user-defined overload, be at file scope (not anonymous namespace) so ADL finds it
+static auto & operator<<(std::ostream & os, printable_t v) { return os << "printable:" << v.value; }
 
 struct with_printable_field {
     printable_t p;
     int         x;
 };
 
-// --- helpers ---
+namespace { // helpers
+    template <typename T>
+    auto capture_default(const T & value) -> std::string {
+        std::ostringstream ss;
+        using namespace csl::ag::io;
+        ss << value;
+        return ss.str();
+    }
 
-template <typename T>
-auto capture_default(const T & value) -> std::string {
-    std::ostringstream ss;
-    using namespace csl::ag::io;
-    ss << value;
-    return ss.str();
+    template <typename T>
+    auto capture_no_braces(const T & value) -> std::string {
+        std::ostringstream ss;
+        using namespace csl::ag::io;
+        ss << no_braces << value;
+        return ss.str();
+    }
+
+    template <typename T>
+    auto capture_indented(const T & value) -> std::string {
+        std::ostringstream ss;
+        using namespace csl::ag::io;
+        ss << indented << value;
+        return ss.str();
+    }
 }
-
-template <typename T>
-auto capture_no_braces(const T & value) -> std::string {
-    std::ostringstream ss;
-    using namespace csl::ag::io;
-    ss << no_braces << value;
-    return ss.str();
-}
-
-template <typename T>
-auto capture_indented(const T & value) -> std::string {
-    std::ostringstream ss;
-    using namespace csl::ag::io;
-    ss << indented << value;
-    return ss.str();
-}
-
-// --- compile-time checks ---
 
 namespace tests::compile_time {
 
     using namespace csl::ag::io::details;
 
-    // Fundamental types and common ostream-printable types
     static_assert(ostream_formattable<int>);
     static_assert(ostream_formattable<char>);
     static_assert(ostream_formattable<float>);
@@ -76,22 +77,13 @@ namespace tests::compile_time {
     static_assert(ostream_formattable<std::string>);
     static_assert(ostream_formattable<std::string_view>);
 
-    // Plain aggregates without user operator<< are NOT ostream_formattable
     static_assert(not ostream_formattable<types::field_1>);
     static_assert(not ostream_formattable<types::field_2>);
     static_assert(not ostream_formattable<types::field_3_nested>);
     static_assert(not ostream_formattable<types::empty>);
 
-    // printable_t has a user-defined operator<< so it IS ostream_formattable
     static_assert(ostream_formattable<printable_t>);
 }
-
-// --- fixtures ---
-//
-// Differences from fmtlib_support.cpp fixtures:
-//   - char values are unquoted   ('A' → A)
-//   - string_view values are unquoted  ("str" → str)
-//   - bool values are 0/1 (no std::boolalpha)
 
 namespace {
 
@@ -150,8 +142,6 @@ R"({
             .a  = {'a', 'b', 'c'},
             .p  = { 42, 43 }, // NOLINT
         };
-        // std::tuple → (), std::array → [], std::pair → ()
-        // chars and string_view unquoted via iostream
         constexpr static std::string_view default_expected     = "{(2, b, str), [a, b, c], (42, 43)}";
         constexpr static std::string_view no_braces_expected   = "(2, b, str)[a, b, c](42, 43)";
         constexpr static std::string_view indented_expected =
@@ -181,8 +171,6 @@ R"({
             .a_i  = { 42, 43, 44 },
             .a_sv = { "a", "b", "c" },
         };
-        // sv: string_view — ostream_formattable, unquoted
-        // arrays: range-like tuple → []
         constexpr static std::string_view default_expected     = "{hello, [a, b, c], [42, 43, 44], [a, b, c]}";
         constexpr static std::string_view no_braces_expected   = "hello[a, b, c][42, 43, 44][a, b, c]";
         constexpr static std::string_view indented_expected =
@@ -214,7 +202,6 @@ R"({
             .f2 = fixture<types::field_3_nested_tuplelike>::value,
             .f3 = fixture<types::field_4_nested_range>::value,
         };
-        // bool: 0/1 via iostream (no boolalpha)
         constexpr static std::string_view default_expected =
             "{1, {1, {42}, {123, A}}, {(2, b, str), [a, b, c], (42, 43)}, {hello, [a, b, c], [42, 43, 44], [a, b, c]}}";
         constexpr static std::string_view no_braces_expected =
@@ -269,9 +256,7 @@ R"({
 })";
     };
 
-} // namespace
-
-// --- tests ---
+}
 
 TEST_CASE("csl::ag::io operator<< returns std::ostream & [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
           "[ag][iostream]")
@@ -299,13 +284,15 @@ TEST_CASE("csl::ag::io operator<< supports chaining [BITFIELDS=" CSL_AG_BITFIELD
 TEST_CASE("csl::ag::io no_braces manipulator is one-shot [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
           "[ag][iostream]")
 {
-    // After printing with no_braces, the next print should revert to braced.
+    // After printing with non-default (here, no_braces), the next print should revert to default (braced).
     std::ostringstream ss;
     using namespace csl::ag::io;
+
     constexpr auto v = fixture<types::field_1>::value;
     ss << no_braces << v << '|' << v;
     auto out = ss.str();
     auto sep = out.find('|');
+
     REQUIRE(sep != std::string::npos);
     CHECK(out.substr(0, sep)  == fixture<types::field_1>::no_braces_expected);
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
@@ -316,10 +303,12 @@ TEST_CASE("csl::ag::io indented manipulator is one-shot [BITFIELDS=" CSL_AG_BITF
 {
     std::ostringstream ss;
     using namespace csl::ag::io;
+    
     constexpr auto v = fixture<types::field_1>::value;
     ss << indented << v << '|' << v;
     auto out = ss.str();
     auto sep = out.find('|');
+
     REQUIRE(sep != std::string::npos);
     CHECK(out.substr(0, sep)  == fixture<types::field_1>::indented_expected);
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
@@ -367,9 +356,9 @@ TEMPLATE_TEST_CASE("csl::ag::io indented output [BITFIELDS=" CSL_AG_BITFIELDS_ST
 TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
           "[ag][iostream]")
 {
-    // printable_t IS structured_bindable (aggregate) AND has user operator<<.
-    // The user's exact-match overload wins over our constrained template.
-    CHECK(capture_default(printable_t{7}) == "printable:7");
+    // printable_t: structured_bindable AND has user-defined operator<<.
+    // - exact-match overload wins over our constrained template.
+    CHECK(capture_default(printable_t{42}) == "printable:42");
 }
 
 TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -377,7 +366,7 @@ TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly 
 {
     // with_printable_field: { printable_t p; int x; }
     // Field p is ostream_formattable — user's operator<< is used (not recursive print).
-    auto out = capture_default(with_printable_field{.p = {42}, .x = 7});
+    auto out = capture_default(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
     CHECK(out == "{printable:42, 7}");
 }
 
@@ -389,3 +378,8 @@ TEST_CASE("csl::ag::io empty aggregate [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
 }
 
 #undef CSL_AG_BITFIELDS_STR
+
+// NOLINTEND(*-avoid-magic-numbers)
+// NOLINTEND(*cert-err58-cpp)
+// NOLINTEND(*-use-anonymous-namespace)
+// NOLINTEND(*-avoid-do-while)
