@@ -1223,6 +1223,10 @@ namespace csl::ag::io {
 //  - Leaf values use operator<<(std::ostream &, T) directly
 //  - Recursive for nested structured_bindable types (aggregates and tuple-likes)
 //  - Bracket style: {} for aggregates, [] for range-like tuple-likes, () for other tuple-likes
+//  - Differences with fmt/std::format support:
+//      - char values are unquoted ('A' → A)
+//      - string-likes values are unquoted  ("str" → str)
+//      - bool values are 0/1 (no std::boolalpha)
 //
 // Usage: using namespace csl::ag::io; std::cout << my_aggregate;
 
@@ -1358,7 +1362,7 @@ namespace csl::ag::io::details {
 
 namespace csl::ag::io {
 
-    // no_braces: no outer brackets mode on the stream, for the next aggregate
+    // no_braces: no outer brackets mode on the stream for the next aggregate
     struct no_braces_t {};
     constexpr inline no_braces_t no_braces{};
 
