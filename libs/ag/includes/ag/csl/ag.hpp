@@ -173,7 +173,8 @@ namespace csl::ag::concepts {
             >;
         }(std::make_index_sequence<size>{})
     ;
-
+}
+namespace csl::ag::concepts::inline P2165 {
     // P2165 - tuple-like
     // Note that this is a good-enough implementation of P2165 to only fit this project's needs
 	template <typename T, std::size_t N>
@@ -202,6 +203,13 @@ namespace csl::ag::concepts {
     concept tuple_like = details::unqualified_tuple_like<std::remove_cvref_t<T>>;
     template <typename T>
     concept pair_like = tuple_like<T> and std::tuple_size_v<std::remove_cvref_t<T>> == 2;
+}
+namespace csl::ag::concepts {
+    template <typename T>
+    concept range_like = requires(std::remove_cvref_t<T> & t) {
+        t.begin();
+        t.end();
+    };
 
 	template <typename T>
 	concept structured_bindable = tuple_like<T> or aggregate<T>;
@@ -1194,16 +1202,27 @@ namespace csl::ag::io {
 #endif
 
 // --- opt-in: iostream support ---
+//
 // Provides operator<<(std::ostream &, structured_bindable) via csl::ag::io.
 //
+// WARNING: prefer csl::ag fmtlib or std::format support over this when possible.
+//
+//   Compile-time cost:
+//      Including <ostream> is a heavy standard headers.
+//      Prefer fmtlib (CSL_AG__ENABLE_FMTLIB_SUPPORT) or std::format (CSL_AG__ENABLE_FORMAT_SUPPORT) for significantly faster build times.
+//
+//   Runtime cost:
+//      std::ios_base::xalloc() and std::ios_base::iword() are used, to store the active print mode on the stream.
+//      Both involve a global mutex and can be a bottleneck in hot paths or multi-threaded code.
+//
 // Design:
-//   - 3 output modes, selected via IO manipulators (one-shot, reset after each print):
-//       os << value                           (default: braced, compact)
-//       os << csl::ag::io::no_braces << value (flat, no outer brackets or separator)
-//       os << csl::ag::io::indented << value  (multiline, depth-indented)
-//   - Leaf values use operator<<(std::ostream &, T) directly
-//   - Recursive for nested structured_bindable types (aggregates and tuple-likes)
-//   - Bracket style: {} for aggregates, [] for range-like tuple-likes, () for other tuple-likes
+//  - 3 output modes, selected via IO manipulators (one-shot, reset after each print):
+//      os << value                           (default: braced, compact)
+//      os << csl::ag::io::no_braces << value (flat, no outer brackets or separator)
+//      os << csl::ag::io::indented << value  (multiline, depth-indented)
+//  - Leaf values use operator<<(std::ostream &, T) directly
+//  - Recursive for nested structured_bindable types (aggregates and tuple-likes)
+//  - Bracket style: {} for aggregates, [] for range-like tuple-likes, () for other tuple-likes
 //
 // Usage: using namespace csl::ag::io; std::cout << my_aggregate;
 
@@ -1228,14 +1247,8 @@ namespace csl::ag::io::details {
     }
 
     template <typename T>
-    concept range_like = requires(std::remove_cvref_t<T> & t) {
-        t.begin();
-        t.end();
-    };
-
-    template <typename T>
     constexpr auto open_bracket() noexcept -> std::string_view {
-        if constexpr (range_like<T>)
+        if constexpr (csl::ag::concepts::range_like<T>)
             return "[";
         else if constexpr (csl::ag::concepts::tuple_like<T>)
             return "(";
@@ -1244,7 +1257,7 @@ namespace csl::ag::io::details {
     }
     template <typename T>
     constexpr auto close_bracket() noexcept -> std::string_view {
-        if constexpr (range_like<T>)
+        if constexpr (csl::ag::concepts::range_like<T>)
             return "]";
         else if constexpr (csl::ag::concepts::tuple_like<T>)
             return ")";
