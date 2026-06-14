@@ -514,7 +514,7 @@ TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly 
           "[ag][iostream]")
 {
     // with_printable_field: { printable_t p; int x; }
-    // Field p is ostream_formattable — user's operator<< is used (not recursive print).
+    // Field p is ostream_formattable - user's operator<< is used (not recursive print).
     auto out = capture_default(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
     CHECK(out == "{printable:42, 7}");
 }
