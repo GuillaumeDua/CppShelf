@@ -1690,29 +1690,15 @@ namespace csl::ag::io {
 
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-// WIP --- refactor/cleanup fmt support implementation
-
 // Opt-in: fmt support
-// TODO(Guillaume): Cleanup - trim the extra/useless parts
 #if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and not __has_include(<fmt/format.h>)
     static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
 #elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
 
 #pragma message("[csl::ag] CSL_AG__ENABLE_FMTLIB_SUPPORT - enabled")
 
-// NOTE: fmt >= 11 for :n tuple format
-//  yet, does not spread to nested values: https://godbolt.org/z/8c6n9Ye63
-//  # define FMT_TUPLE_JOIN_SPECIFIERS 1 // experimentale
-//  QUESTION:   should add a `:s` spread parse argument, to either enable or disable the spread of the indentation ?
-//              or use some `fmt::join`-like function, which is the idiomatic way to spread parse ?
-
 # include <fmt/ranges.h>
 # include <fmt/compile.h>
-
-// DESIGN: See #134, #262
-// WIP: Solution: merge
-//  formatters: https://godbolt.org/z/debEzjvrT
-//      and     https://godbolt.org/z/6neoG56fP
 
 namespace csl::ag::io::type_traits {
 
@@ -1724,21 +1710,6 @@ namespace csl::ag::io::type_traits {
     template <typename T>
     using formatter_value_type_t = formatter_value_type<T>::type;
 
-    // formatter_char_type
-    template <typename T>
-    struct formatter_char_type;
-    template <typename T, typename Char>
-    struct formatter_char_type<fmt::formatter<T, Char>> : std::type_identity<Char>{};
-    template <typename T>
-    using formatter_char_type_t = formatter_char_type<T>::type;
-
-    // is_formatter
-    template <typename T>
-    struct is_formatter : std::false_type{};
-    template <typename T, typename Char>
-    struct is_formatter<fmt::formatter<T, Char>> : std::true_type{};
-    template <typename T>
-    constexpr inline static auto is_formatter_v = is_formatter<T>::value;
 }
 
 // string literals
@@ -1749,8 +1720,6 @@ namespace csl::ag::io::details::concepts {
     or  std::same_as<T, fmt::basic_string_view<Char>>
     ;
 
-    template <typename T>
-    concept formatter = type_traits::is_formatter_v<T>;
 }
 
 namespace csl::ag::io::details {
@@ -1767,14 +1736,6 @@ namespace csl::ag::io::details {
         template <concepts::string_view_of<Char> T>
         constexpr operator T() const { return {}; }// NOLINT(*-explicit-constructor)
     };
-
-    template <typename lhs, typename rhs>
-    struct string_literal_concat;
-    template <typename Char, Char ... lhs_C, Char ... rhs_C>
-    struct string_literal_concat<
-        string_literal<Char, lhs_C...>,
-        string_literal<Char, rhs_C...>
-    > : string_literal<Char, lhs_C..., rhs_C...>{};
 
     template <typename Char, Char ... lhs_C, Char ... rhs_C>
     [[nodiscard]] constexpr auto concat(string_literal<Char, lhs_C...>, string_literal<Char, rhs_C...>){
@@ -1807,57 +1768,6 @@ namespace csl::ag::io::details::configuration::style {
         constexpr inline static auto width_v = 4;
     }
 }
-
-// brackets
-namespace csl::ag::io::details {
-    template <typename T, typename Char>
-    struct brackets;
-
-    template <typename T, typename Char>
-    requires fmt::is_range<T, Char>::value
-    struct brackets<T, Char> {
-        constexpr static fmt::basic_string_view<Char>
-            opening_bracket = "[",
-            closing_bracket = "]"
-        ;
-    };
-    template <typename T, typename Char>
-    requires fmt::is_tuple_like<T>::value
-    struct brackets<T, Char> {
-        constexpr static fmt::basic_string_view<Char>
-            opening_bracket = "(",
-            closing_bracket = ")"
-        ;
-    };
-    template <csl::ag::concepts::aggregate T, typename Char>
-    requires (not fmt::is_range<T, Char>::value)
-    struct brackets<T, Char> {
-        constexpr static fmt::basic_string_view<Char>
-            opening_bracket = configuration::style::opening_bracket_v<Char>,
-            closing_bracket = configuration::style::closing_bracket_v<Char>
-        ;
-    };
-}
-
-// indentation
-namespace csl::ag::io::details {
-    template <typename Char, std::size_t size>
-    struct make_indentation {
-        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return string_literal<Char, ((void)indexes, configuration::style::indentation::char_v<Char>)...>{};
-        }(std::make_index_sequence<size>{});
-    };
-    template <typename Char, std::size_t size>
-    constexpr static inline auto make_indentation_v = make_indentation<Char, size>::value;
-
-    template <typename Char, std::size_t depth>
-    constexpr inline static auto indentation_v = make_indentation_v<Char, depth * configuration::style::indentation::width_v>;
-}
-
-// TODO(Guillaume): {:n} support
-//  don't just wrap on fmt::formatter<tuplelike>,
-//  but spread parse context: at least 'n' to other aggregates/ranges/tuplelikes
-// REFACTO with formatter<depth-aware-view>
 
 // aggregate formatter
 template <csl::ag::concepts::aggregate T, typename Char>
