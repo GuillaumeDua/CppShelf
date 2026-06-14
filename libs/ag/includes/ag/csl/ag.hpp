@@ -1690,7 +1690,7 @@ namespace csl::ag::io {
 
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
-// --- WIP --- refactor/cleanup fmt support implementation
+// WIP --- refactor/cleanup fmt support implementation
 
 // Opt-in: fmt support
 // TODO(Guillaume): Cleanup - trim the extra/useless parts
@@ -1711,8 +1711,8 @@ namespace csl::ag::io {
 
 // DESIGN: See #134, #262
 // WIP: Solution: merge
-//  formatters: https://godbolt.org/z/ob1Prz9aq
-//      and     https://godbolt.org/z/fsz39c8ah
+//  formatters: https://godbolt.org/z/debEzjvrT
+//      and     https://godbolt.org/z/6neoG56fP
 
 namespace csl::ag::io::type_traits {
 
@@ -1932,7 +1932,7 @@ namespace csl::ag::io::type_traits {
     > : std::type_identity<T>{};
 }
 
-// fmt::formatter for formatted_view_t — composite structured_bindable T
+// fmt::formatter for formatted_view_t - composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
     csl::ag::io::format_options Options,
@@ -1949,7 +1949,7 @@ class fmt::formatter<
     >
 {};
 
-// fmt::formatter for formatted_view_t — non-structured-bindable leaf T
+// fmt::formatter for formatted_view_t - non-structured-bindable leaf T
 template <
     typename T,
     csl::ag::io::format_options Options,
@@ -1984,7 +1984,7 @@ namespace csl::ag::io::details {
     using std_formatter = std::formatter<T, Char>;
 }
 
-// std::formatter for plain aggregate T — default (braced, flat) output.
+// std::formatter for plain aggregate T - default (braced, flat) output.
 // Mirrors the fmtlib fmt::formatter<T> old path for ergonomic use without a view wrapper.
 template <csl::ag::concepts::aggregate T, typename Char>
 requires (not csl::ag::io::details::concepts::decorator<T>)
@@ -1995,7 +1995,7 @@ struct std::formatter<T, Char>
     >
 {};
 
-// std::formatter for formatted_view_t — composite structured_bindable T
+// std::formatter for formatted_view_t - composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
     csl::ag::io::format_options Options,
@@ -2011,7 +2011,7 @@ struct std::formatter<
     >
 {};
 
-// std::formatter for formatted_view_t — non-structured-bindable leaf T
+// std::formatter for formatted_view_t - non-structured-bindable leaf T
 template <
     typename T,
     csl::ag::io::format_options Options,
