@@ -190,7 +190,7 @@ Breaking changes are very likely, as the API is instable **for now**.
 
 All options in this section are opt-ins *(`OFF` by default)*
 
-- `CSL_AG__ENABLE_FORMAT_SUPPORT`: add `std::formatter<csl::ag::aggregate T>`
+- `CSL_AG__ENABLE_STD_FORMAT_SUPPORT`: add `std::formatter<csl::ag::aggregate T>`
 
   ```cpp
   const auto formatted = std::format("my aggregate = {}", my_aggregate{});
