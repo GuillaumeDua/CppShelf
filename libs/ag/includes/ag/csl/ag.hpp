@@ -1168,38 +1168,328 @@ namespace csl::ag::tuplelike {
 //  formatting/printing
 // ---------------------
 
-// --- shared: type_name (used by iostream, fmtlib, and format sections) ---
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) || defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) || defined(CSL_AG__ENABLE_FORMAT_SUPPORT)
+// type_name
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) || defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) || defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
 #pragma region type_name
 
-#if defined(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT) and CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT
-#    if not __has_include(<csl/typeinfo.hpp>)
-#        error "CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT is ON, but <csl/typeinfo.hpp> is missing"
-#    else
-#        include <csl/typeinfo.hpp>
+#if __has_include(<csl/typeinfo.hpp>)
+#   include <csl/typeinfo.hpp>
 namespace csl::ag::io::details {
     template <typename T>
     constexpr inline static std::string_view type_name_v = csl::typeinfo::type_name_v<T>;
 }
-#    endif
 #else
-#    include <typeinfo>
+#   pragma message("[csl::ag] formatting enabled, but <csl/typeinfo.hpp> not available, fallback to <typeinfo>")
+#   include <typeinfo>
 namespace csl::ag::io::details {
     template <typename T>
-    const inline static std::string_view type_name_v = typeid(T).name();
+    inline static std::string_view type_name_v = typeid(T).name(); // NOLINT(*-avoid-non-const-global-variables)
 }
 #endif
 
 #pragma endregion
-#endif // any IO section
-
-// --- shared: io manipulator types (used by iostream and/or fmtlib) ---
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
-namespace csl::ag::io {
-    struct indented_t {};
-    constexpr inline static indented_t indented{};
-}
 #endif
+
+// --- shared: composable format options, tag types, decorated view, operator| ---
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+
+namespace csl::ag::io {
+    /// \brief Bitmask of composable formatting options.
+    ///        Underlying type is long for compatibility with std::ios_base::iword().
+    enum class format_options : long { // NOLINT(*-enum-size, *-runtime-int)
+        none      = 0,
+        no_braces = 1L << 0,
+        indented  = 1L << 1,
+        indexed   = 1L << 2,
+        typenamed = 1L << 3,
+    };
+
+    [[nodiscard]] constexpr auto operator|(format_options a, format_options b) noexcept -> format_options {
+        return format_options{ std::to_underlying(a) | std::to_underlying(b) };
+    }
+    [[nodiscard]] constexpr auto operator&(format_options a, format_options b) noexcept -> format_options {
+        return format_options{ std::to_underlying(a) & std::to_underlying(b) };
+    }
+    [[nodiscard]] constexpr auto operator~(format_options a) noexcept -> format_options {
+        return format_options{ ~std::to_underlying(a) };
+    }
+    constexpr auto operator|=(format_options & a, format_options b) noexcept -> format_options & {
+        return (a = a | b);
+    }
+
+    struct indented_t  { constexpr static format_options flag = format_options::indented;  };
+    struct no_braces_t { constexpr static format_options flag = format_options::no_braces; };
+    struct indexed_t   { constexpr static format_options flag = format_options::indexed;   };
+    struct typenamed_t { constexpr static format_options flag = format_options::typenamed; };
+
+    [[maybe_unused]] constexpr inline static indented_t  indented{};
+    [[maybe_unused]] constexpr inline static no_braces_t no_braces{};
+    [[maybe_unused]] constexpr inline static indexed_t   indexed{};
+    [[maybe_unused]] constexpr inline static typenamed_t typenamed{};
+}
+
+namespace csl::ag::io::details {
+
+    constexpr inline format_options all_format_options_mask =
+          format_options::no_braces
+        | format_options::indented
+        | format_options::indexed
+        | format_options::typenamed
+    ;
+
+    template <typename T>
+    concept format_option_tag =
+        requires { { T::flag } -> std::same_as<const format_options &>; }
+        and (T::flag != format_options::none)
+        and ((T::flag & all_format_options_mask) == T::flag)
+    ;
+}
+
+namespace csl::ag::io::details::decorators {
+
+    /// \brief Carries formatting options as compile-time template parameters.
+    /// WARNING: Options and Depth as template argument results in poor performance, code-generation bloat.
+    template <typename T, format_options Options = format_options::none, std::size_t Depth = 0>
+    requires std::same_as<T, std::remove_cvref_t<T>>
+    struct formatted_view_t {
+
+        using csl_ag_io_decorator = void;
+        using value_type = T;
+
+        /*explicit*/ operator const value_type &() const { return value; } // NOLINT(*-explicit-constructor)
+        const value_type & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
+        constexpr static format_options options = Options;
+        constexpr static std::size_t    depth   = Depth;
+    };
+}
+
+namespace csl::ag::io::details::concepts {
+    template <typename T>
+    concept decorator = requires { T::csl_ag_io_decorator; };
+}
+
+namespace csl::ag::io {
+
+    /// \brief structured_bindable T | option => formatted_view_t
+    template <csl::ag::concepts::structured_bindable T, details::format_option_tag Option>
+    [[nodiscard]] auto operator|(T const & value, Option)
+    -> details::decorators::formatted_view_t<std::remove_cvref_t<T>, Option::flag>
+    {
+        return { .value = value };
+    }
+
+    /// \brief formatted_view_t | additional option => accumulated view (same depth, flags)
+    template <typename T, format_options Options, std::size_t Depth, details::format_option_tag Option>
+    [[nodiscard]] auto operator|(details::decorators::formatted_view_t<T, Options, Depth> view, Option)
+    -> details::decorators::formatted_view_t<T, Options | Option::flag, Depth>
+    {
+        return { .value = view.value };
+    }
+}
+
+namespace csl::ag::io::details {
+
+    template <typename T>
+    [[nodiscard]] constexpr auto opening_bracket() noexcept -> std::string_view {
+        if constexpr (csl::ag::concepts::range_like<T>)         return "[";
+        else if constexpr (csl::ag::concepts::tuple_like<T>)    return "(";
+        else                                                    return "{";
+    }
+    template <typename T>
+    [[nodiscard]] constexpr auto closing_bracket() noexcept -> std::string_view {
+        if constexpr (csl::ag::concepts::range_like<T>)         return "]";
+        else if constexpr (csl::ag::concepts::tuple_like<T>)    return ")";
+        else                                                    return "}";
+    }
+}
+
+#endif
+
+#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+
+namespace csl::ag::io::details {
+
+    template <std::size_t N>
+    [[nodiscard]] consteval auto to_chars() noexcept {
+        constexpr auto digits = [] {
+            std::size_t n = N, count = 1;
+            while (n >= 10) { n /= 10; ++count; }
+            return count;
+        }();
+        std::array<char, digits> result{};
+        auto idx = N;
+        for (std::size_t i = digits; i > 0; --i) { result[i - 1] = '0' + static_cast<char>(idx % 10); idx /= 10; }
+        return result;
+    }
+
+    template <typename Char, typename OutputIt>
+    [[nodiscard]] auto write_sv(OutputIt out, std::basic_string_view<Char> sv) noexcept -> OutputIt {
+        for (Char c : sv)
+            *out++ = c;
+        return out;
+    }
+
+    static constexpr std::size_t indentation_width = 4;
+
+    /// \brief brief description Shared logic for both fmt and std::format (parse, format)
+    // FormatterTemplate: fmt::formatter or std::formatter
+    template <
+        template <typename, typename> class FormatterTemplate,
+        csl::ag::concepts::structured_bindable T,
+        format_options Options,
+        std::size_t Depth,
+        typename Char
+    >
+    requires (not details::concepts::decorator<T>)
+    class ag_formatter_base {
+
+        static constexpr format_options child_options = Options & ~format_options::no_braces;
+
+        // Deduce children formatters
+        template <std::size_t ... indexes>
+        static auto make_formatters_tuple(std::index_sequence<indexes...>)
+        -> std::tuple<
+            FormatterTemplate<
+                decorators::formatted_view_t<csl::ag::tuplelike::element_t<indexes, T>, child_options, Depth + 1>,
+                Char
+            >...
+        >;
+        using formatters_t = decltype(make_formatters_tuple(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{}));
+
+        formatters_t formatters_{};
+
+        // NOTE: bracket/separator can be cleared by :n at runtime
+        std::basic_string_view<Char> opening_bracket_{
+            bool(Options & format_options::no_braces)
+                ? std::basic_string_view<Char>{}
+                : std::basic_string_view<Char>{ opening_bracket<T>() }
+        };
+        std::basic_string_view<Char> closing_bracket_{
+            bool(Options & format_options::no_braces)
+            ? std::basic_string_view<Char>{}
+            : std::basic_string_view<Char>{ closing_bracket<T>() }
+        };
+
+        std::basic_string_view<Char> separator_{
+            bool(Options & format_options::no_braces)
+            ? std::basic_string_view<Char>{}
+            : bool(Options & format_options::indented)
+                ? std::basic_string_view<Char>{","}
+                : std::basic_string_view<Char>{", "}
+        };
+
+        template <std::size_t FieldIndex, typename Context>
+        void format_element(const T & value, Context & ctx) const {
+            using field_type = csl::ag::tuplelike::element_t<FieldIndex, T>;
+
+            if constexpr (FieldIndex > 0) {
+                ctx.advance_to(write_sv<Char>(ctx.out(), separator_));
+                if constexpr (bool(Options & format_options::indented))
+                    *ctx.out()++ = '\n';
+            }
+
+            // NOTE: Indentation is written by the parent formatter, so child formatter DOES NOT.
+            if constexpr (bool(Options & format_options::indented))
+                ctx.advance_to(std::fill_n(ctx.out(), (Depth + 1) * indentation_width, Char{' '}));
+            
+            if constexpr (bool(Options & format_options::indexed)) {
+                *ctx.out()++ = '[';
+                constexpr auto index_chars = to_chars<FieldIndex>();
+                ctx.advance_to(write_sv<Char>(ctx.out(), std::basic_string_view<Char>{index_chars.data(), index_chars.size()}));
+                *ctx.out()++ = ']';
+                *ctx.out()++ = ' ';
+            }
+
+            if constexpr (bool(Options & format_options::typenamed)) {
+                ctx.advance_to(write_sv<Char>(ctx.out(), std::basic_string_view<Char>{type_name_v<field_type>}));
+                *ctx.out()++ = ':';
+                *ctx.out()++ = ' ';
+            }
+
+            ctx.advance_to(std::get<FieldIndex>(formatters_).format(csl::ag::tuplelike::get<FieldIndex>(value), ctx));
+        }
+
+    public:
+        using csl_ag_product = void;
+
+        constexpr auto parse(auto & ctx) {
+
+            // NOTE: Propagate parse to child formatters with an empty spec
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+                ([&] {
+                    auto empty_ctx = std::remove_cvref_t<decltype(ctx)>(std::basic_string_view<Char>{});
+                    std::get<indexes>(formatters_).parse(empty_ctx);
+                }(), ...);
+            }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
+
+            // :n spec (runtime override for no_braces).
+            auto it  = ctx.begin();
+            auto end = ctx.end();
+            if (it != end and static_cast<char>(*it) == 'n') {
+                ++it;
+                opening_bracket_ = {};
+                closing_bracket_ = {};
+                separator_       = {};
+            }
+            if (it != end and *it != static_cast<Char>('}'))
+                ++it; // skip ':' or other trailing char
+            ctx.advance_to(it);
+            return it;
+        }
+
+        template <typename Context>
+        auto format(const T & value, Context & ctx) const {
+            ctx.advance_to(write_sv<Char>(ctx.out(), opening_bracket_));
+            if constexpr (bool(Options & format_options::indented))
+                *ctx.out()++ = '\n';
+
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+                (format_element<indexes>(value, ctx), ...);
+            }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
+
+            if constexpr (bool(Options & format_options::indented)) {
+                *ctx.out()++ = '\n';
+                ctx.advance_to(std::fill_n(ctx.out(), Depth * 4, Char{' '}));
+            }
+            ctx.advance_to(write_sv<Char>(ctx.out(), closing_bracket_));
+            return ctx.out();
+        }
+    };
+
+    /// \brief Support non-structured-bindable field types.
+    /// Only formats the value: the parent already wrote indentation + format-options prefixes (indexed, typenamed).
+    template <
+        template <typename, typename> class FormatterTemplate,
+        typename T,
+        format_options Options,
+        std::size_t Depth,
+        typename Char
+    >
+    requires (not csl::ag::concepts::structured_bindable<T>)
+    class ag_formatter_base_leaf {
+        FormatterTemplate<T, Char> value_formatter_{};
+    public:
+        using csl_ag_product = void;
+
+        constexpr auto parse(auto & ctx) {
+            
+            auto empty_ctx = std::remove_cvref_t<decltype(ctx)>(std::basic_string_view<Char>{});
+            value_formatter_.parse(empty_ctx);
+
+            // NOTE: about debug: set quoted format for char and string types
+            if constexpr (requires { value_formatter_.set_debug_format(); }) {
+                value_formatter_.set_debug_format();
+            }
+            return ctx.begin();
+        }
+        template <typename Context>
+        auto format(const T & value, Context & ctx) const {
+            return value_formatter_.format(value, ctx);
+        }
+    };
+}
+
+#endif // shared formatter base
 
 // --- opt-in: iostream support ---
 //
@@ -1208,25 +1498,24 @@ namespace csl::ag::io {
 // WARNING: prefer csl::ag fmtlib or std::format support over this when possible.
 //
 //   Compile-time cost:
-//      Including <ostream> is a heavy standard headers.
-//      Prefer fmtlib (CSL_AG__ENABLE_FMTLIB_SUPPORT) or std::format (CSL_AG__ENABLE_FORMAT_SUPPORT) for significantly faster build times.
+//      Including <ostream> is one of the heaviest standard headers.
+//      Prefer fmtlib (CSL_AG__ENABLE_FMTLIB_SUPPORT) or std::format (CSL_AG__ENABLE_STD_FORMAT_SUPPORT) for significantly faster build times.
 //
 //   Runtime cost:
-//      std::ios_base::xalloc() and std::ios_base::iword() are used, to store the active print mode on the stream.
+//      std::ios_base::xalloc() and std::ios_base::iword() are used to store the active options on the stream.
 //      Both involve a global mutex and can be a bottleneck in hot paths or multi-threaded code.
 //
 // Design:
-//  - 3 output modes, selected via IO manipulators (one-shot, reset after each print):
-//      os << value                           (default: braced, compact)
-//      os << csl::ag::io::no_braces << value (flat, no outer brackets or separator)
-//      os << csl::ag::io::indented << value  (multiline, depth-indented)
-//  - Leaf values use operator<<(std::ostream &, T) directly
-//  - Recursive for nested structured_bindable types (aggregates and tuple-likes)
-//  - Bracket style: {} for aggregates, [] for range-like tuple-likes, () for other tuple-likes
-//  - Differences with fmt/std::format support:
-//      - char values are unquoted ('A' → A)
-//      - string-likes values are unquoted  ("str" → str)
-//      - bool values are 0/1 (no std::boolalpha)
+//  - Composable format_options bitmask selected via IO manipulators (one-shot, reset after each print)
+//      or via the view-based operator| API (bypasses iword entirely):
+//      os << value                                           (default: braced, compact)
+//      os << csl::ag::io::no_braces << value                (flat, no outer brackets or separator)
+//      os << csl::ag::io::indented  << value                (multiline, depth-indented)
+//      os << csl::ag::io::indexed   << value                (braced with [N] field indexes)
+//      os << csl::ag::io::typenamed << value                (braced with TypeName: prefixes)
+//      os << (value | csl::ag::io::indented | csl::ag::io::indexed)  (view-based, composable)
+//  - Options propagate to nested structured_bindable fields (no_braces is outermost-only)
+//  - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "..."
 //
 // Usage: using namespace csl::ag::io; std::cout << my_aggregate;
 
@@ -1238,35 +1527,16 @@ namespace csl::ag::io {
 
 namespace csl::ag::io::details {
 
+    /// \brief T has an operator<<(std::ostream &, T) reachable WITHOUT csl::ag::io in scope.
+    // This prevents our own operator<< from satisfying the concept (depend on self).
     template <typename T>
     concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
         os << v;
     };
 
-    enum class io_mode : long { braced = 0, no_braces = 1, indented = 2 }; // NOLINT(*-enum-size, *-runtime-int) used for ostream::iword
-
     static inline auto mode_index() noexcept -> int {
         static const int idx = std::ios_base::xalloc();
         return idx;
-    }
-
-    template <typename T>
-    constexpr auto open_bracket() noexcept -> std::string_view {
-        if constexpr (csl::ag::concepts::range_like<T>)
-            return "[";
-        else if constexpr (csl::ag::concepts::tuple_like<T>)
-            return "(";
-        else
-            return "{";
-    }
-    template <typename T>
-    constexpr auto close_bracket() noexcept -> std::string_view {
-        if constexpr (csl::ag::concepts::range_like<T>)
-            return "]";
-        else if constexpr (csl::ag::concepts::tuple_like<T>)
-            return ")";
-        else
-            return "}";
     }
 
     constexpr static std::size_t indentation_width = 4;
@@ -1277,119 +1547,150 @@ namespace csl::ag::io::details {
             []<std::size_t... Is>(std::index_sequence<Is...>) {
                 return std::array<char, sizeof...(Is)>{((void)Is, ' ')...};
             }(std::make_index_sequence<max_depth * indentation_width>{});
-
-        os.write(
-            buf.data(),
-            static_cast<std::streamsize>(
-                std::min(max_depth, depth) * indentation_width
-            )
-        );
+        os.write(buf.data(), static_cast<std::streamsize>(std::min(max_depth, depth) * indentation_width));
     }
 
-    // Forward declaration: `print` and `print_field_value` are mutually recursive
+    struct format_options_view {
+
+        bool is_indented;
+        bool is_no_braces;
+        bool is_indexed;
+        bool is_typenamed;
+        format_options nested; // no_braces is outermost-only
+
+        constexpr explicit format_options_view(format_options options) noexcept
+            : is_indented  { bool(options & format_options::indented)  }
+            , is_no_braces { bool(options & format_options::no_braces) }
+            , is_indexed   { bool(options & format_options::indexed)   }
+            , is_typenamed { bool(options & format_options::typenamed) }
+            , nested       { options & ~format_options::no_braces      }
+        {}
+    };
+
+    // NOTE: Forward declaration: print and print_field_value are mutually recursive.
     template <csl::ag::concepts::structured_bindable T>
-    void print(std::ostream & os, T && value, io_mode mode, std::size_t depth)
+    void print(std::ostream & os, T && value, format_options options, std::size_t depth)
     requires (not std::is_array_v<std::remove_cvref_t<T>>);
 
-    // print_field_value: write one field's value to os.
+    /// \brief print_field_value: write one field value of type T to an ostream value.
+    // Quoting is consistent with fmtlib: char => 'x', bool => true/false, string => "...".
+    // WARNING(Known limitation) range-like and tuple-like field values are not recursively pretty-printed;
+    //   they require a user-provided operator<< or they hit the static_assert.
+    // TODO: get rid of such a limitation, for consistency sake ?
     template <typename T>
-    void print_field_value(std::ostream & os, T && value, io_mode mode, std::size_t depth) {
+    void print_field_value(std::ostream & os, T && value, format_options options, std::size_t depth) {
         using type = std::remove_cvref_t<T>;
-        if constexpr (ostream_formattable<type>){
+        if constexpr (std::is_same_v<type, bool>)
+            os << (value ? "true" : "false");
+        else if constexpr (std::is_same_v<type, char>)
+            os << '\'' << value << '\'';
+        else if constexpr (std::is_same_v<type, std::string_view> or std::is_same_v<type, std::string>)
+            os << '"' << value << '"';
+        else if constexpr (ostream_formattable<type>)
             os << value;
-        }
-        else if constexpr (
-            csl::ag::concepts::structured_bindable<type>
-            and not std::is_array_v<type>
-        ){
-            print(os, csl_fwd(value), mode, depth);
-        }
-        else {
-            static_assert(
-                false,
-                "[csl::ag::io] field type is not printable: provide operator<<(std::ostream &, T)"
-            );
-        }
+        else if constexpr (csl::ag::concepts::structured_bindable<type> and not std::is_array_v<type>)
+            print(os, csl_fwd(value), options, depth);
+        else
+            static_assert(false, "[csl::ag::io] field type is not printable: provide operator<<(std::ostream &, T)");
     }
 
-    // print: write the full bracketed representation of a structured_bindable.
-    //   braced   (default): {f0, f1, …, fN}
-    //   no_braces:          f0f1…fN  (no outer brackets/separator; inner structs use braced)
-    //   indented:           {\n    f0,\n    f1,\n…\n}  (recursive, depth-aware)
     template <csl::ag::concepts::structured_bindable T>
-    void print(std::ostream & os, T && value, io_mode mode, std::size_t depth)
+    void print(std::ostream & os, T && value, format_options options, std::size_t depth)
     requires (not std::is_array_v<std::remove_cvref_t<T>>)
     {
         using type = std::remove_cvref_t<T>;
         constexpr auto size = csl::ag::tuplelike::size_v<type>;
 
-        if (mode == io_mode::indented) {
-            os << open_bracket<type>() << '\n';
-            [&]<std::size_t... Is>(std::index_sequence<Is...>){
-                ([&]{
+        const auto opt = format_options_view{ options };
+
+        if (not opt.is_no_braces) os << opening_bracket<type>();
+        if (opt.is_indented)      os << '\n';
+
+        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+            ([&] {
+                
+                if constexpr (indexes > 0) {
+                    if (not opt.is_no_braces)       os << ',';
+                    if (opt.is_indented)            os << '\n';
+                    else if (not opt.is_no_braces)  os << ' ';
+                }
+                
+                if (opt.is_indented)
                     write_indent(os, depth + 1);
-                    print_field_value(os, csl::ag::tuplelike::get<Is>(csl_fwd(value)), io_mode::indented, depth + 1);
-                    if constexpr (Is + 1 < size)
-                        os << ',';
-                    os << '\n';
-                }(), ...);
-            }(std::make_index_sequence<size>{});
-            write_indent(os, depth);
-            os << close_bracket<type>();
-        }
-        else if (mode == io_mode::no_braces) {
-            // No outer brackets or separator; inner structures use braced mode.
-            [&]<std::size_t... Is>(std::index_sequence<Is...>){
-                (
-                    print_field_value(os, csl::ag::tuplelike::get<Is>(csl_fwd(value)), io_mode::braced, 0),
-                    ...
+
+                if (opt.is_indexed)
+                    os << '[' << indexes << "] ";
+                
+                if (opt.is_typenamed) {
+                    using field_type = csl::ag::tuplelike::element_t<indexes, type>;
+                    os << type_name_v<field_type> << ": ";
+                }
+                print_field_value(
+                    os,
+                    csl::ag::tuplelike::get<indexes>(csl_fwd(value)),
+                    opt.nested,
+                    depth + 1
                 );
-            }(std::make_index_sequence<size>{});
+            }(), ...);
+        }(std::make_index_sequence<size>{});
+
+        if (opt.is_indented){
+            os << '\n';
+            write_indent(os, depth);
         }
-        else { // braced (default)
-            os << open_bracket<type>();
-            [&]<std::size_t... Is>(std::index_sequence<Is...>){
-                ([&]{
-                    if constexpr (Is > 0)
-                        os << ", ";
-                    print_field_value(os, csl::ag::tuplelike::get<Is>(csl_fwd(value)), io_mode::braced, 0);
-                }(), ...);
-            }(std::make_index_sequence<size>{});
-            os << close_bracket<type>();
-        }
+        if (not opt.is_no_braces)
+            os << closing_bracket<type>();
     }
 }
 
 namespace csl::ag::io {
 
-    // no_braces: no outer brackets mode on the stream for the next aggregate
-    struct no_braces_t {};
-    constexpr inline no_braces_t no_braces{};
-
-    // Manipulator operators: set mode (one-shot; reset by operator<< below).
-    inline auto operator<<(std::ostream & os, no_braces_t) -> std::ostream & {
-        os.iword(details::mode_index()) = std::to_underlying(details::io_mode::no_braces);
-        return os;
-    }
+    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indented
     inline auto operator<<(std::ostream & os, indented_t) -> std::ostream & {
-        os.iword(details::mode_index()) = std::to_underlying(details::io_mode::indented);
+        os.iword(details::mode_index()) |= std::to_underlying(format_options::indented);
+        return os;
+    }
+    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - no_braces
+    inline auto operator<<(std::ostream & os, no_braces_t) -> std::ostream & {
+        os.iword(details::mode_index()) |= std::to_underlying(format_options::no_braces);
+        return os;
+    }
+    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indexed
+    inline auto operator<<(std::ostream & os, indexed_t) -> std::ostream & {
+        os.iword(details::mode_index()) |= std::to_underlying(format_options::indexed);
+        return os;
+    }
+    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - typenamed
+    inline auto operator<<(std::ostream & os, typenamed_t) -> std::ostream & {
+        os.iword(details::mode_index()) |= std::to_underlying(format_options::typenamed);
         return os;
     }
 
-    /// @brief operator<<: print a structured_bindable value using the current stream mode.
-    /// User-defined operator<<(std::ostream &, T) wins over this constrained template via overload resolution,
-    /// since perfect/exact match beats constrained template.
+    /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword, using compile-time Options.
+    template <typename T, format_options Options, std::size_t Depth>
+    static auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T, Options, Depth> const & view)
+    -> std::ostream &
+    {
+        details::print(os, view.value, Options, Depth);
+        return os;
+    }
+
+    /// \brief Format a structured_bindable into an std::ostream, using iword options (one-shot) and prints.
+    /// User-defined operator<<(std::ostream &, T) wins via overload resolution (exact match).
     auto operator<<(std::ostream & os, csl::ag::concepts::structured_bindable auto && value) -> std::ostream &
     requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>)
+    and (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
     {
-        auto mode = static_cast<details::io_mode>(os.iword(details::mode_index()));
-        os.iword(details::mode_index()) = 0; // reset to braced (one-shot semantics)
-        details::print(os, csl_fwd(value), mode, 0);
+        auto options = static_cast<format_options>(os.iword(details::mode_index()));
+        os.iword(details::mode_index()) = 0; // reset (one-shot semantics)
+        details::print(os, csl_fwd(value), options, 0);
         return os;
     }
 }
 
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
+
+// --- WIP --- refactor/cleanup fmt support implementation
 
 // Opt-in: fmt support
 // TODO(Guillaume): Cleanup - trim the extra/useless parts
@@ -1596,33 +1897,11 @@ public:
     }
 };
 
-// decorators
-namespace csl::ag::io::details::concepts {
-    template <typename T>
-    concept decorator = requires { T::csl_ag_io_decorator; };
-}
-namespace csl::ag::io::details::decorators {
-
-    template <typename T>
-    struct typenamed_view_t {
-        using csl_ag_io_decorator = void;
-    };
-    template <typename T>
-    struct indexed_view_t {
-        using csl_ag_io_decorator = void;
-    };
-    template <typename T, std::size_t I = 0>
-    requires std::same_as<T, std::remove_cvref_t<T>>
-    struct depthen_view_t {
-        using csl_ag_io_decorator = void;
-        using value_type = T;
-
-        /*explicit*/ operator const value_type&() const { return value; } // NOLINT(*-explicit-constructor)
-        const value_type & value; // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
-        constexpr static std::size_t depth = I;
-    };
-    template <typename T, std::size_t I = 0>
-    depthen_view_t(T &&) -> depthen_view_t<std::remove_cvref_t<T>>;
+// fmt_formatter alias: normalises fmt::formatter's 3-param signature to 2 params
+// so it can be passed as a template template parameter to ag_formatter_base.
+namespace csl::ag::io::details {
+    template <typename T, typename Char = char>
+    using fmt_formatter = fmt::formatter<T, Char>;
 }
 
 // fmt_formattable (used upstream: not formatter detection)
@@ -1644,181 +1923,111 @@ namespace csl::ag::io::details::concepts {
     concept fmt_formattable = type_traits::is_fmt_formattable_v<T, Char>;
 }
 
-#pragma region // depth-aware formatter - indentation formatting
-// formatter: depthen_view_t (non-structured-bindable T)
-template <
-    typename T,
-    std::size_t depth,
-    typename Char
->
-class fmt::formatter<
-    csl::ag::io::details::decorators::depthen_view_t<T, depth>,
-    Char
-> {
-    fmt::formatter<T, Char> value_formatter;
-public:
-
-    using csl_ag_product = void;
-
-    constexpr auto parse(fmt::format_parse_context& ctx) {
-        // return value_formatter.parse(ctx);
-        auto it = ctx.begin();
-        detail::parse_empty_specs<Char>{ctx}(value_formatter);
-        return it;
-    }
-
-    // QUESTION: depthen_view_t instead of T ? (remove implicit cast)
-    template <typename FormatContext>
-    auto format(const T & value, FormatContext& ctx) const {
-        // equivalent to fmt::format_to(ctx.out(), "{: ^{}}{}: ", "", depth * 3, csl::typeinfo::type_name_v<T>);
-        ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
-        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
-        return value_formatter.format(value, ctx);
-    }
-};
-
-namespace csl::ag::io::details {
-    template <csl::ag::concepts::structured_bindable T, std::size_t depth, typename Char>
-    [[maybe_unused]] constexpr static auto deduce_formatters_type() -> csl::ag::concepts::tuple_like auto {
-        return []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return std::tuple<
-                fmt::formatter<
-                    decorators::depthen_view_t<csl::ag::tuplelike::element_t<indexes, T>, depth + 1>,
-                    Char
-                >...
-            >{};
-        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
-    }
-}
+#pragma region // formatted_view_t formatters (composable options)
 
 namespace csl::ag::io::type_traits {
-    template <typename T, std::size_t depth, typename Char>
+    template <typename T, format_options Options, std::size_t Depth, typename Char>
     struct formatter_value_type<
-        fmt::formatter<csl::ag::io::details::decorators::depthen_view_t<T, depth>, Char>
+        fmt::formatter<csl::ag::io::details::decorators::formatted_view_t<T, Options, Depth>, Char>
     > : std::type_identity<T>{};
 }
 
-// formatter: depthen_view_t (structured-bindable)
+// fmt::formatter for formatted_view_t — composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
-    std::size_t depth,
+    csl::ag::io::format_options Options,
+    std::size_t Depth,
     typename Char
 >
 requires (not csl::ag::io::details::concepts::decorator<T>)
 and csl::ag::io::details::concepts::fmt_formattable<T, Char>
 class fmt::formatter<
-    csl::ag::io::details::decorators::depthen_view_t<T, depth>,
+    csl::ag::io::details::decorators::formatted_view_t<T, Options, Depth>,
     Char
->{
-    using formatters_t = std::remove_cvref_t<decltype(csl::ag::io::details::deduce_formatters_type<T, depth, Char>())>;
-    formatters_t formatters;
+> : public csl::ag::io::details::ag_formatter_base<
+        csl::ag::io::details::fmt_formatter, T, Options, Depth, Char
+    >
+{};
 
-    using brackets_t = csl::ag::io::details::brackets<T, Char>;
-    fmt::basic_string_view<Char>
-        opening_bracket = brackets_t::opening_bracket,
-        closing_bracket = brackets_t::closing_bracket,
-        separator       = csl::ag::io::details::configuration::style::separator_v<Char>
-    ;
-
-public:
-
-    using csl_ag_product = void;
-
-    constexpr auto parse(fmt::format_parse_context& ctx) {
-
-        // propagate range/tuple-like formats - {:n}
-        csl::ag::tuplelike::for_each(
-            formatters,
-            [&](auto && f) constexpr {
-                using formatter_type = std::remove_cvref_t<decltype(f)>;
-                using formatter_value_type = csl::ag::io::type_traits::formatter_value_type_t<formatter_type>;
-                if constexpr (
-                    fmt::is_range<formatter_value_type, Char>::value
-                or  csl::ag::concepts::structured_bindable<formatter_value_type>
-                ){
-                    auto ctx_copy_lvalue = (ctx);
-                    f.parse(ctx_copy_lvalue); // if not_eq end fmt::parse_error ?
-                }
-                else {
-                    // auto parse_empty_specs = fmt::detail::parse_empty_specs<Char>{ctx};
-                    auto empty_context = fmt::format_parse_context({});
-                    f.parse(empty_context);
-                }
-            }
-        );
-
-        auto it = ctx.begin();
-        auto end = ctx.end();
-        if (it not_eq end and fmt::detail::to_ascii(*it) == 'n') {
-            ++it;
-            opening_bracket = {};
-            closing_bracket = {};
-            separator = {};
-        }
-        if (it not_eq end && *it not_eq '}') {
-            if (*it not_eq ':') fmt::report_error("invalid format specifier");
-            ++it;
-        }
-        ctx.advance_to(it);
-        return it;
-    }
-
-    template <typename FormatContext>
-    auto format(const T & value, FormatContext& ctx) const {
-
-        // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("{: ^{}}{}: {{\n"), "", depth * 3, csl::typeinfo::type_name_v<T>);
-        ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view<Char>{csl::ag::io::details::type_name_v<T>}, ctx.out())); // WIP: use view composition instead
-        // ctx.advance_to(fmt::detail::copy<Char>(fmt::basic_string_view{": "}, ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(opening_bracket, ctx.out()));
-        *ctx.out()++ = '\n';
-
-        const auto format_element_at = [&]<std::size_t indexes>(){
-
-            if (indexes > 0){
-                ctx.advance_to(fmt::detail::copy<char>(separator, ctx.out()));
-                ctx.advance_to(fmt::detail::copy<char>(fmt::basic_string_view<Char>{"\n"}, ctx.out()));
-            }
-            ctx.advance_to(
-                std::get<indexes>(formatters).format(
-                    csl::ag::tuplelike::get<indexes>(value),
-                    ctx
-                )
-            );
-        };
-
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            (format_element_at.template operator()<indexes>(), ...);
-        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
-
-        // equivalent to: fmt::format_to(ctx.out(), FMT_COMPILE("\n{: ^{}}}}"), "", depth * 3);
-        *ctx.out()++ = '\n';
-        ctx.advance_to(fmt::detail::copy<Char>(static_cast<fmt::basic_string_view<Char>>(csl::ag::io::details::indentation_v<Char, depth>), ctx.out()));
-        ctx.advance_to(fmt::detail::copy<Char>(closing_bracket, ctx.out()));
-        return ctx.out();
-    }
-};
+// fmt::formatter for formatted_view_t — non-structured-bindable leaf T
+template <
+    typename T,
+    csl::ag::io::format_options Options,
+    std::size_t Depth,
+    typename Char
+>
+requires (not csl::ag::concepts::structured_bindable<T>)
+class fmt::formatter<
+    csl::ag::io::details::decorators::formatted_view_t<T, Options, Depth>,
+    Char
+> : public csl::ag::io::details::ag_formatter_base_leaf<
+        csl::ag::io::details::fmt_formatter, T, Options, Depth, Char
+    >
+{};
 #pragma endregion
-
-namespace csl::ag::io {
-    template <csl::ag::concepts::aggregate T>
-    [[nodiscard]] auto operator|(const T & value, indented_t){
-        return details::decorators::depthen_view_t{ .value = value };
-    }
-}
 
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
 // Opt-in: std::format support
-// Reserved for future use. Currently has no effect on iostream or fmtlib output.
-#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and not __has_include(<format>)
-    static_assert(false, "csl::ag: [CSL_AG__ENABLE_FORMAT_SUPPORT] set to [true], but header <format> is missing.");
-#elif defined(CSL_AG__ENABLE_FORMAT_SUPPORT) and CSL_AG__ENABLE_FORMAT_SUPPORT
+#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and not __has_include(<format>)
+    static_assert(false, "csl::ag: [CSL_AG__ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing.");
+#elif defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT
 
-#pragma message("[csl::ag] CSL_AG__ENABLE_FORMAT_SUPPORT - enabled")
+#pragma message("[csl::ag] CSL_AG__ENABLE_STD_FORMAT_SUPPORT - enabled")
 
-#endif // CSL_AG__ENABLE_FORMAT_SUPPORT
+#include <format>
+
+// std_formatter alias: normalises std::formatter's 2-param signature for use as
+// a template template parameter to ag_formatter_base.
+namespace csl::ag::io::details {
+    template <typename T, typename Char = char>
+    using std_formatter = std::formatter<T, Char>;
+}
+
+// std::formatter for plain aggregate T — default (braced, flat) output.
+// Mirrors the fmtlib fmt::formatter<T> old path for ergonomic use without a view wrapper.
+template <csl::ag::concepts::aggregate T, typename Char>
+requires (not csl::ag::io::details::concepts::decorator<T>)
+and (not std::ranges::range<T>)
+struct std::formatter<T, Char>
+    : public csl::ag::io::details::ag_formatter_base<
+        csl::ag::io::details::std_formatter, T, csl::ag::io::format_options::none, 0, Char
+    >
+{};
+
+// std::formatter for formatted_view_t — composite structured_bindable T
+template <
+    csl::ag::concepts::structured_bindable T,
+    csl::ag::io::format_options Options,
+    std::size_t Depth,
+    typename Char
+>
+requires (not csl::ag::io::details::concepts::decorator<T>)
+struct std::formatter<
+    csl::ag::io::details::decorators::formatted_view_t<T, Options, Depth>,
+    Char
+> : public csl::ag::io::details::ag_formatter_base<
+        csl::ag::io::details::std_formatter, T, Options, Depth, Char
+    >
+{};
+
+// std::formatter for formatted_view_t — non-structured-bindable leaf T
+template <
+    typename T,
+    csl::ag::io::format_options Options,
+    std::size_t Depth,
+    typename Char
+>
+requires (not csl::ag::concepts::structured_bindable<T>)
+struct std::formatter<
+    csl::ag::io::details::decorators::formatted_view_t<T, Options, Depth>,
+    Char
+> : public csl::ag::io::details::ag_formatter_base_leaf<
+        csl::ag::io::details::std_formatter, T, Options, Depth, Char
+    >
+{};
+
+#endif // CSL_AG__ENABLE_STD_FORMAT_SUPPORT
 
 namespace csl::ag::concepts {
     template <typename T>
