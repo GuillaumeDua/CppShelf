@@ -64,6 +64,31 @@ namespace { // helpers
         ss << indented << value;
         return ss.str();
     }
+
+    template <typename T>
+    auto capture_indexed(const T & value) -> std::string {
+        std::ostringstream ss;
+        using namespace csl::ag::io;
+        ss << indexed << value;
+        return ss.str();
+    }
+
+    template <typename T>
+    auto capture_typenamed(const T & value) -> std::string {
+        std::ostringstream ss;
+        using namespace csl::ag::io;
+        ss << typenamed << value;
+        return ss.str();
+    }
+
+    template <typename T>
+    auto capture_indented_indexed_typenamed(const T & value) -> std::string {
+        std::ostringstream ss;
+        using namespace csl::ag::io;
+        // Composable view-based API: use the iword manipulators that combine multiple options.
+        ss << indented << indexed << typenamed << value;
+        return ss.str();
+    }
 }
 
 namespace tests::compile_time {
@@ -99,17 +124,30 @@ namespace {
 R"({
     42
 })";
+        constexpr static std::string_view indexed_expected = "{[0] 42}";
+        constexpr static std::string_view typenamed_expected = "{int: 42}";
+        constexpr static std::string_view indented_indexed_typenamed_expected =
+R"({
+    [0] int: 42
+})";
     };
 
     template <>
     struct fixture<types::field_2> {
         constexpr static types::field_2 value{ .i = 123, .c = 'A' };
-        constexpr static std::string_view default_expected     = "{123, A}";
-        constexpr static std::string_view no_braces_expected   = "123A";
+        constexpr static std::string_view default_expected     = "{123, 'A'}";
+        constexpr static std::string_view no_braces_expected   = "123'A'";
         constexpr static std::string_view indented_expected =
 R"({
     123,
-    A
+    'A'
+})";
+        constexpr static std::string_view indexed_expected = "{[0] 123, [1] 'A'}";
+        constexpr static std::string_view typenamed_expected = "{int: 123, char: 'A'}";
+        constexpr static std::string_view indented_indexed_typenamed_expected =
+R"({
+    [0] int: 123,
+    [1] char: 'A'
 })";
     };
 
@@ -120,8 +158,8 @@ R"({
             .f1 = fixture<types::field_1>::value,
             .f2 = fixture<types::field_2>::value
         };
-        constexpr static std::string_view default_expected     = "{1, {42}, {123, A}}";
-        constexpr static std::string_view no_braces_expected   = "1{42}{123, A}";
+        constexpr static std::string_view default_expected     = "{1, {42}, {123, 'A'}}";
+        constexpr static std::string_view no_braces_expected   = "1{42}{123, 'A'}";
         constexpr static std::string_view indented_expected =
 R"({
     1,
@@ -130,7 +168,22 @@ R"({
     },
     {
         123,
-        A
+        'A'
+    }
+})";
+        constexpr static std::string_view indexed_expected =
+            "{[0] 1, [1] {[0] 42}, [2] {[0] 123, [1] 'A'}}";
+        constexpr static std::string_view typenamed_expected =
+            "{int: 1, test::ag::types::field_1: {int: 42}, test::ag::types::field_2: {int: 123, char: 'A'}}";
+        constexpr static std::string_view indented_indexed_typenamed_expected =
+R"({
+    [0] int: 1,
+    [1] test::ag::types::field_1: {
+        [0] int: 42
+    },
+    [2] test::ag::types::field_2: {
+        [0] int: 123,
+        [1] char: 'A'
     }
 })";
     };
@@ -142,23 +195,44 @@ R"({
             .a  = {'a', 'b', 'c'},
             .p  = { 42, 43 }, // NOLINT
         };
-        constexpr static std::string_view default_expected     = "{(2, b, str), [a, b, c], (42, 43)}";
-        constexpr static std::string_view no_braces_expected   = "(2, b, str)[a, b, c](42, 43)";
+        constexpr static std::string_view default_expected     = R"({(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)})";
+        constexpr static std::string_view no_braces_expected   = R"((2, 'b', "str")['a', 'b', 'c'](42, 43))";
         constexpr static std::string_view indented_expected =
 R"({
     (
         2,
-        b,
-        str
+        'b',
+        "str"
     ),
     [
-        a,
-        b,
-        c
+        'a',
+        'b',
+        'c'
     ],
     (
         42,
         43
+    )
+})";
+        constexpr static std::string_view indexed_expected =
+            R"({[0] ([0] 2, [1] 'b', [2] "str"), [1] [[0] 'a', [1] 'b', [2] 'c'], [2] ([0] 42, [1] 43)})";
+        constexpr static std::string_view typenamed_expected =
+            R"({std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (int: 2, char: 'b', std::basic_string_view<char>: "str"), std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::pair<int, int>: (int: 42, int: 43)})";
+        constexpr static std::string_view indented_indexed_typenamed_expected =
+R"({
+    [0] std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (
+        [0] int: 2,
+        [1] char: 'b',
+        [2] std::basic_string_view<char>: "str"
+    ),
+    [1] std::array<char, 3>: [
+        [0] char: 'a',
+        [1] char: 'b',
+        [2] char: 'c'
+    ],
+    [2] std::pair<int, int>: (
+        [0] int: 42,
+        [1] int: 43
     )
 })";
     };
@@ -171,15 +245,15 @@ R"({
             .a_i  = { 42, 43, 44 },
             .a_sv = { "a", "b", "c" },
         };
-        constexpr static std::string_view default_expected     = "{hello, [a, b, c], [42, 43, 44], [a, b, c]}";
-        constexpr static std::string_view no_braces_expected   = "hello[a, b, c][42, 43, 44][a, b, c]";
+        constexpr static std::string_view default_expected     = R"({"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]})";
+        constexpr static std::string_view no_braces_expected   = R"("hello"['a', 'b', 'c'][42, 43, 44]["a", "b", "c"])";
         constexpr static std::string_view indented_expected =
 R"({
-    hello,
+    "hello",
     [
-        a,
-        b,
-        c
+        'a',
+        'b',
+        'c'
     ],
     [
         42,
@@ -187,9 +261,32 @@ R"({
         44
     ],
     [
-        a,
-        b,
-        c
+        "a",
+        "b",
+        "c"
+    ]
+})";
+        constexpr static std::string_view indexed_expected =
+            R"({[0] "hello", [1] [[0] 'a', [1] 'b', [2] 'c'], [2] [[0] 42, [1] 43, [2] 44], [3] [[0] "a", [1] "b", [2] "c"]})";
+        constexpr static std::string_view typenamed_expected =
+            R"({std::basic_string_view<char>: "hello", std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::array<int, 3>: [int: 42, int: 43, int: 44], std::array<std::basic_string_view<char>, 3>: [std::basic_string_view<char>: "a", std::basic_string_view<char>: "b", std::basic_string_view<char>: "c"]})";
+        constexpr static std::string_view indented_indexed_typenamed_expected =
+R"({
+    [0] std::basic_string_view<char>: "hello",
+    [1] std::array<char, 3>: [
+        [0] char: 'a',
+        [1] char: 'b',
+        [2] char: 'c'
+    ],
+    [2] std::array<int, 3>: [
+        [0] int: 42,
+        [1] int: 43,
+        [2] int: 44
+    ],
+    [3] std::array<std::basic_string_view<char>, 3>: [
+        [0] std::basic_string_view<char>: "a",
+        [1] std::basic_string_view<char>: "b",
+        [2] std::basic_string_view<char>: "c"
     ]
 })";
     };
@@ -203,12 +300,12 @@ R"({
             .f3 = fixture<types::field_4_nested_range>::value,
         };
         constexpr static std::string_view default_expected =
-            "{1, {1, {42}, {123, A}}, {(2, b, str), [a, b, c], (42, 43)}, {hello, [a, b, c], [42, 43, 44], [a, b, c]}}";
+            R"({true, {1, {42}, {123, 'A'}}, {(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)}, {"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]}})";
         constexpr static std::string_view no_braces_expected =
-            "1{1, {42}, {123, A}}{(2, b, str), [a, b, c], (42, 43)}{hello, [a, b, c], [42, 43, 44], [a, b, c]}";
+            R"(true{1, {42}, {123, 'A'}}{(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)}{"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]})";
         constexpr static std::string_view indented_expected =
 R"({
-    1,
+    true,
     {
         1,
         {
@@ -216,19 +313,19 @@ R"({
         },
         {
             123,
-            A
+            'A'
         }
     },
     {
         (
             2,
-            b,
-            str
+            'b',
+            "str"
         ),
         [
-            a,
-            b,
-            c
+            'a',
+            'b',
+            'c'
         ],
         (
             42,
@@ -236,11 +333,11 @@ R"({
         )
     },
     {
-        hello,
+        "hello",
         [
-            a,
-            b,
-            c
+            'a',
+            'b',
+            'c'
         ],
         [
             42,
@@ -248,9 +345,61 @@ R"({
             44
         ],
         [
-            a,
-            b,
-            c
+            "a",
+            "b",
+            "c"
+        ]
+    }
+})";
+        constexpr static std::string_view indexed_expected =
+            R"({[0] true, [1] {[0] 1, [1] {[0] 42}, [2] {[0] 123, [1] 'A'}}, [2] {[0] ([0] 2, [1] 'b', [2] "str"), [1] [[0] 'a', [1] 'b', [2] 'c'], [2] ([0] 42, [1] 43)}, [3] {[0] "hello", [1] [[0] 'a', [1] 'b', [2] 'c'], [2] [[0] 42, [1] 43, [2] 44], [3] [[0] "a", [1] "b", [2] "c"]}})";
+        constexpr static std::string_view typenamed_expected =
+            R"({bool: true, test::ag::types::field_3_nested: {int: 1, test::ag::types::field_1: {int: 42}, test::ag::types::field_2: {int: 123, char: 'A'}}, test::ag::types::field_3_nested_tuplelike: {std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (int: 2, char: 'b', std::basic_string_view<char>: "str"), std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::pair<int, int>: (int: 42, int: 43)}, test::ag::types::field_4_nested_range: {std::basic_string_view<char>: "hello", std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::array<int, 3>: [int: 42, int: 43, int: 44], std::array<std::basic_string_view<char>, 3>: [std::basic_string_view<char>: "a", std::basic_string_view<char>: "b", std::basic_string_view<char>: "c"]}})";
+        constexpr static std::string_view indented_indexed_typenamed_expected =
+R"({
+    [0] bool: true,
+    [1] test::ag::types::field_3_nested: {
+        [0] int: 1,
+        [1] test::ag::types::field_1: {
+            [0] int: 42
+        },
+        [2] test::ag::types::field_2: {
+            [0] int: 123,
+            [1] char: 'A'
+        }
+    },
+    [2] test::ag::types::field_3_nested_tuplelike: {
+        [0] std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (
+            [0] int: 2,
+            [1] char: 'b',
+            [2] std::basic_string_view<char>: "str"
+        ),
+        [1] std::array<char, 3>: [
+            [0] char: 'a',
+            [1] char: 'b',
+            [2] char: 'c'
+        ],
+        [2] std::pair<int, int>: (
+            [0] int: 42,
+            [1] int: 43
+        )
+    },
+    [3] test::ag::types::field_4_nested_range: {
+        [0] std::basic_string_view<char>: "hello",
+        [1] std::array<char, 3>: [
+            [0] char: 'a',
+            [1] char: 'b',
+            [2] char: 'c'
+        ],
+        [2] std::array<int, 3>: [
+            [0] int: 42,
+            [1] int: 43,
+            [2] int: 44
+        ],
+        [3] std::array<std::basic_string_view<char>, 3>: [
+            [0] std::basic_string_view<char>: "a",
+            [1] std::basic_string_view<char>: "b",
+            [2] std::basic_string_view<char>: "c"
         ]
     }
 })";
@@ -375,6 +524,45 @@ TEST_CASE("csl::ag::io empty aggregate [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
 {
     CHECK(capture_default(types::empty{})   == "{}");
     CHECK(capture_no_braces(types::empty{}) == "");
+}
+
+TEMPLATE_TEST_CASE("csl::ag::io indexed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+                   "[ag][iostream]",
+                   types::field_1,
+                   types::field_2,
+                   types::field_3_nested,
+                   types::field_3_nested_tuplelike,
+                   types::field_4_nested_range,
+                   types::field_everything)
+{
+    using f = fixture<TestType>;
+    CHECK(capture_indexed(f::value) == f::indexed_expected);
+}
+
+TEMPLATE_TEST_CASE("csl::ag::io typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+                   "[ag][iostream]",
+                   types::field_1,
+                   types::field_2,
+                   types::field_3_nested,
+                   types::field_3_nested_tuplelike,
+                   types::field_4_nested_range,
+                   types::field_everything)
+{
+    using f = fixture<TestType>;
+    CHECK(capture_typenamed(f::value) == f::typenamed_expected);
+}
+
+TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+                   "[ag][iostream]",
+                   types::field_1,
+                   types::field_2,
+                   types::field_3_nested,
+                   types::field_3_nested_tuplelike,
+                   types::field_4_nested_range,
+                   types::field_everything)
+{
+    using f = fixture<TestType>;
+    CHECK(capture_indented_indexed_typenamed(f::value) == f::indented_indexed_typenamed_expected);
 }
 
 #undef CSL_AG_BITFIELDS_STR

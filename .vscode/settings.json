@@ -38,7 +38,7 @@
         // csl::ag
         // "CSL_AG__ENABLE_IOSTREAM_SUPPORT": true,
         // "CSL_AG__ENABLE_FMTLIB_SUPPORT": true,
-        // "CSL_AG__ENABLE_FORMAT_SUPPORT": true
+        // "CSL_AG__ENABLE_STD_FORMAT_SUPPORT": true
     },
     "cmake.options.statusBarVisibility": "compact",
     "[cpp][c]": {

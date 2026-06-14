@@ -23,11 +23,11 @@ if (CSL_AG__ENABLE_IOSTREAM_SUPPORT)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_IOSTREAM_SUPPORT)
 endif()
 
-# CSL_AG__ENABLE_FORMAT_SUPPORT
-option(CSL_AG__ENABLE_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
-csl_print_aligned(STATUS CSL_AG__ENABLE_FORMAT_SUPPORT)
-if (CSL_AG__ENABLE_FORMAT_SUPPORT)
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_FORMAT_SUPPORT)
+# CSL_AG__ENABLE_STD_FORMAT_SUPPORT
+option(CSL_AG__ENABLE_STD_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
+csl_print_aligned(STATUS CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+if (CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
 endif()
 
 # CSL_AG__ENABLE_FMTLIB_SUPPORT

@@ -77,8 +77,8 @@ auto main(int, char*[]) -> int
     fmt::print("{}\n", value | csl::ag::io::indented);  // indented: multi-line
 #endif
 
-    // --- opt-in: std::format (CSL_AG__ENABLE_FORMAT_SUPPORT) ---
-#if defined(CSL_AG__ENABLE_FORMAT_SUPPORT)
+    // --- opt-in: std::format (CSL_AG__ENABLE_STD_FORMAT_SUPPORT) ---
+#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
     std::print("{}\n", value);
     std::print("{}\n", value | csl::ag::io::indented);
 #endif

@@ -9,7 +9,7 @@
 struct A { int i; float f; };
 struct B {};
 
-// Note: must be in the same namespace as B (global here) so ADL finds it from header templates.
+// Note: must be in the same namespace as B (global here) so ADL finds it
 auto & operator<<(std::ostream & os, B) {
     return os << "user-defined operator<<(std::ostream&, const B &)";
 }
@@ -30,7 +30,7 @@ auto main() -> int {
     int i = 42;
     char c = 'c';
     auto value = C{
-        .a = A{ 13, .12f },
+        .a = A{ .i=13, .f=.12F },
         .b = B{},
         .i = i, .str = "str", .c = std::move(c)
     };
