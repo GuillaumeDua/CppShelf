@@ -8,6 +8,11 @@ file(GLOB ${component_name}_EXAMPLES_LIST
 foreach(example_file IN LISTS ${component_name}_EXAMPLES_LIST)
 
     cmake_path(GET example_file STEM example_name)
+
+    if(example_name MATCHES "fmtlib" AND NOT CSL_AG__ENABLE_FMTLIB_SUPPORT)
+        continue()
+    endif()
+
     set(target_name example_${component_name}_${example_name})
 
     add_executable(${target_name} ${example_file})
