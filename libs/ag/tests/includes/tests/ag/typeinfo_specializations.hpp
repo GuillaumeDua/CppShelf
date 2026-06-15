@@ -50,7 +50,7 @@ namespace csl::ag::io::details {
     struct type_name<std::array<T, N>> {
     private:
 
-        static constexpr auto make_num_storage() noexcept {
+        static constexpr auto make_size_storage() noexcept {
             
             if constexpr (N == 0) {
                 return std::array<char, 1>{'0'};
@@ -69,15 +69,15 @@ namespace csl::ag::io::details {
             }
         }
 
-        static constexpr auto num_storage = make_num_storage();
-        static constexpr std::string_view num_sv{num_storage.data(), num_storage.size()};
-        static constexpr std::string_view elem_sv = type_name_v<T>;
+        static constexpr auto size_storage = make_size_storage();
+        static constexpr std::string_view size_sv{size_storage.data(), size_storage.size()};
+        static constexpr std::string_view value_type_name_sv = type_name_v<T>;
 
         static constexpr std::size_t storage_size =
             std::string_view{"std::array<"}.size()
-            + elem_sv.size()
+            + value_type_name_sv.size()
             + std::string_view{", "}.size()
-            + num_sv.size()
+            + size_sv.size()
             + std::string_view{">"}.size();
 
         static constexpr auto make() noexcept -> std::array<char, storage_size> {
@@ -88,9 +88,9 @@ namespace csl::ag::io::details {
                     buf[pos++] = c;
             };
             write("std::array<");
-            write(elem_sv);
+            write(value_type_name_sv);
             write(", ");
-            write(num_sv);
+            write(size_sv);
             write(">");
             return buf;
         }
