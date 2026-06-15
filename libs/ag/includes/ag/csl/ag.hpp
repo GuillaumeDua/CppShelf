@@ -1175,15 +1175,23 @@ namespace csl::ag::tuplelike {
 #if __has_include(<csl/typeinfo.hpp>)
 #   include <csl/typeinfo.hpp>
 namespace csl::ag::io::details {
+
     template <typename T>
-    constexpr inline static std::string_view type_name_v = csl::typeinfo::type_name_v<T>;
+    struct type_name : csl::typeinfo::type_name<T>{};
+    template <typename T>
+    constexpr inline static std::string_view type_name_v = type_name<T>::value;
 }
 #else
-#   pragma message("[csl::ag] formatting enabled, but <csl/typeinfo.hpp> not available, fallback to <typeinfo>")
-#   include <typeinfo>
+#   pragma message("[csl::ag] formatting enabled, but <csl/typeinfo.hpp> not available, fallback to <typeindex>. Relies on runtime implementation.")
+#   include <typeindex>
 namespace csl::ag::io::details {
+
     template <typename T>
-    inline static std::string_view type_name_v = typeid(T).name(); // NOLINT(*-avoid-non-const-global-variables)
+    struct type_name {
+        static inline const std::string_view value = std::type_index(typeid(T)).name();
+    };
+    template <typename T>
+    const inline static std::string_view type_name_v = type_name<T>::value;
 }
 #endif
 
@@ -1329,6 +1337,12 @@ namespace csl::ag::io::details {
         return out;
     }
 
+    template <typename Char, typename OutputIt>
+    [[nodiscard]] auto write_char(OutputIt out, Char c) noexcept -> OutputIt {
+        *out = c;
+        return ++out;
+    }
+
     static constexpr std::size_t indentation_width = 4;
 
     /// \brief brief description Shared logic for both fmt and std::format (parse, format)
@@ -1385,25 +1399,25 @@ namespace csl::ag::io::details {
             if constexpr (FieldIndex > 0) {
                 ctx.advance_to(write_sv<Char>(ctx.out(), separator_));
                 if constexpr (bool(Options & format_options::indented))
-                    *ctx.out()++ = '\n';
+                    ctx.advance_to(write_char<Char>(ctx.out(), '\n'));
             }
 
             // NOTE: Indentation is written by the parent formatter, so child formatter DOES NOT.
             if constexpr (bool(Options & format_options::indented))
                 ctx.advance_to(std::fill_n(ctx.out(), (Depth + 1) * indentation_width, Char{' '}));
-            
+
             if constexpr (bool(Options & format_options::indexed)) {
-                *ctx.out()++ = '[';
+                ctx.advance_to(write_char<Char>(ctx.out(), '['));
                 constexpr auto index_chars = to_chars<FieldIndex>();
                 ctx.advance_to(write_sv<Char>(ctx.out(), std::basic_string_view<Char>{index_chars.data(), index_chars.size()}));
-                *ctx.out()++ = ']';
-                *ctx.out()++ = ' ';
+                ctx.advance_to(write_char<Char>(ctx.out(), ']'));
+                ctx.advance_to(write_char<Char>(ctx.out(), ' '));
             }
 
             if constexpr (bool(Options & format_options::typenamed)) {
                 ctx.advance_to(write_sv<Char>(ctx.out(), std::basic_string_view<Char>{type_name_v<field_type>}));
-                *ctx.out()++ = ':';
-                *ctx.out()++ = ' ';
+                ctx.advance_to(write_char<Char>(ctx.out(), ':'));
+                ctx.advance_to(write_char<Char>(ctx.out(), ' '));
             }
 
             ctx.advance_to(std::get<FieldIndex>(formatters_).format(csl::ag::tuplelike::get<FieldIndex>(value), ctx));
@@ -1413,14 +1427,6 @@ namespace csl::ag::io::details {
         using csl_ag_product = void;
 
         constexpr auto parse(auto & ctx) {
-
-            // NOTE: Propagate parse to child formatters with an empty spec
-            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
-                ([&] {
-                    auto empty_ctx = std::remove_cvref_t<decltype(ctx)>(std::basic_string_view<Char>{});
-                    std::get<indexes>(formatters_).parse(empty_ctx);
-                }(), ...);
-            }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
 
             // :n spec (runtime override for no_braces).
             auto it  = ctx.begin();
@@ -1434,6 +1440,15 @@ namespace csl::ag::io::details {
             if (it != end and *it != static_cast<Char>('}'))
                 ++it; // skip ':' or other trailing char
             ctx.advance_to(it);
+
+            // NOTE: Propagate parse to child formatters with an empty spec
+            [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
+                ([&] {
+                    auto empty_ctx = std::remove_cvref_t<decltype(ctx)>(std::basic_string_view<Char>{});
+                    std::get<indexes>(formatters_).parse(empty_ctx);
+                }(), ...);
+            }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
+
             return it;
         }
 
@@ -1441,14 +1456,14 @@ namespace csl::ag::io::details {
         auto format(const T & value, Context & ctx) const {
             ctx.advance_to(write_sv<Char>(ctx.out(), opening_bracket_));
             if constexpr (bool(Options & format_options::indented))
-                *ctx.out()++ = '\n';
+                ctx.advance_to(write_char<Char>(ctx.out(), '\n'));
 
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
                 (format_element<indexes>(value, ctx), ...);
             }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
 
             if constexpr (bool(Options & format_options::indented)) {
-                *ctx.out()++ = '\n';
+                ctx.advance_to(write_char<Char>(ctx.out(), '\n'));
                 ctx.advance_to(std::fill_n(ctx.out(), Depth * 4, Char{' '}));
             }
             ctx.advance_to(write_sv<Char>(ctx.out(), closing_bracket_));
