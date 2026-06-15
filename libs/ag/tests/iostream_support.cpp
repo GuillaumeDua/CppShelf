@@ -16,6 +16,7 @@
 
 #include <csl/ag.hpp>
 #include <tests/types.hpp>
+#include <tests/ag/typeinfo_specializations.hpp>
 
 #include <sstream>
 #include <string>
@@ -217,13 +218,13 @@ R"({
         constexpr static std::string_view indexed_expected =
             R"({[0] ([0] 2, [1] 'b', [2] "str"), [1] [[0] 'a', [1] 'b', [2] 'c'], [2] ([0] 42, [1] 43)})";
         constexpr static std::string_view typenamed_expected =
-            R"({std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (int: 2, char: 'b', std::basic_string_view<char>: "str"), std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::pair<int, int>: (int: 42, int: 43)})";
+            R"({std::tuple<int, char, std::string_view>: (int: 2, char: 'b', std::string_view: "str"), std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::pair<int, int>: (int: 42, int: 43)})";
         constexpr static std::string_view indented_indexed_typenamed_expected =
 R"({
-    [0] std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (
+    [0] std::tuple<int, char, std::string_view>: (
         [0] int: 2,
         [1] char: 'b',
-        [2] std::basic_string_view<char>: "str"
+        [2] std::string_view: "str"
     ),
     [1] std::array<char, 3>: [
         [0] char: 'a',
@@ -269,10 +270,10 @@ R"({
         constexpr static std::string_view indexed_expected =
             R"({[0] "hello", [1] [[0] 'a', [1] 'b', [2] 'c'], [2] [[0] 42, [1] 43, [2] 44], [3] [[0] "a", [1] "b", [2] "c"]})";
         constexpr static std::string_view typenamed_expected =
-            R"({std::basic_string_view<char>: "hello", std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::array<int, 3>: [int: 42, int: 43, int: 44], std::array<std::basic_string_view<char>, 3>: [std::basic_string_view<char>: "a", std::basic_string_view<char>: "b", std::basic_string_view<char>: "c"]})";
+            R"({std::string_view: "hello", std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::array<int, 3>: [int: 42, int: 43, int: 44], std::array<std::string_view, 3>: [std::string_view: "a", std::string_view: "b", std::string_view: "c"]})";
         constexpr static std::string_view indented_indexed_typenamed_expected =
 R"({
-    [0] std::basic_string_view<char>: "hello",
+    [0] std::string_view: "hello",
     [1] std::array<char, 3>: [
         [0] char: 'a',
         [1] char: 'b',
@@ -283,10 +284,10 @@ R"({
         [1] int: 43,
         [2] int: 44
     ],
-    [3] std::array<std::basic_string_view<char>, 3>: [
-        [0] std::basic_string_view<char>: "a",
-        [1] std::basic_string_view<char>: "b",
-        [2] std::basic_string_view<char>: "c"
+    [3] std::array<std::string_view, 3>: [
+        [0] std::string_view: "a",
+        [1] std::string_view: "b",
+        [2] std::string_view: "c"
     ]
 })";
     };
@@ -354,7 +355,7 @@ R"({
         constexpr static std::string_view indexed_expected =
             R"({[0] true, [1] {[0] 1, [1] {[0] 42}, [2] {[0] 123, [1] 'A'}}, [2] {[0] ([0] 2, [1] 'b', [2] "str"), [1] [[0] 'a', [1] 'b', [2] 'c'], [2] ([0] 42, [1] 43)}, [3] {[0] "hello", [1] [[0] 'a', [1] 'b', [2] 'c'], [2] [[0] 42, [1] 43, [2] 44], [3] [[0] "a", [1] "b", [2] "c"]}})";
         constexpr static std::string_view typenamed_expected =
-            R"({bool: true, test::ag::types::field_3_nested: {int: 1, test::ag::types::field_1: {int: 42}, test::ag::types::field_2: {int: 123, char: 'A'}}, test::ag::types::field_3_nested_tuplelike: {std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (int: 2, char: 'b', std::basic_string_view<char>: "str"), std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::pair<int, int>: (int: 42, int: 43)}, test::ag::types::field_4_nested_range: {std::basic_string_view<char>: "hello", std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::array<int, 3>: [int: 42, int: 43, int: 44], std::array<std::basic_string_view<char>, 3>: [std::basic_string_view<char>: "a", std::basic_string_view<char>: "b", std::basic_string_view<char>: "c"]}})";
+            R"({bool: true, test::ag::types::field_3_nested: {int: 1, test::ag::types::field_1: {int: 42}, test::ag::types::field_2: {int: 123, char: 'A'}}, test::ag::types::field_3_nested_tuplelike: {std::tuple<int, char, std::string_view>: (int: 2, char: 'b', std::string_view: "str"), std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::pair<int, int>: (int: 42, int: 43)}, test::ag::types::field_4_nested_range: {std::string_view: "hello", std::array<char, 3>: [char: 'a', char: 'b', char: 'c'], std::array<int, 3>: [int: 42, int: 43, int: 44], std::array<std::string_view, 3>: [std::string_view: "a", std::string_view: "b", std::string_view: "c"]}})";
         constexpr static std::string_view indented_indexed_typenamed_expected =
 R"({
     [0] bool: true,
@@ -369,10 +370,10 @@ R"({
         }
     },
     [2] test::ag::types::field_3_nested_tuplelike: {
-        [0] std::tuple<int, char, std::basic_string_view<char, std::char_traits<char> > >: (
+        [0] std::tuple<int, char, std::string_view>: (
             [0] int: 2,
             [1] char: 'b',
-            [2] std::basic_string_view<char>: "str"
+            [2] std::string_view: "str"
         ),
         [1] std::array<char, 3>: [
             [0] char: 'a',
@@ -385,7 +386,7 @@ R"({
         )
     },
     [3] test::ag::types::field_4_nested_range: {
-        [0] std::basic_string_view<char>: "hello",
+        [0] std::string_view: "hello",
         [1] std::array<char, 3>: [
             [0] char: 'a',
             [1] char: 'b',
@@ -396,10 +397,10 @@ R"({
             [1] int: 43,
             [2] int: 44
         ],
-        [3] std::array<std::basic_string_view<char>, 3>: [
-            [0] std::basic_string_view<char>: "a",
-            [1] std::basic_string_view<char>: "b",
-            [2] std::basic_string_view<char>: "c"
+        [3] std::array<std::string_view, 3>: [
+            [0] std::string_view: "a",
+            [1] std::string_view: "b",
+            [2] std::string_view: "c"
         ]
     }
 })";
