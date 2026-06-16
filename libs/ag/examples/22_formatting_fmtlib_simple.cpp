@@ -13,4 +13,7 @@ auto main() -> int {
     fmt::println("{}", value | indexed);
     fmt::println("{}", value | typenamed);
     fmt::println("{}", value | indented | indexed | typenamed);
+
+    constexpr auto view = indented | indexed | typenamed;
+    fmt::println("{}", value | view);
 }
