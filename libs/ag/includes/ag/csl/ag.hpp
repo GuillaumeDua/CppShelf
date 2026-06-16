@@ -1198,8 +1198,10 @@ namespace csl::ag::io::details {
 #pragma endregion
 #endif
 
-// --- shared: composable format options, tag types, decorated view, operator| ---
+// Formatting(shared): composable format options, tag types, decorated view, operator|
 #if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+
+#pragma message("[csl::ag] Formatting enabled")
 
 namespace csl::ag::io {
     /// \brief Bitmask of composable formatting options.
@@ -1487,14 +1489,13 @@ namespace csl::ag::io::details {
         using csl_ag_product = void;
 
         constexpr auto parse(auto & ctx) {
-            
             auto empty_ctx = std::remove_cvref_t<decltype(ctx)>(std::basic_string_view<Char>{});
             value_formatter_.parse(empty_ctx);
 
-            // NOTE: about debug: set quoted format for char and string types
-            if constexpr (requires { value_formatter_.set_debug_format(); }) {
+            // NOTE: quoted format for string-likes and chars
+            if constexpr (requires { value_formatter_.set_debug_format(); })
                 value_formatter_.set_debug_format();
-            }
+
             return ctx.begin();
         }
         template <typename Context>
@@ -1506,11 +1507,11 @@ namespace csl::ag::io::details {
 
 #endif // shared formatter base
 
-// --- opt-in: iostream support ---
+//  Formatting: ostream support
 //
 // Provides operator<<(std::ostream &, structured_bindable) via csl::ag::io.
 //
-// WARNING: prefer csl::ag fmtlib or std::format support over this when possible.
+// WARNING: prefer fmtlib or std::format support over this when available.
 //
 //   Compile-time cost:
 //      Including <ostream> is one of the heaviest standard headers.
@@ -1523,7 +1524,7 @@ namespace csl::ag::io::details {
 // Design:
 //  - Composable format_options bitmask selected via IO manipulators (one-shot, reset after each print)
 //      or via the view-based operator| API (bypasses iword entirely):
-//      os << value                                           (default: braced, compact)
+//      os << value                                          (default: braced, compact)
 //      os << csl::ag::io::no_braces << value                (flat, no outer brackets or separator)
 //      os << csl::ag::io::indented  << value                (multiline, depth-indented)
 //      os << csl::ag::io::indexed   << value                (braced with [N] field indexes)
