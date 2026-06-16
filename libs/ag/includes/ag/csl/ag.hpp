@@ -1333,14 +1333,16 @@ namespace csl::ag::io::details {
     }
 
     template <typename Char, typename OutputIt>
-    [[nodiscard]] auto write_sv(OutputIt out, std::basic_string_view<Char> sv) noexcept -> OutputIt {
+    [[nodiscard]] auto write(OutputIt out, std::basic_string_view<Char> sv) noexcept -> OutputIt {
         for (Char c : sv)
             *out++ = c;
         return out;
     }
 
     template <typename Char, typename OutputIt>
-    [[nodiscard]] auto write_char(OutputIt out, Char c) noexcept -> OutputIt {
+    [[nodiscard]] auto write(OutputIt out, Char c) noexcept -> OutputIt
+    requires requires { *out = c; }
+    {
         *out = c;
         return ++out;
     }
@@ -1399,9 +1401,9 @@ namespace csl::ag::io::details {
             using field_type = csl::ag::tuplelike::element_t<FieldIndex, T>;
 
             if constexpr (FieldIndex > 0) {
-                ctx.advance_to(write_sv<Char>(ctx.out(), separator_));
+                ctx.advance_to(write<Char>(ctx.out(), separator_));
                 if constexpr (bool(Options & format_options::indented))
-                    ctx.advance_to(write_char<Char>(ctx.out(), '\n'));
+                    ctx.advance_to(write<Char>(ctx.out(), '\n'));
             }
 
             // NOTE: Indentation is written by the parent formatter, so child formatter DOES NOT.
@@ -1409,17 +1411,17 @@ namespace csl::ag::io::details {
                 ctx.advance_to(std::fill_n(ctx.out(), (Depth + 1) * indentation_width, Char{' '}));
 
             if constexpr (bool(Options & format_options::indexed)) {
-                ctx.advance_to(write_char<Char>(ctx.out(), '['));
+                ctx.advance_to(write<Char>(ctx.out(), '['));
                 constexpr auto index_chars = to_chars<FieldIndex>();
-                ctx.advance_to(write_sv<Char>(ctx.out(), std::basic_string_view<Char>{index_chars.data(), index_chars.size()}));
-                ctx.advance_to(write_char<Char>(ctx.out(), ']'));
-                ctx.advance_to(write_char<Char>(ctx.out(), ' '));
+                ctx.advance_to(write<Char>(ctx.out(), std::basic_string_view<Char>{index_chars.data(), index_chars.size()}));
+                ctx.advance_to(write<Char>(ctx.out(), ']'));
+                ctx.advance_to(write<Char>(ctx.out(), ' '));
             }
 
             if constexpr (bool(Options & format_options::typenamed)) {
-                ctx.advance_to(write_sv<Char>(ctx.out(), std::basic_string_view<Char>{type_name_v<field_type>}));
-                ctx.advance_to(write_char<Char>(ctx.out(), ':'));
-                ctx.advance_to(write_char<Char>(ctx.out(), ' '));
+                ctx.advance_to(write<Char>(ctx.out(), std::basic_string_view<Char>{type_name_v<field_type>}));
+                ctx.advance_to(write<Char>(ctx.out(), ':'));
+                ctx.advance_to(write<Char>(ctx.out(), ' '));
             }
 
             ctx.advance_to(std::get<FieldIndex>(formatters_).format(csl::ag::tuplelike::get<FieldIndex>(value), ctx));
@@ -1456,19 +1458,19 @@ namespace csl::ag::io::details {
 
         template <typename Context>
         auto format(const T & value, Context & ctx) const {
-            ctx.advance_to(write_sv<Char>(ctx.out(), opening_bracket_));
+            ctx.advance_to(write<Char>(ctx.out(), opening_bracket_));
             if constexpr (bool(Options & format_options::indented))
-                ctx.advance_to(write_char<Char>(ctx.out(), '\n'));
+                ctx.advance_to(write<Char>(ctx.out(), '\n'));
 
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
                 (format_element<indexes>(value, ctx), ...);
             }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
 
             if constexpr (bool(Options & format_options::indented)) {
-                ctx.advance_to(write_char<Char>(ctx.out(), '\n'));
+                ctx.advance_to(write<Char>(ctx.out(), '\n'));
                 ctx.advance_to(std::fill_n(ctx.out(), Depth * 4, Char{' '}));
             }
-            ctx.advance_to(write_sv<Char>(ctx.out(), closing_bracket_));
+            ctx.advance_to(write<Char>(ctx.out(), closing_bracket_));
             return ctx.out();
         }
     };
@@ -1491,21 +1493,34 @@ namespace csl::ag::io::details {
         constexpr auto parse(auto & ctx) {
             auto empty_ctx = std::remove_cvref_t<decltype(ctx)>(std::basic_string_view<Char>{});
             value_formatter_.parse(empty_ctx);
-
-            // NOTE: quoted format for string-likes and chars
-            if constexpr (requires { value_formatter_.set_debug_format(); })
-                value_formatter_.set_debug_format();
-
             return ctx.begin();
         }
+        /// \brief Format, quoted
+        /// NOTE: `formatter.set_debug_format()` is implemented on GCC-13's libstdc++, or might depend on __cpp_lib_format_ranges
         template <typename Context>
         auto format(const T & value, Context & ctx) const {
-            return value_formatter_.format(value, ctx);
+
+            if constexpr (requires { value_formatter_.set_debug_format(); }){
+                value_formatter_.set_debug_format();
+                return value_formatter_.format(value, ctx);
+            }
+            else if constexpr (std::same_as<T, Char>) {
+                auto out = write<Char>(ctx.out(), static_cast<Char>('\''));
+                out = write<Char>(out, value);
+                return write<Char>(out, static_cast<Char>('\''));
+            }
+            else if constexpr (std::convertible_to<T, std::basic_string_view<Char>>) {
+                auto out = write<Char>(ctx.out(), static_cast<Char>('"'));
+                out = write<Char>(out, static_cast<std::basic_string_view<Char>>(value));
+                return write<Char>(out, static_cast<Char>('"'));
+            }
+            else
+                return value_formatter_.format(value, ctx);
         }
     };
 }
 
-#endif // shared formatter base
+#endif // fmtlib or std::format base
 
 //  Formatting: ostream support
 //
