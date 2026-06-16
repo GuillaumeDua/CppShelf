@@ -17,6 +17,7 @@
     // "cmake.configureArgs": [
     //     "--warn-unused-cli"
     // ],
+    "cmake.useCMakePresets": "never", // Make it simpler to pick compiler + version
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.configureOnOpen": true,
     "cmake.generator": "Ninja",
