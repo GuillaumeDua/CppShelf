@@ -14,6 +14,7 @@ auto main() -> int {
     fmt::println("{}", value | typenamed);
     fmt::println("{}", value | indented | indexed | typenamed);
 
-    constexpr auto view = indented | indexed | typenamed;
-    fmt::println("{}", value | view);
+    // WIP: view composition
+    // constexpr auto view = indented | indexed | typenamed;
+    // fmt::println("{}", value | view);
 }
