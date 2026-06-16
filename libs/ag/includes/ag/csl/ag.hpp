@@ -1168,8 +1168,12 @@ namespace csl::ag::tuplelike {
 //  formatting/printing
 // ---------------------
 
+#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+# define CSL_AG__FORMATTING_ENABLED
+# endif
+
 // type_name
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) || defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) || defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+#if defined(CSL_AG__FORMATTING_ENABLED)
 #pragma region type_name
 
 #if __has_include(<csl/typeinfo.hpp>)
@@ -1182,7 +1186,7 @@ namespace csl::ag::io::details {
     constexpr inline static std::string_view type_name_v = type_name<T>::value;
 }
 #else
-#   pragma message("[csl::ag] formatting enabled, but <csl/typeinfo.hpp> not available, fallback to <typeindex>. Relies on runtime implementation.")
+#   pragma message("[csl::ag](EXPERIMENTALE) formatting enabled, but <csl/typeinfo.hpp> not available, fallback to <typeindex>. Relies on runtime implementation.")
 #   include <typeindex>
 namespace csl::ag::io::details {
 
@@ -1199,7 +1203,7 @@ namespace csl::ag::io::details {
 #endif
 
 // Formatting(shared): composable format options, tag types, decorated view, operator|
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+#if defined(CSL_AG__FORMATTING_ENABLED)
 
 #pragma message("[csl::ag] Formatting enabled")
 
