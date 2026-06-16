@@ -19,6 +19,7 @@ auto main() -> int {
         << std::format("{}\n", value | indented | indexed | typenamed)
     ;
 
-    auto view = indented | indexed | typenamed;
-    std::cout << std::format("{}", value | view);
+    // WIP: view composition
+    // auto view = indented | indexed | typenamed;
+    // std::cout << std::format("{}", value | view);
 }
