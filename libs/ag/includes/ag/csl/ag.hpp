@@ -1209,7 +1209,7 @@ namespace csl::ag::io::details {
 
 namespace csl::ag::io {
     /// \brief Bitmask of composable formatting options.
-    ///        Underlying type is long for compatibility with std::ios_base::iword().
+    ///        NOTE: underlying type is long for compatibility with std::ios_base::iword().
     enum class format_options : long { // NOLINT(*-enum-size, *-runtime-int)
         none      = 0,
         no_braces = 1L << 0,
@@ -1231,10 +1231,24 @@ namespace csl::ag::io {
         return (a = a | b);
     }
 
-    struct indented_t  { constexpr static format_options flag = format_options::indented;  };
-    struct no_braces_t { constexpr static format_options flag = format_options::no_braces; };
-    struct indexed_t   { constexpr static format_options flag = format_options::indexed;   };
-    struct typenamed_t { constexpr static format_options flag = format_options::typenamed; };
+    /// \brief Formatting option tags.
+    /// Implicitly convertible to format_options
+    struct indented_t {
+        constexpr static format_options value = format_options::indented;
+        constexpr operator format_options() const noexcept { return value; } // NOLINT(*-explicit-constructor)
+    };
+    struct no_braces_t {
+        constexpr static format_options value = format_options::no_braces;
+        constexpr operator format_options() const noexcept { return value; } // NOLINT(*-explicit-constructor)
+    };
+    struct indexed_t {
+        constexpr static format_options value = format_options::indexed;
+        constexpr operator format_options() const noexcept { return value; } // NOLINT(*-explicit-constructor)
+    };
+    struct typenamed_t {
+        constexpr static format_options value = format_options::typenamed;
+        constexpr operator format_options() const noexcept { return value; } // NOLINT(*-explicit-constructor)
+    };
 
     [[maybe_unused]] constexpr inline static indented_t  indented{};
     [[maybe_unused]] constexpr inline static no_braces_t no_braces{};
@@ -1253,10 +1267,25 @@ namespace csl::ag::io {
     namespace concepts {
         template <typename T>
         concept format_option =
-            requires { { T::flag } -> std::same_as<const format_options &>; }
-            and (T::flag != format_options::none)
-            and ((T::flag & details::all_format_options_mask) == T::flag)
+            requires { { T::value } -> std::same_as<const format_options &>; }
+            and (T::value != format_options::none)
+            and ((T::value & details::all_format_options_mask) == T::value)
         ;
+    }
+
+    /// \brief Combine two tags into a format_options bitmask, e.g. `indented | typenamed`.
+    template <concepts::format_option Lhs, concepts::format_option Rhs>
+    [[nodiscard]] constexpr auto operator|(Lhs, Rhs) noexcept -> format_options {
+        return Lhs::value | Rhs::value;
+    }
+    /// \brief Extend an accumulated bitmask with one more tag, e.g. `(indented | typenamed) | indexed`.
+    template <concepts::format_option Option>
+    [[nodiscard]] constexpr auto operator|(format_options a, Option) noexcept -> format_options {
+        return a | Option::value;
+    }
+    template <concepts::format_option Option>
+    [[nodiscard]] constexpr auto operator|(Option, format_options b) noexcept -> format_options {
+        return Option::value | b;
     }
 }
 
@@ -1286,17 +1315,20 @@ namespace csl::ag::io::details::concepts {
 namespace csl::ag::io {
 
     /// \brief structured_bindable T | option => formatted_view_t
+    /// NOTE: excludes format_option tags themselves, which are (incidentally) empty aggregates
+    ///       `indented | typenamed` combine tags into a format_options bitmask -> not create a view over a tag.
     template <csl::ag::concepts::structured_bindable T, concepts::format_option Option>
+    requires (not concepts::format_option<T>)
     [[nodiscard]] auto operator|(T const & value, Option)
-    -> details::decorators::formatted_view_t<std::remove_cvref_t<T>, Option::flag>
+    -> details::decorators::formatted_view_t<std::remove_cvref_t<T>, Option::value>
     {
         return { .value = value };
     }
 
-    /// \brief formatted_view_t | additional option => accumulated view (same depth, flags)
+    /// \brief formatted_view_t | additional option => accumulated view (same depth, format_option)
     template <typename T, format_options Options, std::size_t Depth, concepts::format_option Option>
     [[nodiscard]] auto operator|(details::decorators::formatted_view_t<T, Options, Depth> view, Option)
-    -> details::decorators::formatted_view_t<T, Options | Option::flag, Depth>
+    -> details::decorators::formatted_view_t<T, Options | Option::value, Depth>
     {
         return { .value = view.value };
     }
@@ -1565,7 +1597,7 @@ namespace csl::ag::io::details {
 namespace csl::ag::io::details {
 
     /// \brief T has an operator<<(std::ostream &, T) reachable WITHOUT csl::ag::io in scope.
-    // This prevents our own operator<< from satisfying the concept (depend on self).
+    // This prevents this library operator<< from satisfying the concept (depend on self).
     template <typename T>
     concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
         os << v;
@@ -1980,13 +2012,24 @@ struct std::formatter<
 
 // Formatting: to_string
 // Backed by whichever formatting support is enabled, favoring std::format, then fmtlib, then iostream.
+// Options are selected as a non-type template argument - tags implicitly convert to format_options,
+// and compose via operator| (constant-expression, so usable directly as the NTTP).
+// Usage: using namespace csl::ag::io;
+//      to_string(value)                            (default: braced, compact)
+//      to_string<indented>(value)                  (single option)
+//      to_string<indented | typenamed>(value)      (composed options)
+//      to_string(value | indented | typenamed)     (equivalent, view-based composition)
 #if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT
 
 #include <string>
 
 namespace csl::ag::io {
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string {
-        return std::format("{}", value);
+    template <format_options Options = format_options::none>
+    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
+    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
+    {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        return std::format("{}", details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value });
     }
     template <typename T, format_options Options, std::size_t Depth>
     [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
@@ -1999,8 +2042,12 @@ namespace csl::ag::io {
 #include <string>
 
 namespace csl::ag::io {
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string {
-        return fmt::format("{}", value);
+    template <format_options Options = format_options::none>
+    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
+    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
+    {
+        using value_type = std::remove_cvref_t<decltype(value)>;
+        return fmt::format("{}", details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value });
     }
     template <typename T, format_options Options, std::size_t Depth>
     [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
@@ -2013,9 +2060,13 @@ namespace csl::ag::io {
 #include <string>
 
 namespace csl::ag::io {
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string {
+    template <format_options Options = format_options::none>
+    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
+    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
+    {
+        using value_type = std::remove_cvref_t<decltype(value)>;
         std::ostringstream ss;
-        ss << value;
+        ss << details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value };
         return ss.str();
     }
     template <typename T, format_options Options, std::size_t Depth>

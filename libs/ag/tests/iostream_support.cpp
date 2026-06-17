@@ -594,6 +594,20 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL
     CHECK(to_string(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
 }
 
+TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+                   "[ag][iostream]",
+                   types::field_1,
+                   types::field_2,
+                   types::field_3_nested,
+                   types::field_3_nested_tuplelike,
+                   types::field_4_nested_range,
+                   types::field_everything)
+{
+    using namespace csl::ag::io;
+    using f = fixture<TestType>;
+    CHECK(to_string<indented | indexed | typenamed>(f::value) == f::indented_indexed_typenamed_expected);
+}
+
 #undef CSL_AG_BITFIELDS_STR
 
 // NOLINTEND(*-avoid-magic-numbers)
