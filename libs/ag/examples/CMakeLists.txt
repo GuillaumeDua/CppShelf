@@ -5,16 +5,6 @@ file(GLOB ${component_name}_EXAMPLES_LIST
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
 
-if (NOT TARGET fmt::fmt-header-only)
-    include(csl/get_cpm)
-    csl_get_cpm()
-    CPMAddPackage(
-        NAME              fmt
-        GITHUB_REPOSITORY fmtlib/fmt
-        GIT_TAG           12.1.0
-    )
-endif()
-
 foreach(example_file IN LISTS ${component_name}_EXAMPLES_LIST)
 
     cmake_path(GET example_file STEM example_name)
@@ -23,6 +13,17 @@ foreach(example_file IN LISTS ${component_name}_EXAMPLES_LIST)
 
     set(example_extra_libs "")
     if (example_name MATCHES "fmtlib")
+
+        if (NOT TARGET fmt::fmt-header-only)
+            include(csl/get_cpm)
+            csl_get_cpm()
+            CPMAddPackage(
+                NAME              fmt
+                GITHUB_REPOSITORY fmtlib/fmt
+                GIT_TAG           12.1.0
+            )
+        endif()
+
         list(APPEND example_extra_libs fmt::fmt-header-only)
     endif()
 
