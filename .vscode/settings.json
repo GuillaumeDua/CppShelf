@@ -18,6 +18,7 @@
     //     "--warn-unused-cli"
     // ],
     "cmake.useCMakePresets": "never", // Make it simpler to pick compiler + version
+    "cmake.buildDirectory": "${workspaceFolder}/build/${buildKit}/${buildType}", // partition by compiler/kit and build type, consistent with cmake preset's build_dir
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.configureOnOpen": true,
     "cmake.generator": "Ninja",
