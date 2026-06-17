@@ -413,6 +413,34 @@ TEMPLATE_TEST_CASE("csl::ag::std::format indented+indexed+typenamed [BITFIELDS="
     );
 }
 
+TEMPLATE_TEST_CASE("csl::ag::io::to_string default output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][format]",
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+    CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
+}
+
+TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][format]",
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using namespace csl::ag::io;
+    using f = fixture<TestType>;
+    CHECK(
+        to_string(f::value | indented | indexed | typenamed)
+        == f::indented_indexed_typenamed_expected
+    );
+}
+
 #undef CSL_AG_BITFIELDS_STR
 
 // NOLINTEND(*-avoid-magic-numbers)

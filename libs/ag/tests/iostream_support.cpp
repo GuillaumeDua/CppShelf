@@ -43,19 +43,6 @@ struct with_printable_field {
 
 namespace { // helpers
 
-    /*
-        template <typename T, format_options Options, std::size_t Depth>
-        static auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T, Options, Depth> 
-    */
-
-    // template <typename T, csl::ag::io::concepts::format_option ... options>
-    // [[nodiscard]] auto capture(const T & value){
-    //     std::ostringstream ss;
-    //     using namespace csl::ag::io;
-    //     (ss << ... << options::flag) << value;
-    //     return ss.str();
-    // }
-
     template <typename T>
     auto capture_default(const T & value) -> std::string {
         std::ostringstream ss;
@@ -578,6 +565,33 @@ TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output [BITFIELDS=" C
 {
     using f = fixture<TestType>;
     CHECK(capture_indented_indexed_typenamed(f::value) == f::indented_indexed_typenamed_expected);
+}
+
+TEMPLATE_TEST_CASE("csl::ag::io::to_string default output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+                   "[ag][iostream]",
+                   types::field_1,
+                   types::field_2,
+                   types::field_3_nested,
+                   types::field_3_nested_tuplelike,
+                   types::field_4_nested_range,
+                   types::field_everything)
+{
+    using f = fixture<TestType>;
+    CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
+}
+
+TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+                   "[ag][iostream]",
+                   types::field_1,
+                   types::field_2,
+                   types::field_3_nested,
+                   types::field_3_nested_tuplelike,
+                   types::field_4_nested_range,
+                   types::field_everything)
+{
+    using namespace csl::ag::io;
+    using f = fixture<TestType>;
+    CHECK(to_string(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
 }
 
 #undef CSL_AG_BITFIELDS_STR

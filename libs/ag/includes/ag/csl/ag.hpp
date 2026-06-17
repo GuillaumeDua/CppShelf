@@ -1545,7 +1545,7 @@ namespace csl::ag::io::details {
 //  - Composable format_options bitmask selected via IO manipulators (one-shot, reset after each print)
 //      or via the view-based operator| API (bypasses iword entirely):
 //      os << value                                          (default: braced, compact)
-//      os << csl::ag::io::no_braces << value                (flat, no outer brackets or separator)
+//      os << csl::ag::io::no_braces << value                (flat, naked: no outer brackets or separator)
 //      os << csl::ag::io::indented  << value                (multiline, depth-indented)
 //      os << csl::ag::io::indexed   << value                (braced with [N] field indexes)
 //      os << csl::ag::io::typenamed << value                (braced with TypeName: prefixes)
@@ -1560,6 +1560,7 @@ namespace csl::ag::io::details {
 #pragma message("[csl::ag] CSL_AG__ENABLE_IOSTREAM_SUPPORT - enabled")
 
 #include <ostream>
+#include <sstream>
 
 namespace csl::ag::io::details {
 
@@ -1713,15 +1714,17 @@ namespace csl::ag::io {
 
     /// \brief Format a structured_bindable into an std::ostream, using iword options (one-shot) and prints.
     /// User-defined operator<<(std::ostream &, T) wins via overload resolution (exact match).
-    auto operator<<(std::ostream & os, csl::ag::concepts::structured_bindable auto && value) -> std::ostream &
+    auto operator<<(std::ostream & os, const csl::ag::concepts::structured_bindable auto & value)
+    -> std::ostream &
     requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>)
     and (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
     {
         auto options = static_cast<format_options>(os.iword(details::mode_index()));
         os.iword(details::mode_index()) = 0; // reset (one-shot semantics)
-        details::print(os, csl_fwd(value), options, 0);
+        details::print(os, value, options, 0);
         return os;
     }
+
 }
 
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
@@ -1974,6 +1977,56 @@ struct std::formatter<
 {};
 
 #endif // CSL_AG__ENABLE_STD_FORMAT_SUPPORT
+
+// Formatting: to_string
+// Backed by whichever formatting support is enabled, favoring std::format, then fmtlib, then iostream.
+#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT
+
+#include <string>
+
+namespace csl::ag::io {
+    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string {
+        return std::format("{}", value);
+    }
+    template <typename T, format_options Options, std::size_t Depth>
+    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
+        return std::format("{}", view);
+    }
+}
+
+#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
+
+#include <string>
+
+namespace csl::ag::io {
+    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string {
+        return fmt::format("{}", value);
+    }
+    template <typename T, format_options Options, std::size_t Depth>
+    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
+        return fmt::format("{}", view);
+    }
+}
+
+#elif defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
+
+#include <string>
+
+namespace csl::ag::io {
+    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string {
+        std::ostringstream ss;
+        ss << value;
+        return ss.str();
+    }
+    template <typename T, format_options Options, std::size_t Depth>
+    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
+        std::ostringstream ss;
+        ss << view;
+        return ss.str();
+    }
+}
+
+#endif
 
 namespace csl::ag::concepts {
     template <typename T>
