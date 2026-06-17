@@ -33,7 +33,7 @@
 namespace types = test::ag::types;
 
 struct printable_t { int value; };
-// user-defined overload, be at file scope (not anonymous namespace) so ADL finds it
+// user-defined overload, at file scope (not anonymous namespace) so ADL finds it
 static auto & operator<<(std::ostream & os, printable_t v) { return os << "printable:" << v.value; }
 
 struct with_printable_field {
@@ -42,6 +42,20 @@ struct with_printable_field {
 };
 
 namespace { // helpers
+
+    /*
+        template <typename T, format_options Options, std::size_t Depth>
+        static auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T, Options, Depth> 
+    */
+
+    // template <typename T, csl::ag::io::concepts::format_option ... options>
+    // [[nodiscard]] auto capture(const T & value){
+    //     std::ostringstream ss;
+    //     using namespace csl::ag::io;
+    //     (ss << ... << options::flag) << value;
+    //     return ss.str();
+    // }
+
     template <typename T>
     auto capture_default(const T & value) -> std::string {
         std::ostringstream ss;

@@ -1240,23 +1240,24 @@ namespace csl::ag::io {
     [[maybe_unused]] constexpr inline static no_braces_t no_braces{};
     [[maybe_unused]] constexpr inline static indexed_t   indexed{};
     [[maybe_unused]] constexpr inline static typenamed_t typenamed{};
-}
 
-namespace csl::ag::io::details {
+    namespace details {
+        constexpr inline format_options all_format_options_mask =
+            format_options::no_braces
+            | format_options::indented
+            | format_options::indexed
+            | format_options::typenamed
+        ;
+    }
 
-    constexpr inline format_options all_format_options_mask =
-          format_options::no_braces
-        | format_options::indented
-        | format_options::indexed
-        | format_options::typenamed
-    ;
-
-    template <typename T>
-    concept format_option_tag =
-        requires { { T::flag } -> std::same_as<const format_options &>; }
-        and (T::flag != format_options::none)
-        and ((T::flag & all_format_options_mask) == T::flag)
-    ;
+    namespace concepts {
+        template <typename T>
+        concept format_option =
+            requires { { T::flag } -> std::same_as<const format_options &>; }
+            and (T::flag != format_options::none)
+            and ((T::flag & details::all_format_options_mask) == T::flag)
+        ;
+    }
 }
 
 namespace csl::ag::io::details::decorators {
@@ -1285,7 +1286,7 @@ namespace csl::ag::io::details::concepts {
 namespace csl::ag::io {
 
     /// \brief structured_bindable T | option => formatted_view_t
-    template <csl::ag::concepts::structured_bindable T, details::format_option_tag Option>
+    template <csl::ag::concepts::structured_bindable T, concepts::format_option Option>
     [[nodiscard]] auto operator|(T const & value, Option)
     -> details::decorators::formatted_view_t<std::remove_cvref_t<T>, Option::flag>
     {
@@ -1293,7 +1294,7 @@ namespace csl::ag::io {
     }
 
     /// \brief formatted_view_t | additional option => accumulated view (same depth, flags)
-    template <typename T, format_options Options, std::size_t Depth, details::format_option_tag Option>
+    template <typename T, format_options Options, std::size_t Depth, concepts::format_option Option>
     [[nodiscard]] auto operator|(details::decorators::formatted_view_t<T, Options, Depth> view, Option)
     -> details::decorators::formatted_view_t<T, Options | Option::flag, Depth>
     {
@@ -1701,7 +1702,7 @@ namespace csl::ag::io {
         return os;
     }
 
-    /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword, using compile-time Options.
+    /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword, using compile-time options.
     template <typename T, format_options Options, std::size_t Depth>
     static auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T, Options, Depth> const & view)
     -> std::ostream &
