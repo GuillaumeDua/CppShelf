@@ -38,11 +38,13 @@ function(csl_add_component)
     add_library(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE)
     add_library(${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME} ALIAS ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME})
 
+    set(csl_add_component_PATH ${PROJECT_SOURCE_DIR}/libs/${csl_add_component_NAME})
+
     target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
-        ${PROJECT_SOURCE_DIR}/libs/${csl_add_component_NAME}/includes/${csl_add_component_NAME}
+        ${csl_add_component_PATH}/includes/${csl_add_component_NAME}
     )
 
-    set(_csl_options_cmake "${PROJECT_SOURCE_DIR}/libs/${csl_add_component_NAME}/cmake/options.cmake")
+    set(_csl_options_cmake "${csl_add_component_PATH}/cmake/options.cmake")
     if (EXISTS "${_csl_options_cmake}")
         message(VERBOSE "[${csl_add_component_PROJECT_NAME}] ${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME} : loading options from ${_csl_options_cmake}")
         list(APPEND CMAKE_MESSAGE_INDENT "  ")
@@ -52,7 +54,7 @@ function(csl_add_component)
 
     # test
     if (CSL_TEST_${csl_add_component_NAME})
-        set(_csl_tests_dir "${PROJECT_SOURCE_DIR}/libs/${csl_add_component_NAME}/tests")
+        set(_csl_tests_dir "${csl_add_component_PATH}/tests")
         if (EXISTS "${_csl_tests_dir}/CMakeLists.txt")
             enable_testing()
             message(VERBOSE "[${csl_add_component_PROJECT_NAME}] ${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME} (tests)")
@@ -64,12 +66,14 @@ function(csl_add_component)
 
     # example
     if (CSL_EXAMPLE_${csl_add_component_NAME})
-        set(_csl_examples_dir "${PROJECT_SOURCE_DIR}/libs/${csl_add_component_NAME}/examples")
+        set(_csl_examples_dir "${csl_add_component_PATH}/examples")
         if (EXISTS "${_csl_examples_dir}/CMakeLists.txt")
             message(VERBOSE "[${csl_add_component_PROJECT_NAME}] ${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME} (example)")
             list(APPEND CMAKE_MESSAGE_INDENT "   ")
             add_subdirectory(${_csl_examples_dir})
             list(POP_BACK CMAKE_MESSAGE_INDENT)
+        else()
+            message(AUTHOR_WARNING "[${csl_add_component_PROJECT_NAME}] ${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME}: no examples detected, missing ${_csl_examples_dir} ...")
         endif()
     endif()
 

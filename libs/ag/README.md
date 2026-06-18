@@ -21,6 +21,7 @@ The following example demonstrates some of the features which are available in `
 
 <!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
+#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
 #include <csl/ag.hpp>
 #include <iostream>
 
@@ -34,24 +35,23 @@ static_assert(std::same_as<char, csl::ag::element_t<0, S>>);
 static_assert(std::same_as<int,  csl::ag::element_t<1, S>>);
 
 auto main() -> int {
-    S value{ .c = 'A', .i = 41 };
-    ++std::get<1>(value);
+    S value{ .c='A', .i=41 };
+    ++csl::ag::get<1>(value);
 
     using namespace csl::ag::io;
     constexpr auto format_options = indexed | typenamed | indented;
     std::cout << "value: " << format_options << value << '\n';
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/x1dGTWddK)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5TashWsT6)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
 
 ```text
-value: S& : {
-   [0] char : A
-   [1] int : 42
+value: {
+    [0] char: 'A',
+    [1] int: 42
 }
 ```
 
@@ -73,8 +73,7 @@ auto main() -> int {
     assert(v1 == 'A');
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/r59sKooeh)
 <!-- EXAMPLE_END: 02_structured_binding.cpp -->
 
 However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
@@ -323,8 +322,7 @@ static_assert(csl::ag::size_v<A>      == 2);
 
 auto main() -> int {}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/dbzsYM6oj)
 <!-- EXAMPLE_END: 03_size.cpp -->
 
 Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed using a convenience alias :
@@ -348,8 +346,7 @@ static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 
 auto main() -> int {}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/nW1Mbzaxn)
 <!-- EXAMPLE_END: 04_element.cpp -->
 
 Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
@@ -380,8 +377,7 @@ static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, const A&>>);
 
 auto main() -> int {}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Y7vcxj75T)
 <!-- EXAMPLE_END: 05_view_element.cpp -->
 
 The `type` nested-type can be accessed using a convenience alias :
@@ -439,14 +435,13 @@ auto main() -> int {
     }(std::make_index_sequence<csl::ag::size_v<A>>{});
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Yqh1q3Wea)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/9c8aG9q1T)
 <!-- EXAMPLE_END: 06_to_tuple_owning.cpp -->
 
 Output:
 
 ```text
-42 0.13
+42 0.13 
 ```
 
 The main advantage here is to use such function in a `constexpr` contexts.  
@@ -476,8 +471,7 @@ auto main() -> int {
     static_assert(0.13f == std::get<1>(value_as_tuple));
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/e5szGecsq)
 <!-- EXAMPLE_END: 07_to_tuple_type_traits.cpp -->
 
 Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element) can be use to obtains the conversion result's element types.
@@ -507,14 +501,13 @@ auto main() -> int {
     >);
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/ob5G9WPbW)
 <!-- EXAMPLE_END: 08_to_tuple_example1.cpp -->
 
 Output:
 
 ```text
-42 0.13
+42 0.13 
 ```
 
 - Example 2 : aggregate type with ref-qualified fields
@@ -544,14 +537,13 @@ auto main() -> int {
     >);
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/oGEss3Eba)
 <!-- EXAMPLE_END: 09_to_tuple_example2.cpp -->
 
 Output:
 
 ```text
-42 0.13
+42 0.13 
 ```
 
 #### Non-owning conversion (view, lightweight accessor)
@@ -570,15 +562,19 @@ The conversion's result type can be access using the `tuple_view(_t)<T>` type-tr
 #include <utility>
 
 auto main() -> int {
-    struct type { int lvalue; int & llvalue; const int & const_lvalue; int && rvalue; };
-    int i = 42;
+
+    struct type {
+        int value; int & lvalue; const int & const_lvalue; int && rvalue; // NOLINT(*-avoid-const-or-ref-data-members)
+        [[nodiscard]] static auto make(int & i){ return type{ .value=i, .lvalue=i, .const_lvalue=i, .rvalue=std::move(i) }; }
+    };
+    int i = 42; // NOLINT(*-avoid-magic-numbers)
 
     { // rvalue source: non-ref fields acquire rvalue-ref qualification
-        [[maybe_unused]] auto view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });
+        [[maybe_unused]] auto view = csl::ag::to_tuple_view(type::make(i));
 
         static_assert(std::same_as<
             decltype(view),
-            csl::ag::tuple_view_t<type&&>
+            csl::ag::view_t<type&&>
         >);
         static_assert(std::same_as<
             decltype(view),
@@ -587,12 +583,12 @@ auto main() -> int {
     }
 
     { // const-lvalue source: non-ref fields acquire const-lvalue-ref qualification
-        const auto & value = type{ i, i, i, std::move(i) };
+        const auto & value = type::make(i); // lifetime extension
         [[maybe_unused]] auto view = csl::ag::to_tuple_view(value);
 
         static_assert(std::same_as<
             decltype(view),
-            csl::ag::tuple_view_t<const type&>
+            csl::ag::view_t<const type&>
         >);
         static_assert(std::same_as<
             decltype(view),
@@ -601,8 +597,7 @@ auto main() -> int {
     }
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/94Gnr3sz1)
 <!-- EXAMPLE_END: 10_to_tuple_view.cpp -->
 
 Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
@@ -627,8 +622,7 @@ static_assert(std::same_as<int &, csl::ag::view_element_t<1, const type&>>);
 
 auto main() -> int {}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/rqh9TcfGM)
 <!-- EXAMPLE_END: 11_view_element_cvref.cpp -->
 
 ### tuplelike interface
@@ -640,22 +634,22 @@ auto main() -> int {}
 #include <csl/ag.hpp>
 
 auto main() -> int {
-    struct type { const int i = 0; char & c; };
+
+    struct type { const int i = 0; char & c; }; // NOLINT
     char c = 'c';
     auto value = type{ 42, c }; // NOLINT
 
     static_assert(std::same_as<
         const int,
-        std::tuple_element_t<0, std::remove_cvref_t<decltype(value)>>
+        csl::ag::element_t<0, std::remove_cvref_t<decltype(value)>>
     >);
     static_assert(std::same_as<
         char&,
-        std::tuple_element_t<1, std::remove_cvref_t<decltype(value)>>
+        csl::ag::element_t<1, std::remove_cvref_t<decltype(value)>>
     >);
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/P58Wbe5jh)
 <!-- EXAMPLE_END: 12_tuple_element.cpp -->
 
 #### std::get
@@ -668,17 +662,18 @@ Simple example:
 #include <iostream>
 
 auto main() -> int {
+
     struct A { int i; float f; };
-    auto value = A{ .i = 42, .f = 0.13f };
+    auto value = A{ .i = 42, .f = 0.13F }; // NOLINT(*-avoid-magic-numbers)
 
-    std::cout << std::get<0>(value) << ", " << std::get<1>(value) << '\n';
+    // output: "42, 0.13"
+    std::cout << csl::ag::get<0>(value) << ", " << csl::ag::get<1>(value) << '\n';
 
-    static_assert(std::same_as<int &,   decltype(std::get<0>(value))>);
-    static_assert(std::same_as<float &, decltype(std::get<1>(value))>);
+    static_assert(std::same_as<int &,   decltype(csl::ag::get<0>(value))>);
+    static_assert(std::same_as<float &, decltype(csl::ag::get<1>(value))>);
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/ovvqYh1x1)
 <!-- EXAMPLE_END: 13_get_simple.cpp -->
 
 Output:
@@ -696,21 +691,21 @@ Slightly more advanced example:
 
 auto main() -> int {
     struct A { int i; float f; };
-    auto value = A{ .i = 42, .f = 0.13f };
+    auto value = A{ .i = 42, .f = 0.13F }; // NOLINT(*-avoid-magic-numbers)
 
+    // output: "42 0.13 "
     [&value]<std::size_t ... indexes>(std::index_sequence<indexes...>){
-        ((std::cout << std::get<indexes>(value) << ' '), ...);
+        ((std::cout << csl::ag::get<indexes>(value) << ' '), ...);
     }(std::make_index_sequence<csl::ag::size_v<A>>{});
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/59P51KbGW)
 <!-- EXAMPLE_END: 14_get_advanced.cpp -->
 
 Output:
 
 ```text
-42 0.13
+42 0.13 
 ```
 
 Note that `constexpr`-ness is preserved :
@@ -726,8 +721,7 @@ static_assert(csl::ag::get<1>(value) == 'c');
 
 auto main() -> int {}
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8o56TnG8b)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/e8rvG7561)
 <!-- EXAMPLE_END: 15_get_constexpr.cpp -->
 
 ### Functional API
@@ -741,17 +735,17 @@ Analogous to [`std::apply`](https://en.cppreference.com/w/cpp/utility/apply), bu
 #include <csl/ag.hpp>
 
 auto main() -> int {
+
     struct A { int i; float f; };
-    auto value = A{ .i = 42, .f = 0.13f };
+    auto value = A{ .i = 42, .f = 0.13F }; // NOLINT(*-avoid-magic-numbers)
 
     auto result = csl::ag::apply([](auto && ... fields){
-        return (fields + ...);
+        return (static_cast<float>(fields) + ...);
     }, value);
     static_assert(std::same_as<float, decltype(result)>);
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8E851s7rM)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/T3sKb3enW)
 <!-- EXAMPLE_END: 16_apply.cpp -->
 
 #### csl::ag::for_each
@@ -773,14 +767,13 @@ auto main() -> int {
     std::cout << '\n';
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/jo8efeshe)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/aGGd9Gaxq)
 <!-- EXAMPLE_END: 17_for_each.cpp -->
 
 Output:
 
 ```text
-42 0.13
+42 0.13 
 ```
 
 ### Formatting and printing
@@ -858,7 +851,6 @@ Indented (`| csl::ag::io::indented`):
         5
     }
 }
-
 ```
 
 Indexed and typenamed and indented (`| indexed | typenamed | indented`):
@@ -897,8 +889,10 @@ Requires `CSL_AG__ENABLE_FMTLIB_SUPPORT` (opt-in, off by default) - same macro-d
 
 Simple example :
 
-<!-- EXAMPLE_BEGIN: 18_ostream_simple.cpp -->
+<!-- EXAMPLE_BEGIN: 18_formatting_ostream_simple.cpp -->
 ```cpp
+#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
+
 #include <csl/ag.hpp>
 #include <iostream>
 
@@ -906,26 +900,24 @@ auto main() -> int {
     using namespace csl::ag::io;
 
     struct A { int i; float f; };
-    std::cout << A{ .i = 42, .f = .13f };
+    std::cout << A{ .i = 42, .f = .13F };
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83)
-<!-- EXAMPLE_END: 18_ostream_simple.cpp -->
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/orY3Mj95c)
+<!-- EXAMPLE_END: 18_formatting_ostream_simple.cpp -->
 
 Output:
 
 ```text
-A && : {
-   [0] int : 42
-   [1] float : 0.13
-}
+{42, 0.13}
 ```
 
 Advanced example :
 
-<!-- EXAMPLE_BEGIN: 19_ostream_advanced.cpp -->
+<!-- EXAMPLE_BEGIN: 19_formatting_ostream_advanced.cpp -->
 ```cpp
+#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
+
 #include <csl/ag.hpp>
 #include <array>
 #include <iostream>
@@ -934,9 +926,12 @@ Advanced example :
 
 struct A { int i; float f; };
 struct B {};
+
+// Note: must be in the same namespace as B (global here) so ADL finds it
 auto & operator<<(std::ostream & os, B) {
     return os << "user-defined operator<<(std::ostream&, const B &)";
 }
+
 struct C {
     A a;
     B b;
@@ -953,39 +948,20 @@ auto main() -> int {
     int i = 42;
     char c = 'c';
     auto value = C{
-        .a = A{ 13, .12f },
+        .a = A{ .i=13, .f=.12F },
         .b = B{},
         .i = i, .str = "str", .c = std::move(c)
     };
     std::cout << value;
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT)
-<!-- EXAMPLE_END: 19_ostream_advanced.cpp -->
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/dKjqGPeG8)
+<!-- EXAMPLE_END: 19_formatting_ostream_advanced.cpp -->
 
 Output:
 
 ```text
-C & : {
-   [0] A & : {
-      [0] int : 13
-      [1] float : 0.12
-   }
-   [1] B & : user-defined operator<<(std::ostream&, const B &)
-   [2] int & : 42
-   [3] const std::basic_string<char> : str
-   [4] char && : c
-   [5] std::tuple<bool, int> & : {
-      [0] bool : 1
-      [1] int : 2
-   }
-   [6] std::array<char, 3> & : {
-      [0] char : a
-      [1] char : b
-      [2] char : c
-   }
-}
+{{13, 0.12}, user-defined operator<<(std::ostream&, const B &), 42, "str", 'c', (true, 2), ['a', 'b', 'c']}
 ```
 
 #### using `to_string<format_options>`
@@ -1061,8 +1037,7 @@ auto main() -> int {
     do_stuff(std::tuple<int, float>{ 1, 2.f });
 }
 ```
-
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8fv1rfK6s)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/nj8MGcPrT)
 <!-- EXAMPLE_END: 20_homogeneity.cpp -->
 
 ## Current limitations
@@ -1118,7 +1093,7 @@ auto main() -> int {
     static_assert(csl::ag::size_v<C> == 1);
 }
 ```
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/v91bqTEWP)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/sKMG89Kse)
 <!-- EXAMPLE_END: 21_internal_size.cpp -->
 
 ---

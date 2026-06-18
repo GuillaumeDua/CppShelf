@@ -24,7 +24,7 @@ jobs:
           sudo apt-get install -y graphviz
 
       - name: Generate documentation
-        run: bash scripts/generate_doc.sh
+        run: bash doc/scripts/generate_doc.sh
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.3.3
