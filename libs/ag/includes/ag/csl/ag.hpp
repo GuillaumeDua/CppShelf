@@ -1737,6 +1737,13 @@ namespace csl::ag::io {
         os.iword(details::mode_index()) |= std::to_underlying(format_options::typenamed);
         return os;
     }
+    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - precomputed bitmask
+    /// Mirrors the tag-based manipulators above, for a `format_options` combined ahead of time, e.g.
+    /// `constexpr auto options = indented | indexed | typenamed; os << options << value;`
+    inline auto operator<<(std::ostream & os, format_options options) -> std::ostream & {
+        os.iword(details::mode_index()) |= std::to_underlying(options);
+        return os;
+    }
 
     /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword, using compile-time options.
     template <typename T, format_options Options, std::size_t Depth>
