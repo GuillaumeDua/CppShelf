@@ -1168,7 +1168,9 @@ namespace csl::ag::tuplelike {
 //  formatting/printing
 // ---------------------
 
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) or defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+#if (defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT) \
+ or (defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT) \
+ or (defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
 # define CSL_AG__FORMATTING_ENABLED
 # endif
 
@@ -1352,7 +1354,8 @@ namespace csl::ag::io::details {
 
 #endif
 
-#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) or defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+#if (defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT) \
+ or (defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
 
 namespace csl::ag::io::details {
 
@@ -1762,7 +1765,7 @@ namespace csl::ag::io {
 #endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
 
 // Opt-in: fmt support
-#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and not __has_include(<fmt/format.h>)
+#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT and not __has_include(<fmt/format.h>)
     static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
 #elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
 
@@ -1950,7 +1953,7 @@ class fmt::formatter<
 #endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
 
 // Opt-in: std::format support
-#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and not __has_include(<format>)
+#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT and not __has_include(<format>)
     static_assert(false, "csl::ag: [CSL_AG__ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing.");
 #elif defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT
 
@@ -2028,8 +2031,14 @@ namespace csl::ag::io {
     [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
     requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
     {
-        using value_type = std::remove_cvref_t<decltype(value)>;
-        return std::format("{}", details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value });
+        // NOTE: at default Options, format `value` directly so a user-defined formatter (if any) wins,
+        // exactly as the plain (option-less) operator<< / formatter<T> specializations do.
+        if constexpr (Options == format_options::none)
+            return std::format("{}", value);
+        else {
+            using value_type = std::remove_cvref_t<decltype(value)>;
+            return std::format("{}", details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value });
+        }
     }
     template <typename T, format_options Options, std::size_t Depth>
     [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
@@ -2046,8 +2055,14 @@ namespace csl::ag::io {
     [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
     requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
     {
-        using value_type = std::remove_cvref_t<decltype(value)>;
-        return fmt::format("{}", details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value });
+        // NOTE: at default Options, format `value` directly so a user-defined formatter (if any) wins,
+        // exactly as the plain (option-less) operator<< / formatter<T> specializations do.
+        if constexpr (Options == format_options::none)
+            return fmt::format("{}", value);
+        else {
+            using value_type = std::remove_cvref_t<decltype(value)>;
+            return fmt::format("{}", details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value });
+        }
     }
     template <typename T, format_options Options, std::size_t Depth>
     [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
@@ -2064,9 +2079,15 @@ namespace csl::ag::io {
     [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
     requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
     {
-        using value_type = std::remove_cvref_t<decltype(value)>;
+        // NOTE: at default Options, stream `value` directly so a user-defined operator<< (if any) wins,
+        // exactly as the plain (option-less) operator<< does (overload resolution: exact match).
         std::ostringstream ss;
-        ss << details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value };
+        if constexpr (Options == format_options::none)
+            ss << value;
+        else {
+            using value_type = std::remove_cvref_t<decltype(value)>;
+            ss << details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value };
+        }
         return std::move(ss).str();
     }
     template <typename T, format_options Options, std::size_t Depth>
