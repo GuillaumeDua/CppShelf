@@ -7,6 +7,8 @@
 #endif
 
 #define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
+#define CSL_AG__ENABLE_FMTLIB_SUPPORT 0
+#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT 0
 
 #if FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT
 #  define CSL_AG_BITFIELDS_STR "ON"
@@ -40,58 +42,6 @@ struct with_printable_field {
     printable_t p;
     int         x;
 };
-
-namespace { // helpers
-
-    template <typename T>
-    auto capture_default(const T & value) -> std::string {
-        std::ostringstream ss;
-        using namespace csl::ag::io;
-        ss << value;
-        return ss.str();
-    }
-
-    template <typename T>
-    auto capture_no_braces(const T & value) -> std::string {
-        std::ostringstream ss;
-        using namespace csl::ag::io;
-        ss << no_braces << value;
-        return ss.str();
-    }
-
-    template <typename T>
-    auto capture_indented(const T & value) -> std::string {
-        std::ostringstream ss;
-        using namespace csl::ag::io;
-        ss << indented << value;
-        return ss.str();
-    }
-
-    template <typename T>
-    auto capture_indexed(const T & value) -> std::string {
-        std::ostringstream ss;
-        using namespace csl::ag::io;
-        ss << indexed << value;
-        return ss.str();
-    }
-
-    template <typename T>
-    auto capture_typenamed(const T & value) -> std::string {
-        std::ostringstream ss;
-        using namespace csl::ag::io;
-        ss << typenamed << value;
-        return ss.str();
-    }
-
-    template <typename T>
-    auto capture_indented_indexed_typenamed(const T & value) -> std::string {
-        std::ostringstream ss;
-        using namespace csl::ag::io;
-        // Composable view-based API: use the iword manipulators that combine multiple options.
-        ss << indented << indexed << typenamed << value;
-        return ss.str();
-    }
-}
 
 namespace tests::compile_time {
 
@@ -474,8 +424,9 @@ TEMPLATE_TEST_CASE("csl::ag::io default (braced) output [BITFIELDS=" CSL_AG_BITF
                    types::field_4_nested_range,
                    types::field_everything)
 {
+    using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(capture_default(f::value) == f::default_expected);
+    CHECK(to_string(f::value) == f::default_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io no_braces output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -487,8 +438,9 @@ TEMPLATE_TEST_CASE("csl::ag::io no_braces output [BITFIELDS=" CSL_AG_BITFIELDS_S
                    types::field_4_nested_range,
                    types::field_everything)
 {
+    using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(capture_no_braces(f::value) == f::no_braces_expected);
+    CHECK(to_string<no_braces>(f::value) == f::no_braces_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io indented output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -500,32 +452,36 @@ TEMPLATE_TEST_CASE("csl::ag::io indented output [BITFIELDS=" CSL_AG_BITFIELDS_ST
                    types::field_4_nested_range,
                    types::field_everything)
 {
+    using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(capture_indented(f::value) == f::indented_expected);
+    CHECK(to_string<indented>(f::value) == f::indented_expected);
 }
 
 TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
           "[ag][iostream]")
 {
+    using namespace csl::ag::io;
     // printable_t: structured_bindable AND has user-defined operator<<.
     // - exact-match overload wins over our constrained template.
-    CHECK(capture_default(printable_t{42}) == "printable:42");
+    CHECK(to_string(printable_t{42}) == "printable:42");
 }
 
 TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
           "[ag][iostream]")
 {
+    using namespace csl::ag::io;
     // with_printable_field: { printable_t p; int x; }
     // Field p is ostream_formattable - user's operator<< is used (not recursive print).
-    auto out = capture_default(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
+    auto out = to_string(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
     CHECK(out == "{printable:42, 7}");
 }
 
 TEST_CASE("csl::ag::io empty aggregate [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
           "[ag][iostream]")
 {
-    CHECK(capture_default(types::empty{})   == "{}");
-    CHECK(capture_no_braces(types::empty{}) == "");
+    using namespace csl::ag::io;
+    CHECK(to_string(types::empty{})            == "{}");
+    CHECK(to_string<no_braces>(types::empty{}) == "");
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io indexed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -537,8 +493,9 @@ TEMPLATE_TEST_CASE("csl::ag::io indexed output [BITFIELDS=" CSL_AG_BITFIELDS_STR
                    types::field_4_nested_range,
                    types::field_everything)
 {
+    using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(capture_indexed(f::value) == f::indexed_expected);
+    CHECK(to_string<indexed>(f::value) == f::indexed_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -550,8 +507,9 @@ TEMPLATE_TEST_CASE("csl::ag::io typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_S
                    types::field_4_nested_range,
                    types::field_everything)
 {
+    using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(capture_typenamed(f::value) == f::typenamed_expected);
+    CHECK(to_string<typenamed>(f::value) == f::typenamed_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -563,21 +521,9 @@ TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output [BITFIELDS=" C
                    types::field_4_nested_range,
                    types::field_everything)
 {
+    using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(capture_indented_indexed_typenamed(f::value) == f::indented_indexed_typenamed_expected);
-}
-
-TEMPLATE_TEST_CASE("csl::ag::io::to_string default output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
-                   "[ag][iostream]",
-                   types::field_1,
-                   types::field_2,
-                   types::field_3_nested,
-                   types::field_3_nested_tuplelike,
-                   types::field_4_nested_range,
-                   types::field_everything)
-{
-    using f = fixture<TestType>;
-    CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
+    CHECK(to_string<indented | indexed | typenamed>(f::value) == f::indented_indexed_typenamed_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
@@ -592,20 +538,6 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL
     using namespace csl::ag::io;
     using f = fixture<TestType>;
     CHECK(to_string(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
-}
-
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
-                   "[ag][iostream]",
-                   types::field_1,
-                   types::field_2,
-                   types::field_3_nested,
-                   types::field_3_nested_tuplelike,
-                   types::field_4_nested_range,
-                   types::field_everything)
-{
-    using namespace csl::ag::io;
-    using f = fixture<TestType>;
-    CHECK(to_string<indented | indexed | typenamed>(f::value) == f::indented_indexed_typenamed_expected);
 }
 
 #undef CSL_AG_BITFIELDS_STR

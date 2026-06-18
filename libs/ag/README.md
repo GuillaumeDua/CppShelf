@@ -34,17 +34,20 @@ static_assert(std::same_as<char, csl::ag::element_t<0, S>>);
 static_assert(std::same_as<int,  csl::ag::element_t<1, S>>);
 
 auto main() -> int {
-    S value{ 'A', 41 };
+    S value{ .c = 'A', .i = 41 };
     ++std::get<1>(value);
 
     using namespace csl::ag::io;
-    std::cout << "value: " << value << '\n';
+    constexpr auto format_options = indexed | typenamed | indented;
+    std::cout << "value: " << format_options << value << '\n';
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/x1dGTWddK)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
+
 ```text
 value: S& : {
    [0] char : A
@@ -70,6 +73,7 @@ auto main() -> int {
     assert(v1 == 'A');
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/3EcK9Wc7h)
 <!-- EXAMPLE_END: 02_structured_binding.cpp -->
 
@@ -96,7 +100,7 @@ This library is divided in six distinct parts :
 
 ## Philosophy & design choices
 
-The key idea of this library is to ease iterations over aggregates's member-variables,  
+The key idea of this library is to ease iterations over aggregates's member-variables in C++20 (so, without reflection),  
 which is especially convenient when dealing with **reflection** and **serialization**.
 
 - `csl::ag::size<T>` gives the fields count in a given aggregate type type  
@@ -107,7 +111,8 @@ which is especially convenient when dealing with **reflection** and **serializat
 
 ## Getting starting
 
-This library is single-header, header-only. Users may use it in various ways, however [CMake](https://cmake.org/) is the promoted one for both download and configuration.
+This library is single-header, header-only.  
+Users may use it in various ways, however [CMake](https://cmake.org/) is the promoted one for both download and configuration.
 
 ### Integration
 
@@ -134,8 +139,9 @@ This project can be configured using the following cmake cache entries, grouped 
 
 #### Bitfields support
 
-⚠️ By default, bitfields support is **disabled**.  
-Using features for this library with any aggregate type using custom layout will results in ☣️ **undefined behavior**.  
+⚠️ By default, bitfields support is **disabled**.
+
+Using features for this library with any aggregate type using **custom layout** will results in ☣️ **undefined behavior**.  
 Most likely, a compile-time error will be emitted. However, such behavior is not guaranteed.
 
 ```cpp
@@ -172,15 +178,15 @@ By default, `CSL_AG__MAX_SUPPORTED_FIELDS_COUNT` is set to `128`, meaning the li
 To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_FIELDS_COUNT` to a greater integral value.
 
 > ❔ **Question** : What if I don't use **CMake** ?
-> 
+>
 > Then the library will always use the default value.
 
 > ❔ **Question** : Why such configuration/limitation ?
 >
 > Despite interesting proposals that aim to enhance & offer new code generation mecanisms as part of the C++ language, such features are not available yet.  
-> 
+>
 > The choice here to use **CMake** in order to generate C++ code **upstream** is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).
-> 
+>
 > 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
 
 #### Formatting and printing (experimentale)
@@ -188,16 +194,20 @@ To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_
 ⚠️ This section is **experimentale**, and **SHOULD NOT** be used in production.  
 Breaking changes are very likely, as the API is instable **for now**.
 
-All options in this section are opt-ins *(`OFF` by default)*
+All options in this section are opt-ins *(`OFF` by default)*, and can be combined.
+
+```cpp
+struct A{ int i{}; };
+struct my_aggregate{ char c = 'a'; A a = A{ .i = 13} };
+constexpr auto my_aggregate_value = my_aggregate{};
+```
 
 - `CSL_AG__ENABLE_STD_FORMAT_SUPPORT`: add `std::formatter<csl::ag::aggregate T>`
 
   ```cpp
-  const auto formatted = std::format("my aggregate = {}", my_aggregate{});
-  // formatted == "my aggregate = {'a', {13}}"
-  std::print("{}", my_aggregate_value);   // default presentation (compact) → {'a', {13}}
-  std::print("{:c}", my_aggregate_value); // compact presentation           → {'a', {13}}
-  std::print("{:p}", my_aggregate_value); // pretty  presentation           → see below
+  std::print("{}",   my_aggregate_value);                          // compact, default → {'a', {13}}
+  std::print("{:n}", my_aggregate_value);                          // no outer brackets → 'a'{13}
+  std::print("{}",   my_aggregate_value | csl::ag::io::indented);  // pretty, multi-line → see below
   ```
 
 - `CSL_AG__ENABLE_FMTLIB_SUPPORT`: makes `csl::ag` depends on the `fmt` library, and add `fmt::formatter<csl::ag::aggregate T>`.
@@ -205,39 +215,43 @@ All options in this section are opt-ins *(`OFF` by default)*
   > If [fmtlib](https://github.com/fmtlib/fmt)'s `cmake` target `fmt::fmt-header-only` is not available when building `csl::ag` with `CSL_AG__ENABLE_FMTLIB_SUPPORT` set to `ON`, then such a dependency will be injected using `cmake FetchContent`.
 
   ```cpp
-  const auto formatted = fmt::format("my aggregate = {}", my_aggregate{});
-  // formatted == "my aggregate = {'a', {13}}"
-  fmt::print("{}", my_aggregate_value);   // default presentation (compact) → {'a', {13}}
-  fmt::print("{:c}", my_aggregate_value); // compact presentation           → {'a', {13}}
-  fmt::print("{:p}", my_aggregate_value); // pretty  presentation           → see below
+  fmt::print("{}",   my_aggregate_value);
+  fmt::print("{:n}", my_aggregate_value);
+  fmt::print("{}",   my_aggregate_value | csl::ag::io::indented);
   ```
 
-- `CSL_AG__ENABLE_IOSTREAM_SUPPORT`: add `csl::ag::io::operator<<(const csl::io::indented_ostream os, csl::ag::concepts::structured_bindable auto && value)`
+- `CSL_AG__ENABLE_IOSTREAM_SUPPORT`: add `csl::ag::io::operator<<(std::ostream &, csl::ag::concepts::structured_bindable auto const &)`
 
   ```cpp
   using namespace csl::ag::io;
-  std::cout << my_aggregate{}; // equivalent to: `indented_ostream{std::cout} << my_aggregate{};`
-  indented_ostream{std::cout, 2} << my_aggregate{}; // explicit indentation
+  std::cout << my_aggregate_value;               // compact, default
+  std::cout << no_braces << my_aggregate_value;   // one-shot manipulator → no outer brackets
+  std::cout << (my_aggregate_value | indented);   // view-based composition → pretty, multi-line
   ```
 
-About compact vs. pretty presentations:
+- `csl::ag::io::to_string`: available as soon as any one of the options above is enabled. Returns a `std::string` directly, with the same call syntax regardless of which backend is active (favors `std::format`, then `fmt::format`, then `std::ostream`).
 
-```cpp
-struct A{ int i{}; };
-struct my_aggregate{ char c = 'a'; A a = A{ .i = 13} };
-```
+  ```cpp
+  using namespace csl::ag::io;
+  to_string(my_aggregate_value);                                    // compact, default     → {'a', {13}}
+  to_string<no_braces>(my_aggregate_value);                         // no outer brackets    → 'a'{13}
+  to_string<indented>(my_aggregate_value);                          // pretty, multi-line   → see below
+  to_string<indexed | typenamed | indented>(my_aggregate_value);    // pretty, multi-line, indexed, typenamed
+  ```
 
-- Compact presentation:
+About compact vs. pretty presentations, with type names (`typenamed`):
+
+- Compact (`typenamed`):
 
 ```text
-my_aggregate: { char: 'c', A: { int: 13 } }
+{char: 'a', A: {int: 13}}
 ```
 
-- Pretty presentation:
+- Pretty (`typenamed | indented`):
 
 ```text
-my_aggregate: {
-    char: 'c',
+{
+    char: 'a',
     A: {
         int: 13
     }
@@ -246,8 +260,7 @@ my_aggregate: {
 
 ## Content
 
-All components that are part of the public interface are defined in the namespace `csl::ag`,  
-except for nested-namespaces named `details`.  
+All components that are part of the public interface are defined in the namespace `csl::ag`.
 
 In other words, the library provides **no guarantee** to any direct use of namespaces named with a pattern like `csl::ag::*::details::*`.
 
@@ -310,6 +323,7 @@ static_assert(csl::ag::size_v<A>      == 2);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5cr1x7K3T)
 <!-- EXAMPLE_END: 03_size.cpp -->
 
@@ -334,6 +348,7 @@ static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo)
 <!-- EXAMPLE_END: 04_element.cpp -->
 
@@ -365,6 +380,7 @@ static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, const A&>>);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xMYzezxoo)
 <!-- EXAMPLE_END: 05_view_element.cpp -->
 
@@ -423,10 +439,12 @@ auto main() -> int {
     }(std::make_index_sequence<csl::ag::size_v<A>>{});
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Yqh1q3Wea)
 <!-- EXAMPLE_END: 06_to_tuple_owning.cpp -->
 
 Output:
+
 ```text
 42 0.13
 ```
@@ -458,6 +476,7 @@ auto main() -> int {
     static_assert(0.13f == std::get<1>(value_as_tuple));
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/EE7494zbv)
 <!-- EXAMPLE_END: 07_to_tuple_type_traits.cpp -->
 
@@ -488,10 +507,12 @@ auto main() -> int {
     >);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY)
 <!-- EXAMPLE_END: 08_to_tuple_example1.cpp -->
 
 Output:
+
 ```text
 42 0.13
 ```
@@ -523,10 +544,12 @@ auto main() -> int {
     >);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/17Es3oooY)
 <!-- EXAMPLE_END: 09_to_tuple_example2.cpp -->
 
 Output:
+
 ```text
 42 0.13
 ```
@@ -578,6 +601,7 @@ auto main() -> int {
     }
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/39bTrKzzo)
 <!-- EXAMPLE_END: 10_to_tuple_view.cpp -->
 
@@ -603,6 +627,7 @@ static_assert(std::same_as<int &, csl::ag::view_element_t<1, const type&>>);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/M3ejaf7Mc)
 <!-- EXAMPLE_END: 11_view_element_cvref.cpp -->
 
@@ -629,6 +654,7 @@ auto main() -> int {
     >);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/YPj7931b9)
 <!-- EXAMPLE_END: 12_tuple_element.cpp -->
 
@@ -651,10 +677,12 @@ auto main() -> int {
     static_assert(std::same_as<float &, decltype(std::get<1>(value))>);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/je4Gr16h5)
 <!-- EXAMPLE_END: 13_get_simple.cpp -->
 
 Output:
+
 ```text
 42, 0.13
 ```
@@ -675,10 +703,12 @@ auto main() -> int {
     }(std::make_index_sequence<csl::ag::size_v<A>>{});
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/j9bhr4WrP)
 <!-- EXAMPLE_END: 14_get_advanced.cpp -->
 
 Output:
+
 ```text
 42 0.13
 ```
@@ -696,7 +726,8 @@ static_assert(csl::ag::get<1>(value) == 'c');
 
 auto main() -> int {}
 ```
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/h9jbrc8d6)
+
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8o56TnG8b)
 <!-- EXAMPLE_END: 15_get_constexpr.cpp -->
 
 ### Functional API
@@ -719,7 +750,8 @@ auto main() -> int {
     static_assert(std::same_as<float, decltype(result)>);
 }
 ```
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/PENDING)
+
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8E851s7rM)
 <!-- EXAMPLE_END: 16_apply.cpp -->
 
 #### csl::ag::for_each
@@ -741,20 +773,125 @@ auto main() -> int {
     std::cout << '\n';
 }
 ```
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/PENDING)
+
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/jo8efeshe)
 <!-- EXAMPLE_END: 17_for_each.cpp -->
 
 Output:
+
 ```text
 42 0.13
 ```
 
 ### Formatting and printing
 
-There are two way to pretty-print aggregate types :
+There are three ways to pretty-print aggregate types :
 
-- using the legacy C++'s way : `std::ostream& operator<<(std::ostream&, T&&)` overload
-- using the `fmt` or `std::format` library
+- (✅ Best) using `std::format` or the `fmt` library
+- using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload
+- using `csl::ag::io::to_string<format_options>`, a homogeneous (yet, less efficient) API across all of the above
+
+#### using std::format
+
+Requires `CSL_AG__ENABLE_STD_FORMAT_SUPPORT` (opt-in, off by default).  
+Enable via CMake or by defining the macro before including the header:
+
+```cpp
+#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT true
+#include <csl/ag.hpp>
+#include <format>
+```
+
+This specializes `std::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
+
+Three format modes are available:
+
+| Format string                              | Output style                                                 |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| `"{}"`                                     | compact - fields wrapped in `{}`, nested aggregates recursed |
+| `"{:n}"`                                   | no outer brackets                                            |
+| `"{}"` on `value \| csl::ag::io::indented` | indented multi-line                                          |
+
+Example:
+
+```cpp
+struct point     { int x; int y; };
+struct rectangle { point top_left; point bottom_right; };
+
+constexpr auto r = rectangle{
+    .top_left = { 0, 0 },
+    .bottom_right = { 10, 5 }
+};
+
+using namespace csl::ag::io;
+// NOTE: prefer std::print, if available
+std::cout
+    << std::format("{}\n",   r)                                     // compact
+    << std::format("{:n}\n", r)                                     // no brackets
+    << std::format("{}\n",   r | indented)                          // indented
+    << std::format("{}\n",   r | indexed | typenamed | indented)    // indexed, typenamed, indented
+;
+```
+
+Compact (`{}`):
+
+```text
+{{0, 0}, {10, 5}}
+```
+
+No brackets (`{:n}`):
+
+```text
+{0, 0}{10, 5}
+```
+
+Indented (`| csl::ag::io::indented`):
+
+```text
+{
+    {
+        0,
+        0
+    },
+    {
+        10,
+        5
+    }
+}
+
+```
+
+Indexed and typenamed and indented (`| indexed | typenamed | indented`):
+
+```text
+{
+    [0] point: {
+        [0] int: 0,
+        [1] int: 0
+    },
+    [1] point: {
+        [0] int: 10,
+        [1] int: 5
+    }
+}
+```
+
+Mixed-content aggregates (containing tuple-likes, ranges, etc.) are also supported - tuples render as `(...)`, arrays and other ranges as `[...]`, etc.
+
+#### using fmt
+
+Requires `CSL_AG__ENABLE_FMTLIB_SUPPORT` (opt-in, off by default) - same macro-driven setup as `std::format` above:
+
+```cpp
+#define CSL_AG__ENABLE_FMTLIB_SUPPORT true
+#include <csl/ag.hpp>
+#include <fmt/format.h>
+```
+
+> If `fmt::fmt-header-only` is not available as a CMake target, it will be fetched automatically via CMake's `FetchContent`.  
+> fmtlib >= 11 is required for the `:n` specifier.
+
+`fmt::formatter<T>` / `fmt::format` / `fmt::print` behave identically to their `std::formatter` / `std::format` / `std::print` counterparts described above: same format modes, same composable `csl::ag::io::indented | indexed | typenamed` options, same output.  
 
 #### using std::ostream
 
@@ -772,10 +909,12 @@ auto main() -> int {
     std::cout << A{ .i = 42, .f = .13f };
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/q8Yeq4e83)
 <!-- EXAMPLE_END: 18_ostream_simple.cpp -->
 
 Output:
+
 ```text
 A && : {
    [0] int : 42
@@ -821,10 +960,12 @@ auto main() -> int {
     std::cout << value;
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hsofqExoT)
 <!-- EXAMPLE_END: 19_ostream_advanced.cpp -->
 
 Output:
+
 ```text
 C & : {
    [0] A & : {
@@ -847,56 +988,33 @@ C & : {
 }
 ```
 
-#### using fmt
+#### using `to_string<format_options>`
 
-Requires `CSL_AG__ENABLE_FMTLIB_SUPPORT` (opt-in, off by default).  
-Enable via CMake or by defining the macro before including the header:
+`csl::ag::io::to_string` returns a `std::string` directly, with an consistent/homogeneous API regardless of which formatting support is enabled,  
+favoring `std::format`, then `fmt::format`, then `std::ostream`.
+
+Options are selected as a non-type template argument. Tags (`indented`, `no_braces`, `indexed`, `typenamed`) implicitly convert to `format_options` and compose via `operator|`, so they can be combined directly as the template argument - or, equivalently, via the view-based `operator|` on the value itself:
 
 ```cpp
-#define CSL_AG__ENABLE_FMTLIB_SUPPORT true
 #include <csl/ag.hpp>
-#include <fmt/format.h>
-```
 
-> If `fmt::fmt-header-only` is not available as a CMake target, it will be fetched automatically via `FetchContent`.  
-> fmtlib >= 11 is required for the `:n` specifier.
-
-This specializes `fmt::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
-
-Three format modes are available:
-
-| Format string                              | Output style                                                 |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| `"{}"`                                     | compact - fields wrapped in `{}`, nested aggregates recursed |
-| `"{:n}"`                                   | no outer brackets                                            |
-| `"{}"` on `value \| csl::ag::io::indented` | indented multi-line                                          |
-
-Example:
-
-```cpp
 struct point { int x; int y; };
 struct rect  { point top_left; point bottom_right; };
 
-constexpr auto r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };
+auto main() -> int {
+    using namespace csl::ag::io;
 
-fmt::print("{}\n",   r);                         // compact
-fmt::print("{:n}\n", r);                         // no brackets
-fmt::print("{}\n",   r | csl::ag::io::indented); // indented
+    constexpr auto r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };
+
+    to_string(r);                     // "{{0, 0}, {10, 5}}"        (default, compact)
+    to_string<no_braces>(r);          // "{0, 0}{10, 5}"            (no outer brackets)
+    to_string<indented>(r);           // multiline, see below
+    to_string<indented | indexed>(r); // composed options, as NTTP
+    to_string(r | indented | indexed); // equivalent, view-based composition
+}
 ```
 
-Compact (`{}`):
-
-```text
-{{0, 0}, {10, 5}}
-```
-
-No brackets (`{:n}`):
-
-```text
-{0, 0}{10, 5}
-```
-
-Indented (`| csl::ag::io::indented`):
+`to_string<indented>(r)`:
 
 ```text
 {
@@ -910,8 +1028,6 @@ Indented (`| csl::ag::io::indented`):
     }
 }
 ```
-
-Mixed-content aggregates (containing tuple-likes and ranges) are also supported - tuples render as `(...)`, arrays and other ranges as `[...]`.
 
 ## Homogeneity API with tuple-likes
 
@@ -945,6 +1061,7 @@ auto main() -> int {
     do_stuff(std::tuple<int, float>{ 1, 2.f });
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8fv1rfK6s)
 <!-- EXAMPLE_END: 20_homogeneity.cpp -->
 
