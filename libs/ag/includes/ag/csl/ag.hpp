@@ -2011,10 +2011,9 @@ struct std::formatter<
 #endif // CSL_AG__ENABLE_STD_FORMAT_SUPPORT
 
 // Formatting: to_string
-// Backed by whichever formatting support is enabled, favoring std::format, then fmtlib, then iostream.
-// Options are selected as a non-type template argument - tags implicitly convert to format_options,
-// and compose via operator| (constant-expression, so usable directly as the NTTP).
-// Usage: using namespace csl::ag::io;
+//
+//  Backed by whichever formatting support is enabled: favor std::format, then fmtlib, then iostream.
+//  Usage: using namespace csl::ag::io;
 //      to_string(value)                            (default: braced, compact)
 //      to_string<indented>(value)                  (single option)
 //      to_string<indented | typenamed>(value)      (composed options)
@@ -2024,6 +2023,7 @@ struct std::formatter<
 #include <string>
 
 namespace csl::ag::io {
+
     template <format_options Options = format_options::none>
     [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
     requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
@@ -2067,13 +2067,13 @@ namespace csl::ag::io {
         using value_type = std::remove_cvref_t<decltype(value)>;
         std::ostringstream ss;
         ss << details::decorators::formatted_view_t<value_type, Options, 0>{ .value = value };
-        return ss.str();
+        return std::move(ss).str();
     }
     template <typename T, format_options Options, std::size_t Depth>
     [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T, Options, Depth> const & view) -> std::string {
         std::ostringstream ss;
         ss << view;
-        return ss.str();
+        return std::move(ss).str();
     }
 }
 
