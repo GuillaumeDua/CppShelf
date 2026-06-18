@@ -11,7 +11,8 @@ foreach(example_file IN LISTS ${component_name}_EXAMPLES_LIST)
 
     set(target_name example_${component_name}_${example_name})
 
-    set(example_extra_libs "")
+    # typeinfo gives `typenamed` clean type names (e.g. "int") instead of the <typeindex> mangled fallback.
+    set(example_extra_libs ${PROJECT_NAME}::typeinfo)
     if (example_name MATCHES "fmtlib")
 
         if (NOT TARGET fmt::fmt-header-only)

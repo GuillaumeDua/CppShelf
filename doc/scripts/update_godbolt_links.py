@@ -10,14 +10,14 @@ For each "<!-- EXAMPLE_BEGIN: filename --> ... <!-- EXAMPLE_END: filename -->" b
     Unchanged files reuse the cached URL so the Compiler-Explorer API is not spammed needlessly.
 
 Usage:
-  python3 scripts/update_godbolt_links.py [--force] [--dry-run] [libs/ag ...]
+  python3 doc/scripts/update_godbolt_links.py [--force] [--dry-run] [libs/ag ...]
 
 Options:
   --force               Regenerate every link regardless of cached hash.
   --dry-run             Show what would change without writing files or calling the CE API.
   --compiler-id ID      Compiler Explorer compiler ID (default: clang_trunk).
   --compiler-options O  Compiler options passed to CE (default: -std=c++23).
-  --shortlink-api URL   CE shortlink API endpoint (default: https://godbolt.org/api/shortlink).
+  --shortlink-api URL   CE shortlink API endpoint (default: https://godbolt.org/api/shortener).
   libs/...              One or more lib directories relative to the repo root.
                         Defaults to all libs/ subdirectories.
 """
@@ -32,11 +32,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 LOG_PREFIX = f'[{Path(__file__).stem}]'
-MANIFEST_PATH = REPO_ROOT / '.godbolt-manifest.json'
+MANIFEST_PATH = REPO_ROOT / 'doc' / '.godbolt-manifest.json'
 
-CE_SHORTLINK_API = 'https://godbolt.org/api/shortlink'
+CE_SHORTLINK_API = 'https://godbolt.org/api/shortener'
 CE_COMPILER_ID = 'clang_trunk'
 CE_COMPILER_OPTIONS = '-std=c++23'
 
