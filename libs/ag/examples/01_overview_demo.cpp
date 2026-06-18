@@ -12,9 +12,10 @@ static_assert(std::same_as<char, csl::ag::element_t<0, S>>);
 static_assert(std::same_as<int,  csl::ag::element_t<1, S>>);
 
 auto main() -> int {
-    S value{ 'A', 41 };
+    S value{ .c='A', .i=41 };
     ++csl::ag::get<1>(value);
 
     using namespace csl::ag::io;
-    std::cout << "value: " << value << '\n';
+    constexpr auto format_options = indexed | typenamed | indented;
+    std::cout << "value: " << format_options << value << '\n';
 }
