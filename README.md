@@ -177,7 +177,7 @@ Components-specific options:
 | `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`   | enable/disable a specific component **example**   |
 | `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL` | enable/disable a specific component **benchmark** |
 
-For options related to a specific component, refer to its dedicated documentation.
+> 💡 For options related to a specific component, refer to its dedicated documentation.
 
 ### Getting started - header-only
 

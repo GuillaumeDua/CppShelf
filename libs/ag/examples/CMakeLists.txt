@@ -11,8 +11,10 @@ foreach(example_file IN LISTS ${component_name}_EXAMPLES_LIST)
 
     set(target_name example_${component_name}_${example_name})
 
-    # typeinfo gives `typenamed` clean type names (e.g. "int") instead of the <typeindex> mangled fallback.
+    # NOTE: csl::typeinfo gives `csl::ag::io::typenamed` clean type names (e.g. "int") instead of the <typeindex> mangled fallback.
     set(example_extra_libs ${PROJECT_NAME}::typeinfo)
+
+    # NOTE: fmtlib support requires linkage with fmt.
     if (example_name MATCHES "fmtlib")
 
         if (NOT TARGET fmt::fmt-header-only)
