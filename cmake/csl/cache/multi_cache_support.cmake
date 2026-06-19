@@ -2,9 +2,11 @@ include_guard(GLOBAL)
 
 # Creates a compile_commands.json symlink at the top-level subdirectory of SOURCE_DIR that contains BINARY_DIR
 # (e.g. "build", however many preset/kit/build-type levels BINARY_DIR is nested under it),
-# so tools like clangd (pointed at that shared build root) always pick up whichever configuration was last run.
-# No-op when called from a subdirectory context (PROJECT_IS_TOP_LEVEL is false), or when BINARY_DIR
-# is itself that top-level directory (flat build, nothing to symlink to).
+# so tools like `clangd` (pointed at that shared build root) always pick up whichever configuration was last run.
+#
+# No-op:
+# - when called from a subdirectory context (PROJECT_IS_TOP_LEVEL is false),
+# - or when BINARY_DIR is itself that top-level directory (flat build, nothing to symlink to).
 #
 # Usage:
 #   csl_symlink_compile_commands([BINARY_DIR <dir>] [SOURCE_DIR <dir>])
