@@ -1986,6 +1986,25 @@ struct std::formatter<T, Char>
     >
 {};
 
+// std_formattable (used upstream: not formatter detection)
+namespace csl::ag::io::details::type_traits {
+    template <typename T, typename Char>
+    struct is_std_formattable : std::bool_constant<std::formattable<T, Char>>{};
+    template <csl::ag::concepts::structured_bindable T, typename Char>
+    struct is_std_formattable<T, Char> {
+        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
+            return (true and ... and std::formattable<csl::ag::tuplelike::element_t<indexes, T>, Char>);
+        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
+    };
+    template <typename T, typename Char>
+    constexpr inline static auto is_std_formattable_v = is_std_formattable<T, Char>::value;
+}
+namespace csl::ag::io::details::concepts {
+
+    template <typename T, typename Char>
+    concept std_formattable = type_traits::is_std_formattable_v<T, Char>;
+}
+
 // std::formatter for formatted_view_t - composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
