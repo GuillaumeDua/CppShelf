@@ -117,16 +117,16 @@ See project's
 
 ### About C++23 support
 
-⚠️ Implementations details might change once specific **C++23** [features are supported](https://en.cppreference.com/w/cpp/compiler_support) by targeted compilers.  
+⚠️ Implementations details might change once specific **C++23** and later standards [features get supported](https://en.cppreference.com/w/cpp/compiler_support) by targeted compilers.  
 👉 See opened issue [tagged with C++23](https://github.com/GuillaumeDua/CppShelf/issues?q=is%3Aissue+is%3Aopen+label%3AC%2B%2B23).
 
 ## Supported compilers
 
-| Compiler       | Min. version  | Recommended | Reason |
-| -------------- | ------------- | ----------- | ------ |
-| **`g++`**      | >= 11.1.0     | >= 13.2     | C++20  |
-| **`clang++`**  | >= 13.0.1     | >= 16.0.6   | C++20<br>Decent support of [P0315r4 lambdas in unevaluated contexts](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0315r4.pdf) |
-| **`msvc-cl`**  | *TBD*         | *TBD*       | -      |
+| Compiler       | Min. version   | Recommended | Reason |
+| -------------- | -------------- | ----------- | ------ |
+| **`g++`**      | >= 11.1.0      | >= 13.2     | C++20  |
+| **`clang++`**  | >= 13.0.1      | >= 16.0.6   | C++20<br>Decent support of [P0315r4 lambdas in unevaluated contexts](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0315r4.pdf) |
+| **`msvc-cl`**  | *TBD/upcoming* | *TBD*       | -      |
 
 ---
 
@@ -159,8 +159,8 @@ See project's
 
 General options:
 
-| Option              | Type | Default | Description |
-| ------------------- | ---- | ------- | ----------- |
+| Option              | Type | Default | Description                                  |
+| ------------------- | ---- | ------- | -------------------------------------------- |
 | `CSL_BUILD_ALL`     | bool | ON      | enable/disable all components **build**      |
 | `CSL_INSTALL_ALL`   | bool | ON      | enable/disable all components **install**    |
 | `CSL_TEST_ALL`      | bool | OFF     | enable/disable all components **tests**      |
@@ -169,13 +169,13 @@ General options:
 
 Components-specific options:
 
-| Option syntax                      | Type | Default / dependent       | Description |
-| ---------------------------------- | ---- | ------------------------- | ----------- |
-| `CSL_BUILD_\<component_name\>`     | BOOL | `CSL_BUILD_ALL`           | enable/disable a specific component **build**   |
-| `CSL_INSTALL_\<component_name\>`   | BOOL | `CSL_INSTALL_ALL`         | enable/disable a specific component **install** |
-| `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST_ALL`            | enable/disable a specific component **test**    |
-| `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`         | enable/disable a specific component **example** |
-| `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL`       | enable/disable a specific component **benchmark** |
+| Option syntax                      | Type | Default / dependent | Description                                       |
+| ---------------------------------- | ---- | ------------------- | ------------------------------------------------- |
+| `CSL_BUILD_\<component_name\>`     | BOOL | `CSL_BUILD_ALL`     | enable/disable a specific component **build**     |
+| `CSL_INSTALL_\<component_name\>`   | BOOL | `CSL_INSTALL_ALL`   | enable/disable a specific component **install**   |
+| `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST_ALL`      | enable/disable a specific component **test**      |
+| `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`   | enable/disable a specific component **example**   |
+| `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL` | enable/disable a specific component **benchmark** |
 
 For options related to a specific component, refer to its dedicated documentation.
 
@@ -314,6 +314,26 @@ indented:
 ```
 
 ---
+
+## Development
+
+### Building from source - CMake presets
+
+[`CMakePresets.json`](https://github.com/GuillaumeDua/CppShelf/blob/main/CMakePresets.json) provides ready-to-use configure/build/test presets, combining a compiler/stdlib pair with a build type:
+
+| Configure preset  | Compiler  | Standard library |
+| ----------------- | --------- | ---------------- |
+| `clang-libstdcxx` | `clang++` | `libstdc++`      |
+| `clang-libcxx`    | `clang++` | `libc++`         |
+| `gcc`             | `g++`     | `libstdc++`      |
+
+Each one has a matching build/test preset per configuration: `-debug`, `-release`, `-relwithdebinfo` (e.g. `gcc-debug`, `clang-libcxx-release`).
+
+```bash
+cmake --preset gcc-debug
+cmake --build --preset gcc-debug
+ctest --preset gcc-debug
+```
 
 ## Misc
 
