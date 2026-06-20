@@ -1,15 +1,5 @@
 #pragma once
 
-// Format support (fmt, std::format) tests impl.
-//
-//  Must be included after `namespace types = test::ag::types;` and, inside an anonymous
-// namespace, the `fixture<T>` specializations from <tests/ag/format_fixtures.hpp> and a
-// `namespace implementation` defining:
-//   formatter - alias to fmt::formatter / std::formatter under test
-//   name      - catch2 tag, e.g. "fmt" / "std"
-//   format    - proxy calling fmt::format / std::format under test
-// and CSL_AG__ENABLE_BITFIELDS_SUPPORT (from the enclosing FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT block).
-
 #include <array>
 #include <format>
 #include <string>
