@@ -1,17 +1,17 @@
 #pragma once
 
-// Shared csl::ag::concepts::produced static_asserts and TEMPLATE_TEST_CASE bodies
-// for csl::ag formatting tests (fmtlib_support.cpp, std_format_support.cpp).
+// Format support (fmt, std::format) tests impl.
 //
-// Must be included after `namespace types = test::ag::types;` and, inside an anonymous
+//  Must be included after `namespace types = test::ag::types;` and, inside an anonymous
 // namespace, the `fixture<T>` specializations from <tests/ag/format_fixtures.hpp> and a
-// `namespace under_test` defining:
+// `namespace implementation` defining:
 //   formatter - alias to fmt::formatter / std::formatter under test
-//   tag       - catch2 tag, e.g. "fmt" / "format"
+//   name      - catch2 tag, e.g. "fmt" / "std"
 //   format    - proxy calling fmt::format / std::format under test
-// and CSL_AG_BITFIELDS_STR, CSL_AG_FORMATTING_STR (the enabled CSL_AG__ENABLE_*_SUPPORT macro name).
+// and CSL_AG__ENABLE_BITFIELDS_SUPPORT (from the enclosing FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT block).
 
 #include <array>
+#include <format>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -24,25 +24,50 @@
 // NOLINTBEGIN(*cert-err58-cpp)
 // NOLINTBEGIN(*-avoid-magic-numbers)
 
+namespace {
+    namespace implementation {
+
+#if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT) and CSL_AG__ENABLE_BITFIELDS_SUPPORT
+        constexpr bool bitfields_enabled = true;
+#else
+        constexpr bool bitfields_enabled = false;
+#endif
+
+        [[nodiscard]] inline auto const & name_suffix() {
+            static const std::string value = std::format(
+                " [FORMATTING={}] [BITFIELDS={}]",
+                name,
+                bitfields_enabled ? "ON" : "OFF"
+            );
+            return value;
+        }
+
+        [[nodiscard]] inline auto const & tags() {
+            static const std::string value = std::format("[ag][{}]", name);
+            return value;
+        }
+    }
+} // namespace
+
 namespace tests::concepts::produced {
 
-    static_assert(csl::ag::concepts::produced<under_test::formatter<types::field_1>>);
-    static_assert(csl::ag::concepts::produced<under_test::formatter<types::field_2>>);
-    static_assert(csl::ag::concepts::produced<under_test::formatter<types::field_3_nested>>);
-    static_assert(csl::ag::concepts::produced<under_test::formatter<types::field_3_nested_tuplelike>>);
-    static_assert(csl::ag::concepts::produced<under_test::formatter<types::field_4_nested_range>>);
-    static_assert(csl::ag::concepts::produced<under_test::formatter<types::field_everything>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<types::field_1>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<types::field_2>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<types::field_3_nested>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<types::field_3_nested_tuplelike>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<types::field_4_nested_range>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<types::field_everything>>);
 
     // not impacting builtin/third-party formatters
-    static_assert(not csl::ag::concepts::produced<under_test::formatter<int>>);
-    static_assert(not csl::ag::concepts::produced<under_test::formatter<std::string>>);
-    static_assert(not csl::ag::concepts::produced<under_test::formatter<std::vector<int>>>);
-    static_assert(not csl::ag::concepts::produced<under_test::formatter<std::vector<types::field_1>>>);
-    static_assert(not csl::ag::concepts::produced<under_test::formatter<std::tuple<int>>>);
-    static_assert(not csl::ag::concepts::produced<under_test::formatter<std::array<int, 3>>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<int>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<std::string>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<std::vector<int>>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<std::vector<types::field_1>>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<std::tuple<int>>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<std::array<int, 3>>>);
 }
 
-TEMPLATE_TEST_CASE("default [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("default" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -51,10 +76,10 @@ TEMPLATE_TEST_CASE("default [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" 
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(under_test::format("{}", f::value) == f::default_expected);
+    CHECK(implementation::format("{}", f::value) == f::default_expected);
 }
 
-TEMPLATE_TEST_CASE(":n [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE(":n" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -63,10 +88,10 @@ TEMPLATE_TEST_CASE(":n [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_A
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(under_test::format("{:n}", f::value) == f::no_braces_expected);
+    CHECK(implementation::format("{:n}", f::value) == f::no_braces_expected);
 }
 
-TEMPLATE_TEST_CASE("indented [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("indented" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -75,10 +100,10 @@ TEMPLATE_TEST_CASE("indented [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS="
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(under_test::format("{}", f::value | csl::ag::io::indented) == f::indented_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::indented) == f::indented_expected);
 }
 
-TEMPLATE_TEST_CASE("indexed [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("indexed" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -87,10 +112,10 @@ TEMPLATE_TEST_CASE("indexed [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" 
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(under_test::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
 }
 
-TEMPLATE_TEST_CASE("typenamed [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("typenamed" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -99,10 +124,10 @@ TEMPLATE_TEST_CASE("typenamed [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(under_test::format("{}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
 }
 
-TEMPLATE_TEST_CASE("indented+indexed+typenamed [FORMATTING=" CSL_AG_FORMATTING_STR "] [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("indented+indexed+typenamed" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -112,12 +137,12 @@ TEMPLATE_TEST_CASE("indented+indexed+typenamed [FORMATTING=" CSL_AG_FORMATTING_S
 ) {
     using f = fixture<TestType>;
     CHECK(
-        under_test::format("{}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
+        implementation::format("{}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
         == f::indented_indexed_typenamed_expected
     );
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io::to_string default output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -129,7 +154,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string default output [BITFIELDS=" CSL_AG_BI
     CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
@@ -145,7 +170,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL
     );
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]", "[ag][" + std::string(under_test::tag) + "]",
+TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
     types::field_3_nested,
