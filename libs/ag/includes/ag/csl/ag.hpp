@@ -1171,7 +1171,7 @@ namespace csl::ag::tuplelike {
 #if (defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT) \
  or (defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT) \
  or (defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
-# define CSL_AG__FORMATTING_ENABLED
+# define CSL_AG__FORMATTING_ENABLED true
 # endif
 
 // type_name
@@ -1429,11 +1429,13 @@ namespace csl::ag::io::details {
         };
 
         std::basic_string_view<Char> separator_{
-            bool(Options & format_options::no_braces)
-            ? std::basic_string_view<Char>{}
-            : bool(Options & format_options::indented)
-                ? std::basic_string_view<Char>{","}
-                : std::basic_string_view<Char>{", "}
+            []{
+                if (bool(Options & format_options::no_braces))
+                    return std::basic_string_view<Char>{};
+                if (bool(Options & format_options::indented))
+                    return std::basic_string_view<Char>{","};
+                return std::basic_string_view<Char>{", "};
+            }()
         };
 
         template <std::size_t FieldIndex, typename Context>

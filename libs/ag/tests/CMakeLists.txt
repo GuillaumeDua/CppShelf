@@ -26,6 +26,12 @@ function(csl_ag_make_test_target)
 
     cmake_parse_arguments(arg "" "NAME;SOURCE;RESULT" "DEFINITIONS;EXTRA_LIBS" ${ARGN})
 
+    foreach(lib IN LISTS arg_EXTRA_LIBS)
+        if(NOT TARGET ${lib})
+            message(FATAL_ERROR "[csl_ag_make_test_target] error: EXTRA_LIBS target '${lib}' does not exist (NAME=${arg_NAME})")
+        endif()
+    endforeach()
+
     # Build a readable suffix from each FORCE_CSL_AG__ENABLE_<X>_SUPPORT=<0|1>
     set(suffix_parts "")
     foreach(def IN LISTS arg_DEFINITIONS)
@@ -44,6 +50,11 @@ function(csl_ag_make_test_target)
     add_executable(${target_name} ${arg_SOURCE})
     target_compile_definitions(${target_name} PRIVATE ${arg_DEFINITIONS})
     target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/includes)
+
+    if (arg_EXTRA_LIBS)
+        add_dependencies(${target_name} ${arg_EXTRA_LIBS})
+    endif()
+
     target_link_libraries(${target_name}
         PRIVATE
             ${PROJECT_NAME}::${component_name}
