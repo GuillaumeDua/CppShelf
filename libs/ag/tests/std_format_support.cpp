@@ -7,12 +7,6 @@
 #endif
 
 #define CSL_AG__ENABLE_STD_FORMAT_SUPPORT true
-#if FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT
-#  define CSL_AG_BITFIELDS_STR "ON"
-#else
-#  define CSL_AG_BITFIELDS_STR "OFF"
-#endif
-#define CSL_AG_FORMATTING_STR "CSL_AG__ENABLE_STD_FORMAT_SUPPORT"
 
 #include <csl/ag.hpp>
 #include <tests/types.hpp>
@@ -42,11 +36,11 @@ namespace tests::concepts::std_formattable {
 namespace {
 #include <tests/ag/format_fixtures.hpp>
 
-    namespace under_test {
+    namespace implementation {
         template <typename T, typename Char = char>
         using formatter = std::formatter<T, Char>;
 
-        constexpr std::string_view tag = "format";
+        constexpr std::string_view name = "std";
 
         template <typename T>
         auto format(std::string_view fmt_str, T const & value) {
@@ -56,6 +50,3 @@ namespace {
 } // namespace
 
 #include <tests/ag/format_test_cases.hpp>
-
-#undef CSL_AG_FORMATTING_STR
-#undef CSL_AG_BITFIELDS_STR

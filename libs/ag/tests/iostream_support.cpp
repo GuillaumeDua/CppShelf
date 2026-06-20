@@ -10,12 +10,6 @@
 #define CSL_AG__ENABLE_FMTLIB_SUPPORT 0
 #define CSL_AG__ENABLE_STD_FORMAT_SUPPORT 0
 
-#if FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT
-#  define CSL_AG_BITFIELDS_STR "ON"
-#else
-#  define CSL_AG_BITFIELDS_STR "OFF"
-#endif
-
 #include <csl/ag.hpp>
 #include <tests/types.hpp>
 #include <tests/ag/typeinfo_specializations.hpp>
@@ -63,6 +57,17 @@ namespace tests::compile_time {
 }
 
 namespace {
+
+#if defined(CSL_AG__ENABLE_BITFIELDS_SUPPORT) and CSL_AG__ENABLE_BITFIELDS_SUPPORT
+    constexpr bool bitfields_enabled = true;
+#else
+    constexpr bool bitfields_enabled = false;
+#endif
+
+    [[nodiscard]] inline auto const & name_suffix() {
+        static const std::string value = std::string(" [FORMATTING=iostream] [BITFIELDS=") + (bitfields_enabled ? "ON" : "OFF") + "]";
+        return value;
+    }
 
     template <typename T>
     struct fixture;
@@ -359,7 +364,7 @@ R"({
 
 }
 
-TEST_CASE("csl::ag::io operator<< returns std::ostream & [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io operator<< returns std::ostream &" + name_suffix() + "",
           "[ag][iostream]")
 {
     std::ostringstream ss;
@@ -368,7 +373,7 @@ TEST_CASE("csl::ag::io operator<< returns std::ostream & [BITFIELDS=" CSL_AG_BIT
     CHECK(&result == static_cast<std::ostream *>(&ss));
 }
 
-TEST_CASE("csl::ag::io operator<< supports chaining [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io operator<< supports chaining" + name_suffix() + "",
           "[ag][iostream]")
 {
     std::ostringstream ss;
@@ -382,7 +387,7 @@ TEST_CASE("csl::ag::io operator<< supports chaining [BITFIELDS=" CSL_AG_BITFIELD
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
 }
 
-TEST_CASE("csl::ag::io no_braces manipulator is one-shot [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io no_braces manipulator is one-shot" + name_suffix() + "",
           "[ag][iostream]")
 {
     // After printing with non-default (here, no_braces), the next print should revert to default (braced).
@@ -399,7 +404,7 @@ TEST_CASE("csl::ag::io no_braces manipulator is one-shot [BITFIELDS=" CSL_AG_BIT
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
 }
 
-TEST_CASE("csl::ag::io indented manipulator is one-shot [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io indented manipulator is one-shot" + name_suffix() + "",
           "[ag][iostream]")
 {
     std::ostringstream ss;
@@ -415,7 +420,7 @@ TEST_CASE("csl::ag::io indented manipulator is one-shot [BITFIELDS=" CSL_AG_BITF
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io default (braced) output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io default (braced) output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -429,7 +434,7 @@ TEMPLATE_TEST_CASE("csl::ag::io default (braced) output [BITFIELDS=" CSL_AG_BITF
     CHECK(to_string(f::value) == f::default_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io no_braces output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io no_braces output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -443,7 +448,7 @@ TEMPLATE_TEST_CASE("csl::ag::io no_braces output [BITFIELDS=" CSL_AG_BITFIELDS_S
     CHECK(to_string<no_braces>(f::value) == f::no_braces_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io indented output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io indented output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -457,7 +462,7 @@ TEMPLATE_TEST_CASE("csl::ag::io indented output [BITFIELDS=" CSL_AG_BITFIELDS_ST
     CHECK(to_string<indented>(f::value) == f::indented_expected);
 }
 
-TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types" + name_suffix() + "",
           "[ag][iostream]")
 {
     using namespace csl::ag::io;
@@ -466,7 +471,7 @@ TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types [
     CHECK(to_string(printable_t{42}) == "printable:42");
 }
 
-TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly" + name_suffix() + "",
           "[ag][iostream]")
 {
     using namespace csl::ag::io;
@@ -476,7 +481,7 @@ TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly 
     CHECK(out == "{printable:42, 7}");
 }
 
-TEST_CASE("csl::ag::io empty aggregate [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEST_CASE("csl::ag::io empty aggregate" + name_suffix() + "",
           "[ag][iostream]")
 {
     using namespace csl::ag::io;
@@ -484,7 +489,7 @@ TEST_CASE("csl::ag::io empty aggregate [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
     CHECK(to_string<no_braces>(types::empty{}) == "");
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io indexed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io indexed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -498,7 +503,7 @@ TEMPLATE_TEST_CASE("csl::ag::io indexed output [BITFIELDS=" CSL_AG_BITFIELDS_STR
     CHECK(to_string<indexed>(f::value) == f::indexed_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io typenamed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -512,7 +517,7 @@ TEMPLATE_TEST_CASE("csl::ag::io typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_S
     CHECK(to_string<typenamed>(f::value) == f::typenamed_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -526,7 +531,7 @@ TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output [BITFIELDS=" C
     CHECK(to_string<indented | indexed | typenamed>(f::value) == f::indented_indexed_typenamed_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL_AG_BITFIELDS_STR "]",
+TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -540,7 +545,6 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output [BITFIELDS=" CSL
     CHECK(to_string(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
 }
 
-#undef CSL_AG_BITFIELDS_STR
 
 // NOLINTEND(*-avoid-magic-numbers)
 // NOLINTEND(*cert-err58-cpp)
