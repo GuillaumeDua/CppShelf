@@ -31,6 +31,11 @@ Personal incubator for various library ideas and experiences, and perhaps a hint
 
 The libraries here could, once mature enough, become self-contained in a separated repository.
 
+Each library is independent and individually toggleable (`CSL_BUILD_<name>`).  
+However, some can optionally enhance themselves when another `csl` library is available too (e.g. `ag`'s `typenamed` formatting option uses `typeinfo` for compile-time type names).  
+This is always a soft integration detected via `__has_include`, with - when possible - some fallback, never a hard dependency: the consuming library is responsible for testing both states itself, self-contained in its own build files.  
+Note that such tests can enable unwanted libraries.
+
 ---
 
 <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/Shelf_icons_created_by_juicy_fish_Flaticon.png?raw=true" alt="" align="left" width="25" height="25" style="Padding: 5px"/>

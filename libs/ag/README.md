@@ -113,6 +113,11 @@ which is especially convenient when dealing with **reflection** and **serializat
 This library is single-header, header-only.  
 Users may use it in various ways, however [CMake](https://cmake.org/) is the promoted one for both download and configuration.
 
+> ℹ️ The `typenamed` formatting option (see [formatting and printing](#formatting-and-printing)) optionally enhances itself
+> with [csl::typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp)
+> for compile-time type names, detected via `__has_include`.  
+> Without it, a `<typeindex>`-based runtime (inconsistent) fallback is used instead - `ag.hpp` stays usable as a single, standalone header either way.
+
 ### Integration
 
 #### Plain download
@@ -120,8 +125,8 @@ Users may use it in various ways, however [CMake](https://cmake.org/) is the pro
 - **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/libs/ag/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
 - **Clone** the repo, or add it as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your project.
 
-> ⚠️ Proceeding the ways enumerated above is fast & simple. 
-> However this prevent users from using certain configuration mechanismes. 
+> ⚠️ Proceeding the ways enumerated above is fast & simple.  
+> However this prevent users from using certain configuration mechanismes.  
 > *See the [configuration](#configuration) section for more information*.
 
 #### CMake

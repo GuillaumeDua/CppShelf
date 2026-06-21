@@ -23,11 +23,18 @@ namespace {
         constexpr bool bitfields_enabled = false;
 #endif
 
+#if __has_include(<csl/typeinfo.hpp>)
+        constexpr bool typeinfo_linked = true;
+#else
+        constexpr bool typeinfo_linked = false;
+#endif
+
         [[nodiscard]] inline auto const & name_suffix() {
             static const std::string value = std::format(
-                " [FORMATTING={}] [BITFIELDS={}]",
+                " [FORMATTING={}] [BITFIELDS={}] [TYPEINFO={}]",
                 name,
-                bitfields_enabled ? "ON" : "OFF"
+                bitfields_enabled ? "ON" : "OFF",
+                typeinfo_linked ? "ON" : "OFF"
             );
             return value;
         }
@@ -105,6 +112,7 @@ TEMPLATE_TEST_CASE("indexed" + implementation::name_suffix() + "", implementatio
     CHECK(implementation::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
 }
 
+#if __has_include(<csl/typeinfo.hpp>)
 TEMPLATE_TEST_CASE("typenamed" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -131,6 +139,7 @@ TEMPLATE_TEST_CASE("indented+indexed+typenamed" + implementation::name_suffix() 
         == f::indented_indexed_typenamed_expected
     );
 }
+#endif
 
 TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
@@ -144,6 +153,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::nam
     CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
 }
 
+#if __has_include(<csl/typeinfo.hpp>)
 TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -175,6 +185,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output" + implementatio
         == f::indented_indexed_typenamed_expected
     );
 }
+#endif
 
 // NOLINTEND(*-avoid-magic-numbers)
 // NOLINTEND(*cert-err58-cpp)
