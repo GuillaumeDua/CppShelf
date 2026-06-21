@@ -1,9 +1,12 @@
 #pragma once
+
 // Must be included after <csl/ag.hpp> with a format macro defined.
+
+// QUICK-FIX: consistent typeinfo outputs
+#if __has_include(<csl/typeinfo.hpp>)
 #include <array>
 #include <string_view>
 #include <tuple>
-
 namespace csl::ag::io::details {
 
     template <>
@@ -101,3 +104,4 @@ namespace csl::ag::io::details {
         static constexpr std::string_view value{storage.data(), storage_size};
     };
 }
+#endif

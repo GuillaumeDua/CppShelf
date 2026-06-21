@@ -12,6 +12,10 @@ if (NOT TARGET fmt::fmt-header-only)
     )
 endif()
 
+if (NOT TARGET csl::typeinfo)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/libs/typeinfo ${CMAKE_CURRENT_BINARY_DIR}/_csl_typeinfo)
+endif()
+
 # ---------------------------------------------------------------------------
 # Helper: create one test target with a given source + opt-in definitions.
 #
@@ -72,12 +76,14 @@ function(csl_ag_make_test_target)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# Test matrix: foreach bitfield in {0, 1}
+# Test matrix: foreach bitfield in {0, 1}, foreach inject_csl_typeinfo in {with, without}
 #
-#   - compile_time.cpp  	    (core static_assert suite)
+#   - compile_time.cpp  	    (core static_assert suite, unaffected by inject_csl_typeinfo)
 #   - <formatting>_support.cpp  (specific formatting support: iostream, fmtlib, std::format)
 #
-#   NOTE: only test typenamed views with csl::typeinfo, not <typeindex>/<typeinfo>
+#   inject_csl_typeinfo covers both csl::ag formatting code paths:
+#     - with_typeinfo: csl::typeinfo is linked, typenamed views use compile-time demangling
+#     - no_typeinfo:   csl::typeinfo is not linked, <typeindex>-based implementation is not even tested (yet)
 # ---------------------------------------------------------------------------
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
@@ -92,31 +98,40 @@ foreach(bitfields IN ITEMS 0 1)
     )
     add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
-    csl_ag_make_test_target(
-        NAME            iostream_support
-        SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/iostream_support.cpp
-        DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
-        EXTRA_LIBS      ${PROJECT_NAME}::typeinfo
-        RESULT          target_name
-    )
-    add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+    foreach(inject_csl_typeinfo IN ITEMS 0 1)
 
-    csl_ag_make_test_target(
-        NAME            fmtlib_support
-        SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp
-        DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
-        EXTRA_LIBS      fmt::fmt-header-only ${PROJECT_NAME}::typeinfo
-        RESULT          target_name
-    )
-    add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+        if (${inject_csl_typeinfo})
+            set(_maybe_csl_typeinfo ${PROJECT_NAME}::typeinfo)
+        else()
+            set(_maybe_csl_typeinfo "")
+        endif()
 
-    csl_ag_make_test_target(
-        NAME            std_format_support
-        SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/std_format_support.cpp
-        DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
-        EXTRA_LIBS      ${PROJECT_NAME}::typeinfo
-        RESULT          target_name
-    )
-    add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+        csl_ag_make_test_target(
+            NAME            iostream_support_${inject_csl_typeinfo}
+            SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/iostream_support.cpp
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+            EXTRA_LIBS      ${_maybe_csl_typeinfo}
+            RESULT          target_name
+        )
+        add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+        csl_ag_make_test_target(
+            NAME            fmtlib_support_${inject_csl_typeinfo}
+            SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+            EXTRA_LIBS      fmt::fmt-header-only ${_maybe_csl_typeinfo}
+            RESULT          target_name
+        )
+        add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+        csl_ag_make_test_target(
+            NAME            std_format_support_${inject_csl_typeinfo}
+            SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/std_format_support.cpp
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+            EXTRA_LIBS      ${_maybe_csl_typeinfo}
+            RESULT          target_name
+        )
+        add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+    endforeach()
 
 endforeach()

@@ -54,25 +54,6 @@ list(APPEND CMAKE_MESSAGE_INDENT "  ")
 option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
 csl_print_aligned(STATUS CSL_BUILD_ALL)
 
-# QUICK-FIX: csl::ag tests require csl::typeinfo
-if (CSL_TEST_ag OR CSL_TEST_ALL)
-    if (DEFINED CACHE{CSL_BUILD_typeinfo})
-        set(_csl_typeinfo_was_enabled ${CSL_BUILD_typeinfo})
-    else()
-        set(_csl_typeinfo_was_enabled ${CSL_BUILD_ALL})
-    endif()
-
-    if (NOT _csl_typeinfo_was_enabled)
-        set(CSL_BUILD_typeinfo ON CACHE BOOL "CSL: Build typeinfo (forced: required by csl::ag tests)" FORCE)
-        # csl::typeinfo is only forced ON as a dependency: don't also pull in its tests/examples/etc
-        foreach(_csl_typeinfo_opt TEST EXAMPLE INSTALL DOC BENCHMARK)
-            set(CSL_${_csl_typeinfo_opt}_typeinfo OFF CACHE BOOL "[${PROJECT_NAME}] csl::typeinfo (${_csl_typeinfo_opt})" FORCE)
-        endforeach()
-        unset(_csl_typeinfo_opt)
-    endif()
-    unset(_csl_typeinfo_was_enabled)
-endif()
-
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
@@ -136,13 +117,6 @@ message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggrega
 message(STATUS  "[${PROJECT_NAME}] Adding components ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
 
-# csl::typeinfo must be added before csl::ag (whose tests link against it)
-list(FIND CSL_ENABLED_COMPONENTS_LIST typeinfo _csl_typeinfo_index)
-if (_csl_typeinfo_index GREATER -1)
-    list(REMOVE_AT CSL_ENABLED_COMPONENTS_LIST ${_csl_typeinfo_index})
-    list(INSERT CSL_ENABLED_COMPONENTS_LIST 0 typeinfo)
-endif()
-
 list(FIND CSL_ENABLED_COMPONENTS_LIST test _csl_test_index)
 if (_csl_test_index GREATER -1)
     list(REMOVE_AT CSL_ENABLED_COMPONENTS_LIST ${_csl_test_index})
@@ -152,8 +126,14 @@ endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/${component_name})
+    # NOTE: a component may have already been added by another component's tests
+    # (self-provisioned as an optional, loosely-coupled integration, e.g. csl::ag's tests <-> csl::typeinfo).
+    # Guard against adding it twice regardless of processing order.
+    if (NOT TARGET ${PROJECT_NAME}::${component_name})
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/${component_name})
+    endif()
     add_dependencies(${PROJECT_NAME} csl::${component_name})
     target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
 endforeach()

@@ -64,8 +64,15 @@ namespace {
     constexpr bool bitfields_enabled = false;
 #endif
 
+#if __has_include(<csl/typeinfo.hpp>)
+    constexpr bool typeinfo_linked = true;
+#else
+    constexpr bool typeinfo_linked = false;
+#endif
+
     [[nodiscard]] inline auto const & name_suffix() {
-        static const std::string value = std::string(" [FORMATTING=iostream] [BITFIELDS=") + (bitfields_enabled ? "ON" : "OFF") + "]";
+        static const std::string value = std::string(" [FORMATTING=iostream] [BITFIELDS=") + (bitfields_enabled ? "ON" : "OFF")
+            + "] [TYPEINFO=" + (typeinfo_linked ? "ON" : "OFF") + "]";
         return value;
     }
 
@@ -503,6 +510,7 @@ TEMPLATE_TEST_CASE("csl::ag::io indexed output" + name_suffix() + "",
     CHECK(to_string<indexed>(f::value) == f::indexed_expected);
 }
 
+#if __has_include(<csl/typeinfo.hpp>)
 TEMPLATE_TEST_CASE("csl::ag::io typenamed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
@@ -544,6 +552,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + name_suffix()
     using f = fixture<TestType>;
     CHECK(to_string(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
 }
+#endif
 
 
 // NOLINTEND(*-avoid-magic-numbers)

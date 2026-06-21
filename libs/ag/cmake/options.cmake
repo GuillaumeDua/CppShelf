@@ -58,14 +58,6 @@ if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
     endif()
 endif()
 
-# CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT
-cmake_dependent_option(CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable csl::typeinfo support"
-    ON
-    "EXISTS ${PROJECT_SOURCE_DIR}/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp"
-    OFF
-)
-csl_print_aligned(STATUS CSL_AG__ENABLE_CSL_TYPEINFO_SUPPORT)
-
 # --- code generation ---
 
 # CSL_AG__USE_EMBEDDED_IMPLEMENTATION
