@@ -1,5 +1,9 @@
 #pragma once
 
+// NOTE: Detectable by other csl libraries (via #if defined(...)) to know csl::typeinfo is available, even when it wasn't reachable through __has_include.
+//  e.g. when a user manually #include's this header via a direct URL (such as on Compiler Explorer / Godbolt), where <csl/typeinfo.hpp> isn't a resolvable path.
+#define CSL_TYPEINFO__INCLUDED
+
 #if not __cplusplus >= 201703L
 # error "csl/typeinfo.hpp requires C++17"
 #endif

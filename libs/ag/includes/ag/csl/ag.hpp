@@ -1178,8 +1178,10 @@ namespace csl::ag::tuplelike {
 #if defined(CSL_AG__FORMATTING_ENABLED)
 #pragma region type_name
 
-#if __has_include(<csl/typeinfo.hpp>)
-#   include <csl/typeinfo.hpp>
+#if defined(CSL_TYPEINFO__INCLUDED) or __has_include(<csl/typeinfo.hpp>)
+#   if not defined(CSL_TYPEINFO__INCLUDED)
+#       include <csl/typeinfo.hpp>
+#   endif
 namespace csl::ag::io::details {
 
     template <typename T>
