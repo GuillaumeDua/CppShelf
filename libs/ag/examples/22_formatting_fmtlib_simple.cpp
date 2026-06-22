@@ -1,3 +1,4 @@
+#include <csl/typeinfo.hpp> // optional: gives csl::ag::io::typenamed clean type names (e.g. "int")
 #define CSL_AG__ENABLE_FMTLIB_SUPPORT 1
 
 #include <csl/ag.hpp>

@@ -1,5 +1,13 @@
 set(component_name ag)
 
+# csl::ag's formatting examples optionally enhance themselves with csl::typeinfo (clean type names for
+# csl::ag::io::typenamed, e.g. "int" instead of the <typeindex> mangled fallback): self-provision it here,
+# the same way ag's tests do, so examples build standalone regardless of whether typeinfo is enabled at
+# the top level.
+if (NOT TARGET csl::typeinfo)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/libs/typeinfo ${CMAKE_CURRENT_BINARY_DIR}/_csl_typeinfo)
+endif()
+
 file(GLOB ${component_name}_EXAMPLES_LIST
     CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
