@@ -134,6 +134,7 @@ foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     if (NOT TARGET ${PROJECT_NAME}::${component_name})
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/${component_name})
     endif()
+    
     add_dependencies(${PROJECT_NAME} csl::${component_name})
     target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
 endforeach()
