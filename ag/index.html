@@ -137,51 +137,49 @@ Overall presentation</h1>
 <h2 class="doxsection"><a class="anchor" id="overview-demo"></a>
 Overview demo</h2>
 <p>The following example demonstrates some of the features which are available in <span class="tt">csl::ag</span>.</p>
-<table class="doxtable">
-<tr>
-<th>C++ code ( <a href="https://godbolt.org/z/x1dGTWddK">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output </th></tr>
-<tr>
-<td><p class="starttd"></p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>S { <span class="keywordtype">char</span> c; <span class="keywordtype">int</span> i; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>S { <span class="keywordtype">char</span> c; <span class="keywordtype">int</span> i; };</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static_assert</span>(</div>
 <div class="line">    <a class="code hl_concept" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate&lt;S&gt;</a> and</div>
 <div class="line">    csl::ag::size_v&lt;S&gt; == 2</div>
 <div class="line">);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;char,  csl::ag::element_t&lt;0, S&gt;&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int,   csl::ag::element_t&lt;1, S&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;char, csl::ag::element_t&lt;0, S&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int,  csl::ag::element_t&lt;1, S&gt;&gt;);</div>
 <div class="line"> </div>
-<div class="line">S value{ <span class="charliteral">&#39;A&#39;</span>, 41 }; ++std::get&lt;1&gt;(value);</div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    S value{ .c=<span class="charliteral">&#39;A&#39;</span>, .i=41 };</div>
+<div class="line">    ++csl::ag::get&lt;1&gt;(value);</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;value: &quot;</span> &lt;&lt; value &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
-<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1aggregate_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a></div><div class="ttdef"><b>Definition</b> ag.hpp:158</div></div>
-</div><!-- fragment --><p class="endtd"></p>
-</td><td><p class="starttd"></p>
-<div class="fragment"><div class="line">value: S&amp; : {</div>
-<div class="line">   [0] char : A</div>
-<div class="line">   [1] int : 42</div>
+<div class="line">    <span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> format_options = indexed | typenamed | indented;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;value: &quot;</span> &lt;&lt; format_options &lt;&lt; value &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
 <div class="line">}</div>
-</div><!-- fragment --><p class="endtd"></p>
-</td></tr>
-</table>
-<h2 class="doxsection"><a class="anchor" id="introduction"></a>
+<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1aggregate_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a></div><div class="ttdef"><b>Definition</b> ag.hpp:158</div></div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/5TashWsT6"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">value: {</div>
+<div class="line">    [0] char: &#39;A&#39;,</div>
+<div class="line">    [1] int: 42</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="introduction"></a>
 Introduction</h2>
 <p>By default, the C++ standard allow structured-binding for aggregate types.</p>
-<table class="doxtable">
-<tr>
-<th>C++ code ( <a href="https://godbolt.org/z/3EcK9Wc7h">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th></tr>
-<tr>
-<td><p class="starttd"></p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>type{ <span class="keywordtype">int</span> i; <span class="keywordtype">char</span> c; };</div>
-<div class="line"><span class="keyword">auto</span> value = type{ 42, <span class="charliteral">&#39;A&#39;</span> }; <span class="comment">// NOLINT</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;cassert&gt;</span></div>
 <div class="line"> </div>
-<div class="line">[[maybe_unused]] <span class="keyword">auto</span> &amp;&amp; [ v0, v1 ] = value;</div>
-<div class="line">assert(v0 == 42);   <span class="comment">// pass</span></div>
-<div class="line">assert(v1 == <span class="charliteral">&#39;A&#39;</span>);  <span class="comment">// pass</span></div>
-</div><!-- fragment --><p class="endtd"></p>
-</td></tr>
-</table>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>type { <span class="keywordtype">int</span> i; <span class="keywordtype">char</span> c; };</div>
+<div class="line">    <span class="keyword">auto</span> value = type{ 42, <span class="charliteral">&#39;A&#39;</span> }; <span class="comment">// NOLINT</span></div>
+<div class="line"> </div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> &amp;&amp; [v0, v1] = value;</div>
+<div class="line">    assert(v0 == 42);</div>
+<div class="line">    assert(v1 == <span class="charliteral">&#39;A&#39;</span>);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/r59sKooeh"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>However, there is no - <em>simple</em> - way to access the following informations for a given aggregate type or value :</p>
 <ul>
 <li>The count of fields</li>
@@ -202,7 +200,7 @@ Introduction</h2>
 <hr  />
 <h2 class="doxsection"><a class="anchor" id="philosophy--design-choices"></a>
 Philosophy &amp; design choices</h2>
-<p>The key idea of this library is to ease iterations over aggregates's member-variables, <br  />
+<p>The key idea of this library is to ease iterations over aggregates's member-variables in C++20 (so, without reflection), <br  />
  which is especially convenient when dealing with <b>reflection</b> and <b>serialization</b>.</p>
 <ul>
 <li><span class="tt"><a class="el" href="structcsl_1_1ag_1_1size.html">csl::ag::size</a>&lt;T&gt;</span> gives the fields count in a given aggregate type type <br  />
@@ -212,7 +210,12 @@ Philosophy &amp; design choices</h2>
 <hr  />
 <h2 class="doxsection"><a class="anchor" id="getting-starting"></a>
 Getting starting</h2>
-<p>This library is single-header, header-only. Users may use it in various ways, however <a href="https://cmake.org/">CMake</a> is the promoted one for both download and configuration.</p>
+<p>This library is single-header, header-only. <br  />
+ Users may use it in various ways, however <a href="https://cmake.org/">CMake</a> is the promoted one for both download and configuration.</p>
+<blockquote class="doxtable">
+<p>ℹ️ The <span class="tt">typenamed</span> formatting option (see <a class="el" href="#formatting-and-printing" title="Formatting and printing">formatting and printing</a>formatting and printing) optionally enhances itself with <a href="https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp">csl::typeinfo</a> for compile-time type names, detected via <span class="tt">__has_include</span>. <br  />
+ Without it, a <span class="tt">&lt;typeindex&gt;</span>-based runtime (inconsistent) fallback is used instead - <span class="tt">ag.hpp</span> stays usable as a single, standalone header either way. </p>
+</blockquote>
 <h3 class="doxsection"><a class="anchor" id="integration"></a>
 Integration</h3>
 <h4 class="doxsection"><a class="anchor" id="plain-download"></a>
@@ -222,7 +225,9 @@ Plain download</h4>
 <li><b>Clone</b> the repo, or add it as a <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">git submodule</a> to your project.</li>
 </ul>
 <blockquote class="doxtable">
-<p>⚠️ Proceeding the ways enumerated above is fast &amp; simple. However this prevent users from using certain configuration mechanismes. <em>See the <a class="el" href="#configuration" title="Configuration">configuration</a>configuration section for more information</em>. </p>
+<p>⚠️ Proceeding the ways enumerated above is fast &amp; simple. <br  />
+ However this prevent users from using certain configuration mechanismes. <br  />
+ <em>See the <a class="el" href="#configuration" title="Configuration">configuration</a>configuration section for more information</em>. </p>
 </blockquote>
 <h4 class="doxsection"><a class="anchor" id="cmake"></a>
 CMake</h4>
@@ -238,8 +243,8 @@ Configuration</h3>
 <p>This project can be configured using the following cmake cache entries, grouped by categories:</p>
 <h4 class="doxsection"><a class="anchor" id="bitfields-support"></a>
 Bitfields support</h4>
-<p>⚠️ By default, bitfields support is <b>disabled</b>. <br  />
- Using features for this library with any aggregate type using custom layout will results in ☣️ <b>undefined behavior</b>. <br  />
+<p>⚠️ By default, bitfields support is <b>disabled</b>.</p>
+<p>Using features for this library with any aggregate type using <b>custom layout</b> will results in ☣️ <b>undefined behavior</b>. <br  />
  Most likely, a compile-time error will be emitted. However, such behavior is not guaranteed.</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>S {</div>
 <div class="line">    <span class="keywordtype">int</span> b0 : 1, b1 : 1, b2 : 1, b3 : 1;</div>
@@ -281,53 +286,56 @@ Highier limit for aggregate field count</h4>
 Formatting and printing (experimentale)</h4>
 <p>⚠️ This section is <b>experimentale</b>, and <b>SHOULD NOT</b> be used in production. <br  />
  Breaking changes are very likely, as the API is instable <b>for now</b>.</p>
-<p>All options in this section are opt-ins <em>(<span class="tt">OFF</span> by default)</em></p>
-<ul>
-<li><p class="startli"><span class="tt">CSL_AG__ENABLE_FORMAT_SUPPORT</span>: add <span class="tt">std::formatter&lt;csl::ag::aggregate T&gt;</span></p>
-<div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> formatted = std::format(<span class="stringliteral">&quot;my aggregate = {}&quot;</span>, my_aggregate{});</div>
-<div class="line"><span class="comment">// formatted == &quot;my aggregate = {&#39;a&#39;, {13}}&quot;</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value);   <span class="comment">// default presentation (compact) → {&#39;a&#39;, {13}}</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{:c}&quot;</span>, my_aggregate_value); <span class="comment">// compact presentation           → {&#39;a&#39;, {13}}</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{:p}&quot;</span>, my_aggregate_value); <span class="comment">// pretty  presentation           → see below</span></div>
+<p>All options in this section are opt-ins <em>(<span class="tt">OFF</span> by default)</em>, and can be combined.</p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i{}; };</div>
+<div class="line"><span class="keyword">struct </span>my_aggregate{ <span class="keywordtype">char</span> c = <span class="charliteral">&#39;a&#39;</span>; A a = A{ .i = 13} };</div>
+<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> my_aggregate_value = my_aggregate{};</div>
+</div><!-- fragment --><ul>
+<li><p class="startli"><span class="tt">CSL_AG__ENABLE_STD_FORMAT_SUPPORT</span>: add <span class="tt">std::formatter&lt;csl::ag::aggregate T&gt;</span></p>
+<div class="fragment"><div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value);                          <span class="comment">// compact, default → {&#39;a&#39;, {13}}</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{:n}&quot;</span>, my_aggregate_value);                          <span class="comment">// no outer brackets → &#39;a&#39;{13}</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value | csl::ag::io::indented);  <span class="comment">// pretty, multi-line → see below</span></div>
 </div><!-- fragment --></li>
 <li><span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span>: makes <span class="tt">csl::ag</span> depends on the <span class="tt">fmt</span> library, and add <span class="tt">fmt::formatter&lt;csl::ag::aggregate T&gt;</span>.</li>
 </ul>
 <blockquote class="doxtable">
 <p>If <a href="https://github.com/fmtlib/fmt">fmtlib</a>'s <span class="tt">cmake</span> target <span class="tt">fmt::fmt-header-only</span> is not available when building <span class="tt">csl::ag</span> with <span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span> set to <span class="tt">ON</span>, then such a dependency will be injected using <span class="tt">cmake FetchContent</span>. </p>
 </blockquote>
-<div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> formatted = fmt::format(<span class="stringliteral">&quot;my aggregate = {}&quot;</span>, my_aggregate{});</div>
-<div class="line"><span class="comment">// formatted == &quot;my aggregate = {&#39;a&#39;, {13}}&quot;</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value);   <span class="comment">// default presentation (compact) → {&#39;a&#39;, {13}}</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{:c}&quot;</span>, my_aggregate_value); <span class="comment">// compact presentation           → {&#39;a&#39;, {13}}</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{:p}&quot;</span>, my_aggregate_value); <span class="comment">// pretty  presentation           → see below</span></div>
+<div class="fragment"><div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value);</div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{:n}&quot;</span>, my_aggregate_value);</div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value | csl::ag::io::indented);</div>
 </div><!-- fragment --><ul>
-<li><p class="startli"><span class="tt">CSL_AG__ENABLE_IOSTREAM_SUPPORT</span>: add <span class="tt">csl::ag::io::operator&lt;&lt;(const csl::io::indented_ostream os, <a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> auto &amp;&amp; value)</span></p>
+<li><p class="startli"><span class="tt">CSL_AG__ENABLE_IOSTREAM_SUPPORT</span>: add <span class="tt">csl::ag::io::operator&lt;&lt;(std::ostream &amp;, <a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> auto const &amp;)</span></p>
 <div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line">std::cout &lt;&lt; my_aggregate{}; <span class="comment">// equivalent to: `indented_ostream{std::cout} &lt;&lt; my_aggregate{};`</span></div>
-<div class="line">indented_ostream{std::cout, 2} &lt;&lt; my_aggregate{}; <span class="comment">// explicit indentation</span></div>
+<div class="line">std::cout &lt;&lt; my_aggregate_value;               <span class="comment">// compact, default</span></div>
+<div class="line">std::cout &lt;&lt; no_braces &lt;&lt; my_aggregate_value;   <span class="comment">// one-shot manipulator → no outer brackets</span></div>
+<div class="line">std::cout &lt;&lt; (my_aggregate_value | indented);   <span class="comment">// view-based composition → pretty, multi-line</span></div>
+</div><!-- fragment --></li>
+<li><p class="startli"><span class="tt">csl::ag::io::to_string</span>: available as soon as any one of the options above is enabled. Returns a <span class="tt">std::string</span> directly, with the same call syntax regardless of which backend is active (favors <span class="tt">std::format</span>, then <span class="tt">fmt::format</span>, then <span class="tt">std::ostream</span>).</p>
+<div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line">to_string(my_aggregate_value);                                    <span class="comment">// compact, default     → {&#39;a&#39;, {13}}</span></div>
+<div class="line">to_string&lt;no_braces&gt;(my_aggregate_value);                         <span class="comment">// no outer brackets    → &#39;a&#39;{13}</span></div>
+<div class="line">to_string&lt;indented&gt;(my_aggregate_value);                          <span class="comment">// pretty, multi-line   → see below</span></div>
+<div class="line">to_string&lt;indexed | typenamed | indented&gt;(my_aggregate_value);    <span class="comment">// pretty, multi-line, indexed, typenamed</span></div>
 </div><!-- fragment --></li>
 </ul>
-<p>About compact vs. pretty presentations:</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i{}; };</div>
-<div class="line"><span class="keyword">struct </span>my_aggregate{ <span class="keywordtype">char</span> c = <span class="charliteral">&#39;a&#39;</span>; A a = A{ .i = 13} };</div>
-</div><!-- fragment --><ul>
-<li>Compact presentation:</li>
+<p>About compact vs. pretty presentations, with type names (<span class="tt">typenamed</span>):</p>
+<ul>
+<li>Compact (<span class="tt">typenamed</span>):</li>
 </ul>
-<div class="fragment"><div class="line">my_aggregate: { char: &#39;c&#39;, A: { int: 13 } }</div>
+<div class="fragment"><div class="line">{char: &#39;a&#39;, A: {int: 13}}</div>
 </div><!-- fragment --><ul>
-<li>Pretty presentation:</li>
+<li>Pretty (<span class="tt">typenamed | indented</span>):</li>
 </ul>
-<div class="fragment"><div class="line">my_aggregate: {</div>
-<div class="line">    char: &#39;c&#39;,</div>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    char: &#39;a&#39;,</div>
 <div class="line">    A: {</div>
 <div class="line">        int: 13</div>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="content"></a>
 Content</h2>
-<p>All components that are part of the public interface are defined in the namespace <span class="tt">csl::ag</span>, <br  />
- except for nested-namespaces named <span class="tt">details</span>. <br  />
-</p>
+<p>All components that are part of the public interface are defined in the namespace <span class="tt">csl::ag</span>.</p>
 <p>In other words, the library provides <b>no guarantee</b> to any direct use of namespaces named with a pattern like <span class="tt">csl::ag::*::details::*</span>.</p>
 <h3 class="doxsection"><a class="anchor" id="concepts"></a>
 Concepts</h3>
@@ -370,21 +378,29 @@ Type-traits</h3>
 <h4 class="doxsection"><a class="anchor" id="cslagsizet"></a>
 csl::ag::size&lt;T&gt;</h4>
 <p>Integral constant type which value represents the count of fields for a given aggregate type.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"><span class="keyword">static_assert</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1size.html">csl::ag::size&lt;A&gt;::value</a> == 2);</div>
 <div class="line"><span class="keyword">static_assert</span>(csl::ag::size_v&lt;A&gt;      == 2);</div>
-<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition</b> ag.hpp:753</div></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/5cr1x7K3T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {}</div>
+<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition</b> ag.hpp:761</div></div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/dbzsYM6oj"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Just like <span class="tt">std::tuple_size</span>/<span class="tt">std::tuple_size_v</span>, the <b>value</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;csl::ag::concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">constexpr</span> <span class="keyword">inline</span> <span class="keyword">static</span> <span class="keyword">auto</span> size_v = size&lt;T&gt;::value;</div>
 </div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="cslagelementstdsize_t-conceptsaggregate"></a>
 csl::ag::element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>Type-identity of a field's type of a given aggregate type.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int,   csl::ag::element_t&lt;0, A&gt;&gt;);</div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;float, csl::ag::element_t&lt;1, A&gt;&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/nW1Mbzaxn"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Just like <span class="tt">std::tuple_element/std::tuple_element_t</span>, the <b>type</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using </span>element_t = <span class="keyword">typename</span> element&lt;N, T&gt;::type;</div>
@@ -392,16 +408,20 @@ csl::ag::element&lt;std::size_t, concepts::aggregate&gt;</h4>
 csl::ag::view_element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>In a similar way to <span class="tt">csl::ag::element&lt;std::size_t, T&gt;</span>, <span class="tt"><a class="el" href="structcsl_1_1ag_1_1view__element.html">csl::ag::view_element</a>&lt;std::size_t,T&gt;</span> is a type-identity for a field's type of a given aggregate view type. <br  />
  For more details about aggregate's view, see the <a class="el" href="#non-owning-conversion-view-lightweight-accessor" title="Non-owning conversion (view, lightweight accessor)">to-tuple non-owning conversion (view)</a>to-tuple non-owning conversion (view) section.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> &amp; f; <span class="keyword">const</span> <span class="keywordtype">char</span> &amp;&amp; c; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> &amp; f; <span class="keyword">const</span> <span class="keywordtype">char</span> &amp;&amp; c; };</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int&amp;&amp;,        csl::ag::view_element_t&lt;0, A&amp;&amp;&gt;&gt;);</div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;float&amp;,       csl::ag::view_element_t&lt;1, A&amp;&amp;&gt;&gt;);</div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const char&amp;&amp;, csl::ag::view_element_t&lt;2, A&amp;&amp;&gt;&gt;);</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const int&amp;,    csl::ag::view_element_t&lt;0, const A&amp;&gt;&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;float&amp;,        csl::ag::view_element_t&lt;1, const A&amp;&gt;&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const char&amp;&amp;,  csl::ag::view_element_t&lt;2, const A&amp;&gt;&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/xMYzezxoo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const int&amp;,   csl::ag::view_element_t&lt;0, const A&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;float&amp;,       csl::ag::view_element_t&lt;1, const A&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const char&amp;&amp;, csl::ag::view_element_t&lt;2, const A&amp;&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/Y7vcxj75T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>The <span class="tt">type</span> nested-type can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
 <div class="line"><span class="keyword">using </span>view_element_t = <span class="keyword">typename</span> view_element&lt;N, T&gt;::type;</div>
@@ -433,32 +453,33 @@ Owning conversion</h4>
 <p>The value of each member-variable of the aggregate's value are <a href="https://en.cppreference.com/w/cpp/utility/forward">forward</a>ed, in order to preserve cvref-semantic. <br  />
  Meaning that using a <span class="tt">const-lvalue-reference</span> of a given type <span class="tt">S</span> 's value will result in a copy of each of its field that are not ref-qualified, <br  />
  while using a <span class="tt">rvalue-reference</span> will results in a perfect-forwarding that member-variable.</p>
-<table class="doxtable">
-<tr>
-<th>C++ code ( <a href="https://godbolt.org/z/Yqh1q3Wea">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output </th></tr>
-<tr>
-<td><p class="starttd"></p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;utility&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> value_as_tuple = csl::ag::to_tuple(std::move(value));</div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"> </div>
-<div class="line">[&amp;]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">    <span class="keyword">static_assert</span>((std::same_as&lt;</div>
-<div class="line">        csl::ag::element_t&lt;indexes, A&gt;, <span class="comment">// { 0: int, 1:float }</span></div>
-<div class="line">        std::tuple_element_t&lt;indexes, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value_as_tuple)&gt;&gt;</div>
-<div class="line">    &gt; and ...));</div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> value_as_tuple = csl::ag::to_tuple(std::move(value));</div>
 <div class="line"> </div>
-<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value_as_tuple) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
-<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
-</div><!-- fragment --><p class="endtd"></p>
-</td><td><p class="starttd"></p>
-<div class="fragment"><div class="line">42 0.13</div>
-</div><!-- fragment --> </td></tr>
-</table>
-<p>The main advantage here is to use such function in a <span class="tt">constexpr</span> contexts. <br  />
+<div class="line">    [&amp;]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
+<div class="line">        <span class="keyword">static_assert</span>((std::same_as&lt;</div>
+<div class="line">            csl::ag::element_t&lt;indexes, A&gt;,</div>
+<div class="line">            std::tuple_element_t&lt;indexes, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value_as_tuple)&gt;&gt;</div>
+<div class="line">        &gt; and ...));</div>
+<div class="line">        ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value_as_tuple) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
+<div class="line">    }(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/9c8aG9q1T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><p>The main advantage here is to use such function in a <span class="tt">constexpr</span> contexts. <br  />
  A precondition while doing so is that each aggregates field's value must be usable in a constexpr context though (e.g <b>not</b> ref-qualified).</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
 <div class="line">    std::tuple&lt;int, float&gt;,</div>
@@ -467,309 +488,256 @@ Owning conversion</h4>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int, csl::ag::element_t&lt;0, A&gt;&gt;);</div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int, std::tuple_element_t&lt;0, csl::ag::to_tuple_t&lt;A&gt;&gt;&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int, std::tuple_element_t&lt;0,<span class="keyword">decltype</span>(csl::ag::to_tuple(A{}))&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int, std::tuple_element_t&lt;0, <span class="keyword">decltype</span>(csl::ag::to_tuple(A{}))&gt;&gt;);</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> value_as_tuple = csl::ag::to_tuple(std::move(value));</div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> value_as_tuple = csl::ag::to_tuple(std::move(value));</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">static_assert</span>(42    == std::get&lt;0&gt;(value_as_tuple));</div>
-<div class="line"><span class="keyword">static_assert</span>(0.13f == std::get&lt;1&gt;(value_as_tuple));</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/EE7494zbv"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line">    <span class="keyword">static_assert</span>(42    == std::get&lt;0&gt;(value_as_tuple));</div>
+<div class="line">    <span class="keyword">static_assert</span>(0.13f == std::get&lt;1&gt;(value_as_tuple));</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/e5szGecsq"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Additionaly, <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_element">std::tuple_element_t</a> can be use to obtains the conversion result's element types.</p>
 <ul>
-<li><p class="startli">Example 1 : aggregate type with not-cvref-qualified fields</p>
-<table class="doxtable">
-<tr>
-<th>C++ code ( <a href="https://godbolt.org/z/17Es3oooY">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output </th></tr>
-<tr>
-<td><p class="starttd"></p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });</div>
-<div class="line"> </div>
-<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
-<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    int,</div>
-<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
-<div class="line">&gt;);                      <span class="comment">// \-&gt; same as csl::ag::to_tuple_t&lt;A&gt;</span></div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    float,</div>
-<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-</div><!-- fragment --><p class="endtd"></p>
-</td><td><p class="starttd"></p>
-<div class="fragment"><div class="line">42 0.13 </div>
-</div><!-- fragment --><p class="endtd"></p>
-</td></tr>
-</table>
-</li>
-<li><p class="startli">Example 2 : aggregate type with ref-qualified fields</p>
-<table class="doxtable">
-<tr>
-<th>C++ code ( <a href="https://godbolt.org/z/17Es3oooY">Try me on compiler-explorer <img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="" align="left" width="20" height="20" style="Padding: 2px 4px 0px 0px" class="inline"/> </a> ) </th><th>Console output </th></tr>
-<tr>
-<td><p class="starttd"></p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> &amp; i; <span class="keywordtype">float</span> &amp;&amp; f; };</div>
-<div class="line"><span class="keywordtype">int</span> i = 42; <span class="keywordtype">float</span> f = .13f;</div>
-<div class="line"><span class="comment">/* not constexpr */</span> <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });</div>
-<div class="line"> </div>
-<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
-<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">int</span>&amp;,</div>
-<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">float</span>&amp;&amp;,</div>
-<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-</div><!-- fragment --><p class="endtd"></p>
-</td><td><p class="starttd"></p>
-<div class="fragment"><div class="line">42 0.13 </div>
-</div><!-- fragment --><p class="endtd"></p>
-</td></tr>
-</table>
-</li>
+<li>Example 1 : aggregate type with not-cvref-qualified fields</li>
 </ul>
-<h4 class="doxsection"><a class="anchor" id="non-owning-conversion-view-lightweight-accessor"></a>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = 42, .f = 0.13f });</div>
+<div class="line"> </div>
+<div class="line">    [&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
+<div class="line">        ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
+<div class="line">    }(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">        int,</div>
+<div class="line">        std::tuple_element_t&lt;0, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">        float,</div>
+<div class="line">        std::tuple_element_t&lt;1, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/ob5G9WPbW"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><ul>
+<li>Example 2 : aggregate type with ref-qualified fields</li>
+</ul>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> &amp; i; <span class="keywordtype">float</span> &amp;&amp; f; };</div>
+<div class="line">    <span class="keywordtype">int</span> i = 42; <span class="keywordtype">float</span> f = .13f;</div>
+<div class="line">    <span class="keyword">auto</span> value = csl::ag::to_tuple(A{ .i = i, .f = std::move(f) });</div>
+<div class="line"> </div>
+<div class="line">    [&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
+<div class="line">        ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
+<div class="line">    }(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">        <span class="keywordtype">int</span>&amp;,</div>
+<div class="line">        std::tuple_element_t&lt;0, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">        <span class="keywordtype">float</span>&amp;&amp;,</div>
+<div class="line">        std::tuple_element_t&lt;1, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/oGEss3Eba"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="non-owning-conversion-view-lightweight-accessor"></a>
 Non-owning conversion (view, lightweight accessor)</h4>
 <p>This factory (as a function) creates non-owning <b>lightweight accessors</b> (views), <br  />
  returning a non-owning tuple (<span class="tt">std::tuple</span> of references), for which each element represents an accessor to an aggregate value's field.</p>
 <p>Note that in order to preserve <span class="tt">cvref semantic</span>, the possibly-used <span class="tt">cvref qualifiers</span> of the aggregate's value are propagated to qualify each of non-ref-qualified elements of the result tuple-type. <br  />
  Ref-qualified fields type remain unchanged.</p>
 <p>The conversion's result type can be access using the <span class="tt">tuple_view(_t)&lt;T&gt;</span> type-trait.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>type { <span class="keywordtype">int</span> lvalue; <span class="keywordtype">int</span> &amp; llvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; };</div>
-<div class="line"><span class="keywordtype">int</span> i = 42;</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;utility&gt;</span></div>
 <div class="line"> </div>
-<div class="line">{ <span class="comment">// using a rvalue</span></div>
-<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(type{ i, i, i, std::move(i) });</div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
 <div class="line"> </div>
-<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">        <span class="keyword">decltype</span>(view),</div>
-<div class="line">        csl::ag::tuple_view_t&lt;type&amp;&amp;&gt;</div>
-<div class="line">    &gt;);</div>
-<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">        <span class="keyword">decltype</span>(view),</div>
-<div class="line">        std::tuple&lt;int&amp;&amp;, int&amp;, const int&amp;, int&amp;&amp;&gt;</div>
-<div class="line">        <span class="comment">//         ^^^^^ cvref-qualified (rvalue-ref) propagation</span></div>
-<div class="line">    &gt;);</div>
+<div class="line">    <span class="keyword">struct </span>type {</div>
+<div class="line">        <span class="keywordtype">int</span> value; <span class="keywordtype">int</span> &amp; lvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; <span class="comment">// NOLINT(*-avoid-const-or-ref-data-members)</span></div>
+<div class="line">        [[nodiscard]] <span class="keyword">static</span> <span class="keyword">auto</span> make(<span class="keywordtype">int</span> &amp; i){ <span class="keywordflow">return</span> type{ .value=i, .lvalue=i, .const_lvalue=i, .rvalue=std::move(i) }; }</div>
+<div class="line">    };</div>
+<div class="line">    <span class="keywordtype">int</span> i = 42; <span class="comment">// NOLINT(*-avoid-magic-numbers)</span></div>
+<div class="line"> </div>
+<div class="line">    { <span class="comment">// rvalue source: non-ref fields acquire rvalue-ref qualification</span></div>
+<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(type::make(i));</div>
+<div class="line"> </div>
+<div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            csl::ag::view_t&lt;type&amp;&amp;&gt;</div>
+<div class="line">        &gt;);</div>
+<div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            std::tuple&lt;int&amp;&amp;, int&amp;, const int&amp;, int&amp;&amp;&gt;</div>
+<div class="line">        &gt;);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    { <span class="comment">// const-lvalue source: non-ref fields acquire const-lvalue-ref qualification</span></div>
+<div class="line">        <span class="keyword">const</span> <span class="keyword">auto</span> &amp; value = type::make(i); <span class="comment">// lifetime extension</span></div>
+<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(value);</div>
+<div class="line"> </div>
+<div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            csl::ag::view_t&lt;const type&amp;&gt;</div>
+<div class="line">        &gt;);</div>
+<div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            std::tuple&lt;const int&amp;, int&amp;, const int&amp;, int&amp;&amp;&gt;</div>
+<div class="line">        &gt;);</div>
+<div class="line">    }</div>
 <div class="line">}</div>
-<div class="line"> </div>
-<div class="line">{ <span class="comment">// using a const-lvalue</span></div>
-<div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> &amp; value = type{ i, i, i, std::move(i) };</div>
-<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(value);</div>
-<div class="line"> </div>
-<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">        <span class="keyword">decltype</span>(view),</div>
-<div class="line">        csl::ag::tuple_view_t&lt;const type&amp;&gt;</div>
-<div class="line">    &gt;);</div>
-<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">        <span class="keyword">decltype</span>(view),</div>
-<div class="line">        std::tuple&lt;const int &amp;, int&amp;, const int &amp;, int&amp;&amp;&gt;</div>
-<div class="line">        <span class="comment">//         ^^^^^^^^^^^ cvref-qualified (const-lvalue-ref) propagation</span></div>
-<div class="line">    &gt;);</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/39bTrKzzo"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/94Gnr3sz1"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Additionally, <span class="tt"><a class="el" href="structcsl_1_1ag_1_1view__element.html">csl::ag::view_element(_t)</a>&lt;N,T&gt;</span> can be used to obtains a field's type information, by index.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>type { <span class="keywordtype">int</span> lvalue; <span class="keywordtype">int</span> &amp; llvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// field 0 IS NOT a reference : cvref-qualifiers propagation</span></div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keywordtype">int</span> &amp;&amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;0, type&amp;&amp;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;0, type&amp;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">int</span> &amp;&amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;0, const type&amp;&amp;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keyword">const</span> <span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;0, const type&amp;&gt;</div>
-<div class="line">&gt;);</div>
+<div class="line"><span class="keyword">struct </span>type { <span class="keywordtype">int</span> lvalue; <span class="keywordtype">int</span> &amp; llvalue; <span class="keyword">const</span> <span class="keywordtype">int</span> &amp; const_lvalue; <span class="keywordtype">int</span> &amp;&amp; rvalue; };</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// field 0 IS a reference : no cvref-qualifiers propagation</span></div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;1, type&amp;&amp;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;1, type&amp;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;1, const type&amp;&amp;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;<span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    csl::ag::view_element_t&lt;1, const type&amp;&gt;</div>
-<div class="line">&gt;);</div>
+<div class="line"><span class="comment">// field 0 is NOT a reference: cvref-qualifier of the aggregate propagates</span></div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int &amp;&amp;,       csl::ag::view_element_t&lt;0, type&amp;&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int &amp;,        csl::ag::view_element_t&lt;0, type&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const int &amp;&amp;, csl::ag::view_element_t&lt;0, const type&amp;&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;const int &amp;,  csl::ag::view_element_t&lt;0, const type&amp;&gt;&gt;);</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// still not propagation for fields 2 and 3 ...</span></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/M3ejaf7Mc"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"><span class="comment">// field 1 IS a reference: no cvref-qualifier propagation</span></div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int &amp;, csl::ag::view_element_t&lt;1, type&amp;&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int &amp;, csl::ag::view_element_t&lt;1, type&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int &amp;, csl::ag::view_element_t&lt;1, const type&amp;&amp;&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;int &amp;, csl::ag::view_element_t&lt;1, const type&amp;&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/rqh9TcfGM"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <h3 class="doxsection"><a class="anchor" id="tuplelike-interface"></a>
 tuplelike interface</h3>
 <h4 class="doxsection"><a class="anchor" id="stdtuple_element"></a>
 std::tuple_element</h4>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>type{ <span class="keyword">const</span> <span class="keywordtype">int</span> i = 0; <span class="keywordtype">char</span> &amp; c; };</div>
-<div class="line"><span class="keywordtype">char</span> c = <span class="charliteral">&#39;c&#39;</span>;</div>
-<div class="line"><span class="keyword">auto</span> value = type{ 42, c }; <span class="comment">// NOLINT</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    <span class="keyword">const</span> int,</div>
-<div class="line">    std::tuple_element_t&lt;0, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">char</span>&amp;,</div>
-<div class="line">    std::tuple_element_t&lt;1, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
-<div class="line">&gt;);</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/YPj7931b9"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">struct </span>type { <span class="keyword">const</span> <span class="keywordtype">int</span> i = 0; <span class="keywordtype">char</span> &amp; c; }; <span class="comment">// NOLINT</span></div>
+<div class="line">    <span class="keywordtype">char</span> c = <span class="charliteral">&#39;c&#39;</span>;</div>
+<div class="line">    <span class="keyword">auto</span> value = type{ 42, c }; <span class="comment">// NOLINT</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">        <span class="keyword">const</span> int,</div>
+<div class="line">        csl::ag::element_t&lt;0, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;</div>
+<div class="line">        <span class="keywordtype">char</span>&amp;,</div>
+<div class="line">        csl::ag::element_t&lt;1, std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;&gt;</div>
+<div class="line">    &gt;);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/P58Wbe5jh"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <h4 class="doxsection"><a class="anchor" id="stdget"></a>
 std::get</h4>
-<p>Simple example :</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line"><span class="keyword">auto</span> value = A { .i = 42, .f = 0.13f };</div>
+<p>Simple example:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"> </div>
-<div class="line">std::cout &lt;&lt; std::get&lt;0&gt;(value) &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; std::get&lt;1&gt;(value) &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">int</span> &amp;,</div>
-<div class="line">    <span class="keyword">decltype</span>(std::get&lt;0&gt;(value))</div>
-<div class="line">&gt;);</div>
-<div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">    <span class="keywordtype">float</span> &amp;,</div>
-<div class="line">    <span class="keyword">decltype</span>(std::get&lt;1&gt;(value))</div>
-<div class="line">&gt;);</div>
-</div><!-- fragment --><div class="fragment"><div class="line">42, 0.13</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/je4Gr16h5"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
-<p>Slightly more advanced example :</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line"><span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13F }; <span class="comment">// NOLINT(*-avoid-magic-numbers)</span></div>
 <div class="line"> </div>
-<div class="line">[&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">    ((std::cout &lt;&lt; std::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
-<div class="line">}(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
-</div><!-- fragment --><div class="fragment"><div class="line">42 0.13 </div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/j9bhr4WrP"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
-<p>Note that <span class="tt">constexpr</span>-ness is preserved :</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">char</span> c; };</div>
+<div class="line">    <span class="comment">// output: &quot;42, 0.13&quot;</span></div>
+<div class="line">    std::cout &lt;&lt; csl::ag::get&lt;0&gt;(value) &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; csl::ag::get&lt;1&gt;(value) &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;int &amp;,   decltype(csl::ag::get&lt;0&gt;(value))&gt;);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;float &amp;, decltype(csl::ag::get&lt;1&gt;(value))&gt;);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/ovvqYh1x1"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">42, 0.13</div>
+</div><!-- fragment --><p>Slightly more advanced example:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13F }; <span class="comment">// NOLINT(*-avoid-magic-numbers)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// output: &quot;42 0.13 &quot;</span></div>
+<div class="line">    [&amp;value]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
+<div class="line">        ((std::cout &lt;&lt; csl::ag::get&lt;indexes&gt;(value) &lt;&lt; <span class="charliteral">&#39; &#39;</span>), ...);</div>
+<div class="line">    }(std::make_index_sequence&lt;csl::ag::size_v&lt;A&gt;&gt;{});</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/59P51KbGW"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><p>Note that <span class="tt">constexpr</span>-ness is preserved :</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">char</span> c; };</div>
 <div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> value = A{ 42, <span class="charliteral">&#39;c&#39;</span> };</div>
-<div class="line"><span class="keyword">static_assert</span>(csl::ag::get&lt;0&gt;(value) == 42);    <span class="comment">// pass</span></div>
-<div class="line"><span class="keyword">static_assert</span>(csl::ag::get&lt;1&gt;(value) == <span class="charliteral">&#39;c&#39;</span>);   <span class="comment">// pass</span></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/h9jbrc8d6"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"><span class="keyword">static_assert</span>(csl::ag::get&lt;0&gt;(value) == 42);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::ag::get&lt;1&gt;(value) == <span class="charliteral">&#39;c&#39;</span>);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/e8rvG7561"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <h3 class="doxsection"><a class="anchor" id="functional-api"></a>
 Functional API</h3>
 <h4 class="doxsection"><a class="anchor" id="cslagapply"></a>
 csl::ag::apply</h4>
 <p>Analogous to <a href="https://en.cppreference.com/w/cpp/utility/apply"><span class="tt">std::apply</span></a>, but operates directly on an aggregate - unpacking its fields as arguments to a callable, without a prior <span class="tt">to_tuple</span> conversion.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line"><span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">auto</span> result = csl::ag::apply([](<span class="keyword">auto</span> &amp;&amp; ... fields){</div>
-<div class="line">    <span class="keywordflow">return</span> (fields + ...);</div>
-<div class="line">}, value);</div>
-<div class="line"><span class="comment">// result == 42.13f</span></div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="cslagfor_each"></a>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13F }; <span class="comment">// NOLINT(*-avoid-magic-numbers)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">auto</span> result = csl::ag::apply([](<span class="keyword">auto</span> &amp;&amp; ... fields){</div>
+<div class="line">        <span class="keywordflow">return</span> (<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(fields) + ...);</div>
+<div class="line">    }, value);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::same_as&lt;float, <span class="keyword">decltype</span>(result)&gt;);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/T3sKb3enW"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<h4 class="doxsection"><a class="anchor" id="cslagfor_each"></a>
 csl::ag::for_each</h4>
 <p>Invokes a callable once per field, in order.</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line"><span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
-<div class="line"> </div>
-<div class="line">csl::ag::for_each([](<span class="keyword">auto</span> &amp;&amp; field){</div>
-<div class="line">    std::cout &lt;&lt; field &lt;&lt; <span class="charliteral">&#39; &#39;</span>;</div>
-<div class="line">}, value);</div>
-<div class="line"><span class="comment">// output: 42 0.13</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="formatting-and-printing"></a>
-Formatting and printing</h3>
-<p>There are two way to pretty-print aggregate types :</p>
-<ul>
-<li>using the legacy C++'s way : <span class="tt">std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, T&amp;&amp;)</span> overload</li>
-<li>using the <span class="tt">fmt</span> or <span class="tt">std::format</span> library</li>
-</ul>
-<h4 class="doxsection"><a class="anchor" id="using-stdostream"></a>
-using std::ostream</h4>
-<p>Simple example :</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
-<div class="line">  <span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line">  </div>
-<div class="line">  <span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line">  std::cout &lt;&lt; A{ .i = 42, .f = .13f };</div>
-<div class="line">}</div>
-</div><!-- fragment --><div class="fragment"><div class="line">A &amp;&amp; : {</div>
-<div class="line">   [0] int : 42</div>
-<div class="line">   [1] float : 0.13</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/q8Yeq4e83"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
-<p>Advanced example :</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;array&gt;</span></div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    <span class="keyword">auto</span> value = A{ .i = 42, .f = 0.13f };</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
-<div class="line"><span class="keyword">struct </span>B{};</div>
-<div class="line"><span class="keyword">auto</span> &amp; operator&lt;&lt;(std::ostream &amp; os, B) { </div>
-<div class="line">  <span class="keywordflow">return</span> os &lt;&lt; <span class="stringliteral">&quot;user-defined operator&lt;&lt;(std::ostream&amp;, const B &amp;)&quot;</span>;</div>
+<div class="line">    csl::ag::for_each([](<span class="keyword">auto</span> &amp;&amp; field){</div>
+<div class="line">        std::cout &lt;&lt; field &lt;&lt; <span class="charliteral">&#39; &#39;</span>;</div>
+<div class="line">    }, value);</div>
+<div class="line">    std::cout &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
 <div class="line">}</div>
-<div class="line"><span class="keyword">struct </span>C {</div>
-<div class="line">    A a;</div>
-<div class="line">    B b;</div>
-<div class="line">    <span class="keywordtype">int</span> &amp; i;</div>
-<div class="line">    <span class="keyword">const</span> std::string str;</div>
-<div class="line">    <span class="keywordtype">char</span> &amp;&amp; c;</div>
-<div class="line">    std::tuple&lt;bool, int&gt; t{ <span class="keyword">true</span>, 2 };</div>
-<div class="line">    std::array&lt;char, 3&gt; arr{ <span class="charliteral">&#39;a&#39;</span>, <span class="charliteral">&#39;b&#39;</span>, <span class="charliteral">&#39;c&#39;</span> };</div>
-<div class="line">};</div>
-<div class="line"> </div>
-<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
-<div class="line">  <span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line"> </div>
-<div class="line">  <span class="keywordtype">int</span> i = 42;</div>
-<div class="line">  <span class="keywordtype">char</span> c = <span class="charliteral">&#39;c&#39;</span>;</div>
-<div class="line">  <span class="keyword">auto</span> value = C { </div>
-<div class="line">    .a = A{ 13, .12f },</div>
-<div class="line">    .b = B{},</div>
-<div class="line">    .i = i, .str = <span class="stringliteral">&quot;str&quot;</span>, .c = std::move(c)</div>
-<div class="line">  };</div>
-<div class="line">  std::cout &lt;&lt; value;</div>
-<div class="line">}</div>
-</div><!-- fragment --><p>Output :</p>
-<div class="fragment"><div class="line">C &amp; : {</div>
-<div class="line">   [0] A &amp; : {</div>
-<div class="line">      [0] int : 13</div>
-<div class="line">      [1] float : 0.12</div>
-<div class="line">   }</div>
-<div class="line">   [1] B &amp; : user-defined operator&lt;&lt;(std::ostream&amp;, const B &amp;)</div>
-<div class="line">   [2] int &amp; : 42</div>
-<div class="line">   [3] const std::basic_string&lt;char&gt; : str</div>
-<div class="line">   [4] char &amp;&amp; : c</div>
-<div class="line">   [5] std::tuple&lt;bool, int&gt; &amp; : {</div>
-<div class="line">      [0] bool : 1</div>
-<div class="line">      [1] int : 2</div>
-<div class="line">   }</div>
-<div class="line">   [6] std::array&lt;char, 3&gt; &amp; : {</div>
-<div class="line">      [0] char : a</div>
-<div class="line">      [1] char : b</div>
-<div class="line">      [2] char : c</div>
-<div class="line">   }</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/hsofqExoT"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
-<h4 class="doxsection"><a class="anchor" id="using-fmt"></a>
-using fmt</h4>
-<p>Requires <span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span> (opt-in, off by default). <br  />
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/aGGd9Gaxq"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">42 0.13 </div>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="formatting-and-printing"></a>
+Formatting and printing</h3>
+<p>There are three ways to pretty-print aggregate types :</p>
+<ul>
+<li>(✅ Best) using <span class="tt">std::format</span> or the <span class="tt">fmt</span> library</li>
+<li>using the C++'s legacy way : <span class="tt">std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, T&amp;&amp;)</span> overload</li>
+<li>using <span class="tt">csl::ag::io::to_string&lt;format_options&gt;</span>, a homogeneous (yet, less efficient) API across all of the above</li>
+</ul>
+<h4 class="doxsection"><a class="anchor" id="using-stdformat"></a>
+using std::format</h4>
+<p>Requires <span class="tt">CSL_AG__ENABLE_STD_FORMAT_SUPPORT</span> (opt-in, off by default). <br  />
  Enable via CMake or by defining the macro before including the header:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_FMTLIB_SUPPORT true</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT true</span></div>
 <div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;fmt/format.h&gt;</span></div>
-</div><!-- fragment --><blockquote class="doxtable">
-<p>If <span class="tt">fmt::fmt-header-only</span> is not available as a CMake target, it will be fetched automatically via <span class="tt">FetchContent</span>. <br  />
- fmtlib &gt;= 11 is required for the <span class="tt">:n</span> specifier. </p>
-</blockquote>
-<p>This specializes <span class="tt">fmt::formatter&lt;T&gt;</span> for any <span class="tt"><a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a> T</span> whose fields are all formattable.</p>
+<div class="line"><span class="preprocessor">#include &lt;format&gt;</span></div>
+</div><!-- fragment --><p>This specializes <span class="tt">std::formatter&lt;T&gt;</span> for any <span class="tt"><a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a> T</span> whose fields are all formattable.</p>
 <p>Three format modes are available:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -782,14 +750,22 @@ using fmt</h4>
 <td class="markdownTableBodyNone"><span class="tt">"{}"</span> on <span class="tt">value \| csl::ag::io::indented</span>  </td><td class="markdownTableBodyNone">indented multi-line  </td></tr>
 </table>
 <p>Example:</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>point { <span class="keywordtype">int</span> x; <span class="keywordtype">int</span> y; };</div>
-<div class="line"><span class="keyword">struct </span>rect  { point top_left; point bottom_right; };</div>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>point     { <span class="keywordtype">int</span> x; <span class="keywordtype">int</span> y; };</div>
+<div class="line"><span class="keyword">struct </span>rectangle { point top_left; point bottom_right; };</div>
 <div class="line"> </div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };</div>
+<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> r = rectangle{</div>
+<div class="line">    .top_left = { 0, 0 },</div>
+<div class="line">    .bottom_right = { 10, 5 }</div>
+<div class="line">};</div>
 <div class="line"> </div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>,   r);                         <span class="comment">// compact</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{:n}\n&quot;</span>, r);                         <span class="comment">// no brackets</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>,   r | csl::ag::io::indented); <span class="comment">// indented</span></div>
+<div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line"><span class="comment">// NOTE: prefer std::print, if available</span></div>
+<div class="line">std::cout</div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,   r)                                     <span class="comment">// compact</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{:n}\n&quot;</span>, r)                                     <span class="comment">// no brackets</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,   r | indented)                          <span class="comment">// indented</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,   r | indexed | typenamed | indented)    <span class="comment">// indexed, typenamed, indented</span></div>
+<div class="line">;</div>
 </div><!-- fragment --><p>Compact (<span class="tt">{}</span>):</p>
 <div class="fragment"><div class="line">{{0, 0}, {10, 5}}</div>
 </div><!-- fragment --><p>No brackets (<span class="tt">{:n}</span>):</p>
@@ -805,34 +781,151 @@ using fmt</h4>
 <div class="line">        5</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>Mixed-content aggregates (containing tuple-likes and ranges) are also supported - tuples render as <span class="tt">(...)</span>, arrays and other ranges as <span class="tt">[...]</span>.</p>
-<h2 class="doxsection"><a class="anchor" id="homogeneity-api-with-tuple-likes"></a>
+</div><!-- fragment --><p>Indexed and typenamed and indented (<span class="tt">| indexed | typenamed | indented</span>):</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    [0] point: {</div>
+<div class="line">        [0] int: 0,</div>
+<div class="line">        [1] int: 0</div>
+<div class="line">    },</div>
+<div class="line">    [1] point: {</div>
+<div class="line">        [0] int: 10,</div>
+<div class="line">        [1] int: 5</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>Mixed-content aggregates (containing tuple-likes, ranges, etc.) are also supported - tuples render as <span class="tt">(...)</span>, arrays and other ranges as <span class="tt">[...]</span>, etc.</p>
+<h4 class="doxsection"><a class="anchor" id="using-fmt"></a>
+using fmt</h4>
+<p>Requires <span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span> (opt-in, off by default) - same macro-driven setup as <span class="tt">std::format</span> above:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_FMTLIB_SUPPORT true</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;fmt/format.h&gt;</span></div>
+</div><!-- fragment --><blockquote class="doxtable">
+<p>If <span class="tt">fmt::fmt-header-only</span> is not available as a CMake target, it will be fetched automatically via CMake's <span class="tt">FetchContent</span>. <br  />
+ fmtlib &gt;= 11 is required for the <span class="tt">:n</span> specifier. </p>
+</blockquote>
+<p><span class="tt">fmt::formatter&lt;T&gt;</span> / <span class="tt">fmt::format</span> / <span class="tt">fmt::print</span> behave identically to their <span class="tt">std::formatter</span> / <span class="tt">std::format</span> / <span class="tt">std::print</span> counterparts described above: same format modes, same composable <span class="tt">csl::ag::io::indented | indexed | typenamed</span> options, same output. <br  />
+</p>
+<h4 class="doxsection"><a class="anchor" id="using-stdostream"></a>
+using std::ostream</h4>
+<p>Simple example :</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    std::cout &lt;&lt; A{ .i = 42, .f = .13F };</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/orY3Mj95c"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">{42, 0.13}</div>
+</div><!-- fragment --><p>Advanced example :</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;array&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line"><span class="keyword">struct </span>B {};</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Note: must be in the same namespace as B (global here) so ADL finds it</span></div>
+<div class="line"><span class="keyword">auto</span> &amp; operator&lt;&lt;(std::ostream &amp; os, B) {</div>
+<div class="line">    <span class="keywordflow">return</span> os &lt;&lt; <span class="stringliteral">&quot;user-defined operator&lt;&lt;(std::ostream&amp;, const B &amp;)&quot;</span>;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>C {</div>
+<div class="line">    A a;</div>
+<div class="line">    B b;</div>
+<div class="line">    <span class="keywordtype">int</span> &amp; i;</div>
+<div class="line">    <span class="keyword">const</span> std::string str;</div>
+<div class="line">    <span class="keywordtype">char</span> &amp;&amp; c;</div>
+<div class="line">    std::tuple&lt;bool, int&gt; t{ <span class="keyword">true</span>, 2 };</div>
+<div class="line">    std::array&lt;char, 3&gt; arr{ <span class="charliteral">&#39;a&#39;</span>, <span class="charliteral">&#39;b&#39;</span>, <span class="charliteral">&#39;c&#39;</span> };</div>
+<div class="line">};</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordtype">int</span> i = 42;</div>
+<div class="line">    <span class="keywordtype">char</span> c = <span class="charliteral">&#39;c&#39;</span>;</div>
+<div class="line">    <span class="keyword">auto</span> value = C{</div>
+<div class="line">        .a = A{ .i=13, .f=.12F },</div>
+<div class="line">        .b = B{},</div>
+<div class="line">        .i = i, .str = <span class="stringliteral">&quot;str&quot;</span>, .c = std::move(c)</div>
+<div class="line">    };</div>
+<div class="line">    std::cout &lt;&lt; value;</div>
+<div class="line">}</div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/dKjqGPeG8"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<p>Output:</p>
+<div class="fragment"><div class="line">{{13, 0.12}, user-defined operator&lt;&lt;(std::ostream&amp;, const B &amp;), 42, &quot;str&quot;, &#39;c&#39;, (true, 2), [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]}</div>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="using-to_stringformat_options"></a>
+using <span class="tt">to_string&lt;format_options&gt;</span></h4>
+<p><span class="tt">csl::ag::io::to_string</span> returns a <span class="tt">std::string</span> directly, with an consistent/homogeneous API regardless of which formatting support is enabled, <br  />
+ favoring <span class="tt">std::format</span>, then <span class="tt">fmt::format</span>, then <span class="tt">std::ostream</span>.</p>
+<p>Options are selected as a non-type template argument. Tags (<span class="tt">indented</span>, <span class="tt">no_braces</span>, <span class="tt">indexed</span>, <span class="tt">typenamed</span>) implicitly convert to <span class="tt">format_options</span> and compose via <span class="tt">operator|</span>, so they can be combined directly as the template argument - or, equivalently, via the view-based <span class="tt">operator|</span> on the value itself:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>point { <span class="keywordtype">int</span> x; <span class="keywordtype">int</span> y; };</div>
+<div class="line"><span class="keyword">struct </span>rect  { point top_left; point bottom_right; };</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };</div>
+<div class="line"> </div>
+<div class="line">    to_string(r);                     <span class="comment">// &quot;{{0, 0}, {10, 5}}&quot;        (default, compact)</span></div>
+<div class="line">    to_string&lt;no_braces&gt;(r);          <span class="comment">// &quot;{0, 0}{10, 5}&quot;            (no outer brackets)</span></div>
+<div class="line">    to_string&lt;indented&gt;(r);           <span class="comment">// multiline, see below</span></div>
+<div class="line">    to_string&lt;indented | indexed&gt;(r); <span class="comment">// composed options, as NTTP</span></div>
+<div class="line">    to_string(r | indented | indexed); <span class="comment">// equivalent, view-based composition</span></div>
+<div class="line">}</div>
+</div><!-- fragment --><p><span class="tt">to_string&lt;indented&gt;(r)</span>:</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    {</div>
+<div class="line">        0,</div>
+<div class="line">        0</div>
+<div class="line">    },</div>
+<div class="line">    {</div>
+<div class="line">        10,</div>
+<div class="line">        5</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="homogeneity-api-with-tuple-likes"></a>
 Homogeneity API with tuple-likes</h2>
 <p>As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.</p>
-<div class="fragment"><div class="line"><span class="keywordtype">void</span> do_stuff_with_either_a_tuple_or_aggregate(<a class="code hl_concept" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> <span class="keyword">auto</span> &amp;&amp; value) {</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
 <div class="line"> </div>
+<div class="line"><span class="keywordtype">void</span> do_stuff(<a class="code hl_concept" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> <span class="keyword">auto</span> &amp;&amp; value) {</div>
 <div class="line">    <span class="keyword">using </span>value_type = std::remove_cvref_t&lt;<span class="keyword">decltype</span>(value)&gt;;</div>
+<div class="line">    <span class="keyword">using namespace </span>csl::ag::tuplelike;</div>
 <div class="line"> </div>
-<div class="line">    <span class="keyword">using namespace </span>csl::ag::tuplelike; <span class="comment">// size, get, element</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> sz = size_v&lt;value_type&gt;;</div>
 <div class="line"> </div>
-<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="code hl_struct" href="structcsl_1_1ag_1_1tuplelike_1_1size.html">size</a> = size_v&lt;value_type&gt;;</div>
-<div class="line"> </div>
-<div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> do_stuffs = [&amp;]&lt;<span class="keywordtype">size_t</span> index&gt;(){</div>
-<div class="line"> </div>
-<div class="line">        <span class="keyword">auto</span> &amp;&amp; element_value = get&lt;index&gt;(std::forward&lt;<span class="keyword">decltype</span>(value)&gt;(value));</div>
-<div class="line">        <span class="keyword">using </span>element_value_type = <span class="keyword">decltype</span>(element_value);</div>
-<div class="line">        <span class="keyword">using </span>element_type = element_t&lt;index, value_type&gt;;</div>
-<div class="line"> </div>
-<div class="line">        <span class="comment">// do stuffs with element_value, element_type ...</span></div>
+<div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> process = [&amp;]&lt;std::size_t index&gt;(){</div>
+<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> &amp;&amp; field = get&lt;index&gt;(std::forward&lt;<span class="keyword">decltype</span>(value)&gt;(value));</div>
+<div class="line">        <span class="keyword">using </span>field_type = element_t&lt;index, value_type&gt;;</div>
+<div class="line">        (void)<span class="keyword">static_cast&lt;</span>field_type *<span class="keyword">&gt;</span>(<span class="keyword">nullptr</span>);</div>
 <div class="line">    };</div>
 <div class="line"> </div>
 <div class="line">    [&amp;]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
-<div class="line">        ((do_stuffs.template operator()&lt;indexes&gt;()), ...);  </div>
-<div class="line">    }(std::make_index_sequence&lt;size&gt;{});</div>
+<div class="line">        ((process.template operator()&lt;indexes&gt;()), ...);</div>
+<div class="line">    }(std::make_index_sequence&lt;sz&gt;{});</div>
 <div class="line">}</div>
-<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1structured__bindable_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a></div><div class="ttdef"><b>Definition</b> ag.hpp:207</div></div>
-<div class="ttc" id="astructcsl_1_1ag_1_1tuplelike_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1tuplelike_1_1size.html">csl::ag::tuplelike::size</a></div><div class="ttdef"><b>Definition</b> ag.hpp:1086</div></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/8fv1rfK6s"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
+<div class="line">    do_stuff(A{ .i = 1, .f = 2.f });</div>
+<div class="line">    do_stuff(std::tuple&lt;int, float&gt;{ 1, 2.f });</div>
+<div class="line">}</div>
+<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1structured__bindable_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a></div><div class="ttdef"><b>Definition</b> ag.hpp:215</div></div>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/nj8MGcPrT"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <h2 class="doxsection"><a class="anchor" id="current-limitations"></a>
 Current limitations</h2>
 <p>As-is, this implementation internally relies on structured-binding, which design choice expose two main limitations :</p>
@@ -864,13 +957,14 @@ Slow path - for non default_initializable&lt;T&gt; or when bitfield support is e
 <li>With bitfields: upper bound is <span class="tt">sizeof(T) / alignof(T) * CHAR_BIT</span>.</li>
 </ul>
 <p>See <span class="tt"><a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate__constructible__from__n__values.html">csl::ag::concepts::aggregate_constructible_from_n_values</a>&lt;T, N&gt;</span> and <span class="tt">csl::ag::details::probing</span>.</p>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line">    <span class="keyword">struct </span>A{ <span class="keywordtype">char</span> a, b, c, d, e, f, g, h; };</div>
+<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
+<div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">char</span> a, b, c, d, e, f, g, h; };</div>
 <div class="line">    <span class="keyword">static_assert</span>(<span class="keyword">sizeof</span>(A) == 8);</div>
 <div class="line">    <span class="keyword">static_assert</span>(csl::ag::size_v&lt;A&gt; == 8);</div>
 <div class="line"> </div>
-<div class="line">    <span class="keyword">struct </span>B{ <span class="keywordtype">int</span> a, b; };</div>
+<div class="line">    <span class="keyword">struct </span>B { <span class="keywordtype">int</span> a, b; };</div>
 <div class="line">    <span class="keyword">static_assert</span>(<span class="keyword">sizeof</span>(B) == 8);</div>
 <div class="line">    <span class="keyword">static_assert</span>(csl::ag::size_v&lt;B&gt; == 2);</div>
 <div class="line"> </div>
@@ -878,7 +972,7 @@ Slow path - for non default_initializable&lt;T&gt; or when bitfield support is e
 <div class="line">    <span class="keyword">static_assert</span>(<span class="keyword">sizeof</span>(C) == 32);</div>
 <div class="line">    <span class="keyword">static_assert</span>(csl::ag::size_v&lt;C&gt; == 1);</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/v91bqTEWP"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a>.</p>
+</div><!-- fragment --><p> <a href="https://godbolt.org/z/sKMG89Kse"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <hr  />
 <h2 class="doxsection"><a class="anchor" id="example"></a>
 Example</h2>

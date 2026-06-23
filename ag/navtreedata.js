@@ -67,8 +67,10 @@ var NAVTREE =
           [ "csl::ag::for_each", "index.html#cslagfor_each", null ]
         ] ],
         [ "Formatting and printing", "index.html#formatting-and-printing", [
+          [ "using std::format", "index.html#using-stdformat", null ],
+          [ "using fmt", "index.html#using-fmt", null ],
           [ "using std::ostream", "index.html#using-stdostream", null ],
-          [ "using fmt", "index.html#using-fmt", null ]
+          [ "using <span class=\"tt\">to_string&lt;format_options&gt;</span>", "index.html#using-to_stringformat_options", null ]
         ] ]
       ] ],
       [ "Homogeneity API with tuple-likes", "index.html#homogeneity-api-with-tuple-likes", null ],

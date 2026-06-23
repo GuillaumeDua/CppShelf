@@ -33,13 +33,20 @@ var NAVTREE =
       [ "Known limitations - value_name", "index.html#known-limitations---value_name", null ]
     ] ],
     [ "Live demo", "index.html#live-demo", null ],
-    [ "Example", "index.html#example", null ]
+    [ "Example", "index.html#example", null ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ]
+    ] ],
+    [ "Classes", "annotated.html", [
+      [ "Class List", "annotated.html", "annotated_dup" ],
+      [ "Class Index", "classes.html", null ]
+    ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"index.html"
+"annotated.html"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

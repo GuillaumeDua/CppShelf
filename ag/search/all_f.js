@@ -1,18 +1,15 @@
 var searchData=
 [
-  ['the_20magic_0',['(Internal details) Where&apos;s the magic ?',['../index.html#internal-details-wheres-the-magic-',1,'']]],
-  ['to_20tuple_20conversion_1',['to-tuple conversion',['../index.html#to-tuple-conversion',1,'']]],
-  ['to_5fcomplete_5ftype_5ftag_2',['to_complete_type_tag',['../structcsl_1_1ag_1_1to__complete__type__tag.html',1,'csl::ag']]],
-  ['to_5ftemplate_5ftype_5fnttp_5fttps_5ftag_3',['to_template_type_nttp_ttps_tag',['../structcsl_1_1ag_1_1to__template__type__nttp__ttps__tag.html',1,'csl::ag']]],
-  ['to_5ftemplate_5ftype_5fttp_5fnttps_5ftag_4',['to_template_type_ttp_nttps_tag',['../structcsl_1_1ag_1_1to__template__type__ttp__nttps__tag.html',1,'csl::ag']]],
-  ['to_5ftemplate_5ftype_5fttps_5ftag_5',['to_template_type_ttps_tag',['../structcsl_1_1ag_1_1to__template__type__ttps__tag.html',1,'csl::ag']]],
-  ['traits_6',['Type-traits',['../index.html#type-traits',1,'']]],
-  ['tuple_20conversion_7',['to-tuple conversion',['../index.html#to-tuple-conversion',1,'']]],
-  ['tuple_20likes_8',['Homogeneity API with tuple-likes',['../index.html#homogeneity-api-with-tuple-likes',1,'']]],
-  ['tuple_5felement_9',['tuple_element',['../conceptcsl_1_1ag_1_1concepts_1_1tuple__element.html',1,'csl::ag::concepts']]],
-  ['tuple_5flike_10',['tuple_like',['../conceptcsl_1_1ag_1_1concepts_1_1tuple__like.html',1,'csl::ag::concepts']]],
-  ['tuple_5fsize_11',['tuple_size',['../structcsl_1_1ag_1_1tuple__size.html',1,'csl::ag']]],
-  ['tuplelike_12',['tuplelike&amp;lt;T&amp;gt;',['../index.html#tupleliket',1,'']]],
-  ['tuplelike_20interface_13',['tuplelike interface',['../index.html#tuplelike-interface',1,'']]],
-  ['type_20traits_14',['Type-traits',['../index.html#type-traits',1,'']]]
+  ['s_20the_20magic_0',['(Internal details) Where&apos;s the magic ?',['../index.html#internal-details-wheres-the-magic-',1,'']]],
+  ['size_1',['size',['../structcsl_1_1ag_1_1size.html',1,'csl::ag::size&lt; T &gt;'],['../structcsl_1_1ag_1_1tuplelike_1_1size.html',1,'csl::ag::tuplelike::size&lt; T &gt;']]],
+  ['size_3c_20t_20_3e_2',['size&lt; T &gt;',['../structcsl_1_1ag_1_1tuplelike_1_1size_3_01T_01_4.html',1,'csl::ag::tuplelike']]],
+  ['slow_20path_20for_20non_20default_5finitializable_20or_20when_20bitfield_20support_20is_20enabled_3',['Slow path - for non default_initializable&amp;lt;T&amp;gt; or when bitfield support is enabled',['../index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled',1,'']]],
+  ['starting_4',['Getting starting',['../index.html#getting-starting',1,'']]],
+  ['std_3a_3aformat_5',['using std::format',['../index.html#using-stdformat',1,'']]],
+  ['std_3a_3aget_6',['std::get',['../index.html#stdget',1,'']]],
+  ['std_3a_3aostream_7',['using std::ostream',['../index.html#using-stdostream',1,'']]],
+  ['std_3a_3atuple_5felement_8',['std::tuple_element',['../index.html#stdtuple_element',1,'']]],
+  ['structured_5fbindable_9',['structured_bindable',['../conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html',1,'csl::ag::concepts']]],
+  ['support_10',['support',['../index.html#bitfields-support',1,'Bitfields support'],['../index.html#fast-path---for-default_initializablet-without-bitfield-support',1,'Fast path - for default_initializable&amp;lt;T&amp;gt; without bitfield support']]],
+  ['support_20is_20enabled_11',['Slow path - for non default_initializable&amp;lt;T&amp;gt; or when bitfield support is enabled',['../index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled',1,'']]]
 ];

@@ -1,5 +1,7 @@
 var NAVTREEINDEX0 =
 {
+"annotated.html":[6,0],
+"classes.html":[6,1],
 "index.html":[],
 "index.html#example":[4],
 "index.html#include":[0],
@@ -8,5 +10,12 @@ var NAVTREEINDEX0 =
 "index.html#live-demo":[3],
 "index.html#type_name_vt":[1],
 "index.html#value_name_vv":[2],
-"pages.html":[]
+"namespacecsl_1_1typeinfo.html":[5,0,0,0],
+"namespaces.html":[5,0],
+"pages.html":[],
+"structcsl_1_1typeinfo_1_1type__name.html":[5,0,0,0,0],
+"structcsl_1_1typeinfo_1_1type__name.html":[6,0,0,0,0],
+"structcsl_1_1typeinfo_1_1value__name.html":[5,0,0,0,1],
+"structcsl_1_1typeinfo_1_1value__name.html":[6,0,0,0,1],
+"":[5,0,0]
 };

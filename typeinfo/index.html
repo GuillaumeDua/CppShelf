@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('index.html',''
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">csl::typeinfo </div></div>
+  <div class="headertitle"><div class="title"><a class="el" href="namespacecsl_1_1typeinfo.html" title="constexpr typeinfo that does not relies on __cpp_rtti WARNIN: Produced outputs ARE NOT portable: inco...">csl::typeinfo</a> </div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md__2home_2runner_2work_2CppShelf_2CppShelf_2libs_2typeinfo_2README"></a></p>
@@ -146,9 +146,10 @@ type_name_v&lt;T&gt;</h1>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_v&lt;float&gt;             == <span class="stringliteral">&quot;float&quot;</span>);</div>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_v&lt;std::vector&lt;int&gt;&gt;  == <span class="stringliteral">&quot;std::vector&lt;int&gt;&quot;</span>); <span class="comment">// GCC/Clang approximation</span></div>
 </div><!-- fragment --><p>A function form is also available for contexts where the variable template cannot be used:</p>
-<div class="fragment"><div class="line">std::string_view name = csl::typeinfo::type_name&lt;T&gt;();</div>
+<div class="fragment"><div class="line">std::string_view name = <a class="code hl_struct" href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name&lt;T&gt;</a>();</div>
+<div class="ttc" id="astructcsl_1_1typeinfo_1_1type__name_html"><div class="ttname"><a href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name</a></div><div class="ttdef"><b>Definition</b> typeinfo.hpp:96</div></div>
 </div><!-- fragment --><p><span class="tt">type_name</span> is also overloaded for non-type template parameters - <span class="tt">type_name&lt;value&gt;()</span> returns the type of <span class="tt">value</span>:</p>
-<div class="fragment"><div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name&lt;42&gt;() == <span class="stringliteral">&quot;int&quot;</span>);</div>
+<div class="fragment"><div class="line"><span class="keyword">static_assert</span>(<a class="code hl_struct" href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name&lt;42&gt;</a>() == <span class="stringliteral">&quot;int&quot;</span>);</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="known-limitations---type_name"></a>
 Known limitations - type_name</h2>
 <table class="markdownTable">
@@ -169,7 +170,8 @@ value_name_v&lt;V&gt;</h1>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::value_name_v&lt;42&gt;          == <span class="stringliteral">&quot;42&quot;</span>);         <span class="comment">// GCC, Clang</span></div>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::value_name_v&lt;color::red&gt;  == <span class="stringliteral">&quot;color::red&quot;</span>); <span class="comment">// GCC, Clang</span></div>
 </div><!-- fragment --><p>A function form is also available:</p>
-<div class="fragment"><div class="line">std::string_view name = csl::typeinfo::value_name&lt;V&gt;();</div>
+<div class="fragment"><div class="line">std::string_view name = <a class="code hl_struct" href="structcsl_1_1typeinfo_1_1value__name.html">csl::typeinfo::value_name&lt;V&gt;</a>();</div>
+<div class="ttc" id="astructcsl_1_1typeinfo_1_1value__name_html"><div class="ttname"><a href="structcsl_1_1typeinfo_1_1value__name.html">csl::typeinfo::value_name</a></div><div class="ttdef"><b>Definition</b> typeinfo.hpp:104</div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="known-limitations---value_name"></a>
 Known limitations - value_name</h2>
 <table class="markdownTable">
