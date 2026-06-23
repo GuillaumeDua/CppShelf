@@ -21,6 +21,7 @@ The following example demonstrates some of the features which are available in `
 
 <!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
+#include <csl/typeinfo.hpp> // optional: gives csl::ag::io::typenamed clean type names (e.g. "int")
 #define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
 #include <csl/ag.hpp>
 #include <iostream>
@@ -43,7 +44,8 @@ auto main() -> int {
     std::cout << "value: " << format_options << value << '\n';
 }
 ```
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/5TashWsT6)
+
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Mhd1raz3T)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
@@ -73,6 +75,7 @@ auto main() -> int {
     assert(v1 == 'A');
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/r59sKooeh)
 <!-- EXAMPLE_END: 02_structured_binding.cpp -->
 
@@ -327,6 +330,7 @@ static_assert(csl::ag::size_v<A>      == 2);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/dbzsYM6oj)
 <!-- EXAMPLE_END: 03_size.cpp -->
 
@@ -351,6 +355,7 @@ static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/nW1Mbzaxn)
 <!-- EXAMPLE_END: 04_element.cpp -->
 
@@ -382,6 +387,7 @@ static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, const A&>>);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Y7vcxj75T)
 <!-- EXAMPLE_END: 05_view_element.cpp -->
 
@@ -440,6 +446,7 @@ auto main() -> int {
     }(std::make_index_sequence<csl::ag::size_v<A>>{});
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/9c8aG9q1T)
 <!-- EXAMPLE_END: 06_to_tuple_owning.cpp -->
 
@@ -476,6 +483,7 @@ auto main() -> int {
     static_assert(0.13f == std::get<1>(value_as_tuple));
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/e5szGecsq)
 <!-- EXAMPLE_END: 07_to_tuple_type_traits.cpp -->
 
@@ -506,6 +514,7 @@ auto main() -> int {
     >);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/ob5G9WPbW)
 <!-- EXAMPLE_END: 08_to_tuple_example1.cpp -->
 
@@ -542,6 +551,7 @@ auto main() -> int {
     >);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/oGEss3Eba)
 <!-- EXAMPLE_END: 09_to_tuple_example2.cpp -->
 
@@ -602,6 +612,7 @@ auto main() -> int {
     }
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/94Gnr3sz1)
 <!-- EXAMPLE_END: 10_to_tuple_view.cpp -->
 
@@ -627,6 +638,7 @@ static_assert(std::same_as<int &, csl::ag::view_element_t<1, const type&>>);
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/rqh9TcfGM)
 <!-- EXAMPLE_END: 11_view_element_cvref.cpp -->
 
@@ -654,6 +666,7 @@ auto main() -> int {
     >);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/P58Wbe5jh)
 <!-- EXAMPLE_END: 12_tuple_element.cpp -->
 
@@ -678,6 +691,7 @@ auto main() -> int {
     static_assert(std::same_as<float &, decltype(csl::ag::get<1>(value))>);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/ovvqYh1x1)
 <!-- EXAMPLE_END: 13_get_simple.cpp -->
 
@@ -704,6 +718,7 @@ auto main() -> int {
     }(std::make_index_sequence<csl::ag::size_v<A>>{});
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/59P51KbGW)
 <!-- EXAMPLE_END: 14_get_advanced.cpp -->
 
@@ -726,6 +741,7 @@ static_assert(csl::ag::get<1>(value) == 'c');
 
 auto main() -> int {}
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/e8rvG7561)
 <!-- EXAMPLE_END: 15_get_constexpr.cpp -->
 
@@ -750,6 +766,7 @@ auto main() -> int {
     static_assert(std::same_as<float, decltype(result)>);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/T3sKb3enW)
 <!-- EXAMPLE_END: 16_apply.cpp -->
 
@@ -772,6 +789,7 @@ auto main() -> int {
     std::cout << '\n';
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/aGGd9Gaxq)
 <!-- EXAMPLE_END: 17_for_each.cpp -->
 
@@ -908,6 +926,7 @@ auto main() -> int {
     std::cout << A{ .i = 42, .f = .13F };
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/orY3Mj95c)
 <!-- EXAMPLE_END: 18_formatting_ostream_simple.cpp -->
 
@@ -960,6 +979,7 @@ auto main() -> int {
     std::cout << value;
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/dKjqGPeG8)
 <!-- EXAMPLE_END: 19_formatting_ostream_advanced.cpp -->
 
@@ -1042,6 +1062,7 @@ auto main() -> int {
     do_stuff(std::tuple<int, float>{ 1, 2.f });
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/nj8MGcPrT)
 <!-- EXAMPLE_END: 20_homogeneity.cpp -->
 
@@ -1098,6 +1119,7 @@ auto main() -> int {
     static_assert(csl::ag::size_v<C> == 1);
 }
 ```
+
 [![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/sKMG89Kse)
 <!-- EXAMPLE_END: 21_internal_size.cpp -->
 
