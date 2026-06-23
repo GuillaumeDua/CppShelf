@@ -1,6 +1,8 @@
 name: csl consumption CI
 
 on:
+  pull_request:
+    branches: [main]
   workflow_run:
     workflows: ["csl CI"]
     types: [completed]
@@ -18,7 +20,7 @@ jobs:
   consumption_test:
 
     name: Consumption (${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }})
-    if: (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && (github.event.workflow_run.head_branch == 'main' || contains(github.event.workflow_run.pull_requests.*.base.ref, 'main'))
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -34,6 +36,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || github.ref }}
 
     - name: Install clang
       if: matrix.configuration.CMAKE_C_COMPILER == 'clang'
@@ -56,12 +60,12 @@ jobs:
         CMAKE_CXX_COMPILER: ${{ matrix.configuration.CMAKE_CXX_COMPILER }}
       run: |
         bash build.sh "${{ env.build_dir }}"  \
-          -Dcsl_consumption_test_GIT_TAG=${{ github.event.workflow_run.head_branch || github.ref_name }}
+          -Dcsl_consumption_test_GIT_TAG=${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch || github.ref_name }}
 
   consumption_passed:
     name: Consumption passed
     needs: consumption_test
-    if: always() && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && (github.event.workflow_run.head_branch == 'main' || contains(github.event.workflow_run.pull_requests.*.base.ref, 'main'))
+    if: always() && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-latest
     steps:
       - name: Check result
