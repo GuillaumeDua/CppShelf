@@ -38,7 +38,7 @@ MANIFEST_PATH = REPO_ROOT / 'doc' / '.godbolt-manifest.json'
 
 CE_SHORTLINK_API = 'https://godbolt.org/api/shortener'
 CE_COMPILER_ID = 'clang_trunk'
-CE_COMPILER_OPTIONS = '-std=c++23'
+CE_COMPILER_OPTIONS = '-std=c++23 -O2'
 
 # Maps each local CSL include to its raw GitHub URL counterpart.
 #   CE frontend supports URL-based #include, but the API itself does not
@@ -126,7 +126,7 @@ def create_godbolt_link(source: str, *, compiler_id: str, compiler_options: str,
 
 
 def build_block(source: str, url: str) -> str:
-    return f'```cpp\n{source}```\n[![CE][ce-icon] Try me on compiler-explorer]({url})\n'
+    return f'```cpp\n{source}```\n\n[![CE][ce-icon] Try me on compiler-explorer]({url})\n'
 
 
 def process_lib(
