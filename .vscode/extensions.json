@@ -22,7 +22,8 @@
         "gruntfuggly.todo-tree",
         "matepek.vscode-catch2-test-adapter",
         "jeff-hykin.better-shellscript-syntax",
-        "takumii.markdowntable"
+        "takumii.markdowntable",
+        "ms-python.python"
     ],
     "unwantedRecommendations": []
 }
