@@ -8,6 +8,7 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 
 // NOLINTBEGIN(*-avoid-do-while)
 // NOLINTBEGIN(*-use-anonymous-namespace)
@@ -86,6 +87,77 @@ TEMPLATE_TEST_CASE(":n" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:n}", f::value) == f::no_braces_expected);
+}
+
+// FIXME: spec-letter tests wrap the value via operator| (formatted_view_t) rather than passing the bare aggregate.
+// fmtlib has a separate fmt::formatter<T, Char> for bare aggregates that delegates to fmt's own native tuple formatter (bypassing ag_formatter_base::parse() entirely),
+// so spec letters with no fmt-native meaning (i/x/t, unlike the coincidentally-native 'n') would never reach our code on that path. Wrapping forces dispatch through ag_formatter_base on every backend.
+TEMPLATE_TEST_CASE(":i" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+    CHECK(implementation::format("{:i}", f::value | csl::ag::io::indented) == f::indented_expected);
+}
+
+TEMPLATE_TEST_CASE(":x" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+    CHECK(implementation::format("{:x}", f::value | csl::ag::io::indexed) == f::indexed_expected);
+}
+
+#if __has_include(<csl/typeinfo.hpp>)
+TEMPLATE_TEST_CASE(":t" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+    CHECK(implementation::format("{:t}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
+}
+
+TEMPLATE_TEST_CASE(":ixt" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+    CHECK(
+        implementation::format("{:ixt}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
+        == f::indented_indexed_typenamed_expected
+    );
+}
+#endif
+
+TEMPLATE_TEST_CASE(":z (unrecognized spec letter) throws" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+    CHECK_THROWS_WITH(
+        implementation::format("{:z}", f::value | csl::ag::io::indented),
+        "csl::ag::io: unrecognized format-spec letter (expected one of: n, i, x, t)"
+    );
 }
 
 TEMPLATE_TEST_CASE("indented" + implementation::name_suffix() + "", implementation::tags(),

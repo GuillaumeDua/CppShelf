@@ -1422,11 +1422,17 @@ namespace csl::ag::io::details {
 
     static constexpr std::size_t indentation_width = 4;
 
+    /// \brief Maps a formatter_implementation (fmt::formatter or std::formatter) to its matching format-error exception type
+    template <template <typename, typename> class formatter_implementation>
+    struct format_error_type;
+    template <template <typename, typename> class formatter_implementation>
+    using format_error_type_t = typename format_error_type<formatter_implementation>::type;
+
     /// \brief Formatters shared logic (fmt and std) -> parse, format.
     /// Format options/depth are carried at runtime by the formatted_view_t decorator (see operator|), not baked into this type's template parameters.
     /// parse() additionally accumulates a parse_options mask from the format-spec string (e.g. ':n'),
     /// merged with the decorator's options for this node only - it is not propagated to field formatters.
-    /// \tparam formatter_implementation fmt::formatter or std::formatter (yet, unrestricted here)
+    /// \tparam formatter_implementation fmt::formatter or std::formatter (yet, unconstrained here)
     /// \tparam T the structured-bindable aggregate type being formatted
     /// \tparam Char the character type
     template <
@@ -1526,18 +1532,26 @@ namespace csl::ag::io::details {
     public:
         using csl_ag_product = void;
 
-        // TODO: other format options parse/override
+        /// \brief Format-spec letters (runtime overrides, accumulated into parse_options):
+        ///     n = no_braces
+        ///     i = indented
+        ///     x = indexed
+        ///     t = typenamed.
+        ///     Unrecognized letters result in format_error
         constexpr auto parse(auto & context) {
 
-            // :n spec (runtime override for no_braces).
             auto it  = context.begin();
             auto end = context.end();
-            if (it != end and static_cast<char>(*it) == 'n') {
+            while (it != end and *it != static_cast<Char>('}')) {
+                switch (static_cast<char>(*it)) {
+                    case 'n': parse_options |= format_options::no_braces; break;
+                    case 'i': parse_options |= format_options::indented;  break;
+                    case 'x': parse_options |= format_options::indexed;   break;
+                    case 't': parse_options |= format_options::typenamed; break;
+                    default: throw format_error_type_t<formatter_implementation>{"csl::ag::io: unrecognized format-spec letter (expected one of: n, i, x, t)"};
+                }
                 ++it;
-                parse_options |= format_options::no_braces;
             }
-            if (it != end and *it != static_cast<Char>('}'))
-                ++it; // skip ':' or other trailing char
             context.advance_to(it);
 
             // NOTE: Propagate parse to field formatters with an empty spec
@@ -1937,6 +1951,9 @@ public:
 namespace csl::ag::io::details {
     template <typename T, typename Char = char>
     using fmt_formatter = fmt::formatter<T, Char>;
+
+    template <>
+    struct format_error_type<fmt_formatter> : std::type_identity<fmt::format_error>{};
 }
 
 // fmt_formattable (used upstream: not formatter detection)
@@ -2013,6 +2030,9 @@ class fmt::formatter<
 namespace csl::ag::io::details {
     template <typename T, typename Char = char>
     using std_formatter = std::formatter<T, Char>;
+
+    template <>
+    struct format_error_type<std_formatter> : std::type_identity<std::format_error>{};
 }
 
 // std::formatter for plain aggregate T - default (braced, flat) output.
