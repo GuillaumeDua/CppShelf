@@ -89,9 +89,6 @@ TEMPLATE_TEST_CASE(":n" + implementation::name_suffix() + "", implementation::ta
     CHECK(implementation::format("{:n}", f::value) == f::no_braces_expected);
 }
 
-// FIXME: spec-letter tests wrap the value via operator| (formatted_view_t) rather than passing the bare aggregate.
-// fmtlib has a separate fmt::formatter<T, Char> for bare aggregates that delegates to fmt's own native tuple formatter (bypassing ag_formatter_base::parse() entirely),
-// so spec letters with no fmt-native meaning (i/x/t, unlike the coincidentally-native 'n') would never reach our code on that path. Wrapping forces dispatch through ag_formatter_base on every backend.
 TEMPLATE_TEST_CASE(":i" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -102,6 +99,7 @@ TEMPLATE_TEST_CASE(":i" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:i}", f::value | csl::ag::io::indented) == f::indented_expected);
+    CHECK(implementation::format("{:i}", f::value) == f::indented_expected);
 }
 
 TEMPLATE_TEST_CASE(":x" + implementation::name_suffix() + "", implementation::tags(),
@@ -114,6 +112,7 @@ TEMPLATE_TEST_CASE(":x" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:x}", f::value | csl::ag::io::indexed) == f::indexed_expected);
+    CHECK(implementation::format("{:x}", f::value) == f::indexed_expected);
 }
 
 #if __has_include(<csl/typeinfo.hpp>)
@@ -127,6 +126,7 @@ TEMPLATE_TEST_CASE(":t" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:t}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
+    CHECK(implementation::format("{:t}", f::value) == f::typenamed_expected);
 }
 
 TEMPLATE_TEST_CASE(":ixt" + implementation::name_suffix() + "", implementation::tags(),
@@ -138,10 +138,12 @@ TEMPLATE_TEST_CASE(":ixt" + implementation::name_suffix() + "", implementation::
     types::field_everything
 ) {
     using f = fixture<TestType>;
+
     CHECK(
         implementation::format("{:ixt}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
         == f::indented_indexed_typenamed_expected
     );
+    CHECK(implementation::format("{:ixt}", f::value) == f::indented_indexed_typenamed_expected);
 }
 #endif
 
