@@ -1345,17 +1345,20 @@ namespace csl::ag::io {
     }
 }
 
-namespace csl::ag::io::details {
+/// \brief Formatting presentation constants/helpers shared by every backend (ostream, fmt, std::format).
+namespace csl::ag::io::details::style {
+
+    constexpr static std::size_t indentation_width = 4;
 
     template <typename T>
     [[nodiscard]] constexpr auto opening_bracket() noexcept -> std::string_view {
-        if constexpr (csl::ag::concepts::range_like<T>)         return "[";
+             if constexpr (csl::ag::concepts::range_like<T>)    return "[";
         else if constexpr (csl::ag::concepts::tuple_like<T>)    return "(";
         else                                                    return "{";
     }
     template <typename T>
     [[nodiscard]] constexpr auto closing_bracket() noexcept -> std::string_view {
-        if constexpr (csl::ag::concepts::range_like<T>)         return "]";
+             if constexpr (csl::ag::concepts::range_like<T>)    return "]";
         else if constexpr (csl::ag::concepts::tuple_like<T>)    return ")";
         else                                                    return "}";
     }
@@ -1369,13 +1372,15 @@ namespace csl::ag::io::details {
     };
     template <typename T, typename Char>
     [[nodiscard]] constexpr auto make_brackets(format_options options) noexcept -> brackets_t<Char> {
+
         if (bool(options & format_options::no_braces))
             return {};
         return {
             .opening_bracket = std::basic_string_view<Char>{ opening_bracket<T>() },
             .closing_bracket = std::basic_string_view<Char>{ closing_bracket<T>() },
             .separator       = bool(options & format_options::indented)
-                ? std::basic_string_view<Char>{","} : std::basic_string_view<Char>{", "}
+                ? std::basic_string_view<Char>{","}
+                : std::basic_string_view<Char>{", "}
         };
     }
 }
@@ -1419,8 +1424,6 @@ namespace csl::ag::io::details {
         *out = c;
         return ++out;
     }
-
-    static constexpr std::size_t indentation_width = 4;
 
     /// \brief Maps a formatter_implementation (fmt::formatter or std::formatter) to its matching format-error exception type
     template <template <typename, typename> class formatter_implementation>
@@ -1474,7 +1477,7 @@ namespace csl::ag::io::details {
             }
 
             if (indented)
-                context.advance_to(std::fill_n(context.out(), (depth + 1) * indentation_width, Char{' '}));
+                context.advance_to(std::fill_n(context.out(), (depth + 1) * style::indentation_width, Char{' '}));
 
             if (bool(options & format_options::indexed)) {
                 context.advance_to(write<Char>(context.out(), '['));
@@ -1503,7 +1506,7 @@ namespace csl::ag::io::details {
 
             const format_options effective_options = options | parse_options;
             const bool indented = bool(effective_options & format_options::indented);
-            const auto brackets = make_brackets<T, Char>(effective_options);
+            const auto brackets = style::make_brackets<T, Char>(effective_options);
 
             context.advance_to(write<Char>(context.out(), brackets.opening_bracket));
             if (indented)
@@ -1523,7 +1526,7 @@ namespace csl::ag::io::details {
 
             if (indented) {
                 context.advance_to(write<Char>(context.out(), '\n'));
-                context.advance_to(std::fill_n(context.out(), depth * indentation_width, Char{' '}));
+                context.advance_to(std::fill_n(context.out(), depth * style::indentation_width, Char{' '}));
             }
             context.advance_to(write<Char>(context.out(), brackets.closing_bracket));
             return context.out();
@@ -1669,15 +1672,13 @@ namespace csl::ag::io::details {
         return index;
     }
 
-    constexpr static std::size_t indentation_width = 4;
-
     inline void write_indent(std::ostream & os, std::size_t depth) {
         constexpr std::size_t max_depth = 32;
         static constexpr auto buf =
             []<std::size_t... Is>(std::index_sequence<Is...>) {
                 return std::array<char, sizeof...(Is)>{((void)Is, ' ')...};
-            }(std::make_index_sequence<max_depth * indentation_width>{});
-        os.write(buf.data(), static_cast<std::streamsize>(std::min(max_depth, depth) * indentation_width));
+            }(std::make_index_sequence<max_depth * style::indentation_width>{});
+        os.write(buf.data(), static_cast<std::streamsize>(std::min(max_depth, depth) * style::indentation_width));
     }
 
     struct format_options_view {
@@ -1733,7 +1734,7 @@ namespace csl::ag::io::details {
 
         const auto opt = format_options_view{ options };
 
-        if (not opt.is_no_braces) os << opening_bracket<type>();
+        if (not opt.is_no_braces) os << style::opening_bracket<type>();
         if (opt.is_indented)      os << '\n';
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
@@ -1769,7 +1770,7 @@ namespace csl::ag::io::details {
             write_indent(os, depth);
         }
         if (not opt.is_no_braces)
-            os << closing_bracket<type>();
+            os << style::closing_bracket<type>();
     }
 }
 
@@ -1851,101 +1852,6 @@ namespace csl::ag::io::type_traits {
 
 }
 
-// string literals
-namespace csl::ag::io::details::concepts {
-    template <typename T, typename Char>
-    concept string_view_of =
-        std::same_as<T, std::basic_string_view<Char>>
-    or  std::same_as<T, fmt::basic_string_view<Char>>
-    ;
-
-}
-
-namespace csl::ag::io::details {
-
-    template <typename Char, Char... C>
-    class string_literal {
-        static constexpr Char value[sizeof...(C)] = { C... }; // NOLINT(*-c-arrays)
-    public:
-        template <concepts::string_view_of<Char> T>
-        constexpr operator T() const { return {value, sizeof...(C)}; } // NOLINT(*-explicit-constructor)
-    };
-    template <typename Char>
-    struct string_literal<Char> {
-        template <concepts::string_view_of<Char> T>
-        constexpr operator T() const { return {}; }// NOLINT(*-explicit-constructor)
-    };
-
-    template <typename Char, Char ... lhs_C, Char ... rhs_C>
-    [[nodiscard]] constexpr auto concat(string_literal<Char, lhs_C...>, string_literal<Char, rhs_C...>){
-        return string_literal<Char, lhs_C..., rhs_C...>{};
-    }
-}
-
-// TODO(Guillaume) per-style struct, default is set using a PP (possibly, cmake-provided variable)
-//  Might add an indent value project (like, -1 for instance)
-//  ex: clang-format brace-wrapping, AlignAfterOpenBracket, etc. https://clang.llvm.org/docs/ClangFormatStyleOptions.html#bracewrapping
-//  For now, we emulates the following style:
-//      AlignAfterOpenBracket: BlockIndent # AlwaysBreak
-//      BraceWrapping*: Never/false
-//      BracedInitializerIndentWidth: 4
-//      UseTab: Never
-//      IndentWidth: 4
-//      TabWidth: 4
-namespace csl::ag::io::details::configuration::style {
-    // template <typename Char> constexpr inline static fmt::basic_string_view<Char> opening_bracket_v = "{";
-    // template <typename Char> constexpr inline static fmt::basic_string_view<Char> closing_bracket_v = "}";
-    // template <typename Char> constexpr inline static fmt::basic_string_view<Char> separator_v = ",";
-
-    template <typename Char> constexpr inline static auto opening_bracket_v = string_literal<Char, '{'>{};
-    template <typename Char> constexpr inline static auto closing_bracket_v = string_literal<Char, '}'>{};
-    template <typename Char> constexpr inline static auto separator_v = string_literal<Char, ','>{};
-
-    namespace indentation {
-        template <typename Char>
-        constexpr inline static auto char_v = ' ';
-        constexpr inline static auto width_v = 4;
-    }
-}
-
-// aggregate formatter
-template <csl::ag::concepts::aggregate T, typename Char>
-requires (not fmt::is_range<T, Char>::value)
-and fmt::is_tuple_formattable<csl::ag::view_t<const T &>, Char>::value
-class fmt::formatter<T, Char> {
-
-    using csl_view_t = csl::ag::view_t<const T &>;
-    using formatter_t = fmt::formatter<csl_view_t, Char>;
-    formatter_t formatter_;
-
-public:
-
-    using csl_ag_product = void;
-
-    constexpr formatter(){
-        namespace style = csl::ag::io::details::configuration::style;
-        formatter_.set_brackets(
-            style::opening_bracket_v<Char>,
-            style::closing_bracket_v<Char>
-        );
-        formatter_.set_separator(
-            csl::ag::io::details::concat(
-                style::separator_v<Char>,
-                csl::ag::io::details::string_literal<Char, ' '>{})
-        );
-    }
-
-    constexpr auto parse(fmt::format_parse_context& ctx) {
-        // WARNING: spreading the parse_context to underlying aggregates/tuples/ranges depends on FMT_TUPLE_JOIN_SPECIFIERS,
-        // which is experimentale
-        return formatter_.parse(ctx);
-    }
-    template <typename FormatContext>
-    auto format(const T & value, FormatContext& ctx) const {
-        return formatter_.format(csl::ag::to_tuple_view(value), ctx);
-    }
-};
-
 // fmt_formatter alias: normalises fmt::formatter's 3-param signature to 2 params
 // so it can be passed as a template template parameter to ag_formatter_base.
 namespace csl::ag::io::details {
@@ -1974,6 +1880,19 @@ namespace csl::ag::io::details::concepts {
     template <typename T, typename Char>
     concept fmt_formattable = type_traits::is_fmt_formattable_v<T, Char>;
 }
+
+/// \brief fmt::formatter for plain aggregate T - default (braced, flat) output.
+/// WARNING: routes through ag_formatter_base, not fmt's native tuple_join_view formatter,
+/// per-element format-spec propagation (fmt feature enabler: FMT_TUPLE_JOIN_SPECIFIERS) is not used/available here.
+/// See simplification commit: 
+template <csl::ag::concepts::aggregate T, typename Char>
+requires (not csl::ag::io::details::concepts::decorator<T>)
+and (not std::ranges::range<T>)
+class fmt::formatter<T, Char>
+    : public csl::ag::io::details::ag_formatter_base<
+        csl::ag::io::details::fmt_formatter, T, Char
+    >
+{};
 
 #pragma region // formatted_view_t formatters (composable options)
 
