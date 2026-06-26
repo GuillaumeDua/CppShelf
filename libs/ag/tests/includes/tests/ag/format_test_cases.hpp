@@ -230,9 +230,25 @@ TEMPLATE_TEST_CASE("view composition" + implementation::name_suffix() + "", impl
     }
 
     {
-        constexpr auto view = csl::ag::io::indexed | csl::ag::io::typenamed;
+        constexpr auto view = csl::ag::io::indexed | csl::ag::io::typenamed | csl::ag::io::indented;
         CHECK(
-            implementation::format("{}", f::value | view)
+            implementation::format("{}", f::value |  view)
+            == f::indented_indexed_typenamed_expected
+        );
+    }
+
+    {
+        constexpr auto partial_view = csl::ag::io::indexed | csl::ag::io::typenamed;
+        CHECK(
+            implementation::format("{}", f::value | csl::ag::io::indented | partial_view)
+            == f::indented_indexed_typenamed_expected
+        );
+    }
+
+    {
+        constexpr auto partial_view = csl::ag::io::indexed | csl::ag::io::typenamed;
+        CHECK(
+            implementation::format("{}", f::value | partial_view | csl::ag::io::indented)
             == f::indented_indexed_typenamed_expected
         );
     }
