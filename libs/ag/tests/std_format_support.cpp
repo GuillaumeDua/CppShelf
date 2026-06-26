@@ -43,7 +43,7 @@ namespace {
         constexpr std::string_view name = "std";
 
         template <typename T>
-        auto format(std::string_view fmt_str, T const & value) {
+        auto format(std::string_view fmt_str, const T & value) {
             return std::vformat(fmt_str, std::make_format_args(value));
         }
     }

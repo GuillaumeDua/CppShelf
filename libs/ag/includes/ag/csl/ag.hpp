@@ -1319,27 +1319,27 @@ namespace csl::ag::io::details::concepts {
 
 namespace csl::ag::io {
 
-    /// \brief structured_bindable T | option => formatted_view_t
-    template <csl::ag::concepts::structured_bindable T, concepts::format_option Option>
+    /// \brief structured_bindable T | format_options (one tag, e.g. `indented`, or several composed, e.g. `indented | indexed`) => formatted_view_t
+    /// Tags (indented, indexed, typenamed, no_braces) implicitly convert to format_options, so this single overload covers both cases.
+    template <csl::ag::concepts::structured_bindable T>
     requires (not concepts::format_option<T>)
-    [[nodiscard]] auto operator|(T const & value, Option)
+    [[nodiscard]] auto operator|(const T & value, format_options options)
     -> details::decorators::formatted_view_t<std::remove_cvref_t<T>>
     {
         return {
             .value = value,
-            .options = Option::value
+            .options = options
         };
     }
 
-    /// \brief formatted_view_t | additional option => accumulated view (same depth, format_option)
-    template <typename T, concepts::format_option Option>
-    [[nodiscard]] auto operator|(details::decorators::formatted_view_t<T> view, Option)
+    /// \brief formatted_view_t | composed format_options => accumulated view (same depth)
+    template <typename T>
+    [[nodiscard]] auto operator|(details::decorators::formatted_view_t<T> view, format_options options)
     -> details::decorators::formatted_view_t<T>
     {
-
         return {
             .value = view.value,
-            .options = view.options | Option::value,
+            .options = view.options | options,
             .depth = view.depth
         };
     }

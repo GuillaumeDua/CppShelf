@@ -213,6 +213,30 @@ TEMPLATE_TEST_CASE("indented+indexed+typenamed" + implementation::name_suffix() 
         == f::indented_indexed_typenamed_expected
     );
 }
+
+TEMPLATE_TEST_CASE("view composition" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_1,
+    types::field_2,
+    types::field_3_nested,
+    types::field_3_nested_tuplelike,
+    types::field_4_nested_range,
+    types::field_everything
+) {
+    using f = fixture<TestType>;
+
+    {
+        constexpr auto view = csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed;
+        CHECK(implementation::format("{}", f::value | view) == f::indented_indexed_typenamed_expected);
+    }
+
+    {
+        constexpr auto view = csl::ag::io::indexed | csl::ag::io::typenamed;
+        CHECK(
+            implementation::format("{}", f::value | view)
+            == f::indented_indexed_typenamed_expected
+        );
+    }
+}
 #endif
 
 TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::name_suffix() + "", implementation::tags(),
