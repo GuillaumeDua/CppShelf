@@ -1884,7 +1884,7 @@ namespace csl::ag::io::details::concepts {
 /// \brief fmt::formatter for plain aggregate T - default (braced, flat) output.
 /// WARNING: routes through ag_formatter_base, not fmt's native tuple_join_view formatter,
 /// per-element format-spec propagation (fmt feature enabler: FMT_TUPLE_JOIN_SPECIFIERS) is not used/available here.
-/// See simplification commit: 
+/// See simplification commit 000e7d2fb749bca03aadc80b22bad7e2f6d27f26
 template <csl::ag::concepts::aggregate T, typename Char>
 requires (not csl::ag::io::details::concepts::decorator<T>)
 and (not std::ranges::range<T>)
