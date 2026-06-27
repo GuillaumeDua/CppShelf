@@ -11,16 +11,24 @@ auto main() -> int {
     struct A { int i; char c; };
     const A value{ .i = 42, .c = 'x' };
 
-    // NOTE: prefer std::print, if available
-    std::cout
-        << std::format("{}\n", value)
-        << std::format("{}\n", value | indented)
-        << std::format("{}\n", value | indexed)
-        << std::format("{}\n", value | typenamed)
-        << std::format("{}\n", value | indented | indexed | typenamed)
-    ;
+    // csl::ag::io options are reachable through two equivalent syntaxes, which produce identical outputs:
+    //   - a format-spec letter,   e.g. std::format("{:i}", value)
+    //   - a composable view,      e.g. value | indented
 
-    // WIP: view composition
-    // auto view = indented | indexed | typenamed;
-    // std::cout << std::format("{}", value | view);
+    // NOTE: prefer std::println, when available
+    std::cout << std::format("default:          -> {}\n", value);
+
+    std::cout << std::format("spec \"{{:i}}\"       -> {}\n", std::format("{:i}", value));
+    std::cout << std::format("view | indented   -> {}\n", value | indented);
+
+    std::cout << std::format("spec \"{{:x}}\"       -> {}\n", std::format("{:x}", value));
+    std::cout << std::format("view | indexed    -> {}\n", value | indexed);
+
+    std::cout << std::format("spec \"{{:t}}\"       -> {}\n", std::format("{:t}", value));
+    std::cout << std::format("view | typenamed  -> {}\n", value | typenamed);
+
+    // options compose: combine several letters in one spec, or | several views together
+    std::cout << std::format("spec \"{{:ixt}}\"     -> {}\n", std::format("{:ixt}", value));
+    constexpr auto composed_view = indented | indexed | typenamed;
+    std::cout << std::format("composed view     -> {}\n", value | composed_view);
 }
