@@ -22,9 +22,9 @@ The following example demonstrates some of the features which are available in `
 <!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
 #include <csl/typeinfo.hpp> // optional: gives csl::ag::io::typenamed clean type names (e.g. "int")
-#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
+#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT 1
 #include <csl/ag.hpp>
-#include <iostream>
+#include <iostream> // std::print might not be available yet: use `std::cout << std::format(...)`
 
 struct S { char c; int i; };
 
@@ -36,16 +36,22 @@ static_assert(std::same_as<char, csl::ag::element_t<0, S>>);
 static_assert(std::same_as<int,  csl::ag::element_t<1, S>>);
 
 auto main() -> int {
-    S value{ .c='A', .i=41 };
+    auto value = S{ .c='A', .i=41 }; // NOLINT
     ++csl::ag::get<1>(value);
 
     using namespace csl::ag::io;
     constexpr auto format_options = indexed | typenamed | indented;
-    std::cout << "value: " << format_options << value << '\n';
+    std::cout << std::format("{}", value | format_options); // equivalent to std::println("{:xit}", value)
+
+    // legacy alternative: CSL_AG__ENABLE_IOSTREAM_SUPPORT
+    // std::cout << "value: " << format_options << value << '\n';
+
+    // other alternative: CSL_AG__ENABLE_FMT_SUPPORT
+    // fmt::println("{:xit}", value)
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Mhd1raz3T)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/zW31zz3fh)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
@@ -76,7 +82,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/r59sKooeh)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/3jrKPhT8P)
 <!-- EXAMPLE_END: 02_structured_binding.cpp -->
 
 However, there is no - *simple* - way to access the following informations for a given aggregate type or value :
@@ -331,7 +337,7 @@ static_assert(csl::ag::size_v<A>      == 2);
 auto main() -> int {}
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/dbzsYM6oj)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/61PonYhxh)
 <!-- EXAMPLE_END: 03_size.cpp -->
 
 Just like `std::tuple_size`/`std::tuple_size_v`, the **value** can be accessed using a convenience alias :
@@ -356,7 +362,7 @@ static_assert(std::same_as<float, csl::ag::element_t<1, A>>);
 auto main() -> int {}
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/nW1Mbzaxn)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/8jcGdPfav)
 <!-- EXAMPLE_END: 04_element.cpp -->
 
 Just like `std::tuple_element/std::tuple_element_t`, the **type** can be accessed using a convenience alias :
@@ -388,7 +394,7 @@ static_assert(std::same_as<const char&&, csl::ag::view_element_t<2, const A&>>);
 auto main() -> int {}
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Y7vcxj75T)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xazP1vKds)
 <!-- EXAMPLE_END: 05_view_element.cpp -->
 
 The `type` nested-type can be accessed using a convenience alias :
@@ -447,7 +453,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/9c8aG9q1T)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/cqhP7xf1d)
 <!-- EXAMPLE_END: 06_to_tuple_owning.cpp -->
 
 Output:
@@ -484,7 +490,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/e5szGecsq)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/WWYfj97Gv)
 <!-- EXAMPLE_END: 07_to_tuple_type_traits.cpp -->
 
 Additionaly, [std::tuple_element_t](https://en.cppreference.com/w/cpp/utility/tuple/tuple_element) can be use to obtains the conversion result's element types.
@@ -515,7 +521,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/ob5G9WPbW)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/6se87rMsT)
 <!-- EXAMPLE_END: 08_to_tuple_example1.cpp -->
 
 Output:
@@ -552,7 +558,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/oGEss3Eba)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/zWr4fTe1K)
 <!-- EXAMPLE_END: 09_to_tuple_example2.cpp -->
 
 Output:
@@ -613,7 +619,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/94Gnr3sz1)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/eMM3P9GTz)
 <!-- EXAMPLE_END: 10_to_tuple_view.cpp -->
 
 Additionally, `csl::ag::view_element(_t)<N,T>` can be used to obtains a field's type information, by index.
@@ -639,7 +645,7 @@ static_assert(std::same_as<int &, csl::ag::view_element_t<1, const type&>>);
 auto main() -> int {}
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/rqh9TcfGM)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/vGYhPPGxv)
 <!-- EXAMPLE_END: 11_view_element_cvref.cpp -->
 
 ### tuplelike interface
@@ -667,7 +673,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/P58Wbe5jh)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/o1z7s7r6z)
 <!-- EXAMPLE_END: 12_tuple_element.cpp -->
 
 #### std::get
@@ -692,7 +698,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/ovvqYh1x1)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/1e3vWhhx5)
 <!-- EXAMPLE_END: 13_get_simple.cpp -->
 
 Output:
@@ -719,7 +725,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/59P51KbGW)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/3GP7eGWa6)
 <!-- EXAMPLE_END: 14_get_advanced.cpp -->
 
 Output:
@@ -742,7 +748,7 @@ static_assert(csl::ag::get<1>(value) == 'c');
 auto main() -> int {}
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/e8rvG7561)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hrnzGjj3W)
 <!-- EXAMPLE_END: 15_get_constexpr.cpp -->
 
 ### Functional API
@@ -767,7 +773,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/T3sKb3enW)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/GbEjrKhPf)
 <!-- EXAMPLE_END: 16_apply.cpp -->
 
 #### csl::ag::for_each
@@ -790,7 +796,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/aGGd9Gaxq)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/baff8dTzc)
 <!-- EXAMPLE_END: 17_for_each.cpp -->
 
 Output:
@@ -927,7 +933,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/orY3Mj95c)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Wve3j19b9)
 <!-- EXAMPLE_END: 18_formatting_ostream_simple.cpp -->
 
 Output:
@@ -980,7 +986,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/dKjqGPeG8)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/MY7PYePTd)
 <!-- EXAMPLE_END: 19_formatting_ostream_advanced.cpp -->
 
 Output:
@@ -1063,7 +1069,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/nj8MGcPrT)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/hdM61xWbj)
 <!-- EXAMPLE_END: 20_homogeneity.cpp -->
 
 ## Current limitations
@@ -1120,7 +1126,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/sKMG89Kse)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/9MhdYn9dh)
 <!-- EXAMPLE_END: 21_internal_size.cpp -->
 
 ---
