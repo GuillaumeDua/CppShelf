@@ -87,23 +87,75 @@ def transform_includes(source: str) -> str:
     return source
 
 
+def build_layout(source: str, *, compiler_id: str, compiler_options: str) -> dict:
+    """GoldenLayout content tree: code on the left, asm/executor stacked on the right."""
+    filters = {'commentOnly': True, 'trim': True, 'intel': True}
+    return {
+        'content': [{
+            'type': 'row',
+            'content': [
+                {
+                    'type': 'stack',
+                    'width': 50,
+                    'content': [{
+                        'type': 'component',
+                        'componentName': 'codeEditor',
+                        'componentState': {'id': 1, 'source': source, 'lang': 'c++'},
+                    }],
+                },
+                {
+                    'type': 'column',
+                    'width': 50,
+                    'content': [
+                        {
+                            'type': 'stack',
+                            'height': 50,
+                            'content': [{
+                                'type': 'component',
+                                'componentName': 'compiler',
+                                'componentState': {
+                                    'id': 1,
+                                    'compiler': compiler_id,
+                                    'source': 1,
+                                    'options': compiler_options,
+                                    'filters': filters,
+                                    'libs': [],
+                                    'lang': 'c++',
+                                },
+                            }],
+                        },
+                        {
+                            'type': 'stack',
+                            'height': 50,
+                            'content': [{
+                                'type': 'component',
+                                'componentName': 'executor',
+                                'componentState': {
+                                    'compiler': compiler_id,
+                                    'source': 1,
+                                    'options': compiler_options,
+                                    'execArgs': '',
+                                    'execStdin': '',
+                                    'libs': [],
+                                    'lang': 'c++',
+                                    'compilationPanelShown': False,
+                                    'compilerOutShown': True,
+                                    'argsPanelShown': False,
+                                    'stdinPanelShown': False,
+                                    'wrap': False,
+                                },
+                            }],
+                        },
+                    ],
+                },
+            ],
+        }],
+    }
+
+
 def create_godbolt_link(source: str, *, compiler_id: str, compiler_options: str, api_url: str) -> str:
     payload = json.dumps({
-        'sessions': [{
-            'id': 1,
-            'language': 'c++',
-            'source': source,
-            'compilers': [{
-                'id': compiler_id,
-                'options': compiler_options,
-                'libs': [],
-                'filters': {
-                    'commentOnly': True,
-                    'trim': True,
-                    'intel': True,
-                },
-            }],
-        }],
+        'config': build_layout(source, compiler_id=compiler_id, compiler_options=compiler_options),
     }).encode('utf-8')
 
     req = urllib.request.Request(
