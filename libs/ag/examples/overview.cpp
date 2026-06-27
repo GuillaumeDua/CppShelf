@@ -59,8 +59,8 @@ auto main(int, char*[]) -> int
         int dot = 0;
         csl::ag::tuplelike::for_each_zipped(
             [&dot](auto a, auto b) { dot += a * b; },
-            point{.x=1, .y=2},
-            point{.x=3, .y=4}
+            point{ .x = 1, .y = 2},
+            point{ .x = 3, .y = 4}
         );
         return dot; // 1*3 + 2*4 == 11
     }();

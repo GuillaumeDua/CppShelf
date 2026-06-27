@@ -14,6 +14,7 @@ auto main() -> int {
     // csl::ag::io options are reachable through two equivalent syntaxes, which produce identical outputs:
     //   - a format-spec letter,   e.g. std::format("{:i}", value)
     //   - a composable view,      e.g. value | indented
+    // Also, both can be mixed.
 
     // NOTE: prefer std::println, when available
     std::cout << std::format("default:          -> {}\n", value);
