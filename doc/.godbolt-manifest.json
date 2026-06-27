@@ -1,86 +1,86 @@
 {
   "libs/ag/examples/21_internal_size.cpp": {
     "sha256": "fe9edac8c162b7fb28712134bdb0f6c67fdc89dd8373f92f1b700db82ad68383",
-    "url": "https://godbolt.org/z/sKMG89Kse"
+    "url": "https://godbolt.org/z/9MhdYn9dh"
   },
   "libs/ag/examples/20_homogeneity.cpp": {
     "sha256": "05c33cade939b72c0ba7ad3538ab96e7c4f61380d6d91b432ebb95c657aee8fa",
-    "url": "https://godbolt.org/z/nj8MGcPrT"
+    "url": "https://godbolt.org/z/hdM61xWbj"
   },
   "libs/ag/examples/19_formatting_ostream_advanced.cpp": {
     "sha256": "ea6d85755dfbe597f818659760120f1142ac0bc2bf4e6d02362047626cbc3ad8",
-    "url": "https://godbolt.org/z/dKjqGPeG8"
+    "url": "https://godbolt.org/z/MY7PYePTd"
   },
   "libs/ag/examples/18_formatting_ostream_simple.cpp": {
     "sha256": "156309f6a6a205f7e5fe849d09ac2c7037a791ff369d1fbabfa826048d7222f4",
-    "url": "https://godbolt.org/z/orY3Mj95c"
+    "url": "https://godbolt.org/z/Wve3j19b9"
   },
   "libs/ag/examples/17_for_each.cpp": {
     "sha256": "ef4dc0f22e5d0f49e187a91c50a96d492246ce889f6fa9a2b46310226a7a461e",
-    "url": "https://godbolt.org/z/aGGd9Gaxq"
+    "url": "https://godbolt.org/z/baff8dTzc"
   },
   "libs/ag/examples/16_apply.cpp": {
     "sha256": "0b045ce81a037718e9ebf2ecac85e97669a4fbada0f027f5dc08b640ceb74548",
-    "url": "https://godbolt.org/z/T3sKb3enW"
+    "url": "https://godbolt.org/z/GbEjrKhPf"
   },
   "libs/ag/examples/15_get_constexpr.cpp": {
     "sha256": "d7ac8b5066e931422d6215f4997ff82e36bc22cf06bdc23d6462d3ec5f883c41",
-    "url": "https://godbolt.org/z/e8rvG7561"
+    "url": "https://godbolt.org/z/hrnzGjj3W"
   },
   "libs/ag/examples/14_get_advanced.cpp": {
     "sha256": "a2fa939383033bd0cf7cfff2678abc6f9e739825e5932ced85685071fc81d159",
-    "url": "https://godbolt.org/z/59P51KbGW"
+    "url": "https://godbolt.org/z/3GP7eGWa6"
   },
   "libs/ag/examples/13_get_simple.cpp": {
     "sha256": "98fbf7e97f2959204f594822d236eb6e587cabf6a22375a73c529133118129cb",
-    "url": "https://godbolt.org/z/ovvqYh1x1"
+    "url": "https://godbolt.org/z/1e3vWhhx5"
   },
   "libs/ag/examples/12_tuple_element.cpp": {
     "sha256": "66de01376d4b40830ce967ca5ba6be962d115ab6e8324aa3cabea98b27ea7eba",
-    "url": "https://godbolt.org/z/P58Wbe5jh"
+    "url": "https://godbolt.org/z/o1z7s7r6z"
   },
   "libs/ag/examples/11_view_element_cvref.cpp": {
     "sha256": "229835e8e91dce25db26f465a6440a574cd3fbf35439cb0a9ae5246289232444",
-    "url": "https://godbolt.org/z/rqh9TcfGM"
+    "url": "https://godbolt.org/z/vGYhPPGxv"
   },
   "libs/ag/examples/10_to_tuple_view.cpp": {
     "sha256": "2e3715e794009b879d7f71b1f0f7557eb28ff1782a85532ebf33a85fe8f2247a",
-    "url": "https://godbolt.org/z/94Gnr3sz1"
+    "url": "https://godbolt.org/z/eMM3P9GTz"
   },
   "libs/ag/examples/09_to_tuple_example2.cpp": {
     "sha256": "f00dfd53fe840610c10bc732e0825b20b52d615d07c0d720c6adb4546d9ea184",
-    "url": "https://godbolt.org/z/oGEss3Eba"
+    "url": "https://godbolt.org/z/zWr4fTe1K"
   },
   "libs/ag/examples/08_to_tuple_example1.cpp": {
     "sha256": "ff4b1a37dc8665fe9b71639abbdf2365881764739cb24f5be69a5efb964daf4c",
-    "url": "https://godbolt.org/z/ob5G9WPbW"
+    "url": "https://godbolt.org/z/6se87rMsT"
   },
   "libs/ag/examples/07_to_tuple_type_traits.cpp": {
     "sha256": "f044d6fe1d954e70c25583cf6547d1b017d800b6d153c7817d10e10f4b6d321d",
-    "url": "https://godbolt.org/z/e5szGecsq"
+    "url": "https://godbolt.org/z/WWYfj97Gv"
   },
   "libs/ag/examples/06_to_tuple_owning.cpp": {
     "sha256": "34877e20f7d7fdba095c9636e09548695d377d28cdf7de83405a07e9da606b4c",
-    "url": "https://godbolt.org/z/9c8aG9q1T"
+    "url": "https://godbolt.org/z/cqhP7xf1d"
   },
   "libs/ag/examples/05_view_element.cpp": {
     "sha256": "badfed6a13fcf2f9ec6e889db9b68e2ae5f7b28b9cb9782e1d81949857090622",
-    "url": "https://godbolt.org/z/Y7vcxj75T"
+    "url": "https://godbolt.org/z/xazP1vKds"
   },
   "libs/ag/examples/04_element.cpp": {
     "sha256": "07d04cf163b6338d0abaa39fa28091c9086572a1c9a45a128ce1c7d2488d8426",
-    "url": "https://godbolt.org/z/nW1Mbzaxn"
+    "url": "https://godbolt.org/z/8jcGdPfav"
   },
   "libs/ag/examples/03_size.cpp": {
     "sha256": "da2871b44742d521ac75f28558a09db897a7db938a53f58971f946a8e736e58a",
-    "url": "https://godbolt.org/z/dbzsYM6oj"
+    "url": "https://godbolt.org/z/61PonYhxh"
   },
   "libs/ag/examples/02_structured_binding.cpp": {
     "sha256": "5d6f6b8951d6f3f979a8a9b634aae22b460a68885e148b42fe340d87a5aa7c6e",
-    "url": "https://godbolt.org/z/r59sKooeh"
+    "url": "https://godbolt.org/z/3jrKPhT8P"
   },
   "libs/ag/examples/01_overview_demo.cpp": {
-    "sha256": "4838f3dae9c444ca5993b5599dedbf88213bcf58e2791c00fcb6887b2ab2c774",
-    "url": "https://godbolt.org/z/Mhd1raz3T"
+    "sha256": "c0f0416009c4ce13f6878d7869401e8fe90dfab841d66a13abb08f9a0fa3dadf",
+    "url": "https://godbolt.org/z/zW31zz3fh"
   }
 }
