@@ -41,8 +41,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set CPM cache path
-      run: echo "CPM_SOURCE_CACHE=$HOME/.cache/CPM" >> $GITHUB_ENV
+    - name: Set CPM env vars
+      run: |
+        echo "CPM_SOURCE_CACHE=$HOME/.cache/CPM" >> $GITHUB_ENV
+        echo "CPM_USE_LOCAL_PACKAGES=ON" >> $GITHUB_ENV
 
     - name: Cache CPM packages
       uses: actions/cache@v4
@@ -51,17 +53,34 @@ jobs:
         key: cpm-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/cmake/**') }}
         restore-keys: cpm-${{ runner.os }}-
 
+    - name: Set ccache path
+      run: |
+        echo "CCACHE_DIR=$HOME/.cache/ccache" >> $GITHUB_ENV
+        echo "CCACHE_MAXSIZE=300M" >> $GITHUB_ENV
+
+    - name: Cache ccache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ccache
+        key: ccache-${{ runner.os }}-${{ matrix.configuration.preset }}-${{ matrix.configuration.version }}-${{ github.run_id }}
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ matrix.configuration.preset }}-${{ matrix.configuration.version }}-
+
+    - name: apt update
+      run: sudo apt update -qqy
+
+    - name: Install ccache
+      run: sudo apt install -qqy ccache
+
     - name: Install clang
       if: matrix.configuration.compiler == 'clang'
       run: |
-        sudo apt update -qqy
         script_name="${{ github.workspace }}/.devcontainer/scripts/llvm.sh"
         sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --minimalistic --cleanup --versions="${{ matrix.configuration.version }}"
 
     - name: Install gcc
       if: matrix.configuration.compiler == 'gcc'
       run: |
-        sudo apt update -qqy
         script_name="${{ github.workspace }}/.devcontainer/scripts/gcc.sh"
         sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
 
@@ -71,6 +90,8 @@ jobs:
     - name: 📦 CMake configure
       run: |
         cmake --preset ${{ matrix.configuration.preset }} \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCSL_BUILD_ALL:BOOL=FALSE     \
           -DCSL_BENCHMARK_ALL:BOOL=FALSE \
           -DCSL_EXAMPLE_ALL:BOOL=FALSE   \
@@ -91,6 +112,10 @@ jobs:
 
     - name: 🧪 CTest (Release)
       run: ctest --preset ${{ matrix.configuration.preset }}-release
+
+    - name: 📊 ccache stats
+      if: always()
+      run: ccache -s
 
   ci_passed:
     name: CI passed
