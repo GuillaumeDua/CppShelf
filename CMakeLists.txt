@@ -9,18 +9,34 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 # top-level project
 project(csl LANGUAGES CXX)
 
-set(PROJECT_VERSION                 0.3.1) # not relying on latest tag to avoid stale target
+set(PROJECT_VERSION                 0.3.1) # not relying on latest tag to avoid unecessary stale targets
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)
 
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
     message(FATAL_ERROR "[${PROJECT_NAME}] : In-source build not recommended")
 endif()
 
+# Dependencies: caching
+if (NOT DEFINED CPM_SOURCE_CACHE AND NOT DEFINED ENV{CPM_SOURCE_CACHE} AND DEFINED ENV{HOME})
+    set(CPM_SOURCE_CACHE "$ENV{HOME}/.cache/CPM" CACHE PATH "[${PROJECT_NAME}] CPM_SOURCE_CACHE - shared across build directories/presets")
+endif()
+
+# Dependencies: local vs. fetch
+if (NOT DEFINED CPM_USE_LOCAL_PACKAGES AND NOT DEFINED ENV{CPM_USE_LOCAL_PACKAGES})
+    set(CPM_USE_LOCAL_PACKAGES ON CACHE BOOL "[${PROJECT_NAME}] CPM_USE_LOCAL_PACKAGES - let CPMAddPackage() try find_package() before fetching")
+endif()
+
+find_program(CSL_CCACHE_PROGRAM ccache)
+if (CSL_CCACHE_PROGRAM AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CSL_CCACHE_PROGRAM} CACHE STRING "[${PROJECT_NAME}] CXX compiler launcher")
+    set(CMAKE_C_COMPILER_LAUNCHER   ${CSL_CCACHE_PROGRAM} CACHE STRING "[${PROJECT_NAME}] C compiler launcher")
+endif()
+
 include(CMakeDependentOption)
 include(CMakeParseArguments)
 
 message("[${PROJECT_NAME}] Exporting csl cmake modules as [${CMAKE_CURRENT_SOURCE_DIR}/cmake]")
-set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE PATH "csl: path to exported cmake modules")
+set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE PATH "[${PROJECT_NAME}] path to exported cmake modules")
 list(APPEND CMAKE_MODULE_PATH ${CSL_CMAKE_MODULE_PATH})
 
 # Internal modules
@@ -36,7 +52,7 @@ include(csl/list_subdirectories)
 csl_symlink_compile_commands()
 
 ## Build informations
-message(STATUS  "[${PROJECT_NAME}] Build informations")
+message(STATUS "[${PROJECT_NAME}] Build informations")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 csl_print_build_info()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -51,13 +67,13 @@ message(STATUS  "[${PROJECT_NAME}] Global configuration")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
 ### Components - build
-option(CSL_BUILD_ALL "CSL: Build all components" ON) # force all components build
+option(CSL_BUILD_ALL "[${PROJECT_NAME}] Build all components" ON) # force all components build
 csl_print_aligned(STATUS CSL_BUILD_ALL)
 
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
 
-    option(CSL_BUILD_${component_name} "CSL: Build ${component_name}" ${CSL_BUILD_ALL})
+    option(CSL_BUILD_${component_name} "[${PROJECT_NAME}] Build ${component_name}" ${CSL_BUILD_ALL})
     csl_print_aligned(STATUS CSL_BUILD_${component_name}
         depends CSL_BUILD_ALL
     )
