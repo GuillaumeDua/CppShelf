@@ -340,6 +340,27 @@ cmake --build --preset gcc-debug
 ctest --preset gcc-debug
 ```
 
+### Dependency management
+
+- Tests (`csl::test`) use [Catch2](https://github.com/catchorg/Catch2)
+- some components optionally use [fmt](https://github.com/fmtlib/fmt) (`CSL_*__ENABLE_FMTLIB_SUPPORT`).
+
+Both are **opt-ins** and fetched on demand via [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) - only when the corresponding component/option is enabled.
+
+> 💡 The top-level [`CMakeLists.txt`](https://github.com/GuillaumeDua/CppShelf/blob/main/CMakeLists.txt) sets a few caching defaults to avoid re-fetching/rebuilding these on every configure,  
+> each a no-op if its precondition isn't met:
+
+| Mechanism                | Default                                  | Effect                                                                                                                     |
+| ------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `CPM_SOURCE_CACHE`       | `~/.cache/CPM`                           | Downloaded sources are shared across presets/build directories instead of re-fetched per `build/<preset>`.                 |
+| `CPM_USE_LOCAL_PACKAGES` | `ON`                                     | `CPMAddPackage()` tries `find_package()` first; favor already installed (e.g. via `apt`), fetch otherwise.                 |
+| `ccache`                 | enabled when `ccache` is found on `PATH` | Compiled objects are cached, so rebuilding 3rd-parties into a fresh `build/` is a cache hit instead of a real compilation. |
+
+All three can be overridden the usual way (`-D<var>=...` or environment variable) and are skipped if their precondition doesn't hold:
+
+- no `ccache` installed
+- `CPM_SOURCE_CACHE` already set by the environment -> which is how CI pins its own cache path.
+
 ## Misc
 
 This Readme.md 's ressources
