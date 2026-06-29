@@ -289,34 +289,54 @@ Highier limit for aggregate field count</h4>
 <p>The choice here to use <b>CMake</b> in order to generate C++ code <b>upstream</b> is a reasonable trade-off to guarantee easier debugging and avoid dark-magic tricks (such as relying on PP macros, etc.).</p>
 <p>👉 If you are willing to propose a better design, you can submit a <a href="https://github.com/GuillaumeDua/CppShelf/pulls">PR here</a>. </p>
 </blockquote>
-<h4 class="doxsection"><a class="anchor" id="formatting-and-printing-experimentale"></a>
-Formatting and printing (experimentale)</h4>
-<p>⚠️ This section is <b>experimentale</b>, and <b>SHOULD NOT</b> be used in production. <br  />
- Breaking changes are very likely, as the API is instable <b>for now</b>.</p>
-<p>All options in this section are opt-ins <em>(<span class="tt">OFF</span> by default)</em>, and can be combined.</p>
+<h4 class="doxsection"><a class="anchor" id="formatting-and-printing"></a>
+Formatting and printing</h4>
+<blockquote class="doxtable">
+<p>💡 Everything related to formatting and printing lives in the <span class="tt">csl::ag::io</span> namespace. </p>
+</blockquote>
+<blockquote class="doxtable">
+<p>💡 All options in this section are opt-ins <em>(<span class="tt">OFF</span> by default)</em>, and can be combined. </p>
+</blockquote>
+<p>Supports 3 parallel backends:</p>
+<ul>
+<li><span class="tt">std::format</span></li>
+<li><span class="tt">fmt</span></li>
+<li><span class="tt">std::ostream</span> (e.g <span class="tt">std::cout</span>)</li>
+</ul>
+<p>Format-specs are composable, and include <span class="tt">indexed</span> (":x"), <span class="tt">indented</span> (":i"), and <span class="tt">typenamed</span> (":t").</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i{}; };</div>
 <div class="line"><span class="keyword">struct </span>my_aggregate{ <span class="keywordtype">char</span> c = <span class="charliteral">&#39;a&#39;</span>; A a = A{ .i = 13} };</div>
 <div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> my_aggregate_value = my_aggregate{};</div>
 </div><!-- fragment --><ul>
 <li><p class="startli"><span class="tt">CSL_AG__ENABLE_STD_FORMAT_SUPPORT</span>: add <span class="tt">std::formatter&lt;csl::ag::aggregate T&gt;</span></p>
-<div class="fragment"><div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value);                          <span class="comment">// compact, default → {&#39;a&#39;, {13}}</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{:n}&quot;</span>, my_aggregate_value);                          <span class="comment">// no outer brackets → &#39;a&#39;{13}</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value | csl::ag::io::indented);  <span class="comment">// pretty, multi-line → see below</span></div>
+<div class="fragment"><div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value);                         <span class="comment">// compact, default → {&#39;a&#39;, {13}}</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{:n}&quot;</span>,   my_aggregate_value);                         <span class="comment">// no outer brackets → &#39;a&#39;{13}</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{:xti}&quot;</span>, my_aggregate_value);                         <span class="comment">// format-spec letters: x=indexed, t=typenamed, i=indented</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value | csl::ag::io::indented); <span class="comment">// pretty, multi-line → see below</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> view = indexed | typenamed | indented;             <span class="comment">// composed format_options, reusable</span></div>
+<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value | view);                      <span class="comment">// view-based composition → same as &quot;{:xti}&quot;</span></div>
 </div><!-- fragment --></li>
 <li><span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span>: makes <span class="tt">csl::ag</span> depends on the <span class="tt">fmt</span> library, and add <span class="tt">fmt::formatter&lt;csl::ag::aggregate T&gt;</span>.</li>
 </ul>
 <blockquote class="doxtable">
 <p>If <a href="https://github.com/fmtlib/fmt">fmtlib</a>'s <span class="tt">cmake</span> target <span class="tt">fmt::fmt-header-only</span> is not available when building <span class="tt">csl::ag</span> with <span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span> set to <span class="tt">ON</span>, then such a dependency will be injected using <span class="tt">cmake FetchContent</span>. </p>
 </blockquote>
-<div class="fragment"><div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value);</div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{:n}&quot;</span>, my_aggregate_value);</div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,   my_aggregate_value | csl::ag::io::indented);</div>
+<div class="fragment"><div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value);</div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{:n}&quot;</span>,   my_aggregate_value);</div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{:xti}&quot;</span>, my_aggregate_value); <span class="comment">// format-spec letters: x=indexed, t=typenamed, i=indented</span></div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value | csl::ag::io::indented);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
+<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> view = indexed | typenamed | indented; <span class="comment">// composed format_options, reusable</span></div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value | view);          <span class="comment">// view-based composition → same as &quot;{:xti}&quot;</span></div>
 </div><!-- fragment --><ul>
 <li><p class="startli"><span class="tt">CSL_AG__ENABLE_IOSTREAM_SUPPORT</span>: add <span class="tt">csl::ag::io::operator&lt;&lt;(std::ostream &amp;, <a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> auto const &amp;)</span></p>
 <div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line">std::cout &lt;&lt; my_aggregate_value;               <span class="comment">// compact, default</span></div>
-<div class="line">std::cout &lt;&lt; no_braces &lt;&lt; my_aggregate_value;   <span class="comment">// one-shot manipulator → no outer brackets</span></div>
-<div class="line">std::cout &lt;&lt; (my_aggregate_value | indented);   <span class="comment">// view-based composition → pretty, multi-line</span></div>
+<div class="line">std::cout &lt;&lt; my_aggregate_value;              <span class="comment">// compact, default</span></div>
+<div class="line">std::cout &lt;&lt; no_braces &lt;&lt; my_aggregate_value; <span class="comment">// one-shot manipulator → no outer brackets</span></div>
+<div class="line">std::cout &lt;&lt; (my_aggregate_value | indented); <span class="comment">// view-based composition → pretty, multi-line</span></div>
 </div><!-- fragment --></li>
 <li><p class="startli"><span class="tt">csl::ag::io::to_string</span>: available as soon as any one of the options above is enabled. Returns a <span class="tt">std::string</span> directly, with the same call syntax regardless of which backend is active (favors <span class="tt">std::format</span>, then <span class="tt">fmt::format</span>, then <span class="tt">std::ostream</span>).</p>
 <div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
@@ -729,7 +749,7 @@ csl::ag::for_each</h4>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/baff8dTzc"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Output:</p>
 <div class="fragment"><div class="line">42 0.13 </div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="formatting-and-printing"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="formatting-and-printing-1"></a>
 Formatting and printing</h3>
 <p>There are three ways to pretty-print aggregate types :</p>
 <ul>

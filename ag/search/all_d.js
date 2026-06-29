@@ -6,7 +6,6 @@ var searchData=
   ['philosophy_20design_20choices_3',['Philosophy &amp;amp; design choices',['../index.html#philosophy--design-choices',1,'']]],
   ['plain_20download_4',['Plain download',['../index.html#plain-download',1,'']]],
   ['presentation_5',['Overall presentation',['../index.html#overall-presentation',1,'']]],
-  ['printing_6',['Formatting and printing',['../index.html#formatting-and-printing',1,'']]],
-  ['printing_20experimentale_7',['Formatting and printing (experimentale)',['../index.html#formatting-and-printing-experimentale',1,'']]],
-  ['produced_8',['produced',['../conceptcsl_1_1ag_1_1concepts_1_1produced.html',1,'csl::ag::concepts']]]
+  ['printing_6',['printing',['../index.html#formatting-and-printing',1,'Formatting and printing'],['../index.html#formatting-and-printing-1',1,'Formatting and printing']]],
+  ['produced_7',['produced',['../conceptcsl_1_1ag_1_1concepts_1_1produced.html',1,'csl::ag::concepts']]]
 ];
