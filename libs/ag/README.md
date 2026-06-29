@@ -202,12 +202,19 @@ To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_
 >
 > 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
 
-#### Formatting and printing (experimentale)
+#### Formatting and printing
 
-⚠️ This section is **experimentale**, and **SHOULD NOT** be used in production.  
-Breaking changes are very likely, as the API is instable **for now**.
+> 💡 Everything related to formatting and printing lives in the `csl::ag::io` namespace.
 
-All options in this section are opt-ins *(`OFF` by default)*, and can be combined.
+> 💡 All options in this section are opt-ins *(`OFF` by default)*, and can be combined.
+
+Supports 3 parallel backends:
+
+- `std::format`
+- `fmt`
+- `std::ostream` (e.g `std::cout`)
+
+Format-specs are composable, and include `indexed` (":x"), `indented` (":i"), and `typenamed` (":t").
 
 ```cpp
 struct A{ int i{}; };
@@ -218,9 +225,14 @@ constexpr auto my_aggregate_value = my_aggregate{};
 - `CSL_AG__ENABLE_STD_FORMAT_SUPPORT`: add `std::formatter<csl::ag::aggregate T>`
 
   ```cpp
-  std::print("{}",   my_aggregate_value);                          // compact, default → {'a', {13}}
-  std::print("{:n}", my_aggregate_value);                          // no outer brackets → 'a'{13}
-  std::print("{}",   my_aggregate_value | csl::ag::io::indented);  // pretty, multi-line → see below
+  std::print("{}",     my_aggregate_value);                         // compact, default → {'a', {13}}
+  std::print("{:n}",   my_aggregate_value);                         // no outer brackets → 'a'{13}
+  std::print("{:xti}", my_aggregate_value);                         // format-spec letters: x=indexed, t=typenamed, i=indented
+  std::print("{}",     my_aggregate_value | csl::ag::io::indented); // pretty, multi-line → see below
+
+  using namespace csl::ag::io;
+  constexpr auto view = indexed | typenamed | indented;             // composed format_options, reusable
+  std::print("{}", my_aggregate_value | view);                      // view-based composition → same as "{:xti}"
   ```
 
 - `CSL_AG__ENABLE_FMTLIB_SUPPORT`: makes `csl::ag` depends on the `fmt` library, and add `fmt::formatter<csl::ag::aggregate T>`.
@@ -228,18 +240,23 @@ constexpr auto my_aggregate_value = my_aggregate{};
   > If [fmtlib](https://github.com/fmtlib/fmt)'s `cmake` target `fmt::fmt-header-only` is not available when building `csl::ag` with `CSL_AG__ENABLE_FMTLIB_SUPPORT` set to `ON`, then such a dependency will be injected using `cmake FetchContent`.
 
   ```cpp
-  fmt::print("{}",   my_aggregate_value);
-  fmt::print("{:n}", my_aggregate_value);
-  fmt::print("{}",   my_aggregate_value | csl::ag::io::indented);
+  fmt::print("{}",     my_aggregate_value);
+  fmt::print("{:n}",   my_aggregate_value);
+  fmt::print("{:xti}", my_aggregate_value); // format-spec letters: x=indexed, t=typenamed, i=indented
+  fmt::print("{}",     my_aggregate_value | csl::ag::io::indented);
+
+  using namespace csl::ag::io;
+  constexpr auto view = indexed | typenamed | indented; // composed format_options, reusable
+  fmt::print("{}", my_aggregate_value | view);          // view-based composition → same as "{:xti}"
   ```
 
 - `CSL_AG__ENABLE_IOSTREAM_SUPPORT`: add `csl::ag::io::operator<<(std::ostream &, csl::ag::concepts::structured_bindable auto const &)`
 
   ```cpp
   using namespace csl::ag::io;
-  std::cout << my_aggregate_value;               // compact, default
-  std::cout << no_braces << my_aggregate_value;   // one-shot manipulator → no outer brackets
-  std::cout << (my_aggregate_value | indented);   // view-based composition → pretty, multi-line
+  std::cout << my_aggregate_value;              // compact, default
+  std::cout << no_braces << my_aggregate_value; // one-shot manipulator → no outer brackets
+  std::cout << (my_aggregate_value | indented); // view-based composition → pretty, multi-line
   ```
 
 - `csl::ag::io::to_string`: available as soon as any one of the options above is enabled. Returns a `std::string` directly, with the same call syntax regardless of which backend is active (favors `std::format`, then `fmt::format`, then `std::ostream`).
