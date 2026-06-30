@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "schedule": ["before 6am on saturday"],
+  "labels": ["dependencies"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "CPM.cmake bootstrap version pinned in csl_get_cpm()",
+      "fileMatch": ["^cmake/csl/get_cpm\\.cmake$"],
+      "matchStrings": [
+        "set\\(CSL_GET_CPM_DEFAULT_VERSION\\s+\"(?<currentValue>[^\"]+)\"\\s+CACHE"
+      ],
+      "depNameTemplate": "cpm-cmake/CPM.cmake",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "matchManagers": ["cmake"],
+      "matchPackageNames": ["fmtlib/fmt"],
+      "groupName": "fmt (CPM)"
+    },
+    {
+      "matchManagers": ["cmake"],
+      "matchPackageNames": ["catchorg/Catch2"],
+      "groupName": "Catch2 (CPM)"
+    },
+    {
+      "matchDepNames": ["cpm-cmake/CPM.cmake"],
+      "groupName": "CPM.cmake bootstrap"
+    }
+  ]
+}
