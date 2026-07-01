@@ -16,6 +16,17 @@
       "depNameTemplate": "cpm-cmake/CPM.cmake",
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "zsh-in-docker release URL in Dockerfile",
+      "fileMatch": ["^\\.devcontainer/Dockerfile$"],
+      "matchStrings": [
+        "github\\.com/deluan/zsh-in-docker/releases/download/v(?<currentValue>[^/]+)/zsh-in-docker\\.sh"
+      ],
+      "depNameTemplate": "deluan/zsh-in-docker",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ],
   "packageRules": [
