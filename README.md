@@ -322,6 +322,12 @@ indented:
 
 ## Development
 
+### Toolchain installation scripts
+
+[`.devcontainer/scripts/`](https://github.com/GuillaumeDua/CppShelf/blob/main/.devcontainer/scripts) provides standalone CLI scripts to install `GCC` and `LLVM/Clang` toolchains (used by the `devcontainer` and `WSL2` integrations, reusable on any `Debian/Ubuntu-based` systems).
+
+See [`.devcontainer/scripts/README.md`](https://github.com/GuillaumeDua/CppShelf/blob/main/.devcontainer/scripts/README.md) for usage.
+
 ### Building from source - CMake presets
 
 [`CMakePresets.json`](https://github.com/GuillaumeDua/CppShelf/blob/main/CMakePresets.json) provides ready-to-use configure/build/test presets, combining a compiler/stdlib pair with a build type:
