@@ -1116,7 +1116,8 @@ namespace csl::ag::tuplelike {
     }
     template <std::size_t index>
     constexpr auto get(csl::ag::concepts::tuple_like auto && value) -> decltype(auto) {
-        return std::get<index>(csl_fwd(value));
+        using std::get;
+        return get<index>(csl_fwd(value)); // ADL
     }
 
     // algorithms
