@@ -62,7 +62,7 @@ See project's
 
 ### 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/mp/includes/mp/csl/mp.hpp)
 
-A collection of **C++ TMP** *(C++ template-metaprogramming)* utilities
+A tuple implementation and **C++ TMP** *(C++ template-metaprogramming)* algorithms.
 
 Project's
 [documentation](https://guillaumedua.github.io/CppShelf/mp/),
@@ -74,7 +74,7 @@ Function & overload traits
 
 See project's
 [documentation](https://guillaumedua.github.io/CppShelf/functional/),
-[live demo on godbolt.org](https://godbolt.org/z/Gd7fMKK8e),
+[live demo on godbolt.org](https://godbolt.org/z/b5TrYx6xh),
 [dashboard](https://github.com/users/GuillaumeDua/projects/5)
 
 ### 🔎 [typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp)
@@ -84,7 +84,7 @@ Inconsistent: for educational and debugging purpose only.
 
 See project's
 [documentation](https://guillaumedua.github.io/CppShelf/typeinfo/),
-[live demo on godbolt.org](https://godbolt.org/z/TsEWf5bGa),
+[live demo on godbolt.org](https://godbolt.org/z/a9P4cWv5v),
 [dashboard](https://github.com/users/GuillaumeDua/projects/7)
 
 ### ☔ [ensure](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/ensure/includes/ensure/csl/ensure.hpp)
@@ -207,15 +207,15 @@ void func(){
 }
 ```
 
-### In [Compiler Explorer](https://godbolt.org/)
+### 🕹️ Play with `csl` in [Compiler Explorer](https://godbolt.org/)
 
-See [demonstration here](https://godbolt.org/z/4aGfEbf8d).
+See [demonstration here](https://godbolt.org/z/djbzhdnWc).
 
 ```cpp
 #include <iostream>
 
-#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp>
-#include <https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main/libs/ag/includes/ag/csl/typeinfo.hpp>
+#include <csl/typeinfo.hpp>
+#include <csl/ag.hpp>
 
 struct some_model {
     char c = 'A';
@@ -248,7 +248,7 @@ char
 #include <csl/ag.hpp>
 
 template <csl::ag::concepts::aggregate type>
-void print(const type & value){
+void my_print(const type & value){
     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){
         ((
             std::cout
@@ -262,7 +262,7 @@ void print(const type & value){
     }(std::make_index_sequence<csl::ag::size_v<type>>{});
 }
 
-auto main() -> int { print(some_model{}); }
+auto main() -> int { my_print(some_model{}); }
 ```
 
 Possible output:
@@ -274,47 +274,44 @@ int: 42
 
 #### All: pretty-printing
 
+`csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`, each as optins `CSL_<lib>__ENABLE_<backend>_SUPPORT`.
+
 ```cpp
 #include <csl/typeinfo.hpp>
-#include <csl/cxx20/ensure.hpp> // with CSL_ENSURE__ENABLE_FMT_SUPPORT enable from CMake cache
-#include <csl/ag.hpp> // with CSL_AG__ENABLE_FMT_SUPPORT enable from CMake cache
+#include <csl/cxx20/ensure.hpp> // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enable from CMake cache
+#include <csl/ag.hpp>           // with CSL_AG__ENABLE_STD_FORMAT_SUPPORT enable from CMake cache
+
+#include <print>
 
 struct A { char c = 'c'; };
 using meters = csl::ensure::strong_type<int, struct meter_tag>;
 struct B {
-    meters i = 42;
+    meters i { 42 };
     A a;
 };
 struct C {
-    std::array<float> range = { .1F, .2F };
+    std::array<float, 2> range { .1F, .2F };
     B b;
-    csl::mp::tuple<bool>{ true }
+    csl::mp::tuple<bool> tuple { true };
 };
 
 auto main() -> int {
-    fmt::print("{}\n",              A{});
-    fmt::print("\nindented:\n{}\n", A{} | csl::ag::io::indented);
+    std::print("{}\n", C{});
+
+    using namespace csl::ag::io;
+    constexpr auto format_view = indexed | typenamed | indented;
+    std::println("\npretty formatting:\n{}", C{} | format_view ); // equivalent of std::println("{:xti}\n", A{});
 }
 ```
 
 Possible output:
 
 ```log
-{ [ .1F, .2F ], { 42, { 'c' } } , ( true ) }
+{'c'}
 
 indented:
 {
-    [
-        .1F,
-        .2F
-    ],
-    {
-        42,
-        { 'c' }
-    },
-    (
-        true
-    )
+    [0] char: 'c'
 }
 ```
 
