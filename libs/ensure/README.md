@@ -170,6 +170,19 @@ fmt::print("{}\n", meters{ 42 });   // prints: 42
 
 Requires `<fmt/core.h>` and `<fmt/format.h>` to be available.
 
+### CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT
+
+Adds a `std::formatter` specialisation, delegating to the underlying type's formatter:
+
+```cpp
+#define CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT
+#include <ensure/csl/ensure.hpp>
+
+std::println("{}", meters{ 42 });   // prints: 42
+```
+
+Requires `<format>` to be available.
+
 ---
 
 ## Example

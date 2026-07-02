@@ -529,4 +529,26 @@ struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
 #endif
 #endif
 
+// opt-in: std::format support - (CPO: std::formatter)
+#if defined(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT)
+#if defined(__has_include)
+#if __has_include(<format>)
+#include <format>
+
+template <typename T, typename tag>
+requires requires { std::declval<std::formatter<T>>().format(std::declval<T>(), std::declval<std::format_context &>()); }
+struct std::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
+    template <typename Context>
+    constexpr auto format(const csl::ensure::strong_type<T, tag> & value, Context & context) const {
+        return formatter<T>::format(csl::ensure::to_underlying(value), context);
+    }
+};
+#else
+# error "csl::ensure: CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enabled, but __has_include(<format>) == false"
+#endif
+#else
+# error "csl::ensure: CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enabled, but defined(__has_include) == false"
+#endif
+#endif
+
 #undef csl_fwd
