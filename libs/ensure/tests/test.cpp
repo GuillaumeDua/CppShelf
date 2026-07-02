@@ -4,6 +4,10 @@
 #include <type_traits>
 #include <string>
 
+#if defined(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT) and __cplusplus >= 202002L
+#include <print>
+#endif
+
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
 namespace test::utils::type_traits {
@@ -320,5 +324,12 @@ TEST_CASE("ensure::io::ostream", "[ensure][runtime]") {
 TEST_CASE("ensure::io::fmt", "[ensure][runtime]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     fmt::print("CSL_ENSURE__ENABLE_FMT_SUPPORT: value = {}\n", mm{42}); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+#endif
+
+#if defined(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT) and __cplusplus >= 202002L
+TEST_CASE("ensure::io::std_format", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    std::println("CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT: value = {}", mm{42}); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 #endif

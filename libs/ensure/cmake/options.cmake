@@ -31,3 +31,10 @@ if (${CSL_ENSURE__ENABLE_FMT_SUPPORT})
         message(ERROR "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: ill-formed fmt library")
     endif()
 endif()
+
+# opt-in: CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT
+option(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
+csl_print_aligned(STATUS CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT)
+if (${CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT})
+    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT)
+endif()
