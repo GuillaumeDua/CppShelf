@@ -272,6 +272,14 @@ CSL_ENSURE__ENABLE_FMT_SUPPORT</h2>
 <div class="line"> </div>
 <div class="line">fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, meters{ 42 });   <span class="comment">// prints: 42</span></div>
 </div><!-- fragment --><p>Requires <span class="tt">&lt;fmt/core.h&gt;</span> and <span class="tt">&lt;fmt/format.h&gt;</span> to be available.</p>
+<h2 class="doxsection"><a class="anchor" id="csl_ensure__enable_std_format_support"></a>
+CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT</h2>
+<p>Adds a <span class="tt">std::formatter</span> specialisation, delegating to the underlying type's formatter:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT</span></div>
+<div class="line"><span class="preprocessor">#include &lt;ensure/csl/ensure.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line">std::println(<span class="stringliteral">&quot;{}&quot;</span>, meters{ 42 });   <span class="comment">// prints: 42</span></div>
+</div><!-- fragment --><p>Requires <span class="tt">&lt;format&gt;</span> to be available.</p>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="example"></a>
 Example</h1>

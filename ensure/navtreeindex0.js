@@ -21,6 +21,7 @@ var NAVTREEINDEX0 =
 "index.html#construction-and-access":[0,1,0],
 "index.html#csl_ensure__enable_fmt_support":[0,5,1],
 "index.html#csl_ensure__enable_iostream_support":[0,5,0],
+"index.html#csl_ensure__enable_std_format_support":[0,5,2],
 "index.html#example":[0,6],
 "index.html#include":[0,0],
 "index.html#invocation":[0,1,2],
