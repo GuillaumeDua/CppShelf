@@ -517,8 +517,8 @@ namespace csl::io {
 template <typename T, typename tag>
 requires requires { std::declval<fmt::formatter<T>>().format(std::declval<T>(), std::declval<fmt::format_context &>()); }
 struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
-    constexpr static auto format(const csl::ensure::strong_type<T, tag> & value, fmt::format_context & context) {
-        return formatter<T>{}.format(csl::ensure::to_underlying(value), context);
+    constexpr auto format(const csl::ensure::strong_type<T, tag> & value, fmt::format_context & context) const {
+        return formatter<T>::format(csl::ensure::to_underlying(value), context);
     }
 };
 #else

@@ -650,8 +650,8 @@ struct fmt::formatter<
     csl::ensure::strong_type<T, tag>,
     std::enable_if_t<csl::ensure::details::mp::type_traits::has_fmt_formatter_v<T>, char>
 > : formatter<T> {
-    static auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) {
-        return fmt::formatter<T>{}.format(csl::ensure::to_underlying(value), context);
+    auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) const {
+        return fmt::formatter<T>::format(csl::ensure::to_underlying(value), context);
     }
 };
 #else
