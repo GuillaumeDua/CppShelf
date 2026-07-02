@@ -209,7 +209,7 @@ void func(){
 
 ### 🕹️ Play with `csl` in [Compiler Explorer](https://godbolt.org/)
 
-See [demonstration here](https://godbolt.org/z/djbzhdnWc).
+See live [demonstration here](https://godbolt.org/z/djbzhdnWc).
 
 ```cpp
 #include <iostream>
@@ -276,6 +276,8 @@ int: 42
 
 `csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`, each as optins `CSL_<lib>__ENABLE_<backend>_SUPPORT`.
 
+See live [demonstration here](https://godbolt.org/z/sxbvjGj4K).
+
 ```cpp
 #include <csl/typeinfo.hpp>
 #include <csl/cxx20/ensure.hpp> // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enable from CMake cache
@@ -296,22 +298,35 @@ struct C {
 };
 
 auto main() -> int {
-    std::print("{}\n", C{});
+    std::print("default is compact:\n{}\n\n", C{});
 
     using namespace csl::ag::io;
     constexpr auto format_view = indexed | typenamed | indented;
-    std::println("\npretty formatting:\n{}", C{} | format_view ); // equivalent of std::println("{:xti}\n", A{});
+    std::println("pretty formatting:\n{}", C{} | format_view); // equivalent to std::println("{:xti}\n", A{});
 }
 ```
 
 Possible output:
 
 ```log
-{'c'}
+default is compact:
+{[0.1, 0.2], {42, {'c'}}, (true)}
 
-indented:
+pretty formatting:
 {
-    [0] char: 'c'
+    [0] std::array<float, 2>: [
+        [0] float: 0.1,
+        [1] float: 0.2
+    ],
+    [1] B: {
+        [0] csl::ensure::strong_type<int, meter_tag>: 42,
+        [1] A: {
+            [0] char: 'c'
+        }
+    },
+    [2] csl::mp::tuple<bool>: (
+        [0] bool: true
+    )
 }
 ```
 
