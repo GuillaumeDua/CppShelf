@@ -16,3 +16,5 @@ USE_MDFILE_AS_MAINPAGE = ./libs/mp/README.md
 INCLUDE_PATH           = ./libs/mp/includes/mp
 
 EXCLUDE_SYMBOLS        = *::details::*
+
+EXAMPLE_PATH           = ./libs/mp/examples

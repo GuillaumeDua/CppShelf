@@ -8,9 +8,9 @@ void do_stuff(csl::ag::concepts::structured_bindable auto && value) {
     constexpr auto sz = size_v<value_type>;
 
     const auto process = [&]<std::size_t index>(){
-        [[maybe_unused]] auto && field = get<index>(std::forward<decltype(value)>(value));
+        auto && field = get<index>(std::forward<decltype(value)>(value));
         using field_type = element_t<index, value_type>;
-        (void)static_cast<field_type *>(nullptr);
+        static_assert(std::same_as<std::remove_cvref_t<decltype(field)>, field_type>);
     };
 
     [&]<std::size_t ... indexes>(std::index_sequence<indexes...>){

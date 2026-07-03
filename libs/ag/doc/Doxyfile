@@ -17,3 +17,5 @@ USE_MDFILE_AS_MAINPAGE = ./libs/ag/README.md
 INCLUDE_PATH           = ./libs/ag/includes/ag
 
 EXCLUDE_SYMBOLS        = *::details::*
+
+EXAMPLE_PATH           = ./libs/ag/examples

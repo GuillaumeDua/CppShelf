@@ -17,3 +17,5 @@ USE_MDFILE_AS_MAINPAGE = ./libs/wf/README.md
 INCLUDE_PATH           = ./libs/wf/includes/wf
 
 EXCLUDE_SYMBOLS        = *::details::*
+
+EXAMPLE_PATH           = ./libs/wf/examples

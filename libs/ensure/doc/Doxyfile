@@ -19,3 +19,5 @@ INCLUDE_PATH           = ./libs/ensure/includes/ensure
 EXCLUDE                = ./libs/ensure/includes/ensure/csl/cxx_17
 
 EXCLUDE_SYMBOLS        = *::details::*
+
+EXAMPLE_PATH           = ./libs/ensure/examples

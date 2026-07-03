@@ -4,8 +4,8 @@
     "url": "https://godbolt.org/z/9MhdYn9dh"
   },
   "libs/ag/examples/20_homogeneity.cpp": {
-    "sha256": "05c33cade939b72c0ba7ad3538ab96e7c4f61380d6d91b432ebb95c657aee8fa",
-    "url": "https://godbolt.org/z/hdM61xWbj"
+    "sha256": "889505aa8b9c5e0bbe5c3088705b46b8f1d79e941c16fada770fa541b7c77a8d",
+    "url": "https://godbolt.org/z/7WTnn9P5P"
   },
   "libs/ag/examples/19_formatting_ostream_advanced.cpp": {
     "sha256": "ea6d85755dfbe597f818659760120f1142ac0bc2bf4e6d02362047626cbc3ad8",
