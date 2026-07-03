@@ -15,8 +15,8 @@ style="position: absolute; top: 0; right: 0; z-index: 3;"
 </a>
 </div>
 
-[![cmake-Ubuntu-clang](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-clang.yml)
-[![cmake-Ubuntu-gcc](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/cmake-Ubuntu-gcc.yml)  
+[![csl CI](https://github.com/GuillaumeDua/CppShelf/actions/workflows/csl-ci.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/csl-ci.yml)
+[![csl consumption CI](https://github.com/GuillaumeDua/CppShelf/actions/workflows/csl-consumption-ci.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/csl-consumption-ci.yml)  
 [![pages-build-deployment](https://github.com/GuillaumeDua/CppShelf/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/pages/pages-build-deployment)
 [![documentation](https://github.com/GuillaumeDua/CppShelf/actions/workflows/documentation.yml/badge.svg)](https://github.com/GuillaumeDua/CppShelf/actions/workflows/documentation.yml)  
 [![GitHub license](https://img.shields.io/github/license/GuillaumeDua/CppShelf)](https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE)
@@ -31,7 +31,8 @@ Personal incubator for various library ideas and experiences, and perhaps a hint
 
 The libraries here could, once mature enough, become self-contained in a separated repository.
 
-Each library is independent and individually toggleable (`CSL_BUILD_<name>`).  
+Each library is independent and individually toggleable (`CSL_BUILD_<name>`).
+
 However, some can optionally enhance themselves when another `csl` library is available too (e.g. `ag`'s `typenamed` formatting option uses `typeinfo` for compile-time type names).  
 This is always a soft integration detected via `__has_include`, with - when possible - some fallback, never a hard dependency: the consuming library is responsible for testing both states itself, self-contained in its own build files.  
 Note that such tests can enable unwanted libraries.
@@ -52,14 +53,6 @@ Project's
 [documentation](https://guillaumedua.github.io/CppShelf/ag/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/2)
 
-### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/wf/includes/wf/csl/wf.hpp)
-
-Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
-
-See project's
-[documentation](https://guillaumedua.github.io/CppShelf/wf/),
-[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
-
 ### 🧙 [mp](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/mp/includes/mp/csl/mp.hpp)
 
 A tuple implementation and **C++ TMP** *(C++ template-metaprogramming)* algorithms.
@@ -67,6 +60,14 @@ A tuple implementation and **C++ TMP** *(C++ template-metaprogramming)* algorith
 Project's
 [documentation](https://guillaumedua.github.io/CppShelf/mp/),
 [dashboard](https://github.com/users/GuillaumeDua/projects/3)
+
+### 🌊 [wf](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/wf/includes/wf/csl/wf.hpp)
+
+Generic **eDSL** builder - *as a route pattern* - to best translate **workflow**/use-cases in C++
+
+See project's
+[documentation](https://guillaumedua.github.io/CppShelf/wf/),
+[dashboard](https://github.com/GuillaumeDua/CppShelf/projects/1)
 
 ### 🔬 [functional](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/functional/includes/functional/csl/functional.hpp)
 
