@@ -336,7 +336,96 @@ Chain traits - csl::wf::mp::chain_trait&lt;Fs...&gt;</h1>
 </div><!-- fragment --><hr  />
 <h1 class="doxsection"><a class="anchor" id="example"></a>
 Example</h1>
-<div class="fragment"></div><!-- fragment --> </div></div><!-- PageDoc -->
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/wf.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#include &lt;cassert&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// csl::wf: composable, type-safe callable invocation.</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// --- compile-time invocability ---</span></div>
+<div class="line"><span class="keyword">using </span>typed_identity = <span class="keyword">decltype</span>([]&lt;<span class="keyword">typename</span> T&gt;(T v) { <span class="keywordflow">return</span> v; });</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::wf::mp::is_invocable_v&lt;typed_identity, csl::wf::mp::ttps&lt;int&gt;, <span class="keywordtype">int</span>        &gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::wf::mp::is_invocable_v&lt;typed_identity, csl::wf::mp::ttps&lt;int&gt;, <span class="keywordtype">float</span>      &gt;); <span class="comment">// implicit convertion</span></div>
+<div class="line"><span class="keyword">static_assert</span>(not csl::wf::mp::is_invocable_v&lt;typed_identity, csl::wf::mp::ttps&lt;int&gt;, std::string&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::wf::mp::is_invocable_with_v&lt;</div>
+<div class="line">    typed_identity,</div>
+<div class="line">    <a class="code hl_struct" href="structcsl_1_1wf_1_1mp_1_1ttps.html">csl::wf::mp::ttps&lt;int&gt;</a>,</div>
+<div class="line">    <a class="code hl_struct" href="structcsl_1_1wf_1_1mp_1_1args.html">csl::wf::mp::args&lt;int&gt;</a></div>
+<div class="line">&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main(<span class="keywordtype">int</span>, <span class="keywordtype">char</span>*[]) -&gt; <span class="keywordtype">int</span></div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">// --- invoke with explicit template parameters ---</span></div>
+<div class="line">    <span class="comment">// std::invoke cannot deduce the lambda&#39;s ttp T, csl::wf::invoke can.</span></div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> scale = []&lt;<span class="keyword">typename</span> T&gt;(T v) { <span class="keywordflow">return</span> v * T{2}; };</div>
+<div class="line">    assert(csl::wf::invoke&lt;int&gt;(scale, 21) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- tuple unpacking ---</span></div>
+<div class="line">    <span class="comment">// apply_before : f(tuple..., extras...) - packed args prepended</span></div>
+<div class="line">    <span class="comment">// apply_after  : f(extras..., tuple...) - packed args appended</span></div>
+<div class="line">    <span class="keyword">auto</span> add = [](<span class="keywordtype">int</span> a, <span class="keywordtype">int</span> b) { <span class="keywordflow">return</span> a + b; };</div>
+<div class="line">    assert(csl::wf::apply       (add, std::tuple{10, 32})    == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line">    assert(csl::wf::apply_before(add, std::tuple{10}, 32)    == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line">    assert(csl::wf::apply_after (add, std::tuple{32}, 10)    == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- partial application ---</span></div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> add10   = csl::wf::bind_front(add, 10);</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> add10_b = csl::wf::bind_back (add, 10);</div>
+<div class="line">    assert(add10  (32) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line">    assert(add10_b(32) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- pipeline: make_continuation chains callables left-to-right ---</span></div>
+<div class="line">    <span class="comment">// invoke the result before `using namespace csl::wf::operators`:</span></div>
+<div class="line">    <span class="comment">// the unconstrained &gt;&gt;= from that namespace conflicts with chain_invoke&#39;s internal fold.</span></div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> pipeline = csl::wf::make_continuation(</div>
+<div class="line">        [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x * 2; },</div>
+<div class="line">        [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> std::to_string(x) + <span class="stringliteral">&quot;!&quot;</span>; }</div>
+<div class="line">    );</div>
+<div class="line">    assert(pipeline(21) == <span class="stringliteral">&quot;42!&quot;</span>); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- eDSL operators ---</span></div>
+<div class="line">    <span class="keyword">using namespace </span>csl::wf::operators;</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// &gt;&gt;= : operator form of make_continuation (type-stable pipelines)</span></div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> process =</div>
+<div class="line">        [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x * 10; }</div>
+<div class="line">    &gt;&gt;= [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x + 2; }</div>
+<div class="line">    &gt;&gt;= [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> std::to_string(x); };</div>
+<div class="line">    assert(process(4) == std::string{<span class="stringliteral">&quot;42&quot;</span>}); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// | : overload set - dispatches on argument type at call time</span></div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> is_positive =</div>
+<div class="line">        [](<span class="keywordtype">int</span>   x) { <span class="keywordflow">return</span> x &gt; 0; }</div>
+<div class="line">    |   [](<span class="keywordtype">float</span> x) { <span class="keywordflow">return</span> x &gt; 0.F; };</div>
+<div class="line">    assert(is_positive(1));   <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line">    assert(is_positive(1.F)); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// * N_times : invoke N times per call</span></div>
+<div class="line">    <span class="keyword">using namespace </span>csl::wf::literals;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordtype">int</span> count = 0;</div>
+<div class="line">    ([&amp;count]{ ++count; } * 5_times)();</div>
+<div class="line">    assert(count == 5); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// repeaters compose: (2_times) * (3_times) = 6 calls total</span></div>
+<div class="line">    count = 0;</div>
+<div class="line">    ([&amp;count]{ ++count; } * 2_times * 3_times)();</div>
+<div class="line">    assert(count == 6); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- non-owning callable wrappers ---</span></div>
+<div class="line">    <span class="comment">// ref  : pointer-like (stores address, rebindable between same-type instances)</span></div>
+<div class="line">    <span class="comment">// view : reference-like (stores reference, default-constructible)</span></div>
+<div class="line">    <span class="keyword">auto</span> f   = [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x - 1; };</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> fref = f | ref;</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">auto</span> fvw  = f | csl::wf::operators::view; <span class="comment">// qualified: avoids shadowing the imported &#39;view&#39; tag</span></div>
+<div class="line">    assert(fref(43) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line">    assert(fvw (43) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
+<div class="line">}</div>
+<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1args_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1args.html">csl::wf::mp::args</a></div><div class="ttdef"><b>Definition</b> wf.hpp:141</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1ttps_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1ttps.html">csl::wf::mp::ttps</a></div><div class="ttdef"><b>Definition</b> wf.hpp:130</div></div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -314,7 +314,155 @@ Standard library proposals implementations</h1>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="example"></a>
 Example</h1>
-<div class="fragment"></div><!-- fragment --> </div></div><!-- PageDoc -->
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/mp.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#include &lt;array&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;functional&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// NOLINTBEGIN(*-avoid-magic-numbers)</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// csl::mp: C++ meta-programming utilities</span></div>
+<div class="line"><span class="comment">//  compile-time type-list operations, tuple implementation and tuple-likes algorithms.</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// --- tuple: fixed-size heterogeneous sequence ---</span></div>
+<div class="line"><span class="keyword">static_assert</span>(csl::mp::size_v&lt;csl::mp::tuple&lt;int, float, bool&gt;&gt; == 3);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;csl::mp::element_t&lt;1, csl::mp::tuple&lt;int, float, bool&gt;&gt;, <span class="keywordtype">float</span>&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// --- concepts ---</span></div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1mp_1_1concepts_1_1tuple__like.html">csl::mp::concepts::tuple_like&lt;std::tuple&lt;int, float&gt;</a>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1mp_1_1concepts_1_1tuple__like.html">csl::mp::concepts::tuple_like&lt;std::pair&lt;int, float&gt;</a>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1mp_1_1concepts_1_1tuple__like.html">csl::mp::concepts::tuple_like&lt;std::array&lt;int, 3&gt;</a>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1mp_1_1concepts_1_1pair__like.html">csl::mp::concepts::pair_like&lt;std::pair&lt;int, float&gt;</a>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(not <a class="code hl_concept" href="conceptcsl_1_1mp_1_1concepts_1_1pair__like.html">csl::mp::concepts::pair_like&lt;std::tuple&lt;int, float, bool&gt;</a>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1mp_1_1concepts_1_1instance.html">csl::mp::concepts::instance&lt;std::tuple&lt;int, float&gt;</a>, std::tuple&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// --- type traits ---</span></div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::mp::type_traits::is_homogeneous_v&lt;std::array&lt;int, 3&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(not csl::mp::type_traits::is_homogeneous_v&lt;std::tuple&lt;int, float&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// all field types in a schema satisfy a constraint</span></div>
+<div class="line"><span class="keyword">using </span>integral_schema = <a class="code hl_struct" href="structcsl_1_1mp_1_1type__traits_1_1is__constrained__by.html">csl::mp::type_traits::is_constrained_by&lt;std::tuple&lt;int, std::int64_t&gt;</a>, std::is_integral&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(integral_schema::value);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// negate: inverse of a predicate</span></div>
+<div class="line"><span class="keyword">using </span>non_integral = <a class="code hl_struct" href="structcsl_1_1mp_1_1type__traits_1_1negate.html">csl::mp::type_traits::negate&lt;std::is_integral&gt;</a>;</div>
+<div class="line"><span class="keyword">static_assert</span>(non_integral::type&lt;float&gt;::value);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// --- type-list algorithms ---</span></div>
+<div class="line"><span class="comment">// Field types of a sensor event: [sensor_id, value, channel_id, is_valid]</span></div>
+<div class="line"><span class="comment">// int appears twice (two separate id fields of the same underlying type)</span></div>
+<div class="line"><span class="keyword">using </span>event_fields = <a class="code hl_struct" href="structcsl_1_1mp_1_1tuple.html">csl::mp::tuple&lt;int, float, int, bool&gt;</a>;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// query</span></div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::mp::type_traits::contains_v&lt;event_fields, int&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(not csl::mp::type_traits::contains_v&lt;event_fields, double&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::mp::type_traits::index_of_v     &lt;event_fields, float&gt; == 1);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::mp::type_traits::last_index_of_v&lt;event_fields, int&gt;   == 2);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::mp::type_traits::count_v        &lt;event_fields, int&gt;   == 2);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::mp::type_traits::count_if_v     &lt;event_fields, std::is_integral&gt; == 3); <span class="comment">// int, int, bool</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// transformation</span></div>
+<div class="line"><span class="keyword">using </span>integral_fields  = csl::mp::type_traits::filter_t   &lt;event_fields, std::is_integral&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;integral_fields, csl::mp::tuple&lt;int, int, bool&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>high_res_fields  = csl::mp::type_traits::replace_t   &lt;event_fields, float, double&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;high_res_fields, csl::mp::tuple&lt;int, double, int, bool&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>high_res_fields2 = csl::mp::type_traits::replace_if_t&lt;event_fields, std::is_floating_point, double&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;high_res_fields2, csl::mp::tuple&lt;int, double, int, bool&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>unique_fields    = csl::mp::type_traits::unique_t    &lt;event_fields&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;unique_fields, csl::mp::tuple&lt;int, float, bool&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>extended_fields  = csl::mp::type_traits::push_back_t &lt;csl::mp::tuple&lt;int, float&gt;, <span class="keywordtype">bool</span>&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;extended_fields, csl::mp::tuple&lt;int, float, bool&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>payload_fields   = csl::mp::type_traits::pop_front_t &lt;csl::mp::tuple&lt;int, float, bool&gt;&gt;;</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;payload_fields, csl::mp::tuple&lt;float, bool&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// set operations: readable vs writable capabilities of a device interface</span></div>
+<div class="line"><span class="keyword">using </span>readable_types  = <a class="code hl_struct" href="structcsl_1_1mp_1_1tuple.html">csl::mp::tuple&lt;int, float&gt;</a>;</div>
+<div class="line"><span class="keyword">using </span>writable_types  = <a class="code hl_struct" href="structcsl_1_1mp_1_1tuple.html">csl::mp::tuple&lt;float, bool&gt;</a>;</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>all_types       = csl::mp::type_traits::set_union_t       &lt;readable_types, writable_types&gt;;</div>
+<div class="line"><span class="keyword">using </span>shared_types    = csl::mp::type_traits::set_intersection_t&lt;readable_types, writable_types&gt;;</div>
+<div class="line"><span class="keyword">using </span>read_only_types = csl::mp::type_traits::set_difference_t  &lt;readable_types, writable_types&gt;;</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;all_types,       csl::mp::tuple&lt;int, float, bool&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;shared_types,    csl::mp::tuple&lt;float&gt;&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;read_only_types, csl::mp::tuple&lt;int&gt;&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main(<span class="keywordtype">int</span>, <span class="keywordtype">char</span>*[]) -&gt; <span class="keywordtype">int</span></div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">// --- construction and access ---</span></div>
+<div class="line">    <span class="comment">// A sensor reading: (sensor_id, temperature, is_valid)</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> reading = <a class="code hl_struct" href="structcsl_1_1mp_1_1tuple.html">csl::mp::tuple</a>{ 7, 36.6F, <span class="keyword">true</span> };</div>
+<div class="line">    <span class="keyword">static_assert</span>(reading.get&lt;0&gt;()                   == 7);     <span class="comment">// by index</span></div>
+<div class="line">    <span class="keyword">static_assert</span>(reading.get&lt;<span class="keywordtype">bool</span>&gt;());                         <span class="comment">// by type</span></div>
+<div class="line">    <span class="keyword">static_assert</span>(reading[csl::mp::index_t&lt;1&gt;{}]     == 36.6F); <span class="comment">// operator[]</span></div>
+<div class="line">    <span class="keyword">static_assert</span>(reading[std::type_identity&lt;int&gt;{}] == 7);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- cat: concatenate two tuples ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> header  = csl::mp::functions::make_tuple(1, 2);</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> payload = <a class="code hl_struct" href="structcsl_1_1mp_1_1tuple.html">csl::mp::tuple</a>{3.0F};</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> packet  = csl::mp::functions::cat(header, payload);</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::mp::size_v&lt;<span class="keyword">decltype</span>(packet)&gt; == 3);</div>
+<div class="line">    <span class="keyword">static_assert</span>(get&lt;2&gt;(packet) == 3.0F);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- for_each: accumulate across heterogeneous values ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> total_score = [] {</div>
+<div class="line">        <span class="keywordtype">int</span> score = 0;</div>
+<div class="line">        csl::mp::functions::for_each(</div>
+<div class="line">            csl::mp::functions::make_tuple(10, 20, 12),</div>
+<div class="line">            [&amp;score](<span class="keyword">auto</span> v) { score += v; }</div>
+<div class="line">        );</div>
+<div class="line">        <span class="keywordflow">return</span> score;</div>
+<div class="line">    }();</div>
+<div class="line">    <span class="keyword">static_assert</span>(total_score == 42);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- for_each_enumerate: index-aware traversal ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> thresholds_valid = [] {</div>
+<div class="line">        <span class="keywordtype">bool</span> ok = <span class="keyword">true</span>;</div>
+<div class="line">        csl::mp::functions::for_each_enumerate(</div>
+<div class="line">            csl::mp::functions::make_tuple(10, 20, 30),</div>
+<div class="line">            [&amp;ok](std::size_t i, <span class="keyword">auto</span> v) { ok = ok and (v == <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>((i + 1) * 10)); }</div>
+<div class="line">        );</div>
+<div class="line">        <span class="keywordflow">return</span> ok;</div>
+<div class="line">    }();</div>
+<div class="line">    <span class="keyword">static_assert</span>(thresholds_valid);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- fold_left: reduce to a single value ---</span></div>
+<div class="line">    <span class="comment">// sum of four quarterly deltas</span></div>
+<div class="line">    <span class="keyword">static_assert</span>(</div>
+<div class="line">        csl::mp::functions::fold_left(</div>
+<div class="line">            csl::mp::functions::make_tuple(8, 11, 13, 10),</div>
+<div class="line">            std::plus&lt;int&gt;{}, 0</div>
+<div class="line">        ) == 42</div>
+<div class="line">    );</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- all_of / any_of / none_of ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> channel_ids = csl::mp::functions::make_tuple(2, 4, 6);</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::mp::functions::all_of (channel_ids, [](<span class="keywordtype">int</span> v) { <span class="keywordflow">return</span> v % 2 == 0; }));</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::mp::functions::any_of (channel_ids, [](<span class="keywordtype">int</span> v) { <span class="keywordflow">return</span> v == 4; }));</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::mp::functions::none_of(channel_ids, [](<span class="keywordtype">int</span> v) { <span class="keywordflow">return</span> v &gt; 10; }));</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- forward_like (P2445): cast value-category to match a model type ---</span></div>
+<div class="line">    <span class="keyword">auto</span> owner = 42;</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::is_same_v&lt;</div>
+<div class="line">        <span class="keyword">decltype</span>(csl::mp::forward_like&lt;int&amp;&amp;&gt;(owner)),</div>
+<div class="line">        <span class="keywordtype">int</span>&amp;&amp;</div>
+<div class="line">    &gt;);</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// NOLINTEND(*-avoid-magic-numbers)</span></div>
+<div class="ttc" id="aconceptcsl_1_1mp_1_1concepts_1_1instance_html"><div class="ttname"><a href="conceptcsl_1_1mp_1_1concepts_1_1instance.html">csl::mp::concepts::instance</a></div><div class="ttdef"><b>Definition</b> mp.hpp:243</div></div>
+<div class="ttc" id="aconceptcsl_1_1mp_1_1concepts_1_1pair__like_html"><div class="ttname"><a href="conceptcsl_1_1mp_1_1concepts_1_1pair__like.html">csl::mp::concepts::pair_like</a></div><div class="ttdef"><b>Definition</b> mp.hpp:426</div></div>
+<div class="ttc" id="aconceptcsl_1_1mp_1_1concepts_1_1tuple__like_html"><div class="ttname"><a href="conceptcsl_1_1mp_1_1concepts_1_1tuple__like.html">csl::mp::concepts::tuple_like</a></div><div class="ttdef"><b>Definition</b> mp.hpp:424</div></div>
+<div class="ttc" id="astructcsl_1_1mp_1_1type__traits_1_1is__constrained__by_html"><div class="ttname"><a href="structcsl_1_1mp_1_1type__traits_1_1is__constrained__by.html">csl::mp::type_traits::is_constrained_by</a></div><div class="ttdef"><b>Definition</b> mp.hpp:1327</div></div>
+<div class="ttc" id="astructcsl_1_1mp_1_1type__traits_1_1negate_html"><div class="ttname"><a href="structcsl_1_1mp_1_1type__traits_1_1negate.html">csl::mp::type_traits::negate</a></div><div class="ttdef"><b>Definition</b> mp.hpp:183</div></div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
 </div><!-- doc-content -->

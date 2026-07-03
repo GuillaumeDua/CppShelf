@@ -283,7 +283,87 @@ CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT</h2>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="example"></a>
 Example</h1>
-<div class="fragment"></div><!-- fragment --> </div></div><!-- PageDoc -->
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ensure.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#include &lt;cassert&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;compare&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;unordered_map&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// NOLINTBEGIN(*-assert)</span></div>
+<div class="line"><span class="comment">// NOLINTBEGIN(*-avoid-magic-numbers)</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// csl::ensure: strong type definitions - same underlying type, incompatible at compile time.</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">using </span>meters     = <a class="code hl_struct" href="structcsl_1_1ensure_1_1strong__type.html">csl::ensure::strong_type&lt;int, struct meters_tag&gt;</a>;</div>
+<div class="line"><span class="keyword">using </span>kilograms  = <a class="code hl_struct" href="structcsl_1_1ensure_1_1strong__type.html">csl::ensure::strong_type&lt;int, struct kilograms_tag&gt;</a>;</div>
+<div class="line"><span class="keyword">using </span>sensor_id  = <a class="code hl_struct" href="structcsl_1_1ensure_1_1strong__type.html">csl::ensure::strong_type&lt;int, struct sensor_id_tag&gt;</a>;</div>
+<div class="line"><span class="keyword">using </span>calibrator = <a class="code hl_struct" href="structcsl_1_1ensure_1_1strong__type.html">csl::ensure::strong_type</a>&lt;int(*)(int), <span class="keyword">struct</span> calibrator_tag&gt;;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// --- compile-time type properties ---</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::ensure::type_traits::is_strong_type_v&lt;meters&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(not csl::ensure::type_traits::is_strong_type_v&lt;int&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::ensure::type_traits::is_strong_type_of_v&lt;meters, int&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(    csl::ensure::type_traits::is_tagged_by_v&lt;meters, meters_tag&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;csl::ensure::type_traits::underlying_type_t&lt;meters&gt;, <span class="keywordtype">int</span>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;csl::ensure::type_traits::tag_type_t&lt;meters&gt;,        meters_tag&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1ensure_1_1concepts_1_1StrongType.html">csl::ensure::concepts::StrongType&lt;meters&gt;</a>);</div>
+<div class="line"><span class="keyword">static_assert</span>(not <a class="code hl_concept" href="conceptcsl_1_1ensure_1_1concepts_1_1StrongType.html">csl::ensure::concepts::StrongType&lt;int&gt;</a>);</div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1ensure_1_1concepts_1_1StrongTypeOf.html">csl::ensure::concepts::StrongTypeOf&lt;meters, int&gt;</a>);</div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1ensure_1_1concepts_1_1TaggedBy.html">csl::ensure::concepts::TaggedBy&lt;meters, meters_tag&gt;</a>);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> main(<span class="keywordtype">int</span>, <span class="keywordtype">char</span>*[]) -&gt; <span class="keywordtype">int</span></div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">// --- construction: explicit in, implicit out ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> distance = meters{ 42 };</div>
+<div class="line">    [[maybe_unused]] <span class="keyword">constexpr</span> <span class="keyword">auto</span> mass = kilograms{ 10 };</div>
+<div class="line">    <span class="comment">// mass = distance;  // won&#39;t compile: incompatible strong types</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// implicit const ref - opt-in escape hatch, e.g. for legacy APIs</span></div>
+<div class="line">    [[maybe_unused]] <span class="keyword">const</span> <span class="keywordtype">int</span>&amp; distance_underlying_ref = distance;</div>
+<div class="line">    assert(distance_underlying_ref                            == 42);</div>
+<div class="line">    <span class="keyword">static_assert</span>(distance.underlying()                       == 42);</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::ensure::to_underlying(distance) == 42);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// unwrap: strips strong type, or passes through unchanged if already raw</span></div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::ensure::unwrap(distance) == 42);</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::ensure::unwrap(42)        == 42);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- comparison ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> near = meters{ 10 };</div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> far  = meters{ 100 };</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">static_assert</span>(near &lt; far);</div>
+<div class="line">    <span class="keyword">static_assert</span>(near != far);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::is_lt(near &lt;=&gt; far));</div>
+<div class="line">    <span class="keyword">static_assert</span>(near &lt; 50); <span class="comment">// cross-type: meters vs raw int</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- callable forwarding ---</span></div>
+<div class="line">    <span class="comment">// operator() is forwarded to the underlying type when it is callable</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> offset = calibrator{ [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x + 1; } };</div>
+<div class="line">    <span class="keyword">static_assert</span>(offset(41) == 42);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- STL: std::hash specializsed automatically ---</span></div>
+<div class="line">    <span class="keyword">auto</span> readings = std::unordered_map&lt;sensor_id, meters&gt;{</div>
+<div class="line">        { sensor_id{ 7 }, meters{ 250 } },</div>
+<div class="line">        { sensor_id{ 9 }, meters{ 480 } },</div>
+<div class="line">    };</div>
+<div class="line">    assert(readings.at(sensor_id{ 7 }) == meters{ 250 });</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- CPO comparators: unwrap-aware equality and ordering ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> eq = <a class="code hl_struct" href="structcsl_1_1ensure_1_1strong__type__equal__to.html">csl::ensure::strong_type_equal_to</a>{};</div>
+<div class="line">    <span class="keyword">static_assert</span>(eq(meters{ 42 }, meters{ 42 }));</div>
+<div class="line">    <span class="keyword">static_assert</span>(eq(meters{ 42 }, 42)); <span class="comment">// cross-type comparison via unwrap</span></div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// NOLINTEND(*-avoid-magic-numbers)</span></div>
+<div class="line"><span class="comment">// NOLINTEND(*-assert)</span></div>
+<div class="ttc" id="aconceptcsl_1_1ensure_1_1concepts_1_1StrongTypeOf_html"><div class="ttname"><a href="conceptcsl_1_1ensure_1_1concepts_1_1StrongTypeOf.html">csl::ensure::concepts::StrongTypeOf</a></div><div class="ttdef"><b>Definition</b> ensure.hpp:399</div></div>
+<div class="ttc" id="aconceptcsl_1_1ensure_1_1concepts_1_1StrongType_html"><div class="ttname"><a href="conceptcsl_1_1ensure_1_1concepts_1_1StrongType.html">csl::ensure::concepts::StrongType</a></div><div class="ttdef"><b>Definition</b> ensure.hpp:395</div></div>
+<div class="ttc" id="aconceptcsl_1_1ensure_1_1concepts_1_1TaggedBy_html"><div class="ttname"><a href="conceptcsl_1_1ensure_1_1concepts_1_1TaggedBy.html">csl::ensure::concepts::TaggedBy</a></div><div class="ttdef"><b>Definition</b> ensure.hpp:401</div></div>
+<div class="ttc" id="astructcsl_1_1ensure_1_1strong__type__equal__to_html"><div class="ttname"><a href="structcsl_1_1ensure_1_1strong__type__equal__to.html">csl::ensure::strong_type_equal_to</a></div><div class="ttdef"><b>Definition</b> ensure.hpp:460</div></div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
 </div><!-- doc-content -->

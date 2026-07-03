@@ -936,9 +936,9 @@ Homogeneity API with tuple-likes</h2>
 <div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> sz = size_v&lt;value_type&gt;;</div>
 <div class="line"> </div>
 <div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> process = [&amp;]&lt;std::size_t index&gt;(){</div>
-<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> &amp;&amp; field = get&lt;index&gt;(std::forward&lt;<span class="keyword">decltype</span>(value)&gt;(value));</div>
+<div class="line">        <span class="keyword">auto</span> &amp;&amp; field = get&lt;index&gt;(std::forward&lt;<span class="keyword">decltype</span>(value)&gt;(value));</div>
 <div class="line">        <span class="keyword">using </span>field_type = element_t&lt;index, value_type&gt;;</div>
-<div class="line">        (void)<span class="keyword">static_cast&lt;</span>field_type *<span class="keyword">&gt;</span>(<span class="keyword">nullptr</span>);</div>
+<div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;std::remove_cvref_t&lt;<span class="keyword">decltype</span>(field)&gt;, field_type&gt;);</div>
 <div class="line">    };</div>
 <div class="line"> </div>
 <div class="line">    [&amp;]&lt;std::size_t ... indexes&gt;(std::index_sequence&lt;indexes...&gt;){</div>
@@ -952,7 +952,7 @@ Homogeneity API with tuple-likes</h2>
 <div class="line">    do_stuff(std::tuple&lt;int, float&gt;{ 1, 2.f });</div>
 <div class="line">}</div>
 <div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1structured__bindable_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a></div><div class="ttdef"><b>Definition</b> ag.hpp:215</div></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/hdM61xWbj"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/7WTnn9P5P"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <h2 class="doxsection"><a class="anchor" id="current-limitations"></a>
 Current limitations</h2>
 <p>As-is, this implementation internally relies on structured-binding, which design choice expose two main limitations :</p>
@@ -1003,7 +1003,94 @@ Slow path - for non default_initializable&lt;T&gt; or when bitfield support is e
 <hr  />
 <h2 class="doxsection"><a class="anchor" id="example"></a>
 Example</h2>
-<div class="fragment"></div><!-- fragment --> </div></div><!-- PageDoc -->
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>point  { <span class="keywordtype">int</span> x, y; };</div>
+<div class="line"><span class="keyword">struct </span>rgb    { std::uint8_t r, g, b; };</div>
+<div class="line"><span class="keyword">struct </span>single { <span class="keywordtype">float</span> value; };</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// size and element type</span></div>
+<div class="line"><span class="keyword">static_assert</span>(csl::ag::size_v&lt;point&gt;  == 2);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::ag::size_v&lt;rgb&gt;    == 3);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::ag::size_v&lt;single&gt; == 1);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;csl::ag::element_t&lt;0, point&gt;, <span class="keywordtype">int</span>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;csl::ag::element_t&lt;1, point&gt;, <span class="keywordtype">int</span>&gt;);</div>
+<div class="line"><span class="keyword">static_assert</span>(std::is_same_v&lt;csl::ag::element_t&lt;2, rgb&gt;,   std::uint8_t&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// concepts</span></div>
+<div class="line"><span class="keyword">static_assert</span>(    <a class="code hl_concept" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate&lt;point&gt;</a>);</div>
+<div class="line"><span class="keyword">static_assert</span>(not <a class="code hl_concept" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate&lt;std::tuple&lt;int&gt;</a>&gt;);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// NOLINTBEGIN(*-magic-numbers)</span></div>
+<div class="line"><span class="keyword">auto</span> main(<span class="keywordtype">int</span>, <span class="keywordtype">char</span>*[]) -&gt; <span class="keywordtype">int</span></div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">// --- element access ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">static</span> <span class="keyword">auto</span> value = point{ .x=3, .y=4 };</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::ag::get&lt;0&gt;(value) == 3);</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::ag::get&lt;1&gt;(value) == 4);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- apply: unpack fields into a callable ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> dist_sq = [](<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y) { <span class="keywordflow">return</span> (x * x) + (y * y); };</div>
+<div class="line">    <span class="keyword">static_assert</span>(csl::ag::apply(dist_sq, value) == 25);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- for_each: visit every field ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> channel_sum = [] {</div>
+<div class="line">        <span class="keywordtype">int</span> s = 0;</div>
+<div class="line">        csl::ag::for_each(</div>
+<div class="line">            [&amp;s](<span class="keyword">auto</span> v) { s += <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(v); },</div>
+<div class="line">            rgb{.r=10, .g=20, .b=30}</div>
+<div class="line">        );</div>
+<div class="line">        <span class="keywordflow">return</span> s;</div>
+<div class="line">    }();</div>
+<div class="line">    <span class="keyword">static_assert</span>(channel_sum == 60);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- for_each_enumerated: field index as NTTP ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> indexed_ok = [] {</div>
+<div class="line">        <span class="keywordtype">bool</span> ok = <span class="keyword">true</span>;</div>
+<div class="line">        csl::ag::tuplelike::for_each_enumerated(value, [&amp;ok]&lt;std::size_t I&gt;(<span class="keyword">auto</span> v) {</div>
+<div class="line">            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (I == 0) ok = ok and (v == 3);</div>
+<div class="line">            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (I == 1) ok = ok and (v == 4);</div>
+<div class="line">        });</div>
+<div class="line">        <span class="keywordflow">return</span> ok;</div>
+<div class="line">    }();</div>
+<div class="line">    <span class="keyword">static_assert</span>(indexed_ok);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- for_each_zipped: simultaneous element-wise iteration over multiple tuple-likes ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> zip_ok = [] {</div>
+<div class="line">        <span class="keywordtype">int</span> dot = 0;</div>
+<div class="line">        csl::ag::tuplelike::for_each_zipped(</div>
+<div class="line">            [&amp;dot](<span class="keyword">auto</span> a, <span class="keyword">auto</span> b) { dot += a * b; },</div>
+<div class="line">            point{ .x = 1, .y = 2},</div>
+<div class="line">            point{ .x = 3, .y = 4}</div>
+<div class="line">        );</div>
+<div class="line">        <span class="keywordflow">return</span> dot; <span class="comment">// 1*3 + 2*4 == 11</span></div>
+<div class="line">    }();</div>
+<div class="line">    <span class="keyword">static_assert</span>(zip_ok == 11);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- view: aggregate as a tuple-like via operator| ---</span></div>
+<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a> = value | csl::ag::views::all;</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::tuple_size_v&lt;<span class="keyword">decltype</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>)&gt; == 2);</div>
+<div class="line">    <span class="keyword">static_assert</span>(std::get&lt;0&gt;(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>) == 3);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- opt-in: fmt formatting (CSL_AG__ENABLE_FMTLIB_SUPPORT) ---</span></div>
+<div class="line"><span class="preprocessor">#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)</span></div>
+<div class="line">    fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value);  <span class="comment">// compact:  (3, 4)</span></div>
+<div class="line">    fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value | csl::ag::io::indented);  <span class="comment">// indented: multi-line</span></div>
+<div class="line"><span class="preprocessor">#endif</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// --- opt-in: std::format (CSL_AG__ENABLE_STD_FORMAT_SUPPORT) ---</span></div>
+<div class="line"><span class="preprocessor">#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)</span></div>
+<div class="line">    std::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value);</div>
+<div class="line">    std::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value | csl::ag::io::indented);</div>
+<div class="line"><span class="preprocessor">#endif</span></div>
+<div class="line">}</div>
+<div class="line"><span class="comment">// NOLINTEND(*-magic-numbers)</span></div>
+<div class="ttc" id="astructcsl_1_1ag_1_1view_html"><div class="ttname"><a href="structcsl_1_1ag_1_1view.html">csl::ag::view</a></div><div class="ttdef"><b>Definition</b> ag.hpp:797</div></div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
 </div><!-- doc-content -->
