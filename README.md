@@ -26,16 +26,16 @@ style="position: absolute; top: 0; right: 0; z-index: 3;"
 
 ---
 
-Collection of - ***S**ingle-**He**ader, header-only, C++ **l**ibraries **f**iles*.  
-Personal incubator for various library ideas and experiences, and perhaps a hint of serendipity.
+A collection of ***S**ingle-**He**ader, header-only, C++ **l**ibrary **f**iles* - hence the name.  
+A personal incubator for library ideas and experiments, and perhaps a hint of serendipity.
 
-The libraries here could, once mature enough, become self-contained in a separated repository.
+- Each library is **independent**, and individually toggleable (`CSL_BUILD_<name>`, `CSL_INSTALL_<name>`, `CSL_TEST_<name>`, etc.).
+- Some libraries gain **optional enhancements** when another `csl` library is available  
+  (e.g. `ag`'s `typenamed` formatting option uses `typeinfo` for compile-time type names).
 
-Each library is independent and individually toggleable (`CSL_BUILD_<name>`).
-
-However, some can optionally enhance themselves when another `csl` library is available too (e.g. `ag`'s `typenamed` formatting option uses `typeinfo` for compile-time type names).  
-This is always a soft integration detected via `__has_include`, with - when possible - some fallback, never a hard dependency: the consuming library is responsible for testing both states itself, self-contained in its own build files.  
-Note that such tests can enable unwanted libraries.
+Such integrations are always **soft** and manually togglable - detected via `__has_include`, with a fallback when possible - never a hard dependency.  
+Each consuming library is responsible for testing both states itself - with and without the enhancement - self-contained in its own build files.  
+Note that enabling such tests may implicitly enable libraries you did not select.
 
 ---
 
