@@ -218,6 +218,44 @@ namespace test::strong_type::assign {
     static_assert(std::is_assignable_v<name&, const name&>);
     static_assert(std::is_assignable_v<name&, const std::string&>);
     static_assert(std::is_assignable_v<name&, std::string &&>);
+
+    using meters      = csl::ensure::strong_type<int, struct meters_tag>;
+    using centimeters = csl::ensure::strong_type<int, struct centimeters_tag>;
+
+    constexpr bool assigns_from_underlying_rvalue() {
+        meters value{ 1 };
+        value = 42;
+        return value.underlying() == 42;
+    }
+    constexpr bool assigns_from_underlying_const_lvalue() {
+        const int source = 42;
+        meters value{ 1 };
+        value = source;
+        return value.underlying() == 42;
+    }
+    constexpr bool copy_assigns_from_same_strong_type() {
+        const meters source{ 42 };
+        meters value{ 1 };
+        value = source;
+        return value.underlying() == 42;
+    }
+    constexpr bool move_assigns_from_same_strong_type() {
+        meters value{ 1 };
+        value = meters{ 42 };
+        return value.underlying() == 42;
+    }
+
+#undef constexpr
+
+    static_assert(assigns_from_underlying_rvalue());
+    static_assert(assigns_from_underlying_const_lvalue());
+    static_assert(copy_assigns_from_same_strong_type());
+    static_assert(move_assigns_from_same_strong_type());
+
+    // No cross-tag assignment: conversions between strong types must be explicit and user-defined.
+    static_assert(not std::is_assignable_v<meters&, centimeters&>);
+    static_assert(not std::is_assignable_v<meters&, const centimeters&>);
+    static_assert(not std::is_assignable_v<meters&, centimeters&&>);
 }
 namespace test::strong_type::arithmetic {
 
@@ -283,7 +321,6 @@ namespace test::invocation {
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 #include <catch2/catch_test_macros.hpp>
-#include <iostream>
 
 TEST_CASE("ensure::CPO::std_hash", "[ensure][runtime]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
@@ -313,6 +350,7 @@ TEST_CASE("ensure::CPO::three_way", "[ensure][compile_time]") {
 #endif
 
 #if defined(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
+#include <iostream>
 TEST_CASE("ensure::io::ostream", "[ensure][runtime]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     using namespace csl::io;
