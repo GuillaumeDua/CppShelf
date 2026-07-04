@@ -11,6 +11,8 @@
 #include <utility>
 #include <functional>
 
+// NOLINTBEGIN(modernize-use-constraints)
+
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__)                     // NOLINT(cppcoreguidelines-macro-usage)
 
 namespace csl::ensure::details::mp {
@@ -160,6 +162,19 @@ namespace csl::ensure::details::mp::type_traits::arythmetic {
     constexpr inline static bool supports_op_plus_v = supports_op_plus<T>::value;
 }
 
+namespace csl::ensure {
+    template <typename T, typename tag>
+    struct strong_type;
+}
+namespace csl::ensure::type_traits {
+// is_strong_type
+    template <typename>
+    struct is_strong_type : std::false_type{};
+    template <typename T, typename tag>
+    struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
+    template <typename T>
+    constexpr inline static bool is_strong_type_v = is_strong_type<T>::value;
+}
 namespace csl::ensure
 {
 	template <typename T, typename tag>
@@ -238,24 +253,18 @@ namespace csl::ensure
         constexpr type & operator=(type && other)
         noexcept(std::is_nothrow_assignable_v<lvalue_reference, rvalue_reference>) = default;
 
+        // NOTE: excludes cross-tag assignment requires an explicit user-defined conversion
         template <
             typename arg_type,
-            std::enable_if_t<std::is_assignable_v<underlying_type&, const arg_type&>, bool> = true
-        >
-        constexpr type & operator=(const arg_type & arg)
-        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(arg)>)
-        {
-            value = arg;
-            return *this;
-        }
-        template <
-            typename arg_type,
-            std::enable_if_t<std::is_assignable_v<underlying_type&, arg_type &&>, bool> = true
+            std::enable_if_t<
+                not type_traits::is_strong_type_v<std::remove_cv_t<std::remove_reference_t<arg_type>>>
+                and std::is_assignable_v<underlying_type&, arg_type &&>
+            , bool> = true
         >
         constexpr type & operator=(arg_type && arg)
         noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(csl_fwd(arg))>)
         {
-            value = csl_fwd(value);
+            value = csl_fwd(arg);
             return *this;
         }
 
@@ -501,14 +510,6 @@ namespace csl::ensure
     }
 }
 namespace csl::ensure::type_traits {
-// is_strong_type
-    template <typename>
-    struct is_strong_type : std::false_type{};
-    template <typename T, typename tag>
-    struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
-    template <typename T>
-    constexpr inline static bool is_strong_type_v = is_strong_type<T>::value;
-
 // is_strong_type_of
     template <typename, typename>
     struct is_strong_type_of : std::false_type{};
@@ -663,3 +664,5 @@ struct fmt::formatter<
 #endif
 
 #undef csl_fwd
+
+// NOLINTEND(modernize-use-constraints)

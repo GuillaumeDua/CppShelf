@@ -74,6 +74,19 @@ namespace csl::ensure::details::concepts::comparison {
         { lhs >= rhs } -> std::convertible_to<bool>;
     };
 }
+namespace csl::ensure {
+    template <typename T, typename tag>
+    struct strong_type;
+}
+namespace csl::ensure::type_traits {
+// is_strong_type
+    template <typename>
+    struct is_strong_type : std::false_type{};
+    template <typename T, typename tag>
+    struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
+    template <typename T>
+    constexpr inline static bool is_strong_type_v = is_strong_type<T>::value;
+}
 namespace csl::ensure
 {
 	template <typename T, typename tag>
@@ -148,18 +161,13 @@ namespace csl::ensure
         requires std::is_assignable_v<lvalue_reference, rvalue_reference>
         = default;
 
-        constexpr type & operator=(const auto & arg)
-        noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(arg)>)
-        requires std::assignable_from<underlying_type&, decltype(arg)>
-        {
-            value = arg;
-            return *this;
-        }
+        // NOTE: excludes cross-tag assignment requires an explicit user-defined conversion
         constexpr type & operator=(auto && arg)
         noexcept(std::is_nothrow_assignable_v<underlying_type&, decltype(csl_fwd(arg))>)
-        requires std::assignable_from<underlying_type&, decltype(csl_fwd(arg))>
+        requires (not type_traits::is_strong_type_v<std::remove_cvref_t<decltype(arg)>>)
+            and std::assignable_from<underlying_type&, decltype(csl_fwd(arg))>
         {
-            value = csl_fwd(value);
+            value = csl_fwd(arg);
             return *this;
         }
 
@@ -327,14 +335,6 @@ namespace csl::ensure
     }
 }
 namespace csl::ensure::type_traits {
-// is_strong_type
-    template <typename>
-    struct is_strong_type : std::false_type{};
-    template <typename T, typename tag>
-    struct is_strong_type<csl::ensure::strong_type<T, tag>> : std::true_type{};
-    template <typename T>
-    constexpr inline static bool is_strong_type_v = is_strong_type<T>::value;
-
 // is_strong_type_of
     template <typename, typename>
     struct is_strong_type_of : std::false_type{};
