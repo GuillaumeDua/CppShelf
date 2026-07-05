@@ -180,9 +180,7 @@ constexpr&#160;</td><td class="memItemRight"><b>operator const_rvalue_reference<
 constexpr type &amp;&#160;</td><td class="memItemRight"><b>operator=</b> (const type &amp;other) noexcept(std::is_nothrow_assignable_v&lt; lvalue_reference, const_lvalue_reference &gt;)=default</td></tr>
 <tr class="memitem:a34e3935aa00ccd8f6b65cdcb888c5fc0" id="r_a34e3935aa00ccd8f6b65cdcb888c5fc0"><td class="memItemLeft"><a id="a34e3935aa00ccd8f6b65cdcb888c5fc0" name="a34e3935aa00ccd8f6b65cdcb888c5fc0"></a>
 constexpr type &amp;&#160;</td><td class="memItemRight"><b>operator=</b> (type &amp;&amp;other) noexcept(std::is_nothrow_assignable_v&lt; lvalue_reference, rvalue_reference &gt;)=default</td></tr>
-<tr class="memitem:acf663b9c2f015a3ae9e866d7e416b0db" id="r_acf663b9c2f015a3ae9e866d7e416b0db"><td class="memItemLeft"><a id="acf663b9c2f015a3ae9e866d7e416b0db" name="acf663b9c2f015a3ae9e866d7e416b0db"></a>
-constexpr type &amp;&#160;</td><td class="memItemRight"><b>operator=</b> (const auto &amp;arg) noexcept(std::is_nothrow_assignable_v&lt; underlying_type &amp;, decltype(arg)&gt;)</td></tr>
-<tr class="memitem:af0655f0e406bdf0b540812c913c4a431" id="r_af0655f0e406bdf0b540812c913c4a431"><td class="memItemLeft"><a id="af0655f0e406bdf0b540812c913c4a431" name="af0655f0e406bdf0b540812c913c4a431"></a>
+<tr class="memitem:a4f6c44fab67a468103f1bc5cd8be4f41" id="r_a4f6c44fab67a468103f1bc5cd8be4f41"><td class="memItemLeft"><a id="a4f6c44fab67a468103f1bc5cd8be4f41" name="a4f6c44fab67a468103f1bc5cd8be4f41"></a>
 constexpr type &amp;&#160;</td><td class="memItemRight"><b>operator=</b> (auto &amp;&amp;arg) noexcept(std::is_nothrow_assignable_v&lt; underlying_type &amp;, decltype(csl_fwd(arg))&gt;)</td></tr>
 <tr class="memitem:ad429547b6ac67dbb9f5d757b5a57062e" id="r_ad429547b6ac67dbb9f5d757b5a57062e"><td class="memTemplParams" colspan="2"><a id="ad429547b6ac67dbb9f5d757b5a57062e" name="ad429547b6ac67dbb9f5d757b5a57062e"></a>
 template&lt;typename ... arguments_ts&gt; <br />
