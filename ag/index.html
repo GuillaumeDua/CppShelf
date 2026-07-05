@@ -133,7 +133,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('index.html',''
 <div class="textblock"><p><a class="anchor" id="md__2home_2runner_2work_2CppShelf_2CppShelf_2libs_2ag_2README"></a></p>
 <div style="position: absolute; top: 0; right: 17px;"> <a href="https://github.com/GuillaumeDua/CppShelf"><img src="https://github.blog/wp-content/uploads/2008/12/forkme_right_red_aa0000.png?resize=149%2C149" alt="Fork me on GitHub" loading="lazy" width="149" height="149" class="attachment-full size-full" data-recalc-dims="1" align="right" style="position: relative; top: 0; right: 0; z-index: 1;" class="inline"/> </a> <a href="https://guillaumedua.github.io/CppShelf/"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/gh-pages-logo.png?raw=true" alt="Check documentation on GitHub-pages" loading="lazy" align="right" class="attachment-full size-full" height="40" style="position: absolute; top: 0; right: 0; z-index: 3;" class="inline"/> </a> </div><h1 class="doxsection"><a class="anchor" id="overall-presentation"></a>
 Overall presentation</h1>
-<p>The goal of <span class="tt">csl::ag</span> is to offer convenient ways to manipulate aggregate types.</p>
+<p><b><span class="tt">csl::ag</span> gives any C++ aggregate a <a href="https://en.cppreference.com/w/cpp/utility/tuple"><span class="tt">std::tuple</span></a>-like interface</b> - query its field count, access fields by index, iterate or <span class="tt">apply</span> a callable over them, and pretty-print the whole thing - all in <b>C++20</b>, with no reflection, no macros, and no changes to your types.</p>
+<p>The key idea is to make an aggregate's member-variables addressable and iterable the way a <span class="tt">std::tuple</span>'s elements are, which is especially convenient for <b>reflection</b> and <b>serialization</b> tasks:</p>
+<ul>
+<li><span class="tt">csl::ag::size_v&lt;T&gt;</span> gives the field count of an aggregate type <br  />
+ (or <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size"><span class="tt">std::tuple_size_v</span></a> after a <span class="tt">to_tuple</span>/<span class="tt">to_tuple_view</span> conversion)</li>
+<li><span class="tt">csl::ag::get&lt;N&gt;(value)</span> accesses a field by index, just like <a href="https://en.cppreference.com/w/cpp/utility/tuple/get"><span class="tt">std::get&lt;N&gt;</span></a> on a <a href="https://en.cppreference.com/w/cpp/utility/tuple"><span class="tt">std::tuple</span></a></li>
+<li><span class="tt">csl::ag::apply</span> and <span class="tt">csl::ag::for_each</span> run a callable over the fields</li>
+<li><span class="tt">csl::ag::io</span> pretty-format/prints values with composable options, supporting multiples backends: <a href="https://en.cppreference.com/w/cpp/utility/format/format"><span class="tt">std::format</span></a>, <a href="https://github.com/fmtlib/fmt"><span class="tt">fmt</span></a>, and/or <a href="https://en.cppreference.com/w/cpp/io/basic_ostream"><span class="tt">std::ostream</span></a>.</li>
+</ul>
 <h2 class="doxsection"><a class="anchor" id="overview-demo"></a>
 Overview demo</h2>
 <p>The following example demonstrates some of the features which are available in <span class="tt">csl::ag</span>.</p>
@@ -203,16 +211,6 @@ Introduction</h2>
 <li><a href="#tuplelike-interface">#4 - tuplelike interface</a></li>
 <li><a href="#functional-api">#5 - Functional API (<span class="tt">apply</span>, <span class="tt">for_each</span>)</a></li>
 <li><a href="#formatting-and-printing">#6 - Formatting and printing</a></li>
-</ul>
-<hr  />
-<h2 class="doxsection"><a class="anchor" id="philosophy--design-choices"></a>
-Philosophy &amp; design choices</h2>
-<p>The key idea of this library is to ease iterations over aggregates's member-variables in C++20 (so, without reflection), <br  />
- which is especially convenient when dealing with <b>reflection</b> and <b>serialization</b>.</p>
-<ul>
-<li><span class="tt"><a class="el" href="structcsl_1_1ag_1_1size.html">csl::ag::size</a>&lt;T&gt;</span> gives the fields count in a given aggregate type type <br  />
- (or <a href="https://en.cppreference.com/w/cpp/utility/tuple/tuple_size">std::tuple_size_v</a> after a <span class="tt">to_tuple</span> or <span class="tt">to_tuple_view</span> conversion)</li>
-<li><span class="tt">csl::ag::get&lt;size_t N&gt;(aggregate auto &amp;&amp; value)</span> allows per-field access, in a similar way to <a href="https://en.cppreference.com/w/cpp/utility/tuple/get">std::get&lt;N&gt;</a> for <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple&lt;Ts...&gt;</a></li>
 </ul>
 <hr  />
 <h2 class="doxsection"><a class="anchor" id="getting-starting"></a>

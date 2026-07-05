@@ -28,7 +28,6 @@ var NAVTREE =
     [ "Overall presentation", "index.html#overall-presentation", [
       [ "Overview demo", "index.html#overview-demo", null ],
       [ "Introduction", "index.html#introduction", null ],
-      [ "Philosophy &amp; design choices", "index.html#philosophy--design-choices", null ],
       [ "Getting starting", "index.html#getting-starting", [
         [ "Integration", "index.html#integration", [
           [ "Plain download", "index.html#plain-download", null ],
