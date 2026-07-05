@@ -13,7 +13,15 @@
 
 # Overall presentation
 
-The goal of `csl::ag` is to offer convenient ways to manipulate aggregate types.
+**`csl::ag` gives any C++ aggregate a [`std::tuple`](https://en.cppreference.com/w/cpp/utility/tuple)-like interface** - query its field count, access fields by index, iterate or `apply` a callable over them, and pretty-print the whole thing - all in **C++20**, with no reflection, no macros, and no changes to your types.
+
+The key idea is to make an aggregate's member-variables addressable and iterable the way a `std::tuple`'s elements are, which is especially convenient for **reflection** and **serialization** tasks:
+
+- `csl::ag::size_v<T>` gives the field count of an aggregate type  
+  (or [`std::tuple_size_v`](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `to_tuple`/`to_tuple_view` conversion)
+- `csl::ag::get<N>(value)` accesses a field by index, just like [`std::get<N>`](https://en.cppreference.com/w/cpp/utility/tuple/get) on a [`std::tuple`](https://en.cppreference.com/w/cpp/utility/tuple)
+- `csl::ag::apply` and `csl::ag::for_each` run a callable over the fields
+- `csl::ag::io` pretty-format/prints values with composable options, supporting multiples backends: [`std::format`](https://en.cppreference.com/w/cpp/utility/format/format), [`fmt`](https://github.com/fmtlib/fmt), and/or [`std::ostream`](https://en.cppreference.com/w/cpp/io/basic_ostream).
 
 ## Overview demo
 
@@ -103,17 +111,6 @@ This library is divided in six distinct parts :
 - <a href="#tuplelike-interface">#4 - tuplelike interface</a>
 - <a href="#functional-api">#5 - Functional API (`apply`, `for_each`)</a>
 - <a href="#formatting-and-printing">#6 - Formatting and printing</a>
-
----
-
-## Philosophy & design choices
-
-The key idea of this library is to ease iterations over aggregates's member-variables in C++20 (so, without reflection),  
-which is especially convenient when dealing with **reflection** and **serialization**.
-
-- `csl::ag::size<T>` gives the fields count in a given aggregate type type  
-  (or [std::tuple_size_v](https://en.cppreference.com/w/cpp/utility/tuple/tuple_size) after a `to_tuple` or `to_tuple_view` conversion)
-- `csl::ag::get<size_t N>(aggregate auto && value)` allows per-field access, in a similar way to [std::get<N>](https://en.cppreference.com/w/cpp/utility/tuple/get) for [std::tuple<Ts...>](https://en.cppreference.com/w/cpp/utility/tuple)
 
 ---
 

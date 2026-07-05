@@ -1148,6 +1148,7 @@ namespace csl::ag::tuplelike {
             ), ...);
         }(std::make_index_sequence<csl::ag::tuplelike::size_v<value_type>>{});
     }
+    // - for_each_zipped
     template <typename ... Ts>
     requires (true and ... and csl::ag::concepts::structured_bindable<Ts>)
     constexpr void for_each_zipped(auto && f, Ts &&... values) {
