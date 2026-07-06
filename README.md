@@ -189,10 +189,22 @@ See project's
     A component-less `find_package(csl)` additionally provides the aggregate `csl::csl`, which exists only when the full component set is built and installed.  
     Tagged releases (`vX.Y.Z`) ship `.tar.gz` / `.zip` archives of the installed tree.
 
-    The installed package is **dependency-free**: it never ships nor declares third-party libraries.
-    Optional enhancements that rely on a third party (e.g. `fmt`) are a source/consumer-time opt-in -
-    enable the feature and provide the dependency in your own build. Installing a component whose
-    interface links an external package is rejected at configure time.
+    💡 The installed package is **dependency-free**: it never ships nor declares third-party libraries.
+
+    Optional enhancements that rely on a third party (e.g. `fmt`) are a source/consumer-time opt-in: enable the feature and provide the dependency in your own build.  
+    Installing a component whose interface links an external package is rejected at configure time.
+
+    Because such enhancements are gated by a preprocessor macro in the header, they stay fully available from the installed package: 
+    the consumer provides the dependency and defines the macro in its own build.  
+
+    For example, to enable `csl::ag`'s `fmt` formatting support:
+
+    ```cmake
+    find_package(csl REQUIRED COMPONENTS ag)
+    find_package(fmt REQUIRED)                 # consumer provides fmt
+    target_link_libraries(app PRIVATE csl::ag fmt::fmt)
+    target_compile_definitions(app PRIVATE CSL_AG__ENABLE_FMTLIB_SUPPORT=1)
+    ```
 
 #### CMake - options
 
