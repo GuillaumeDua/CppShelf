@@ -159,19 +159,58 @@ See project's
 
 - [ExternalProject_Add](https://cmake.org/cmake/help/latest/module/ExternalProject.html)
 
+- [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html) (installed / packaged `csl`)
+
+    Install `csl` once (from source, or from a release archive), then consume it from any project:
+
+    ```cmake
+    # Subset: only specific csl libraries
+    find_package(csl REQUIRED COMPONENTS ag mp)
+    target_link_libraries(your_target PRIVATE csl::ag csl::mp)
+    ```
+
+    ```cmake
+    # All components
+    find_package(csl REQUIRED)
+    target_link_libraries(your_target PRIVATE csl::csl)
+    ```
+
+    To install from source into a prefix:
+
+    ```bash
+    cmake -S . -B build -DCSL_INSTALL_ALL=ON
+    cmake --build build
+    cmake --install build --prefix /path/to/prefix
+    ```
+
+    Point the consuming project at it with `-DCMAKE_PREFIX_PATH=/path/to/prefix`.  
+    Each component is exposed as the same `csl::<name>` target as `FetchContent`.
+
+    A component-less `find_package(csl)` additionally provides the aggregate `csl::csl`, which exists only when the full component set is built and installed.  
+    Tagged releases (`vX.Y.Z`) ship `.tar.gz` / `.zip` archives of the installed tree.
+
+    The installed package is **dependency-free**: it never ships nor declares third-party libraries.
+    Optional enhancements that rely on a third party (e.g. `fmt`) are a source/consumer-time opt-in -
+    enable the feature and provide the dependency in your own build. Installing a component whose
+    interface links an external package is rejected at configure time.
+
 #### CMake - options
 
 > 💡Each cache entry is structured as `CSL_<WHAT>_<ALL|NAME>`.
 
 General options:
 
-| Option              | Type | Default | Description                                  |
-| ------------------- | ---- | ------- | -------------------------------------------- |
-| `CSL_BUILD_ALL`     | bool | ON      | enable/disable all components **build**      |
-| `CSL_INSTALL_ALL`   | bool | ON      | enable/disable all components **install**    |
-| `CSL_TEST_ALL`      | bool | OFF     | enable/disable all components **tests**      |
-| `CSL_EXAMPLE_ALL`   | bool | OFF     | enable/disable all components **examples**   |
-| `CSL_BENCHMARK_ALL` | bool | OFF     | enable/disable all components **benchmarks** |
+| Option              | Type | Default            | Description                                  |
+| ------------------- | ---- | ------------------ | -------------------------------------------- |
+| `CSL_BUILD_ALL`     | bool | ON                 | enable/disable all components **build**      |
+| `CSL_INSTALL_ALL`   | bool | top-level: ON      | enable/disable all components **install**    |
+| `CSL_TEST_ALL`      | bool | OFF                | enable/disable all components **tests**      |
+| `CSL_EXAMPLE_ALL`   | bool | OFF                | enable/disable all components **examples**   |
+| `CSL_BENCHMARK_ALL` | bool | OFF                | enable/disable all components **benchmarks** |
+
+> 💡 `CSL_INSTALL_ALL` defaults to `PROJECT_IS_TOP_LEVEL`: **ON** for a standalone `csl` build, **OFF** when `csl` is consumed via `add_subdirectory` / `FetchContent`  
+> (so a parent project's `cmake --install` never ships `csl`'s headers and export sets).  
+> Set `-DCSL_INSTALL_ALL=ON` explicitly to install `csl` from within a consuming build.
 
 Components-specific options:
 

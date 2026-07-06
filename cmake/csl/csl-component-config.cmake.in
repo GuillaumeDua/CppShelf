@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+# Config file for a single csl component: csl::@CSL_COMPONENT_NAME@
+# Included by cslConfig.cmake for each requested/available component.
+#
+# The csl package is dependency-free: components declare no third-party find_dependency().
+# Optional enhancements (e.g. fmt) are enabled and provided by the consumer in their own build.
+
+include("${CMAKE_CURRENT_LIST_DIR}/csl-@CSL_COMPONENT_NAME@-targets.cmake")

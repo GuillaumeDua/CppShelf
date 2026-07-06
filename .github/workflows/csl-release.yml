@@ -1,0 +1,62 @@
+name: csl release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write # required to create a GitHub release
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+
+jobs:
+  package:
+    name: Package & release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      build_dir: ${{ github.workspace }}/build/release
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install ninja
+      run: |
+        sudo apt-get update -qqy
+        sudo apt-get install -y ninja-build
+
+    - name: 📦 Configure, build and package (CPack)
+      run: |
+        cmake -S . -B "${{ env.build_dir }}" -G Ninja  \
+          -DCMAKE_BUILD_TYPE=Release                   \
+          -DCSL_BUILD_ALL=ON                           \
+          -DCSL_TEST_ALL=OFF                           \
+          -DCSL_EXAMPLE_ALL=OFF                        \
+          -DCSL_BENCHMARK_ALL=OFF                      \
+          -DCSL_DOC_ALL=OFF                            \
+          -DCSL_INSTALL_ALL=ON
+        cmake --build "${{ env.build_dir }}"
+        cmake --build "${{ env.build_dir }}" --target package
+
+    - name: List archives
+      run: ls -1 "${{ env.build_dir }}"/csl-*.tar.gz "${{ env.build_dir }}"/csl-*.zip
+
+    - name: 🚀 Create GitHub release
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release create "${GITHUB_REF_NAME}"        \
+          --title "csl ${GITHUB_REF_NAME}"            \
+          --generate-notes                            \
+          "${{ env.build_dir }}"/csl-*.tar.gz         \
+          "${{ env.build_dir }}"/csl-*.zip
