@@ -50,11 +50,11 @@ if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
     if (TARGET fmt::fmt-header-only)
         add_dependencies(csl_${csl_add_component_NAME} fmt::fmt-header-only)
         target_link_libraries(csl_${csl_add_component_NAME} INTERFACE fmt::fmt-header-only)
-    elseif(target fmt::fmt)
+    elseif(TARGET fmt::fmt)
         add_dependencies(csl_${csl_add_component_NAME} fmt::fmt)
         target_link_libraries(csl_${csl_add_component_NAME} INTERFACE fmt::fmt)
     else()
-        message(ERROR "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: unexpected ill-formed fmt library")
+        message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: unexpected ill-formed fmt library")
     endif()
 endif()
 
@@ -77,13 +77,21 @@ else()
 endif()
 csl_print_aligned(STATUS CSL_AG__MAX_SUPPORTED_FIELDS_COUNT)
 if (NOT CSL_AG__MAX_SUPPORTED_FIELDS_COUNT MATCHES "^[0-9]+$")
-    message(FATAL "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_SUPPORTED_FIELDS_COUNT is not a valid number")
+    message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}] : CSL_AG__MAX_SUPPORTED_FIELDS_COUNT is not a valid number")
 endif()
 
 if (NOT CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/generate_cpp_code.cmake)
     ag_generate_cpp_code(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
-    "${CMAKE_CURRENT_BINARY_DIR}"
-)
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+    # Ship the CMake-generated headers so the installed package keeps build parity (up to
+    # CSL_AG__MAX_SUPPORTED_FIELDS_COUNT fields). Their include path is already covered by the
+    # main target's $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> (files land under csl/ag/generated/).
+    if (CSL_INSTALL_${csl_add_component_NAME})
+        install(DIRECTORY   "${CMAKE_CURRENT_BINARY_DIR}/csl"
+            DESTINATION     "${CMAKE_INSTALL_INCLUDEDIR}"
+        )
+    endif()
 endif()

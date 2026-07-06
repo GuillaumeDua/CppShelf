@@ -19,7 +19,7 @@ defaults:
 jobs:
   consumption_test:
 
-    name: Consumption (${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }})
+    name: Consumption ${{ matrix.mode }} (${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }})
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -27,12 +27,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        mode: [fetchcontent, find_package]
         configuration:
           - { CMAKE_C_COMPILER: clang, CMAKE_CXX_COMPILER: clang++, version: 'latest-stable' }
           - { CMAKE_C_COMPILER: gcc,   CMAKE_CXX_COMPILER: g++,     version: 'latest-stable' }
 
     env:
-      build_dir: ${{ github.workspace }}/build/consumption/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
+      build_dir: ${{ github.workspace }}/build/consumption/${{ matrix.mode }}/${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -53,14 +54,19 @@ jobs:
         script_name="${{ github.workspace }}/.devcontainer/scripts/gcc.sh"
         sudo chmod +x "${script_name}" && sudo "${script_name}" --silent=yes --alias=no --versions="${{ matrix.configuration.version }}"
 
-    - name: 📦 Configure, build and test
-      working-directory: ${{ github.workspace }}/test/consumption
+    - name: 📦 Configure, build and test (${{ matrix.mode }})
+      working-directory: ${{ github.workspace }}/test/consumption/${{ matrix.mode }}
       env:
         CMAKE_C_COMPILER:   ${{ matrix.configuration.CMAKE_C_COMPILER }}
         CMAKE_CXX_COMPILER: ${{ matrix.configuration.CMAKE_CXX_COMPILER }}
       run: |
-        bash build.sh "${{ env.build_dir }}"  \
-          -Dcsl_consumption_test_GIT_TAG=${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch || github.ref_name }}
+        # fetchcontent: fetches the branch from GitHub
+        # find_package: installs the local checkout into a directory and consumes only that directory.
+        extra_args=()
+        if [[ "${{ matrix.mode }}" == "fetchcontent" ]]; then
+          extra_args+=(-Dcsl_consumption_test_GIT_TAG=${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch || github.ref_name }})
+        fi
+        bash build.sh "${{ env.build_dir }}" "${extra_args[@]}"
 
   consumption_passed:
     name: Consumption passed

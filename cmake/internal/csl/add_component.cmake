@@ -1,6 +1,8 @@
 include_guard(GLOBAL)
 
 include(CMakeParseArguments)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 include(csl/print_aligned)
 
 ### Components - Targets - <project>::<name>
@@ -37,11 +39,16 @@ function(csl_add_component)
 
     add_library(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE)
     add_library(${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME} ALIAS ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME})
+    # Export as csl::<name> (not csl::csl_<name>): install(EXPORT NAMESPACE csl::) prepends to EXPORT_NAME.
+    set_target_properties(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} PROPERTIES
+        EXPORT_NAME ${csl_add_component_NAME}
+    )
 
     set(csl_add_component_PATH ${PROJECT_SOURCE_DIR}/libs/${csl_add_component_NAME})
 
     target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
-        ${csl_add_component_PATH}/includes/${csl_add_component_NAME}
+        $<BUILD_INTERFACE:${csl_add_component_PATH}/includes/${csl_add_component_NAME}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
     set(_csl_options_cmake "${csl_add_component_PATH}/cmake/options.cmake")
@@ -78,7 +85,56 @@ function(csl_add_component)
     endif()
 
     # install
-    # TODO
+    # NOTE: csl::test is an internal test-support component, never part of the installed package.
+    if (CSL_INSTALL_${csl_add_component_NAME} AND NOT csl_add_component_NAME STREQUAL "test")
+
+        set(_csl_cmake_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${csl_add_component_PROJECT_NAME}")
+
+        # The installed csl package is dependency-free: an exported target must not link an external
+        # package. Optional third-party enhancements (e.g. fmt) are a consumer/source-time opt-in,
+        # never shipped nor declared as a package dependency. Reject early if one leaked into the
+        # public interface, rather than emitting a config that references an unfindable target.
+        get_target_property(_csl_link_libs
+            ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE_LINK_LIBRARIES
+        )
+        if (_csl_link_libs)
+            foreach(_csl_lib IN LISTS _csl_link_libs)
+                if (_csl_lib MATCHES "::" AND NOT _csl_lib MATCHES "^${csl_add_component_PROJECT_NAME}::")
+                    message(FATAL_ERROR
+                        "[${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME}] links external target "
+                        "[${_csl_lib}] and cannot be installed: the csl package is dependency-free. Disable the "
+                        "opt-in feature that adds it for install builds, or set "
+                        "CSL_INSTALL_${csl_add_component_NAME}=OFF."
+                    )
+                endif()
+            endforeach()
+        endif()
+
+        # public headers: install(DIRECTORY) preserves nested layout (e.g. ensure's cxx_17/ + cxx_20/)
+        install(DIRECTORY   ${csl_add_component_PATH}/includes/${csl_add_component_NAME}/csl
+            DESTINATION     ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+
+        install(TARGETS ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME}
+            EXPORT      csl-${csl_add_component_NAME}-targets
+        )
+        install(EXPORT  csl-${csl_add_component_NAME}-targets
+            FILE        csl-${csl_add_component_NAME}-targets.cmake
+            NAMESPACE   ${csl_add_component_PROJECT_NAME}::
+            DESTINATION ${_csl_cmake_install_dir}
+        )
+
+        # per-component config file (minimal: the package is dependency-free)
+        set(CSL_COMPONENT_NAME ${csl_add_component_NAME})
+        configure_package_config_file(
+            "${PROJECT_SOURCE_DIR}/cmake/csl/csl-component-config.cmake.in"
+            "${CMAKE_CURRENT_BINARY_DIR}/csl-${csl_add_component_NAME}-config.cmake"
+            INSTALL_DESTINATION ${_csl_cmake_install_dir}
+        )
+        install(FILES   "${CMAKE_CURRENT_BINARY_DIR}/csl-${csl_add_component_NAME}-config.cmake"
+            DESTINATION ${_csl_cmake_install_dir}
+        )
+    endif()
 
     # doc
     # TODO

@@ -71,7 +71,7 @@ message(STATUS "[${PROJECT_NAME}] fetched csl components: [${_csl_components}]")
 csl_print_aligned(STATUS CMAKE_BUILD_TYPE)
 csl_print_aligned(STATUS CMAKE_CXX_STANDARD)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/../main.cpp)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         csl::ag

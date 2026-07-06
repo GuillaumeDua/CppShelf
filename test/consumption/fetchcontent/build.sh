@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Consumption mode: CMake FetchContent
+# - Fetches csl from GitHub (branch/tag via -Dcsl_consumption_test_GIT_TAG=...) and links it.
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${1:?Usage: $(basename "$0") <build-dir> [extra cmake args...]}"
 shift

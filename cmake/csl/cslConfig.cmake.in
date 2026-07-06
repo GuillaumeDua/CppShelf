@@ -1,0 +1,42 @@
+@PACKAGE_INIT@
+
+# Package config for csl (CppShelf) — single-header, header-only C++ libraries.
+#
+# Usage:
+#   find_package(csl REQUIRED)                       # every installed component + csl::csl
+#   find_package(csl REQUIRED COMPONENTS ag mp)      # only the requested components
+#
+# Each component is exposed as an imported target csl::<name>.
+# The aggregate meta-target csl::csl (links every installed component) is only
+# available when no COMPONENTS are requested and the package was installed whole.
+
+set(_csl_known_components @CSL_INSTALLED_COMPONENTS@)
+
+if (csl_FIND_COMPONENTS)
+    set(_csl_components_to_load ${csl_FIND_COMPONENTS})
+else()
+    set(_csl_components_to_load ${_csl_known_components})
+endif()
+
+foreach(_csl_comp IN LISTS _csl_components_to_load)
+    include("${CMAKE_CURRENT_LIST_DIR}/csl-${_csl_comp}-config.cmake"
+        OPTIONAL RESULT_VARIABLE _csl_comp_config
+    )
+    if (_csl_comp_config)
+        set(csl_${_csl_comp}_FOUND TRUE)
+    else()
+        set(csl_${_csl_comp}_FOUND FALSE)
+    endif()
+endforeach()
+
+# Aggregate meta-target csl::csl — only when consuming the package as a whole.
+if (NOT csl_FIND_COMPONENTS AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/csl-targets.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/csl-targets.cmake")
+endif()
+
+unset(_csl_known_components)
+unset(_csl_components_to_load)
+unset(_csl_comp)
+unset(_csl_comp_config)
+
+check_required_components(csl)

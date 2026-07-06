@@ -34,6 +34,8 @@ endif()
 
 include(CMakeDependentOption)
 include(CMakeParseArguments)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 message("[${PROJECT_NAME}] Exporting csl cmake modules as [${CMAKE_CURRENT_SOURCE_DIR}/cmake]")
 set(CSL_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE PATH "[${PROJECT_NAME}] path to exported cmake modules")
@@ -101,7 +103,15 @@ set(CSL_OPTIONS_LIST
     BENCHMARK
 )
 foreach(option_name IN LISTS CSL_OPTIONS_LIST)
-    option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" OFF)
+
+    # INSTALL auto-enable: defaults to PROJECT_IS_TOP_LEVEL
+    # - ON for a standalone csl build, so `cmake --install` works out of the box,
+    # - OFF when csl is consumed via add_subdirectory/FetchContent, so parent's `cmake --install` never accidentally ships csl's headers + export sets).
+    set(_csl_option_all_default OFF)
+    if (option_name STREQUAL "INSTALL")
+        set(_csl_option_all_default ${PROJECT_IS_TOP_LEVEL})
+    endif()
+    option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" ${_csl_option_all_default})
     csl_print_aligned(STATUS CSL_${option_name}_ALL)
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
@@ -140,21 +150,120 @@ if (_csl_test_index GREATER -1)
     enable_testing()
 endif()
 
-add_library(${PROJECT_NAME} INTERFACE)
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+# The csl::csl meta-target aggregates ALL public components.
+# WARNING: it is created ONLY when all csl components/libraries are enabled.
+set(CSL_ALL_COMPONENTS_ENABLED TRUE)
+foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
+    if (NOT component_name STREQUAL "test")
+        list(FIND CSL_ENABLED_COMPONENTS_LIST ${component_name} _csl_enabled_index)
+        if (_csl_enabled_index EQUAL -1)
+            set(CSL_ALL_COMPONENTS_ENABLED FALSE)
+            break()
+        endif()
+    endif()
+endforeach()
+
+if (CSL_ALL_COMPONENTS_ENABLED)
+    message(STATUS "[${PROJECT_NAME}] all components are enabled, creating [${PROJECT_NAME}::${PROJECT_NAME}] meta-target")
+    add_library(${PROJECT_NAME} INTERFACE)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+else()
+    message(VERBOSE "[${PROJECT_NAME}] some components are disabled, preventing [${PROJECT_NAME}::${PROJECT_NAME}] meta-target creation")
+endif()
 
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    # FIXME ?
     # NOTE: a component may have already been added by another component's tests
-    # (self-provisioned as an optional, loosely-coupled integration, e.g. csl::ag's tests <-> csl::typeinfo).
-    # Guard against adding it twice regardless of processing order.
+    # - Self-provisioned as an optional, loosely-coupled integration, e.g. csl::ag's tests <-> csl::typeinfo).
+    # - Guard against adding it twice regardless of processing order.
     if (NOT TARGET ${PROJECT_NAME}::${component_name})
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/${component_name})
     endif()
-    
-    add_dependencies(${PROJECT_NAME} csl::${component_name})
-    target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
+
+    # Wire the meta-target only when it exists (full build), and keep the internal csl::test helper out of it.
+    if (TARGET ${PROJECT_NAME} AND NOT component_name STREQUAL "test")
+        add_dependencies(${PROJECT_NAME} csl::${component_name})
+        target_link_libraries(${PROJECT_NAME} INTERFACE csl::${component_name})
+    endif()
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
+
+# Install and package: find_package(csl) support
+# - Per-component install/export rules live in csl_add_component() (gated on CSL_INSTALL_<name>).
+# - Top-level: package config + version file, the optional aggregate csl::csl target, and CPack archives for the release workflow.
+set(CSL_INSTALLED_COMPONENTS "")
+foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    # csl::test is an internal test-support helper, never shipped in the package.
+    if (CSL_INSTALL_${component_name} AND NOT component_name STREQUAL "test")
+        list(APPEND CSL_INSTALLED_COMPONENTS ${component_name})
+    endif()
+endforeach()
+
+# WIP: csl aggregate package vs. csl_<component>.cmake packages.
+# Or it is OK to disable some components ? -> for consistency, check what Boost and other library do ?
+
+if (CSL_INSTALLED_COMPONENTS)
+
+    set(CSL_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+    # Public components linked into the csl meta-target (all enabled except internal csl::test).
+    set(CSL_PUBLIC_COMPONENTS "")
+    foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+        if (NOT component_name STREQUAL "test")
+            list(APPEND CSL_PUBLIC_COMPONENTS ${component_name})
+        endif()
+    endforeach()
+
+    # Aggregate csl::csl meta-target: exported only when it exists (full build).
+    # - Every public component it links must itself be installed/exported, otherwise install(EXPORT) would reference a missing target.
+    # - csl::test is internal and never installed, so it is excluded from both lists
+    # The only way they can differ is a per-component CSL_INSTALL_<name>=OFF on an enabled component, which is unsupported here.
+    if (TARGET ${PROJECT_NAME})
+        if (NOT CSL_INSTALLED_COMPONENTS STREQUAL CSL_PUBLIC_COMPONENTS)
+            message(FATAL_ERROR
+                "[${PROJECT_NAME}] csl::csl requires every public component to be installed, "
+                "but installed=[${CSL_INSTALLED_COMPONENTS}] differs from public=[${CSL_PUBLIC_COMPONENTS}]. "
+                "Do not disable CSL_INSTALL_<name> for an enabled component on a full build."
+            )
+        endif()
+        install(TARGETS ${PROJECT_NAME} EXPORT csl-targets)
+        install(EXPORT  csl-targets
+            FILE        csl-targets.cmake
+            NAMESPACE   ${PROJECT_NAME}::
+            DESTINATION ${CSL_CMAKE_INSTALL_DIR}
+        )
+    endif()
+
+    configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/csl/cslConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cslConfig.cmake"
+        INSTALL_DESTINATION ${CSL_CMAKE_INSTALL_DIR}
+    )
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/cslConfigVersion.cmake"
+        VERSION         ${PROJECT_VERSION}
+        COMPATIBILITY   SameMajorVersion
+        ARCH_INDEPENDENT
+    )
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/cslConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/cslConfigVersion.cmake"
+        DESTINATION ${CSL_CMAKE_INSTALL_DIR}
+    )
+
+    # Release archives (consumed by .github/workflows/csl-release.yml via CPack)
+    set(CPACK_PACKAGE_NAME                  "${PROJECT_NAME}")
+    set(CPACK_PACKAGE_VENDOR                "Guillaume Dua")
+    set(CPACK_PACKAGE_VERSION               "${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY   "CppShelf (csl): single-header, header-only C++ libraries")
+    set(CPACK_PACKAGE_HOMEPAGE_URL          "https://github.com/GuillaumeDua/CppShelf")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+        set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+    endif()
+    set(CPACK_GENERATOR                     "TGZ;ZIP")
+    set(CPACK_SOURCE_GENERATOR              "TGZ;ZIP")
+    include(CPack)
+endif()
 
 # Documentation
 set(CSL_DOC_ANY ${CSL_DOC_ALL})
