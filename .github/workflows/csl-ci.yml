@@ -4,10 +4,14 @@ on:
   push:
     branches-ignore:
       - gh-pages
+  workflow_call: # callable as a release gate (see csl-release.yml)
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # literal prefix (not github.workflow):
+  # - when called as a reusable workflow the github context is the caller's,
+  #   so a github.workflow-based group would collide with the caller and self-cancel.
+  group: csl-ci-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -89,14 +93,13 @@ jobs:
 
     - name: 📦 CMake configure
       run: |
-        # All libraries are always built (header-only, free); each leg isolates one component's
-        # suite via CSL_{TEST,EXAMPLE,BENCHMARK}_<component> only.
+        # Enable one component's only, using CSL_{TEST,EXAMPLE,BENCHMARK}_<component>
         cmake --preset ${{ matrix.configuration.preset }} \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-          -DCSL_BENCHMARK_ALL:BOOL=FALSE \
-          -DCSL_EXAMPLE_ALL:BOOL=FALSE   \
-          -DCSL_TEST_ALL:BOOL=FALSE      \
+          -DCSL_BENCHMARK:BOOL=FALSE \
+          -DCSL_EXAMPLE:BOOL=FALSE   \
+          -DCSL_TEST:BOOL=FALSE      \
           -DCSL_BENCHMARK_${{ matrix.CSL_component }}:BOOL=TRUE  \
           -DCSL_EXAMPLE_${{ matrix.CSL_component }}:BOOL=TRUE    \
           -DCSL_TEST_${{ matrix.CSL_component }}:BOOL=TRUE

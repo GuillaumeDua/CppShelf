@@ -6,8 +6,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# Least privilege by default; only the packaging job needs write (to create the release).
 permissions:
-  contents: write # required to create a GitHub release
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,10 +19,24 @@ defaults:
     shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
 
 jobs:
+  # Release gate: the tagged tree must pass the full CI matrix and the consumption suite.
+  # These workflows do not trigger on tag pushes, so we run them here against the tag.
+  ci:
+    name: CI
+    uses: ./.github/workflows/csl-ci.yml
+
+  consumption:
+    name: Consumption
+    needs: ci
+    uses: ./.github/workflows/csl-consumption-ci.yml
+
   package:
     name: Package & release
+    needs: [ci, consumption] # only runs if both gates succeeded
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write # required to create a GitHub release
 
     env:
       build_dir: ${{ github.workspace }}/build/release
@@ -36,13 +51,13 @@ jobs:
 
     - name: 📦 Configure, build and package (CPack)
       run: |
-        cmake -S . -B "${{ env.build_dir }}" -G Ninja  \
-          -DCMAKE_BUILD_TYPE=Release                   \
-          -DCSL_TEST_ALL=OFF                           \
-          -DCSL_EXAMPLE_ALL=OFF                        \
-          -DCSL_BENCHMARK_ALL=OFF                      \
-          -DCSL_DOC_ALL=OFF                            \
-          -DCSL_INSTALL_ALL=ON
+        cmake -S . -B "${{ env.build_dir }}" -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release                  \
+          -DCSL_TEST=OFF                              \
+          -DCSL_EXAMPLE=OFF                           \
+          -DCSL_BENCHMARK=OFF                         \
+          -DCSL_DOC=OFF                               \
+          -DCSL_INSTALL=ON
         cmake --build "${{ env.build_dir }}"
         cmake --build "${{ env.build_dir }}" --target package
 
