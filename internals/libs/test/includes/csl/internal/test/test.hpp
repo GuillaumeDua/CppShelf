@@ -7,7 +7,7 @@
 // Prefer Catch2 or GoogleTest when available.
 
 #if __cplusplus < 201703L
- #error "csl/mp.hpp requires C++17 or greater"
+ #error "csl/internal/test/test.hpp requires C++17 or greater"
 #endif
 
 #if __has_include(<version>)
@@ -16,29 +16,29 @@
 
 #if defined(__cpp_lib_source_location) and __cpp_lib_source_location >= 201907L
 # include <source_location>
-namespace csl::test::details {
+namespace csl::internal::test::details {
 using source_location = std::source_location;
 }
 #elif __has_include(<experimental/source_location>)
-# pragma message("csl::test: using <experimental/source_location>. Prefer <source_location> if available.")
+# pragma message("csl::internal::test: using <experimental/source_location>. Prefer <source_location> if available.")
 # include <experimental/source_location>
-namespace csl::test::details {
+namespace csl::internal::test::details {
 using source_location = std::experimental::source_location;
 }
 #else
-namespace csl::test::details {
+namespace csl::internal::test::details {
 using source_location = void;
 }
 #endif
 
 #include <stdexcept>
 
-namespace csl::test {
+namespace csl::internal::test {
     struct failure : std::runtime_error {
 
         // NOLINTBEGIN(modernize-use-constraints)
         template <
-            typename source_location = csl::test::details::source_location,
+            typename source_location = csl::internal::test::details::source_location,
             std::enable_if_t<not std::is_void_v<source_location>, int> = 0
         >
         explicit failure(source_location location = source_location::current())
@@ -46,7 +46,7 @@ namespace csl::test {
         {}
 
         template <
-            typename source_location = csl::test::details::source_location,
+            typename source_location = csl::internal::test::details::source_location,
             std::enable_if_t<std::is_void_v<source_location>, int> = 0
         >
         explicit failure()
@@ -59,4 +59,4 @@ namespace csl::test {
     };
 }
 
-#define csl_test_expect(expr) if (not (expr)) throw csl::test::failure{}; // NOLINT(*-macro-usage)
+#define csl_test_expect(expr) if (not (expr)) throw csl::internal::test::failure{}; // NOLINT(*-macro-usage)

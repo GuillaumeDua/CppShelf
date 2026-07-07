@@ -141,7 +141,7 @@ Users may use it in various ways, however [CMake](https://cmake.org/) is the pro
 
 Then use the `csl::ag` target.
 
-> Note : to disable tests, set the cmake cache variable `CSL_BUILD_ALL_TESTS` to false.
+> Note : tests are opt-in. Enable them with `CSL_TEST_ag` (or `CSL_TEST_ALL`); they are OFF by default.
 
 ### Configuration
 

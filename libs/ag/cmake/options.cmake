@@ -81,15 +81,16 @@ if (NOT CSL_AG__MAX_SUPPORTED_FIELDS_COUNT MATCHES "^[0-9]+$")
 endif()
 
 if (NOT CSL_AG__USE_EMBEDDED_IMPLEMENTATION)
+
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/details/generate_cpp_code.cmake)
     ag_generate_cpp_code(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     target_include_directories(${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     )
-    # Ship the CMake-generated headers so the installed package keeps build parity (up to
-    # CSL_AG__MAX_SUPPORTED_FIELDS_COUNT fields). Their include path is already covered by the
-    # main target's $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> (files land under csl/ag/generated/).
-    if (CSL_INSTALL_${csl_add_component_NAME})
+
+    # Ship the CMake-generated headers so the installed package keeps build parity (up to CSL_AG__MAX_SUPPORTED_FIELDS_COUNT fields).
+    # NOTE: include path is already covered by the main target's $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> (files land under csl/ag/generated/).
+    if (CSL_INSTALL_ALL)
         install(DIRECTORY   "${CMAKE_CURRENT_BINARY_DIR}/csl"
             DESTINATION     "${CMAKE_INSTALL_INCLUDEDIR}"
         )

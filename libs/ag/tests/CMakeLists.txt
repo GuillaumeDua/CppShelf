@@ -93,7 +93,7 @@ foreach(bitfields IN ITEMS 0 1)
         NAME        compile_time
         SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/compile_time.cpp
         DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
-        EXTRA_LIBS  ${PROJECT_NAME}::test
+        EXTRA_LIBS  ${PROJECT_NAME}::internal::test
         RESULT      target_name
     )
     add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})

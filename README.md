@@ -29,11 +29,11 @@ style="position: absolute; top: 0; right: 0; z-index: 3;"
 A collection of ***S**ingle-**He**ader, header-only, C++ **l**ibrary **f**iles* - hence the name.  
 A personal incubator for library ideas and experiments, and perhaps a hint of serendipity.
 
-- Each library is **independent**, and individually toggleable (`CSL_BUILD_<name>`, `CSL_INSTALL_<name>`, `CSL_TEST_<name>`, etc.).
+- Each library is **independent** and individually **consumable**: pick what you need at consume time via `find_package(csl COMPONENTS ...)`, or by linking only the `csl::<name>` targets you use. Per-component toggles gate *work* only (`CSL_TEST_<name>`, `CSL_EXAMPLE_<name>`, `CSL_BENCHMARK_<name>`, `CSL_DOC_<name>`).
 - Some libraries gain **optional enhancements** when another `csl` library is available  
   (e.g. `ag`'s `typenamed` formatting option uses `typeinfo` for compile-time type names).
 
-Such integrations are always **soft** and manually togglable - detected via `__has_include`, with a fallback when possible - never a hard dependency.  
+Such integrations are always **soft** - detected via `__has_include` with a fallback - and **never a hard CMake link** between `csl` components (a component that links a sibling in its interface fails at configure time). This keeps every component's package independent as interops grow.  
 Each consuming library is responsible for testing both states itself - with and without the enhancement - self-contained in its own build files.  
 Note that enabling such tests may implicitly enable libraries you did not select.
 
@@ -206,6 +206,32 @@ See project's
     target_compile_definitions(app PRIVATE CSL_AG__ENABLE_FMTLIB_SUPPORT=1)
     ```
 
+    ⚠️ Such a compile-definition changes the entities `<csl/ag.hpp>` emits, so it is effectively part of the header's ABI:  
+    it must be defined **identically across every translation unit of the whole program** (One Definition Rule).  
+    The `PRIVATE` form above is correct for a single executable.
+    If several libraries in the same program consume `csl::ag`, define it uniformly for all of them
+    (e.g. an `INTERFACE` compile definition on a shared target), never `PRIVATE` on some and not others -
+    an inconsistent definition is undefined behavior (ill-formed, no diagnostic required).
+
+    The program-wide-safe form uses a small **proxy `INTERFACE` target** that carries the configuration
+    once, consumed by everything that uses `csl::ag`:
+
+    ```cmake
+    find_package(csl REQUIRED COMPONENTS ag)
+    find_package(fmt REQUIRED)
+
+    # Single source of truth for the csl::ag + fmt formatting configuration.
+    add_library(csl_ag_proxy INTERFACE)
+    target_link_libraries(csl_ag_proxy INTERFACE csl::ag fmt::fmt)
+    target_compile_definitions(csl_ag_proxy INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT=1)
+
+    # Every library/executable consumes csl::ag *through the proxy*,
+    # so the macro is identical across the whole program (ODR-safe).
+    target_link_libraries(library_a PUBLIC  csl_ag_proxy)
+    target_link_libraries(library_b PUBLIC  csl_ag_proxy)
+    target_link_libraries(app       PRIVATE library_a library_b)
+    ```
+
 #### CMake - options
 
 > 💡Each cache entry is structured as `CSL_<WHAT>_<ALL|NAME>`.
@@ -214,8 +240,7 @@ General options:
 
 | Option              | Type | Default            | Description                                  |
 | ------------------- | ---- | ------------------ | -------------------------------------------- |
-| `CSL_BUILD_ALL`     | bool | ON                 | enable/disable all components **build**      |
-| `CSL_INSTALL_ALL`   | bool | top-level: ON      | enable/disable all components **install**    |
+| `CSL_INSTALL_ALL`   | bool | top-level: ON      | install/package **all** components (all-or-nothing) |
 | `CSL_TEST_ALL`      | bool | OFF                | enable/disable all components **tests**      |
 | `CSL_EXAMPLE_ALL`   | bool | OFF                | enable/disable all components **examples**   |
 | `CSL_BENCHMARK_ALL` | bool | OFF                | enable/disable all components **benchmarks** |
@@ -228,8 +253,6 @@ Components-specific options:
 
 | Option syntax                      | Type | Default / dependent | Description                                       |
 | ---------------------------------- | ---- | ------------------- | ------------------------------------------------- |
-| `CSL_BUILD_\<component_name\>`     | BOOL | `CSL_BUILD_ALL`     | enable/disable a specific component **build**     |
-| `CSL_INSTALL_\<component_name\>`   | BOOL | `CSL_INSTALL_ALL`   | enable/disable a specific component **install**   |
 | `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST_ALL`      | enable/disable a specific component **test**      |
 | `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`   | enable/disable a specific component **example**   |
 | `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL` | enable/disable a specific component **benchmark** |
@@ -412,7 +435,7 @@ ctest --preset gcc-debug
 
 ### Dependency management
 
-- Tests (`csl::test`) use [Catch2](https://github.com/catchorg/Catch2)
+- Tests (`csl::internal::test`) use [Catch2](https://github.com/catchorg/Catch2)
 - some components optionally use [fmt](https://github.com/fmtlib/fmt) (`CSL_*__ENABLE_FMTLIB_SUPPORT`).
 
 Both are **opt-ins** and fetched on demand via [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) - only when the corresponding component/option is enabled.
