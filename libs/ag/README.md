@@ -141,7 +141,7 @@ Users may use it in various ways, however [CMake](https://cmake.org/) is the pro
 
 Then use the `csl::ag` target.
 
-> Note : tests are opt-in. Enable them with `CSL_TEST_ag` (or `CSL_TEST_ALL`); they are OFF by default.
+> Note : tests are opt-in. Enable them with `CSL_TEST_ag` (or `CSL_TEST`); they are OFF by default.
 
 ### Configuration
 

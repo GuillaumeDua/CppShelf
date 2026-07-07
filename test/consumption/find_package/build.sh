@@ -32,11 +32,11 @@ cmake \
     -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER:-cc}"        \
     -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER:-c++}"   \
     -G Ninja                                            \
-    -DCSL_TEST_ALL=OFF                                  \
-    -DCSL_EXAMPLE_ALL=OFF                               \
-    -DCSL_BENCHMARK_ALL=OFF                             \
-    -DCSL_DOC_ALL=OFF                                   \
-    -DCSL_INSTALL_ALL=ON                                \
+    -DCSL_TEST=OFF                                  \
+    -DCSL_EXAMPLE=OFF                               \
+    -DCSL_BENCHMARK=OFF                             \
+    -DCSL_DOC=OFF                                   \
+    -DCSL_INSTALL=ON                                \
     -S "${CSL_SOURCE_DIR}"                              \
     -B "${CSL_BUILD_DIR}"
 cmake --build   "${CSL_BUILD_DIR}"

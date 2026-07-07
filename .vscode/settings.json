@@ -21,17 +21,22 @@
     "cmake.buildDirectory": "${workspaceFolder}/build/${buildKitVendor}-${buildKitVersion}-${buildKitTriple}/${buildType}", // partition by compiler/kit and build type, consistent with cmake preset's build_dir (not using buildKit to avoid spaces)
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.configureOnOpen": true,
+    "cmake.configureOnEdit": true,
+    "cmake.showConfigureWithDebuggerNotification": false,
+    "cmake.showOptionsMovedNotification": false,
+    "cmake.autoSelectActiveFolder": true,
+    "cmake.revealLog": "error",
     "cmake.generator": "Ninja",
     "cmake.configureSettings": {
         "CMAKE_MESSAGE_LOG_LEVEL": "STATUS",
         "CMAKE_GENERATOR": "Ninja",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CSL_STRICT_WARNINGS": true,
-        "CSL_TEST_ALL": true,
-        "CSL_EXAMPLE_ALL": true,
-        "CSL_DOC_ALL": true,
-        "CSL_BENCHMARK_ALL": true,
-        "CSL_INSTALL_ALL": true,
+        "CSL_TEST": true,
+        "CSL_EXAMPLE": true,
+        "CSL_DOC": true,
+        "CSL_BENCHMARK": true,
+        "CSL_INSTALL": true,
         // CSL OPT-INS
         // TODO(Guss): test matrix
         // csl::ensure

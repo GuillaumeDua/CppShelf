@@ -14,10 +14,10 @@
         "CMAKE_CONFIGURATION_TYPES":      "Debug;Release;RelWithDebInfo",
         "CMAKE_DEFAULT_BUILD_TYPE":       "Debug",
         "CSL_STRICT_WARNINGS":  { "type": "BOOL", "value": "ON"  },
-        "CSL_BENCHMARK_ALL":    { "type": "BOOL", "value": "ON"  },
-        "CSL_DOC_ALL":          { "type": "BOOL", "value": "OFF" },
-        "CSL_EXAMPLE_ALL":      { "type": "BOOL", "value": "ON"  },
-        "CSL_TEST_ALL":         { "type": "BOOL", "value": "ON"  }
+        "CSL_BENCHMARK":    { "type": "BOOL", "value": "ON"  },
+        "CSL_DOC":          { "type": "BOOL", "value": "OFF" },
+        "CSL_EXAMPLE":      { "type": "BOOL", "value": "ON"  },
+        "CSL_TEST":         { "type": "BOOL", "value": "ON"  }
       }
     },
     {

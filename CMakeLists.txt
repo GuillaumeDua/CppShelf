@@ -68,9 +68,6 @@ message(VERBOSE "[${PROJECT_NAME}] Available components: [${CSL_COMPONENTS_LIST}
 message(STATUS  "[${PROJECT_NAME}] Global configuration")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
-### Components - all libraries are always built.
-# Header-only (INTERFACE) targets: building is free. Consumer selectivity is a consume-time
-# concern (find_package COMPONENTS, or linking only what you use), not a build-time toggle.
 set(CSL_ENABLED_COMPONENTS_LIST ${CSL_COMPONENTS_LIST})
 
 list(LENGTH CSL_ENABLED_COMPONENTS_LIST CSL_ENABLED_COMPONENTS_LIST_length)
@@ -84,8 +81,8 @@ endif()
 # - ON for a standalone csl build, so `cmake --install` works out of the box,
 # - OFF when csl is consumed via add_subdirectory/FetchContent, so a parent's `cmake --install`
 #   never accidentally ships csl's headers + export sets.
-option(CSL_INSTALL_ALL "[${PROJECT_NAME}] install/package all components" ${PROJECT_IS_TOP_LEVEL})
-csl_print_aligned(STATUS CSL_INSTALL_ALL)
+option(CSL_INSTALL "[${PROJECT_NAME}] install/package all components" ${PROJECT_IS_TOP_LEVEL})
+csl_print_aligned(STATUS CSL_INSTALL)
 
 #### Per-component work-gating options (opt-outs): each gates real compilation/generation.
 set(CSL_OPTIONS_LIST
@@ -95,23 +92,23 @@ set(CSL_OPTIONS_LIST
     BENCHMARK
 )
 foreach(option_name IN LISTS CSL_OPTIONS_LIST)
-    option(CSL_${option_name}_ALL "${PROJECT_NAME}: Enable all ${option_name} for all csl components (can be override per component)" OFF)
-    csl_print_aligned(STATUS CSL_${option_name}_ALL)
+    option(CSL_${option_name} "[${PROJECT_NAME}] default ${option_name} for all csl components (override per component via CSL_${option_name}_<name>)" OFF)
+    csl_print_aligned(STATUS CSL_${option_name})
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
-        option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}_ALL})
+        option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}})
         csl_print_aligned(STATUS CSL_${option_name}_${component_name}
-            depends CSL_${option_name}_ALL
+            depends CSL_${option_name}
         )
     endforeach()
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
-# Internal test-support target (csl::internal::test): built from internals/libs/test/, it is NOT
-# a public component (never discovered as a libs/ component, exported, nor installed). Add it
-# before the component loop so each component's test suite can link csl::internal::test and Catch2.
+# Internal test-support target (csl::internal::test): built from internals/libs/test/,
+# NOT a public component (never discovered as a libs/ component, exported, nor installed).
+# Each component's test suite can link with csl::internal::test and Catch2.
 set(_csl_any_tests_enabled OFF)
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     if (CSL_TEST_${component_name})
@@ -127,13 +124,11 @@ if (_csl_any_tests_enabled)
 endif()
 
 message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
-message(STATUS  "[${PROJECT_NAME}] Adding components ...")
-list(APPEND CMAKE_MESSAGE_INDENT "   ")
-
-# The csl::csl meta-target aggregates every component (all libraries are always built).
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
+message(STATUS  "[${PROJECT_NAME}] Adding components ...")
+list(APPEND CMAKE_MESSAGE_INDENT "   ")
 foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
     # NOTE: a component may have already been added by another component's tests
     # (self-provisioned as an optional, loosely-coupled integration, e.g. csl::ag's tests <-> csl::typeinfo).
@@ -147,10 +142,10 @@ foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
 
-# Install and package: find_package(csl) support (all-or-nothing, gated on CSL_INSTALL_ALL).
+# Install and package: find_package(csl) support (all-or-nothing, gated on CSL_INSTALL).
 # - Per-component install/export rules live in csl_add_component().
 # - Top-level: the aggregate csl::csl target, package config + version file, and CPack archives.
-if (CSL_INSTALL_ALL)
+if (CSL_INSTALL)
 
     set(CSL_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
@@ -183,7 +178,7 @@ if (CSL_INSTALL_ALL)
     set(CPACK_PACKAGE_NAME                  "${PROJECT_NAME}")
     set(CPACK_PACKAGE_VENDOR                "Guillaume Dua")
     set(CPACK_PACKAGE_VERSION               "${PROJECT_VERSION}")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY   "CppShelf (csl): single-header, header-only C++ libraries")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY   "CppShelf (csl): C++ single-header, header-only libraries")
     set(CPACK_PACKAGE_HOMEPAGE_URL          "https://github.com/GuillaumeDua/CppShelf")
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
         set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
@@ -194,7 +189,7 @@ if (CSL_INSTALL_ALL)
 endif()
 
 # Documentation
-set(CSL_DOC_ANY ${CSL_DOC_ALL})
+set(CSL_DOC_ANY ${CSL_DOC})
 if (NOT CSL_DOC_ANY)
     foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
         if (CSL_DOC_${component_name})

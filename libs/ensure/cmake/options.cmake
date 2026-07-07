@@ -1,8 +1,13 @@
+# Opt-in feature flags are BUILD_INTERFACE-only: they apply while building csl itself
+# (tests, examples) but are stripped from the installed/exported target, so the package
+# stays neutral and dependency-free. Consumers of the installed package opt in themselves
+# (define the macro, and for fmt provide the library) - see the ODR note in the README.
+
 # opt-in: CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT
 option(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable iostream support" OFF)
 csl_print_aligned(STATUS CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
 if (${CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT})
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
+    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT>)
 endif()
 
 # opt-in: CSL_ENSURE__ENABLE_FMT_SUPPORT
@@ -20,13 +25,13 @@ if (${CSL_ENSURE__ENABLE_FMT_SUPPORT})
         )
     endif()
 
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_ENSURE__ENABLE_FMT_SUPPORT)
+    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_ENSURE__ENABLE_FMT_SUPPORT>)
     if (TARGET fmt::fmt-header-only)
         add_dependencies(csl_${csl_add_component_NAME} fmt::fmt-header-only)
-        target_link_libraries(csl_${csl_add_component_NAME} INTERFACE fmt::fmt-header-only)
+        target_link_libraries(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:fmt::fmt-header-only>)
     elseif(TARGET fmt::fmt)
         add_dependencies(csl_${csl_add_component_NAME} fmt::fmt)
-        target_link_libraries(csl_${csl_add_component_NAME} INTERFACE fmt::fmt)
+        target_link_libraries(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:fmt::fmt>)
     else()
         message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: ill-formed fmt library")
     endif()
@@ -36,5 +41,5 @@ endif()
 option(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
 csl_print_aligned(STATUS CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT)
 if (${CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT})
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT)
+    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT>)
 endif()
