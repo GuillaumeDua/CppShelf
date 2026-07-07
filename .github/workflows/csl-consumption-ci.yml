@@ -6,10 +6,13 @@ on:
   workflow_run:
     workflows: ["csl CI"]
     types: [completed]
+  workflow_call: # callable as a release gate (see csl-release.yml)
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
+  # literal prefix (not github.workflow): when called as a reusable workflow the github context is
+  # the caller's, so a github.workflow-based group would collide with the caller and self-cancel.
+  group: csl-consumption-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 defaults:
