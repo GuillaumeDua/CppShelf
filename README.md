@@ -148,7 +148,7 @@ See project's
     include(FetchContent)
 
     # Forces csl a options ...
-    # example: set(CSL_TEST_ALL OFF CACHE INTERNAL "")
+    # example: set(CSL_TEST OFF CACHE INTERNAL "")
 
     FetchContent_Declare(
         csl
@@ -178,7 +178,7 @@ See project's
     To install from source into a prefix:
 
     ```bash
-    cmake -S . -B build -DCSL_INSTALL_ALL=ON
+    cmake -S . -B build -DCSL_INSTALL=ON
     cmake --build build
     cmake --install build --prefix /path/to/prefix
     ```
@@ -192,7 +192,9 @@ See project's
     💡 The installed package is **dependency-free**: it never ships nor declares third-party libraries.
 
     Optional enhancements that rely on a third party (e.g. `fmt`) are a source/consumer-time opt-in: enable the feature and provide the dependency in your own build.  
-    Installing a component whose interface links an external package is rejected at configure time.
+    Enabling such an opt-in when building `csl` itself (e.g. `-DCSL_AG__ENABLE_FMTLIB_SUPPORT=ON`) affects only `csl`'s own tests and examples:
+    the macro and its third-party link are build-tree-only (`$<BUILD_INTERFACE:>`) and are stripped from the installed/exported target, so the package stays neutral.
+    A component whose interface would still leak an external package into the install is rejected at configure time.
 
     Because such enhancements are gated by a preprocessor macro in the header, they stay fully available from the installed package: 
     the consumer provides the dependency and defines the macro in its own build.  
@@ -240,22 +242,22 @@ General options:
 
 | Option              | Type | Default            | Description                                  |
 | ------------------- | ---- | ------------------ | -------------------------------------------- |
-| `CSL_INSTALL_ALL`   | bool | top-level: ON      | install/package **all** components (all-or-nothing) |
-| `CSL_TEST_ALL`      | bool | OFF                | enable/disable all components **tests**      |
-| `CSL_EXAMPLE_ALL`   | bool | OFF                | enable/disable all components **examples**   |
-| `CSL_BENCHMARK_ALL` | bool | OFF                | enable/disable all components **benchmarks** |
+| `CSL_INSTALL`   | bool | top-level: ON      | install/package **all** components (all-or-nothing) |
+| `CSL_TEST`      | bool | OFF                | enable/disable all components **tests**      |
+| `CSL_EXAMPLE`   | bool | OFF                | enable/disable all components **examples**   |
+| `CSL_BENCHMARK` | bool | OFF                | enable/disable all components **benchmarks** |
 
-> 💡 `CSL_INSTALL_ALL` defaults to `PROJECT_IS_TOP_LEVEL`: **ON** for a standalone `csl` build, **OFF** when `csl` is consumed via `add_subdirectory` / `FetchContent`  
+> 💡 `CSL_INSTALL` defaults to `PROJECT_IS_TOP_LEVEL`: **ON** for a standalone `csl` build, **OFF** when `csl` is consumed via `add_subdirectory` / `FetchContent`  
 > (so a parent project's `cmake --install` never ships `csl`'s headers and export sets).  
-> Set `-DCSL_INSTALL_ALL=ON` explicitly to install `csl` from within a consuming build.
+> Set `-DCSL_INSTALL=ON` explicitly to install `csl` from within a consuming build.
 
 Components-specific options:
 
 | Option syntax                      | Type | Default / dependent | Description                                       |
 | ---------------------------------- | ---- | ------------------- | ------------------------------------------------- |
-| `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST_ALL`      | enable/disable a specific component **test**      |
-| `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE_ALL`   | enable/disable a specific component **example**   |
-| `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK_ALL` | enable/disable a specific component **benchmark** |
+| `CSL_TEST_\<component_name\>`      | BOOL | `CSL_TEST`      | enable/disable a specific component **test**      |
+| `CSL_EXAMPLE_\<component_name\>`   | BOOL | `CSL_EXAMPLE`   | enable/disable a specific component **example**   |
+| `CSL_BENCHMARK_\<component_name\>` | BOOL | `CSL_BENCHMARK` | enable/disable a specific component **benchmark** |
 
 > 💡 For options related to a specific component, refer to its dedicated documentation.
 

@@ -35,10 +35,10 @@ macro(import_csl)
 
     message(STATUS "[${PROJECT_NAME}] using GIT_REPOSITORY=[${${PROJECT_NAME}_GIT_REPOSITORY}] with GIT_TAG=[${${PROJECT_NAME}_GIT_TAG}] ...")
 
-    set(CSL_TEST_ALL        OFF CACHE BOOL "" FORCE)
-    set(CSL_EXAMPLE_ALL     OFF CACHE BOOL "" FORCE)
-    set(CSL_BENCHMARK_ALL   OFF CACHE BOOL "" FORCE)
-    set(CSL_DOC_ALL         OFF CACHE BOOL "" FORCE)
+    set(CSL_TEST        OFF CACHE BOOL "" FORCE)
+    set(CSL_EXAMPLE     OFF CACHE BOOL "" FORCE)
+    set(CSL_BENCHMARK   OFF CACHE BOOL "" FORCE)
+    set(CSL_DOC         OFF CACHE BOOL "" FORCE)
 
     include(FetchContent)
     FetchContent_Declare(csl

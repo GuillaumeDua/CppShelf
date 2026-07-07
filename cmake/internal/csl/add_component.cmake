@@ -68,7 +68,8 @@ function(csl_add_component)
     )
     if (_csl_iface_libs)
         foreach(_csl_iface_lib IN LISTS _csl_iface_libs)
-            if (_csl_iface_lib MATCHES "^${csl_add_component_PROJECT_NAME}::")
+            # match anywhere: a sibling link is forbidden in any scope, incl. a BUILD_INTERFACE-scoped one
+            if (_csl_iface_lib MATCHES "${csl_add_component_PROJECT_NAME}::")
                 message(FATAL_ERROR
                     "[${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME}] links sibling component "
                     "[${_csl_iface_lib}] in its interface. Inter-component interops must be soft "
@@ -104,7 +105,7 @@ function(csl_add_component)
     endif()
 
     # install
-    if (CSL_INSTALL_ALL)
+    if (CSL_INSTALL)
 
         set(_csl_cmake_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${csl_add_component_PROJECT_NAME}")
 
@@ -119,11 +120,15 @@ function(csl_add_component)
         )
         if (_csl_link_libs)
             foreach(_csl_lib IN LISTS _csl_link_libs)
+                # BUILD_INTERFACE-scoped links are stripped from the export - they never reach the installed package.
+                if (_csl_lib MATCHES "BUILD_INTERFACE") # NOTE: $<BUILD_INTERFACE:…> breaks vscode cmake synthax coloration
+                    continue()
+                endif()
                 if (_csl_lib MATCHES "::" AND NOT _csl_lib MATCHES "^${csl_add_component_PROJECT_NAME}::")
                     message(FATAL_ERROR
                         "[${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME}] links external target "
                         "[${_csl_lib}] and cannot be installed: the csl package is dependency-free. "
-                        "Disable the opt-in feature that adds it for install builds, or set CSL_INSTALL_ALL=OFF."
+                        "Disable the opt-in feature that adds it for install builds, or set CSL_INSTALL=OFF."
                     )
                 endif()
             endforeach()
