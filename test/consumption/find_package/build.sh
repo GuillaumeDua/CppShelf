@@ -32,7 +32,6 @@ cmake \
     -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER:-cc}"        \
     -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER:-c++}"   \
     -G Ninja                                            \
-    -DCSL_BUILD_ALL=ON                                  \
     -DCSL_TEST_ALL=OFF                                  \
     -DCSL_EXAMPLE_ALL=OFF                               \
     -DCSL_BENCHMARK_ALL=OFF                             \

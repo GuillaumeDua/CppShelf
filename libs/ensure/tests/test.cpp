@@ -1,5 +1,5 @@
 #include <csl/ensure.hpp>
-#include <csl/test/types/semantic.hpp>
+#include <csl/internal/test/types/semantic.hpp>
 
 #include <type_traits>
 #include <string>
@@ -36,12 +36,12 @@ namespace test::utils::type_traits {
 }
 
 namespace test::strong_type::details::comparison {
-    using csl::test::types::semantic::eq_comparable;
-    using csl::test::types::semantic::not_eq_comparable;
-    using csl::test::types::semantic::less_than_comparable;
-    using csl::test::types::semantic::less_or_eq_comparable;
-    using csl::test::types::semantic::greater_than_comparable;
-    using csl::test::types::semantic::greater_or_eq_comparable;
+    using csl::internal::test::types::semantic::eq_comparable;
+    using csl::internal::test::types::semantic::not_eq_comparable;
+    using csl::internal::test::types::semantic::less_than_comparable;
+    using csl::internal::test::types::semantic::less_or_eq_comparable;
+    using csl::internal::test::types::semantic::greater_than_comparable;
+    using csl::internal::test::types::semantic::greater_or_eq_comparable;
 }
 
 namespace test::strong_type::details { // NOLINT(*-concat-nested-namespaces)

@@ -5,7 +5,7 @@
 # include <concepts>
 #endif
 
-namespace csl::test::types::semantic {
+namespace csl::internal::test::types::semantic {
 
     struct not_copyable {
         constexpr not_copyable() = default;

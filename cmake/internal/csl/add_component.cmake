@@ -59,6 +59,25 @@ function(csl_add_component)
         list(POP_BACK CMAKE_MESSAGE_INDENT)
     endif()
 
+    # Interop invariant: a component's interface must NOT link another csl component. Inter-component
+    # enhancements are soft (__has_include + fallback in the header), never hard CMake links, so every
+    # component exports independently (no inter-component find_dependency, no export ordering). A sibling
+    # header is made reachable by the consumer (or the shared install include-root), never by the component.
+    get_target_property(_csl_iface_libs
+        ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE_LINK_LIBRARIES
+    )
+    if (_csl_iface_libs)
+        foreach(_csl_iface_lib IN LISTS _csl_iface_libs)
+            if (_csl_iface_lib MATCHES "^${csl_add_component_PROJECT_NAME}::")
+                message(FATAL_ERROR
+                    "[${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME}] links sibling component "
+                    "[${_csl_iface_lib}] in its interface. Inter-component interops must be soft "
+                    "(__has_include + fallback), never a hard link. Remove that target_link_libraries()."
+                )
+            endif()
+        endforeach()
+    endif()
+
     # test
     if (CSL_TEST_${csl_add_component_NAME})
         set(_csl_tests_dir "${csl_add_component_PATH}/tests")
@@ -85,15 +104,16 @@ function(csl_add_component)
     endif()
 
     # install
-    # NOTE: csl::test is an internal test-support component, never part of the installed package.
-    if (CSL_INSTALL_${csl_add_component_NAME} AND NOT csl_add_component_NAME STREQUAL "test")
+    if (CSL_INSTALL_ALL)
 
         set(_csl_cmake_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${csl_add_component_PROJECT_NAME}")
 
-        # The installed csl package is dependency-free: an exported target must not link an external
-        # package. Optional third-party enhancements (e.g. fmt) are a consumer/source-time opt-in,
-        # never shipped nor declared as a package dependency. Reject early if one leaked into the
-        # public interface, rather than emitting a config that references an unfindable target.
+        # The installed csl package is dependency-free:
+        #
+        # - An exported target must not link an external package.
+        # - Optional third-party support (e.g. fmt) are a consumer/source-time opt-ins, never shipped nor declared as a package dependency.
+        #
+        # Reject early if one leaked into the public interface, rather than emitting a config which would references an unfindable target.
         get_target_property(_csl_link_libs
             ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE_LINK_LIBRARIES
         )
@@ -102,9 +122,8 @@ function(csl_add_component)
                 if (_csl_lib MATCHES "::" AND NOT _csl_lib MATCHES "^${csl_add_component_PROJECT_NAME}::")
                     message(FATAL_ERROR
                         "[${csl_add_component_PROJECT_NAME}::${csl_add_component_NAME}] links external target "
-                        "[${_csl_lib}] and cannot be installed: the csl package is dependency-free. Disable the "
-                        "opt-in feature that adds it for install builds, or set "
-                        "CSL_INSTALL_${csl_add_component_NAME}=OFF."
+                        "[${_csl_lib}] and cannot be installed: the csl package is dependency-free. "
+                        "Disable the opt-in feature that adds it for install builds, or set CSL_INSTALL_ALL=OFF."
                     )
                 endif()
             endforeach()

@@ -9,7 +9,7 @@ add_dependencies(${test_name} ${PROJECT_NAME}::${component_name})
 target_link_libraries(${test_name}
 	PRIVATE
 		${PROJECT_NAME}::${component_name}
-		${PROJECT_NAME}::test
+		${PROJECT_NAME}::internal::test
 		Catch2::Catch2WithMain
 		csl_compile_warnings
 )
