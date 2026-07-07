@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: [fetchcontent, find_package]
+        mode: [cmake_fetchcontent, find_package]
         configuration:
           - { CMAKE_C_COMPILER: clang, CMAKE_CXX_COMPILER: clang++, version: 'latest-stable' }
           - { CMAKE_C_COMPILER: gcc,   CMAKE_CXX_COMPILER: g++,     version: 'latest-stable' }
@@ -60,10 +60,10 @@ jobs:
         CMAKE_C_COMPILER:   ${{ matrix.configuration.CMAKE_C_COMPILER }}
         CMAKE_CXX_COMPILER: ${{ matrix.configuration.CMAKE_CXX_COMPILER }}
       run: |
-        # fetchcontent: fetches the branch from GitHub
+        # cmake_fetchcontent: fetches the branch from GitHub using CMake's FetchContent
         # find_package: installs the local checkout into a directory and consumes only that directory.
         extra_args=()
-        if [[ "${{ matrix.mode }}" == "fetchcontent" ]]; then
+        if [[ "${{ matrix.mode }}" == "cmake_fetchcontent" ]]; then
           extra_args+=(-Dcsl_consumption_test_GIT_TAG=${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch || github.ref_name }})
         fi
         bash build.sh "${{ env.build_dir }}" "${extra_args[@]}"
