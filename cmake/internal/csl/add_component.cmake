@@ -59,10 +59,10 @@ function(csl_add_component)
         list(POP_BACK CMAKE_MESSAGE_INDENT)
     endif()
 
-    # Interop invariant: a component's interface must NOT link another csl component. Inter-component
-    # enhancements are soft (__has_include + fallback in the header), never hard CMake links, so every
-    # component exports independently (no inter-component find_dependency, no export ordering). A sibling
-    # header is made reachable by the consumer (or the shared install include-root), never by the component.
+    # Interop invariant: a component's interface must NOT link another csl component.
+    # Inter-component dependencies are soft (__has_include + fallback in the header), never hard CMake links,
+    # so every component exports independently (no inter-component find_dependency, no export ordering).
+    # A sibling header is made reachable by the consumer (or the shared install include-root), never by the component.
     get_target_property(_csl_iface_libs
         ${csl_add_component_PROJECT_NAME}_${csl_add_component_NAME} INTERFACE_LINK_LIBRARIES
     )

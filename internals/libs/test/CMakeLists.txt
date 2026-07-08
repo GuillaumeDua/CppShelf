@@ -1,8 +1,11 @@
 # Internal test-support target: csl::internal::test
 #
-# Not a public component: it lives outside libs/, is never installed/exported, and does not go
-# through csl_add_component(). It provides the shared test fixtures (csl::internal::test::...)
-# and pulls Catch2 for the component test suites.
+# Provides the shared test fixtures (csl::internal::test::...) and pulls Catch2 for the component test suites.
+#
+# Not a public component:
+# - it lives outside libs/,
+# - is never installed/exported,
+# - and does not go through csl_add_component().
 
 add_library(csl_internal_test INTERFACE)
 add_library(csl::internal::test ALIAS csl_internal_test)

@@ -1,6 +1,6 @@
 @PACKAGE_INIT@
 
-# Package config for csl (CppShelf) — single-header, header-only C++ libraries.
+# Package config for csl (CppShelf) - single-header, header-only C++ libraries.
 #
 # Usage:
 #   find_package(csl REQUIRED)                       # every installed component + csl::csl
@@ -29,7 +29,7 @@ foreach(_csl_comp IN LISTS _csl_components_to_load)
     endif()
 endforeach()
 
-# Aggregate meta-target csl::csl — only when consuming the package as a whole.
+# Aggregate meta-target csl::csl - only when consuming the package as a whole.
 if (NOT csl_FIND_COMPONENTS AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/csl-targets.cmake")
     include("${CMAKE_CURRENT_LIST_DIR}/csl-targets.cmake")
 endif()

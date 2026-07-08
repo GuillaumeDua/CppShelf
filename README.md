@@ -243,8 +243,8 @@ General options:
 | Option              | Type | Default            | Description                                  |
 | ------------------- | ---- | ------------------ | -------------------------------------------- |
 | `CSL_INSTALL`   | bool | top-level: ON      | install/package **all** components (all-or-nothing) |
-| `CSL_TEST`      | bool | OFF                | enable/disable all components **tests**      |
-| `CSL_EXAMPLE`   | bool | OFF                | enable/disable all components **examples**   |
+| `CSL_TEST`      | bool | top-level: ON      | enable/disable all components **tests**      |
+| `CSL_EXAMPLE`   | bool | top-level: ON      | enable/disable all components **examples**   |
 | `CSL_BENCHMARK` | bool | OFF                | enable/disable all components **benchmarks** |
 
 > 💡 `CSL_INSTALL` defaults to `PROJECT_IS_TOP_LEVEL`: **ON** for a standalone `csl` build, **OFF** when `csl` is consumed via `add_subdirectory` / `FetchContent`  

@@ -46,6 +46,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/add_component.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal/csl/compile_warnings.cmake)
 # Exported modules
 include(csl/print_aligned)
+include(csl/make_pairs)
 include(csl/cache/entry_conversion)
 include(csl/cache/multi_cache_support)
 include(csl/cache/print_build_info)
@@ -83,14 +84,18 @@ option(CSL_INSTALL "[${PROJECT_NAME}] install/package all components" ${PROJECT_
 csl_print_aligned(STATUS CSL_INSTALL)
 
 #### Per-component work-gating options (opt-outs): each gates real compilation/generation.
-set(CSL_OPTIONS_LIST
-    TEST # TECH-DEBT: clang sanitizers, etc.
-    EXAMPLE
-    DOC
-    BENCHMARK
+# tests/examples follow the top-level convention (dev checkout builds them, consumers do not);
+# doc/benchmark stay opt-in (Doxygen dependency / heavy - enable explicitly).
+csl_make_pairs(
+    OUTPUT_PREFIX CSL_OPTIONS
+    PAIRS
+        TEST      ${PROJECT_IS_TOP_LEVEL} # TECH-DEBT: clang sanitizers, etc.
+        EXAMPLE   ${PROJECT_IS_TOP_LEVEL}
+        DOC       OFF
+        BENCHMARK OFF
 )
-foreach(option_name IN LISTS CSL_OPTIONS_LIST)
-    option(CSL_${option_name} "[${PROJECT_NAME}] default ${option_name} for all csl components (override per component via CSL_${option_name}_<name>)" OFF)
+foreach(option_name option_default IN ZIP_LISTS CSL_OPTIONS_keys CSL_OPTIONS_values)
+    option(CSL_${option_name} "[${PROJECT_NAME}] default ${option_name} for all csl components (override per component via CSL_${option_name}_<name>)" ${option_default})
     csl_print_aligned(STATUS CSL_${option_name})
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
