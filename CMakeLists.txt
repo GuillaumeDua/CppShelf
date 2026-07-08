@@ -84,8 +84,8 @@ option(CSL_INSTALL "[${PROJECT_NAME}] install/package all components" ${PROJECT_
 csl_print_aligned(STATUS CSL_INSTALL)
 
 #### Per-component work-gating options (opt-outs): each gates real compilation/generation.
-# tests/examples follow the top-level convention (dev checkout builds them, consumers do not);
-# doc/benchmark stay opt-in (Doxygen dependency / heavy - enable explicitly).
+# - tests/examples follow the top-level convention (dev checkout builds them, consumers do not);
+# - doc/benchmark stay opt-in (Doxygen dependency / heavy - enable explicitly).
 csl_make_pairs(
     OUTPUT_PREFIX CSL_OPTIONS
     PAIRS

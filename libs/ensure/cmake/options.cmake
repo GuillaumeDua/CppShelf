@@ -1,7 +1,7 @@
-# Opt-in feature flags are BUILD_INTERFACE-only: they apply while building csl itself
-# (tests, examples) but are stripped from the installed/exported target, so the package
-# stays neutral and dependency-free. Consumers of the installed package opt in themselves
-# (define the macro, and for fmt provide the library) - see the ODR note in the README.
+# Opt-in feature flags are BUILD_INTERFACE-only:
+#   they apply while building csl itself (tests, examples) but are stripped from the installed/exported target,
+#   so the package stays neutral and dependency-free.
+#   Consumers of the installed package opt in themselves (define the macro, and for fmt provide the library) - see the ODR note in the README.
 
 # opt-in: CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT
 option(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable iostream support" OFF)
