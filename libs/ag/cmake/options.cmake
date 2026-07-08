@@ -2,10 +2,10 @@
 cmake_policy(SET CMP0127 NEW)
 include(CMakeDependentOption)
 
-# Opt-in feature flags are BUILD_INTERFACE-only: they apply while building csl itself
-# (tests, examples) but are stripped from the installed/exported target, so the package
-# stays neutral and dependency-free. Consumers of the installed package opt in themselves
-# (define the macro, and for fmt provide the library) - see the ODR note in the README.
+# Opt-in feature flags are BUILD_INTERFACE-only:
+#   they apply while building csl itself (tests, examples) but are stripped from the installed/exported target,
+#   so the package stays neutral and dependency-free.
+#   Consumers of the installed package opt in themselves (define the macro, and for fmt provide the library) - see the ODR note in the README.
 
 # CSL_AG__VERBOSE_BUILD
 option(CSL_AG__VERBOSE_BUILD "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: verbose build (might use additional useful build messages)" OFF)

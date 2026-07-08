@@ -7,9 +7,9 @@ Automatically enabled by the build system when any component's tests are enabled
 
 ## Headers
 
-| Header                         | Description                                                                 |
-| ------------------------------ | --------------------------------------------------------------------------- |
-| `csl/internal/test/test.hpp`            | `csl::internal::test::failure` exception and `csl_test_expect(expr)` macro            |
+| Header                                  | Description                                                                 |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `csl/internal/test/test.hpp`            | `csl::internal::test::failure` exception and `csl_test_expect(expr)` macro  |
 | `csl/internal/test/types/semantic.hpp`  | Test types: `not_copyable`, `not_moveable`, `strong_of<T>`                  |
 | `csl/internal/test/disable_warning.hpp` | Portable `CSL_DIAG_PUSH` / `CSL_DIAG_POP` / `CSL_DIAG_DISABLE(name)` macros |
 
