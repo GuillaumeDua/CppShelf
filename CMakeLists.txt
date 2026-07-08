@@ -68,11 +68,9 @@ message(VERBOSE "[${PROJECT_NAME}] Available components: [${CSL_COMPONENTS_LIST}
 message(STATUS  "[${PROJECT_NAME}] Global configuration")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
-set(CSL_ENABLED_COMPONENTS_LIST ${CSL_COMPONENTS_LIST})
-
-list(LENGTH CSL_ENABLED_COMPONENTS_LIST CSL_ENABLED_COMPONENTS_LIST_length)
-if (${CSL_ENABLED_COMPONENTS_LIST_length} EQUAL 0)
-    message(WARNING "[${PROJECT_NAME}] No components found under libs/, is it intended ? Aborting.")
+list(LENGTH CSL_COMPONENTS_LIST CSL_COMPONENTS_LIST_length)
+if (${CSL_COMPONENTS_LIST_length} EQUAL 0)
+    message(FATAL_ERROR "[${PROJECT_NAME}] No components found under libs/, is it intended ? Aborting.")
     return()
 endif()
 
@@ -96,7 +94,7 @@ foreach(option_name IN LISTS CSL_OPTIONS_LIST)
     csl_print_aligned(STATUS CSL_${option_name})
 
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
-    foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
         option(CSL_${option_name}_${component_name} "[${PROJECT_NAME}] csl::${component_name} (${option_name})" ${CSL_${option_name}})
         csl_print_aligned(STATUS CSL_${option_name}_${component_name}
             depends CSL_${option_name}
@@ -110,26 +108,25 @@ list(POP_BACK CMAKE_MESSAGE_INDENT)
 # NOT a public component (never discovered as a libs/ component, exported, nor installed).
 # Each component's test suite can link with csl::internal::test and Catch2.
 set(_csl_any_tests_enabled OFF)
-foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
     if (CSL_TEST_${component_name})
         set(_csl_any_tests_enabled ON)
         break()
     endif()
 endforeach()
-
 if (_csl_any_tests_enabled)
     enable_testing()
-    message(VERBOSE "[${PROJECT_NAME}] adding internal test-support target csl::internal::test")
+    message(VERBOSE "[${PROJECT_NAME}] adding internal test-support target [csl::internal::test]")
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/internals/libs/test)
 endif()
 
-message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating enabled components: [${CSL_ENABLED_COMPONENTS_LIST}]")
+message(VERBOSE "[${PROJECT_NAME}] Build [${PROJECT_NAME}] meta-library, aggregating all components: [${CSL_COMPONENTS_LIST}]")
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 message(STATUS  "[${PROJECT_NAME}] Adding components ...")
 list(APPEND CMAKE_MESSAGE_INDENT "   ")
-foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
     # NOTE: a component may have already been added by another component's tests
     # (self-provisioned as an optional, loosely-coupled integration, e.g. csl::ag's tests <-> csl::typeinfo).
     # Guard against adding it twice regardless of processing order.
@@ -191,7 +188,7 @@ endif()
 # Documentation
 set(CSL_DOC_ANY ${CSL_DOC})
 if (NOT CSL_DOC_ANY)
-    foreach(component_name IN LISTS CSL_ENABLED_COMPONENTS_LIST)
+    foreach(component_name IN LISTS CSL_COMPONENTS_LIST)
         if (CSL_DOC_${component_name})
             set(CSL_DOC_ANY ON)
             break()
