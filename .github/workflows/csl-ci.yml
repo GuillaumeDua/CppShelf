@@ -2,10 +2,10 @@ name: csl CI
 
 on:
   push:
-    branches-ignore:
-      - gh-pages
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_call: # callable as a release gate (see csl-release.yml)
-  workflow_dispatch:
 
 concurrency:
   # literal prefix (not github.workflow):
