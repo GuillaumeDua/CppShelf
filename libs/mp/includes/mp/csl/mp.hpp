@@ -4,6 +4,9 @@
 // under MIT License - Copyright (c) 2021-2025 Guillaume Dua
 // see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
+// NOTE: Detectable by other csl libraries/headers (via #if defined(...)), even when not reachable through __has_include (e.g. Compiler Explorer raw-URL includes).
+#define CSL_MP__INCLUDED
+
 // About [tuple-like]:
 //
 //  A given tuple-like type T is considered valid if the following concepts evaluate to true

@@ -1,4 +1,6 @@
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/format.hpp>
+#include <csl/ag/formatting/typeinfo.hpp>
 #include <csl/ensure.hpp>
 #include <csl/functional.hpp>
 #include <csl/mp.hpp>
@@ -23,4 +25,10 @@ static_assert(std::is_same_v<
 
 static_assert(csl::typeinfo::type_name_v<int> == "int");
 
-auto main() -> int {}
+// typeinfo bridge: csl::ag::io::type_name is csl::typeinfo-backed (compile-time)
+static_assert(csl::ag::io::type_name_v<int> == "int");
+
+auto main() -> int {
+    using namespace csl::ag::io;
+    return to_string<typenamed>(point{ .x = 1, .y = 2 }) == "{int: 1, int: 2}" ? 0 : 1;
+}

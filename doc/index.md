@@ -1,6 +1,6 @@
 # C++ Shelf
 
-Collection of single-header, header-only C++ libraries.  
+Collection of single-header, header-only C++ libraries *(a single-header core per library, plus optional per-feature opt-in headers)*.  
 [Source on GitHub](https://github.com/GuillaumeDua/CppShelf), MIT License
 
 ---

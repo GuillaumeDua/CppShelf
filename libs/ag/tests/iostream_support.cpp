@@ -6,17 +6,18 @@
 #  define CSL_AG__ENABLE_BITFIELDS_SUPPORT true
 #endif
 
-#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
-#define CSL_AG__ENABLE_FMTLIB_SUPPORT 0
-#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT 0
-
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/ostream.hpp>
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
+#   include <csl/ag/formatting/typeinfo.hpp>
+#endif
 #include <tests/types.hpp>
 #include <tests/ag/typeinfo_specializations.hpp>
 
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <typeindex>
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -64,7 +65,7 @@ namespace {
     constexpr bool bitfields_enabled = false;
 #endif
 
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
     constexpr bool typeinfo_linked = true;
 #else
     constexpr bool typeinfo_linked = false;
@@ -74,6 +75,14 @@ namespace {
         static const std::string value = std::string(" [FORMATTING=iostream] [BITFIELDS=") + (bitfields_enabled ? "ON" : "OFF")
             + "] [TYPEINFO=" + (typeinfo_linked ? "ON" : "OFF") + "]";
         return value;
+    }
+
+    // to_string is std::format-backed (ships with <csl/ag/formatting/format.hpp>): stream instead
+    [[nodiscard]] auto stream_out(auto const & value) -> std::string {
+        using namespace csl::ag::io;
+        std::ostringstream ss;
+        ss << value;
+        return std::move(ss).str();
     }
 
     template <typename T>
@@ -438,7 +447,7 @@ TEMPLATE_TEST_CASE("csl::ag::io default (braced) output" + name_suffix() + "",
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string(f::value) == f::default_expected);
+    CHECK(stream_out(f::value) == f::default_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io no_braces output" + name_suffix() + "",
@@ -452,7 +461,7 @@ TEMPLATE_TEST_CASE("csl::ag::io no_braces output" + name_suffix() + "",
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string<no_braces>(f::value) == f::no_braces_expected);
+    CHECK(stream_out(f::value | no_braces) == f::no_braces_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io indented output" + name_suffix() + "",
@@ -466,7 +475,7 @@ TEMPLATE_TEST_CASE("csl::ag::io indented output" + name_suffix() + "",
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string<indented>(f::value) == f::indented_expected);
+    CHECK(stream_out(f::value | indented) == f::indented_expected);
 }
 
 TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types" + name_suffix() + "",
@@ -475,7 +484,7 @@ TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types" 
     using namespace csl::ag::io;
     // printable_t: structured_bindable AND has user-defined operator<<.
     // - exact-match overload wins over our constrained template.
-    CHECK(to_string(printable_t{42}) == "printable:42");
+    CHECK(stream_out(printable_t{42}) == "printable:42");
 }
 
 TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly" + name_suffix() + "",
@@ -484,7 +493,7 @@ TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly"
     using namespace csl::ag::io;
     // with_printable_field: { printable_t p; int x; }
     // Field p is ostream_formattable - user's operator<< is used (not recursive print).
-    auto out = to_string(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
+    auto out = stream_out(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
     CHECK(out == "{printable:42, 7}");
 }
 
@@ -492,8 +501,8 @@ TEST_CASE("csl::ag::io empty aggregate" + name_suffix() + "",
           "[ag][iostream]")
 {
     using namespace csl::ag::io;
-    CHECK(to_string(types::empty{})            == "{}");
-    CHECK(to_string<no_braces>(types::empty{}) == "");
+    CHECK(stream_out(types::empty{})             == "{}");
+    CHECK(stream_out(types::empty{} | no_braces) == "");
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io indexed output" + name_suffix() + "",
@@ -507,10 +516,10 @@ TEMPLATE_TEST_CASE("csl::ag::io indexed output" + name_suffix() + "",
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string<indexed>(f::value) == f::indexed_expected);
+    CHECK(stream_out(f::value | indexed) == f::indexed_expected);
 }
 
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 TEMPLATE_TEST_CASE("csl::ag::io typenamed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
@@ -522,7 +531,7 @@ TEMPLATE_TEST_CASE("csl::ag::io typenamed output" + name_suffix() + "",
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string<typenamed>(f::value) == f::typenamed_expected);
+    CHECK(stream_out(f::value | typenamed) == f::typenamed_expected);
 }
 
 TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output" + name_suffix() + "",
@@ -536,10 +545,10 @@ TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output" + name_suffix
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string<indented | indexed | typenamed>(f::value) == f::indented_indexed_typenamed_expected);
+    CHECK(stream_out(f::value | (indented | indexed | typenamed)) == f::indented_indexed_typenamed_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::io composed view output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -550,10 +559,23 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + name_suffix()
 {
     using namespace csl::ag::io;
     using f = fixture<TestType>;
-    CHECK(to_string(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
+    CHECK(stream_out(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
 }
 #endif
 
+#if not (defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO)
+// Fallback contract: without the typeinfo bridge, type_name is std::type_index(typeid(T)).name()
+// (implementation-defined, possibly mangled - but deterministic).
+TEST_CASE("csl::ag::io typenamed <typeindex> runtime fallback" + name_suffix() + "",
+          "[ag][iostream]")
+{
+    using namespace csl::ag::io;
+    using f = fixture<types::field_2>;
+    const auto expected = "{" + std::string{ std::type_index(typeid(int)).name() } + ": 123, "
+        + std::string{ std::type_index(typeid(char)).name() } + ": 'A'}";
+    CHECK(stream_out(f::value | typenamed) == expected);
+}
+#endif
 
 // NOLINTEND(*-avoid-magic-numbers)
 // NOLINTEND(*cert-err58-cpp)

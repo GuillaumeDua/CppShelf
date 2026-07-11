@@ -21,14 +21,14 @@ endif()
 #
 # Named arguments:
 #	NAME        - logical name used in the target name (e.g. "compile_time")
-#   SOURCE      - single source file
+#   SOURCE      - one or more source files
 #   DEFINITIONS - list of FORCE_* compile definitions (e.g. FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=1)
 #   EXTRA_LIBS  - additional link targets
 #   RESULT      - optional variable to receive the generated target name
 # ---------------------------------------------------------------------------
 function(csl_ag_make_test_target)
 
-    cmake_parse_arguments(arg "" "NAME;SOURCE;RESULT" "DEFINITIONS;EXTRA_LIBS" ${ARGN})
+    cmake_parse_arguments(arg "" "NAME;RESULT" "SOURCE;DEFINITIONS;EXTRA_LIBS" ${ARGN})
 
     foreach(lib IN LISTS arg_EXTRA_LIBS)
         if(NOT TARGET ${lib})
@@ -45,11 +45,19 @@ function(csl_ag_make_test_target)
         elseif(def MATCHES "FORCE_CSL_AG__ENABLE_(.+)_SUPPORT=1")
             string(TOLOWER "${CMAKE_MATCH_1}" part)
             list(APPEND suffix_parts "${part}")
+        elseif(def MATCHES "CSL_AG_TEST__WITH_TYPEINFO=0")
+            list(APPEND suffix_parts "no_typeinfo")
+        elseif(def MATCHES "CSL_AG_TEST__WITH_TYPEINFO=1")
+            list(APPEND suffix_parts "typeinfo")
         endif()
     endforeach()
     list(JOIN suffix_parts "." suffix)
 
-    set(target_name "test.${PROJECT_NAME}_${component_name}.${arg_NAME}.${suffix}")
+    if (suffix)
+        set(target_name "test.${PROJECT_NAME}_${component_name}.${arg_NAME}.${suffix}")
+    else()
+        set(target_name "test.${PROJECT_NAME}_${component_name}.${arg_NAME}")
+    endif()
 
     add_executable(${target_name} ${arg_SOURCE})
     target_compile_definitions(${target_name} PRIVATE ${arg_DEFINITIONS})
@@ -75,16 +83,21 @@ function(csl_ag_make_test_target)
     endif()
 endfunction()
 
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 # Test matrix: foreach bitfield in {0, 1}, foreach inject_csl_typeinfo in {with, without}
 #
 #   - compile_time.cpp  	    (core static_assert suite, unaffected by inject_csl_typeinfo)
-#   - <formatting>_support.cpp  (specific formatting support: iostream, fmtlib, std::format)
+#   - <formatting>_support.cpp  (one formatting feature header each: ostream, fmt, std::format)
 #
-#   inject_csl_typeinfo covers both csl::ag formatting code paths:
-#     - with_typeinfo: csl::typeinfo is linked, typenamed views use compile-time demangling
-#     - no_typeinfo:   csl::typeinfo is not linked, <typeindex>-based implementation is not even tested (yet)
-# ---------------------------------------------------------------------------
+#   inject_csl_typeinfo covers both `typenamed` code paths - CSL_AG_TEST__WITH_TYPEINFO gates
+#   the <csl/ag/formatting/typeinfo.hpp> include in the test sources:
+#     - typeinfo:    bridge included + csl::typeinfo linked, compile-time demangled names
+#     - no_typeinfo: <typeindex> runtime fallback (deterministic, implementation-defined names)
+#
+#   Outside the matrix:
+#     - formatting_coexistence.cpp:   every feature header in one TU
+#     - odr_mixed_{bridge,plain}.cpp: one binary, two TUs, only one includes the bridge
+# ---------------------------------------------------------------------------------------------
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
 foreach(bitfields IN ITEMS 0 1)
@@ -107,27 +120,27 @@ foreach(bitfields IN ITEMS 0 1)
         endif()
 
         csl_ag_make_test_target(
-            NAME            iostream_support_${inject_csl_typeinfo}
+            NAME            iostream_support
             SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/iostream_support.cpp
-            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} CSL_AG_TEST__WITH_TYPEINFO=${inject_csl_typeinfo}
             EXTRA_LIBS      ${_maybe_csl_typeinfo}
             RESULT          target_name
         )
         add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
         csl_ag_make_test_target(
-            NAME            fmtlib_support_${inject_csl_typeinfo}
+            NAME            fmtlib_support
             SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/fmtlib_support.cpp
-            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} CSL_AG_TEST__WITH_TYPEINFO=${inject_csl_typeinfo}
             EXTRA_LIBS      fmt::fmt-header-only ${_maybe_csl_typeinfo}
             RESULT          target_name
         )
         add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
         csl_ag_make_test_target(
-            NAME            std_format_support_${inject_csl_typeinfo}
+            NAME            std_format_support
             SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/std_format_support.cpp
-            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields}
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} CSL_AG_TEST__WITH_TYPEINFO=${inject_csl_typeinfo}
             EXTRA_LIBS      ${_maybe_csl_typeinfo}
             RESULT          target_name
         )
@@ -135,3 +148,24 @@ foreach(bitfields IN ITEMS 0 1)
     endforeach()
 
 endforeach()
+
+# Every formatting feature header in a single TU: backends must coexist (each specializes
+# a different framework's entity; to_string ships with format.hpp only)
+csl_ag_make_test_target(
+    NAME        formatting_coexistence
+    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/formatting_coexistence.cpp
+    DEFINITIONS FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=0 CSL_AG_TEST__WITH_TYPEINFO=1
+    EXTRA_LIBS  fmt::fmt-header-only ${PROJECT_NAME}::typeinfo
+    RESULT      target_name
+)
+add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+# ODR sanity (fmt-style feature-header contract): two TUs, only one includes the typeinfo
+# bridge, each formats different types - must link and behave deterministically
+csl_ag_make_test_target(
+    NAME        odr_mixed
+    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/odr_mixed_bridge.cpp ${CMAKE_CURRENT_SOURCE_DIR}/odr_mixed_plain.cpp
+    EXTRA_LIBS  ${PROJECT_NAME}::typeinfo
+    RESULT      target_name
+)
+add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})

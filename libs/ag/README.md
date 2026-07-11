@@ -29,9 +29,10 @@ The following example demonstrates some of the features which are available in `
 
 <!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
-#include <csl/typeinfo.hpp> // optional: gives csl::ag::io::typenamed clean type names (e.g. "int")
-#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT 1
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support (+ csl::ag::io::to_string)
+#include <csl/typeinfo.hpp>               // bridge prerequisite (explicit, for godbolt raw-URL include order)
+#include <csl/ag/formatting/typeinfo.hpp> // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
 #include <iostream> // std::print might not be available yet: use `std::cout << std::format(...)`
 
 struct S { char c; int i; };
@@ -51,15 +52,15 @@ auto main() -> int {
     constexpr auto format_options = indexed | typenamed | indented;
     std::cout << std::format("{}", value | format_options); // equivalent to std::println("{:xit}", value)
 
-    // legacy alternative: CSL_AG__ENABLE_IOSTREAM_SUPPORT
+    // alternative: #include <csl/ag/formatting/ostream.hpp>
     // std::cout << "value: " << format_options << value << '\n';
 
-    // other alternative: CSL_AG__ENABLE_FMT_SUPPORT
+    // alternative: #include <csl/ag/formatting/fmt.hpp>
     // fmt::println("{:xit}", value)
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/zW31zz3fh)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/7WKeTWsvv)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
@@ -116,19 +117,27 @@ This library is divided in six distinct parts :
 
 ## Getting starting
 
-This library is single-header, header-only.  
-Users may use it in various ways, however [CMake](https://cmake.org/) is the promoted one for both download and configuration.
+The **core of this library ships as a single, standalone header**: `csl/ag.hpp` alone provides the full reflection API, header-only.  
+**Opt-in features are additional headers** - purely additive, opt-in = `#include` (no macro, no CMake option, no auto-detection):
 
-> ℹ️ The `typenamed` formatting option (see [formatting and printing](#formatting-and-printing)) optionally enhances itself
-> with [csl::typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp)
-> for compile-time type names, detected via `__has_include`.  
-> Without it, a `<typeindex>`-based runtime (inconsistent) fallback is used instead - `ag.hpp` stays usable as a single, standalone header either way.
+| Feature header | Adds | Requires |
+| --- | --- | --- |
+| `csl/ag/formatting/format.hpp` | `std::formatter` support + [`csl::ag::io::to_string`](#using-to_stringformat_options) | `<format>` |
+| `csl/ag/formatting/fmt.hpp` | `fmt::formatter` support | [fmtlib](https://github.com/fmtlib/fmt), provided by the consumer |
+| `csl/ag/formatting/ostream.hpp` | `operator<<(std::ostream &, ...)` support | - |
+| `csl/ag/formatting/typeinfo.hpp` | compile-time type names for the `typenamed` formatting option | [csl::typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp) |
+
+> ℹ️ Feature headers add blanket specializations: like `<fmt/ranges.h>`, include them **consistently across the whole program** (ODR).  
+> Without `csl/ag/formatting/typeinfo.hpp`, the `typenamed` option falls back to `<typeindex>` runtime names
+> (deterministic, implementation-defined, possibly mangled) - `ag.hpp` stays fully usable standalone either way.
+
+Users may use it in various ways, however [CMake](https://cmake.org/) is the promoted one for both download and configuration.
 
 ### Integration
 
 #### Plain download
 
-- **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/libs/ag/includes/ag/csl/ag.hpp) and deal with the build yourself, or ...
+- **Fetch** [the header file](https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/libs/ag/includes/ag/csl/ag.hpp) - and optionally the [feature headers](https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ag/includes/ag/csl/ag/formatting) - and deal with the build yourself, or ...
 - **Clone** the repo, or add it as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your project.
 
 > ⚠️ Proceeding the ways enumerated above is fast & simple.  
@@ -201,68 +210,23 @@ To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_
 
 > 💡 Everything related to formatting and printing lives in the `csl::ag::io` namespace.
 
-> 💡 All options in this section are opt-ins *(`OFF` by default)*, and can be combined.
-
-Supports 3 parallel backends:
-
-- `std::format`
-- `fmt`
-- `std::ostream` (e.g `std::cout`)
-
-Format-specs are composable, and include `indexed` (":x"), `indented` (":i"), and `typenamed` (":t").
+Formatting backends are **not CMake options**: each is an opt-in **feature header** - `#include` what you need
+(see [Getting starting](#getting-starting) for the list, and [formatting and printing](#formatting-and-printing) for complete documentation).
 
 ```cpp
-struct A{ int i{}; };
-struct my_aggregate{ char c = 'a'; A a = A{ .i = 13} };
-constexpr auto my_aggregate_value = my_aggregate{};
+#include <csl/ag.hpp>                     // reflection + io core (options, views, operator|) - no backend
+#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter + csl::ag::io::to_string
+#include <csl/ag/formatting/fmt.hpp>      // opt-in: fmt::formatter (fmtlib provided by the consumer)
+#include <csl/ag/formatting/ostream.hpp>  // opt-in: operator<<(std::ostream &, ...)
+#include <csl/ag/formatting/typeinfo.hpp> // opt-in: compile-time type names for `typenamed`
 ```
 
-- `CSL_AG__ENABLE_STD_FORMAT_SUPPORT`: add `std::formatter<csl::ag::aggregate T>`
+Backends may coexist in one translation unit, and format-specs are composable:
+`indexed` (":x"), `indented` (":i"), and `typenamed` (":t").
 
-  ```cpp
-  std::print("{}",     my_aggregate_value);                         // compact, default → {'a', {13}}
-  std::print("{:n}",   my_aggregate_value);                         // no outer brackets → 'a'{13}
-  std::print("{:xti}", my_aggregate_value);                         // format-spec letters: x=indexed, t=typenamed, i=indented
-  std::print("{}",     my_aggregate_value | csl::ag::io::indented); // pretty, multi-line → see below
-
-  using namespace csl::ag::io;
-  constexpr auto view = indexed | typenamed | indented;             // composed format_options, reusable
-  std::print("{}", my_aggregate_value | view);                      // view-based composition → same as "{:xti}"
-  ```
-
-- `CSL_AG__ENABLE_FMTLIB_SUPPORT`: makes `csl::ag` depends on the `fmt` library, and add `fmt::formatter<csl::ag::aggregate T>`.
-
-  > If [fmtlib](https://github.com/fmtlib/fmt)'s `cmake` target `fmt::fmt-header-only` is not available when building `csl::ag` with `CSL_AG__ENABLE_FMTLIB_SUPPORT` set to `ON`, then such a dependency will be injected using `cmake FetchContent`.
-
-  ```cpp
-  fmt::print("{}",     my_aggregate_value);
-  fmt::print("{:n}",   my_aggregate_value);
-  fmt::print("{:xti}", my_aggregate_value); // format-spec letters: x=indexed, t=typenamed, i=indented
-  fmt::print("{}",     my_aggregate_value | csl::ag::io::indented);
-
-  using namespace csl::ag::io;
-  constexpr auto view = indexed | typenamed | indented; // composed format_options, reusable
-  fmt::print("{}", my_aggregate_value | view);          // view-based composition → same as "{:xti}"
-  ```
-
-- `CSL_AG__ENABLE_IOSTREAM_SUPPORT`: add `csl::ag::io::operator<<(std::ostream &, csl::ag::concepts::structured_bindable auto const &)`
-
-  ```cpp
-  using namespace csl::ag::io;
-  std::cout << my_aggregate_value;              // compact, default
-  std::cout << no_braces << my_aggregate_value; // one-shot manipulator → no outer brackets
-  std::cout << (my_aggregate_value | indented); // view-based composition → pretty, multi-line
-  ```
-
-- `csl::ag::io::to_string`: available as soon as any one of the options above is enabled. Returns a `std::string` directly, with the same call syntax regardless of which backend is active (favors `std::format`, then `fmt::format`, then `std::ostream`).
-
-  ```cpp
-  using namespace csl::ag::io;
-  to_string(my_aggregate_value);                                    // compact, default     → {'a', {13}}
-  to_string<no_braces>(my_aggregate_value);                         // no outer brackets    → 'a'{13}
-  to_string<indented>(my_aggregate_value);                          // pretty, multi-line   → see below
-  to_string<indexed | typenamed | indented>(my_aggregate_value);    // pretty, multi-line, indexed, typenamed
-  ```
+> ⚠️ **Migration note** *(API break)*: the `CSL_AG__ENABLE_{STD_FORMAT,FMTLIB,IOSTREAM}_SUPPORT` macros and CMake options
+> were **removed** (silently ignored if still defined). Replace each with the matching feature-header `#include` above.  
+> `csl::ag::io::to_string` is now `std::format`-backed, and ships with `csl/ag/formatting/format.hpp` only.
 
 About compact vs. pretty presentations, with type names (`typenamed`):
 
@@ -819,21 +783,23 @@ Output:
 
 ### Formatting and printing
 
-There are three ways to pretty-print aggregate types :
+There are three ways to pretty-print aggregate types, each being an opt-in **feature header**:
 
-- (✅ Best) using `std::format` or the `fmt` library
-- using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload
-- using `csl::ag::io::to_string<format_options>`, a homogeneous (yet, less efficient) API across all of the above
+- (✅ Best) using `std::format` (`csl/ag/formatting/format.hpp`) or the `fmt` library (`csl/ag/formatting/fmt.hpp`)
+- using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/ostream.hpp`)
+- using `csl::ag::io::to_string<format_options>`, `std::format`-backed (ships with `csl/ag/formatting/format.hpp`)
+
+Backends may coexist in the same translation unit - each one specializes a different framework's entity.  
+The `typenamed` option renders compile-time, demangled type names when `csl/ag/formatting/typeinfo.hpp` is included,
+and falls back to `<typeindex>` runtime names otherwise.
 
 #### using std::format
 
-Requires `CSL_AG__ENABLE_STD_FORMAT_SUPPORT` (opt-in, off by default).  
-Enable via CMake or by defining the macro before including the header:
+Opt-in by include:
 
 ```cpp
-#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT true
 #include <csl/ag.hpp>
-#include <format>
+#include <csl/ag/formatting/format.hpp>
 ```
 
 This specializes `std::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
@@ -913,28 +879,28 @@ Mixed-content aggregates (containing tuple-likes, ranges, etc.) are also support
 
 #### using fmt
 
-Requires `CSL_AG__ENABLE_FMTLIB_SUPPORT` (opt-in, off by default) - same macro-driven setup as `std::format` above:
+Opt-in by include - same setup as `std::format` above:
 
 ```cpp
-#define CSL_AG__ENABLE_FMTLIB_SUPPORT true
 #include <csl/ag.hpp>
-#include <fmt/format.h>
+#include <csl/ag/formatting/fmt.hpp>
 ```
 
-> If `fmt::fmt-header-only` is not available as a CMake target, it will be fetched automatically via CMake's `FetchContent`.  
+> [fmtlib](https://github.com/fmtlib/fmt) is provided **by the consumer** (e.g. `find_package(fmt)`, then link `fmt::fmt` or `fmt::fmt-header-only`): the header uses it, `csl` never acquires nor ships it.  
 > fmtlib >= 11 is required for the `:n` specifier.
 
 `fmt::formatter<T>` / `fmt::format` / `fmt::print` behave identically to their `std::formatter` / `std::format` / `std::print` counterparts described above: same format modes, same composable `csl::ag::io::indented | indexed | typenamed` options, same output.  
 
 #### using std::ostream
 
+Opt-in by include: `csl/ag/formatting/ostream.hpp` *(prefer `std::format`/`fmt` when available: `<ostream>` is heavy at compile time, and options ride `std::ios_base::iword`)*.
+
 Simple example :
 
 <!-- EXAMPLE_BEGIN: 18_formatting_ostream_simple.cpp -->
 ```cpp
-#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
-
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
 #include <iostream>
 
 auto main() -> int {
@@ -945,7 +911,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Wve3j19b9)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/4763osbv1)
 <!-- EXAMPLE_END: 18_formatting_ostream_simple.cpp -->
 
 Output:
@@ -958,9 +924,8 @@ Advanced example :
 
 <!-- EXAMPLE_BEGIN: 19_formatting_ostream_advanced.cpp -->
 ```cpp
-#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
-
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
 #include <array>
 #include <iostream>
 #include <string>
@@ -998,7 +963,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/MY7PYePTd)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xsTxxExrG)
 <!-- EXAMPLE_END: 19_formatting_ostream_advanced.cpp -->
 
 Output:
@@ -1009,13 +974,14 @@ Output:
 
 #### using `to_string<format_options>`
 
-`csl::ag::io::to_string` returns a `std::string` directly, with an consistent/homogeneous API regardless of which formatting support is enabled,  
-favoring `std::format`, then `fmt::format`, then `std::ostream`.
+`csl::ag::io::to_string` returns a `std::string` directly.  
+It is `std::format`-backed, and ships with `csl/ag/formatting/format.hpp`.
 
 Options are selected as a non-type template argument. Tags (`indented`, `no_braces`, `indexed`, `typenamed`) implicitly convert to `format_options` and compose via `operator|`, so they can be combined directly as the template argument - or, equivalently, via the view-based `operator|` on the value itself:
 
 ```cpp
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/format.hpp>
 
 struct point { int x; int y; };
 struct rect  { point top_left; point bottom_right; };

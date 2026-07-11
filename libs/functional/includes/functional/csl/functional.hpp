@@ -1,5 +1,8 @@
 #pragma once
 
+// NOTE: Detectable by other csl libraries/headers (via #if defined(...)), even when not reachable through __has_include (e.g. Compiler Explorer raw-URL includes).
+#define CSL_FUNCTIONAL__INCLUDED
+
 #if not __cplusplus >= 201703L
 # error "csl/functional.hpp requires C++20"
 #endif

@@ -2,10 +2,11 @@
 cmake_policy(SET CMP0127 NEW)
 include(CMakeDependentOption)
 
-# Opt-in feature flags are BUILD_INTERFACE-only:
+# Configuration macros are BUILD_INTERFACE-only:
 #   they apply while building csl itself (tests, examples) but are stripped from the installed/exported target,
 #   so the package stays neutral and dependency-free.
-#   Consumers of the installed package opt in themselves (define the macro, and for fmt provide the library) - see the ODR note in the README.
+# Formatting backends are NOT configured here: opt-in = #include of a feature header
+#   (csl/ag/formatting/{format,fmt,ostream,typeinfo}.hpp) - no CMake option, no macro.
 
 # CSL_AG__VERBOSE_BUILD
 option(CSL_AG__VERBOSE_BUILD "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: verbose build (might use additional useful build messages)" OFF)
@@ -19,48 +20,6 @@ option(CSL_AG__ENABLE_BITFIELDS_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_compo
 csl_print_aligned(STATUS CSL_AG__ENABLE_BITFIELDS_SUPPORT)
 if (CSL_AG__ENABLE_BITFIELDS_SUPPORT)
     target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_AG__ENABLE_BITFIELDS_SUPPORT>)
-endif()
-
-# CSL_AG__ENABLE_IOSTREAM_SUPPORT
-option(CSL_AG__ENABLE_IOSTREAM_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable iostream support (prefer fmtlib/std::format - see WARNING in ag.hpp)" OFF)
-csl_print_aligned(STATUS CSL_AG__ENABLE_IOSTREAM_SUPPORT)
-if (CSL_AG__ENABLE_IOSTREAM_SUPPORT)
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_AG__ENABLE_IOSTREAM_SUPPORT>)
-endif()
-
-# CSL_AG__ENABLE_STD_FORMAT_SUPPORT
-option(CSL_AG__ENABLE_STD_FORMAT_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable std::format support" OFF)
-csl_print_aligned(STATUS CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
-if (CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_AG__ENABLE_STD_FORMAT_SUPPORT>)
-endif()
-
-# CSL_AG__ENABLE_FMTLIB_SUPPORT
-option(CSL_AG__ENABLE_FMTLIB_SUPPORT "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: enable fmt support" OFF)
-csl_print_aligned(STATUS CSL_AG__ENABLE_FMTLIB_SUPPORT)
-if (${CSL_AG__ENABLE_FMTLIB_SUPPORT})
-
-    target_compile_definitions(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:CSL_AG__ENABLE_FMTLIB_SUPPORT>)
-
-    if (NOT TARGET fmt::fmt-header-only AND NOT TARGET fmt::fmt)
-        include(csl/get_cpm)
-        csl_get_cpm()
-        CPMAddPackage(
-            NAME              fmt
-            GITHUB_REPOSITORY fmtlib/fmt
-            GIT_TAG           12.1.0
-        )
-    endif()
-
-    if (TARGET fmt::fmt-header-only)
-        add_dependencies(csl_${csl_add_component_NAME} fmt::fmt-header-only)
-        target_link_libraries(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:fmt::fmt-header-only>)
-    elseif(TARGET fmt::fmt)
-        add_dependencies(csl_${csl_add_component_NAME} fmt::fmt)
-        target_link_libraries(csl_${csl_add_component_NAME} INTERFACE $<BUILD_INTERFACE:fmt::fmt>)
-    else()
-        message(FATAL_ERROR "[${CMAKE_PROJECT_NAME}::${csl_add_component_NAME}]: unexpected ill-formed fmt library")
-    endif()
 endif()
 
 # --- code generation ---
