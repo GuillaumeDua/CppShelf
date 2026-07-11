@@ -1,13 +1,13 @@
 #pragma once
 
-// Must be included after <csl/ag.hpp> with a format macro defined.
+// Must be included after <csl/ag/formatting/typeinfo.hpp>.
 
 // QUICK-FIX: consistent typeinfo outputs
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 #include <array>
 #include <string_view>
 #include <tuple>
-namespace csl::ag::io::details {
+namespace csl::ag::io {
 
     template <>
     struct type_name<std::string_view> {

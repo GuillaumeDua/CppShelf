@@ -1,6 +1,9 @@
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/format.hpp> // opt-in: std::formatter support
 
 #include <cstdint>
+#include <format>
+#include <iostream>
 #include <tuple>
 
 struct point  { int x, y; };
@@ -71,16 +74,12 @@ auto main(int, char*[]) -> int
     static_assert(std::tuple_size_v<decltype(view)> == 2);
     static_assert(std::get<0>(view) == 3);
 
-    // --- opt-in: fmt formatting (CSL_AG__ENABLE_FMTLIB_SUPPORT) ---
-#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)
-    fmt::print("{}\n", value);  // compact:  (3, 4)
-    fmt::print("{}\n", value | csl::ag::io::indented);  // indented: multi-line
-#endif
+    // --- opt-in: std::format formatting (#include <csl/ag/formatting/format.hpp>) ---
+    std::cout << std::format("{}\n", value);                          // compact:  (3, 4)
+    std::cout << std::format("{}\n", value | csl::ag::io::indented);  // indented: multi-line
 
-    // --- opt-in: std::format (CSL_AG__ENABLE_STD_FORMAT_SUPPORT) ---
-#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
-    std::print("{}\n", value);
-    std::print("{}\n", value | csl::ag::io::indented);
-#endif
+    // --- opt-in: fmt formatting (#include <csl/ag/formatting/fmt.hpp>) ---
+    // fmt::print("{}\n", value);
+    // fmt::print("{}\n", value | csl::ag::io::indented);
 }
 // NOLINTEND(*-magic-numbers)

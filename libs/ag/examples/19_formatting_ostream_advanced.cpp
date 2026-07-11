@@ -1,6 +1,5 @@
-#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1
-
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
 #include <array>
 #include <iostream>
 #include <string>

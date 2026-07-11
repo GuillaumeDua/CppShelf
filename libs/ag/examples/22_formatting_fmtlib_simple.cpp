@@ -1,7 +1,7 @@
-#include <csl/typeinfo.hpp> // optional: gives csl::ag::io::typenamed clean type names (e.g. "int")
-#define CSL_AG__ENABLE_FMTLIB_SUPPORT 1
-
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/fmt.hpp>      // opt-in: fmt::formatter support
+#include <csl/typeinfo.hpp>               // bridge prerequisite (explicit, for godbolt raw-URL include order)
+#include <csl/ag/formatting/typeinfo.hpp> // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
 
 auto main() -> int {
     using namespace csl::ag::io;

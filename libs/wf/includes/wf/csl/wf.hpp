@@ -1,5 +1,8 @@
 #pragma once
 
+// NOTE: Detectable by other csl libraries/headers (via #if defined(...)), even when not reachable through __has_include (e.g. Compiler Explorer raw-URL includes).
+#define CSL_WF__INCLUDED
+
 #if not __cplusplus >= 202002L
 # error "csl/wf.hpp requires C++20"
 #endif

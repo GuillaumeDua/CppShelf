@@ -40,35 +40,18 @@ CE_SHORTLINK_API = 'https://godbolt.org/api/shortener'
 CE_COMPILER_ID = 'clang_trunk'
 CE_COMPILER_OPTIONS = '-std=c++23 -O2'
 
-# Maps each local CSL include to its raw GitHub URL counterpart.
-#   CE frontend supports URL-based #include, but the API itself does not
-#   so the script transforms includes pp-directives before building the session payload.
-INCLUDE_URL_MAP: dict[str, str] = {
-    'csl/ag.hpp': (
-        'https://raw.githubusercontent.com/GuillaumeDua/CppShelf'
-        '/refs/heads/main/libs/ag/includes/ag/csl/ag.hpp'
-    ),
-    'csl/mp.hpp': (
-        'https://raw.githubusercontent.com/GuillaumeDua/CppShelf'
-        '/refs/heads/main/libs/mp/includes/mp/csl/mp.hpp'
-    ),
-    'csl/ensure.hpp': (
-        'https://raw.githubusercontent.com/GuillaumeDua/CppShelf'
-        '/refs/heads/main/libs/ensure/includes/ensure/csl/ensure.hpp'
-    ),
-    'csl/functional.hpp': (
-        'https://raw.githubusercontent.com/GuillaumeDua/CppShelf'
-        '/refs/heads/main/libs/functional/includes/functional/csl/functional.hpp'
-    ),
-    'csl/typeinfo.hpp': (
-        'https://raw.githubusercontent.com/GuillaumeDua/CppShelf'
-        '/refs/heads/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp'
-    ),
-    'csl/wf.hpp': (
-        'https://raw.githubusercontent.com/GuillaumeDua/CppShelf'
-        '/refs/heads/main/libs/wf/includes/wf/csl/wf.hpp'
-    ),
-}
+# Maps local CSL includes to their raw GitHub URL counterparts.
+#   CE frontend supports URL-based #include, but the API itself does not,
+#   so the script transforms include pp-directives before building the session payload.
+#   Handles both single-header components and feature headers:
+#       csl/<lib>.hpp             -> libs/<lib>/includes/<lib>/csl/<lib>.hpp
+#       csl/<lib>/<feature>.hpp   -> libs/<lib>/includes/<lib>/csl/<lib>/<feature>.hpp
+#   (e.g. csl/ag/formatting/fmt.hpp -> libs/ag/includes/ag/csl/ag/formatting/fmt.hpp)
+#   NOTE: include order matters on CE: a feature header self-includes its prerequisites only
+#   when they are reachable (or already included, detected via the CSL_<LIB>__INCLUDED markers) -
+#   examples list <csl/<lib>.hpp> (and any sibling-component prerequisite) first.
+RAW_URL_BASE = 'https://raw.githubusercontent.com/GuillaumeDua/CppShelf/refs/heads/main'
+CSL_INCLUDE_RE = re.compile(r'#include <(?P<path>csl/(?P<lib>[a-z0-9_]+)(?:\.hpp|/[^>]+\.hpp))>')
 
 EXAMPLE_BLOCK_RE = re.compile(
     r'<!-- EXAMPLE_BEGIN: (?P<file>[^\s>]+) -->\n'
@@ -82,9 +65,13 @@ def sha256_of(text: str) -> str:
 
 
 def transform_includes(source: str) -> str:
-    for local, url in INCLUDE_URL_MAP.items():
-        source = source.replace(f'#include <{local}>', f'#include <{url}>')
-    return source
+    def to_url(match: re.Match) -> str:
+        lib, path = match.group('lib'), match.group('path')
+        header = REPO_ROOT / 'libs' / lib / 'includes' / lib / path
+        if not header.is_file():
+            raise RuntimeError(f'cannot map #include <{path}> to a repo header (expected {header})')
+        return f'#include <{RAW_URL_BASE}/libs/{lib}/includes/{lib}/{path}>'
+    return CSL_INCLUDE_RE.sub(to_url, source)
 
 
 def build_layout(source: str, *, compiler_id: str, compiler_options: str) -> dict:

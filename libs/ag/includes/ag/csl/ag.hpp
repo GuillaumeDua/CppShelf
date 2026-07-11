@@ -3,6 +3,9 @@
 // under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
+// NOTE: Detectable by other csl libraries/headers (via #if defined(...)), even when not reachable through __has_include (e.g. Compiler Explorer raw-URL includes).
+#define CSL_AG__INCLUDED
+
 #if not __cplusplus >= 202002L
 # error "csl/ag.hpp requires C++20"
 #endif
@@ -1073,13 +1076,11 @@ namespace csl::ag {
 //  If std::tuple_size<T> were specialized for non-STL aggregates,
 //  then the generated make_to_tuple<N> templates would require get<I>(value) to be ADL-findable for T.
 //  csl::ag::get is defined AFTER the generated include, so it is not visible via non-ADL unqualified lookup at the template definition site.
-//  For user-defined aggregate types outside namespace csl::ag, ADL does not search
-//  csl::ag either - making get<I> irrecoverably unfindable for them.
+//  For user-defined aggregate types outside namespace csl::ag, ADL does not search csl::ag either - making get<I> irrecoverably unfindable for them.
 //
 //  The generated code exists because C++ has no introspection for aggregate field types:
-//  make_to_tuple<N> uses structured bindings at consteval time to capture field types
-//  as a std::tuple via decltype, producing the std::type_identity<std::tuple<Ts...>>
-//  that drives csl::ag::element<I, T> and csl::ag::to_tuple_t<T>.
+//  make_to_tuple<N> uses structured bindings at consteval time to capture field types as a std::tuple via decltype,
+//  producing the std::type_identity<std::tuple<Ts...>> that drives csl::ag::element<I, T> and csl::ag::to_tuple_t<T>.
 
 namespace csl::ag::tuplelike::concepts {
     template <typename T>
@@ -1166,52 +1167,63 @@ namespace csl::ag::tuplelike {
     }
 }
 
-// ---------------------
-//  formatting/printing
-// ---------------------
-
-#if (defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT)   and CSL_AG__ENABLE_IOSTREAM_SUPPORT) \
- or (defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)     and CSL_AG__ENABLE_FMTLIB_SUPPORT) \
- or (defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
-# define CSL_AG__FORMATTING_ENABLED true
-# endif
+// ------------------------------
+//  formatting/printing - io core
+// ------------------------------
+//
+// csl/ag.hpp only ships the backend-agnostic io core (std-only, always compiled, no blanket specialization):
+// - format options
+// - format tags
+// - decorated views
+// - view operator|
+// - type_name CPO (customization trait)
+// - formatters shared machinery.
+//
+// Formatting backends are opt-in feature headers, include them consistently program-wide:
+//
+//  <csl/ag/formatting/format.hpp>      std::formatter support, csl::ag::io::to_string
+//  <csl/ag/formatting/fmt.hpp>         fmt::formatter support (fmtlib is provided by the consumer)
+//  <csl/ag/formatting/ostream.hpp>     operator<<(std::ostream &, ...) support
+//  <csl/ag/formatting/typeinfo.hpp>    compile-time type names for the typenamed option (csl::typeinfo-backed)
 
 // type_name
-#if defined(CSL_AG__FORMATTING_ENABLED)
 #pragma region type_name
 
-#if defined(CSL_TYPEINFO__INCLUDED) or __has_include(<csl/typeinfo.hpp>)
-#   if not defined(CSL_TYPEINFO__INCLUDED)
-#       include <csl/typeinfo.hpp>
-#   endif
-namespace csl::ag::io::details {
+#include <typeindex>
 
-    template <typename T>
-    struct type_name : csl::typeinfo::type_name<T>{};
-    template <typename T>
-    constexpr inline static std::string_view type_name_v = type_name<T>::value;
-}
-#else
-#   pragma message("[csl::ag](EXPERIMENTALE) formatting enabled, but <csl/typeinfo.hpp> not available, fallback to <typeindex>. Relies on runtime implementation.")
-#   include <typeindex>
-namespace csl::ag::io::details {
+namespace csl::ag::io {
 
+    /// @brief Customization point (type-trait) providing the type name written by the @c typenamed formatting option.
+    ///
+    /// The primary template is a runtime fallback: @c std::type_index(typeid(T)).name(), which is implementation-defined and possibly mangled.
+    ///
+    /// To obtain readable names, either:
+    /// - @c \#include @c <csl/ag/formatting/typeinfo.hpp> for compile-time, demangled names (csl::typeinfo-backed),
+    /// - or specialize this trait for specific types/concepts/constraints.
+    ///
+    /// @tparam T the type whose name is queried.
     template <typename T>
     struct type_name {
         static inline const std::string_view value = std::type_index(typeid(T)).name();
     };
+    
+    /// @brief Alias for @c type_name<T>::value, the type name written by the @c typenamed option.
+    ///
+    /// @note Deliberately a @c constexpr reference, not a copy.
+    /// Per @c [basic.start.dynamic], instantiated specializations have @e unordered dynamic initialization;
+    /// a local copy of @c type_name<T>::value could be initialized before its source and capture an empty @c string_view.
+    //
+    /// The binding is an address constant expression even for the runtime primary template, so @c type_name_v is guaranteed constant-initialized,
+    /// and usable in constant expressions whenever the specialization's @c value is @c constexpr (e.g. @c <csl/ag/formatting/typeinfo.hpp>).
+    ///
+    /// @tparam T the type whose name is queried.
     template <typename T>
-    const inline static std::string_view type_name_v = type_name<T>::value;
+    constexpr static inline const std::string_view & type_name_v = type_name<T>::value;
 }
-#endif
 
 #pragma endregion
-#endif
 
 // Formatting(shared): composable format options, tag types, decorated view, operator|
-#if defined(CSL_AG__FORMATTING_ENABLED)
-
-#pragma message("[csl::ag] Formatting enabled")
 
 namespace csl::ag::io {
     /// \brief Bitmask of composable formatting options.
@@ -1315,8 +1327,10 @@ namespace csl::ag::io::details::decorators {
 }
 
 namespace csl::ag::io::details::concepts {
+    // NOTE: type-requirement (typename): csl_ag_io_decorator is a member type alias -
+    //       a simple-requirement would test it as an (invalid) expression and never be satisfied
     template <typename T>
-    concept decorator = requires { T::csl_ag_io_decorator; };
+    concept decorator = requires { typename T::csl_ag_io_decorator; };
 }
 
 namespace csl::ag::io {
@@ -1354,13 +1368,13 @@ namespace csl::ag::io::details::style {
 
     template <typename T>
     [[nodiscard]] constexpr auto opening_bracket() noexcept -> std::string_view {
-             if constexpr (csl::ag::concepts::range_like<T>)    return "[";
+        if constexpr (csl::ag::concepts::range_like<T>)         return "[";
         else if constexpr (csl::ag::concepts::tuple_like<T>)    return "(";
         else                                                    return "{";
     }
     template <typename T>
     [[nodiscard]] constexpr auto closing_bracket() noexcept -> std::string_view {
-             if constexpr (csl::ag::concepts::range_like<T>)    return "]";
+        if constexpr (csl::ag::concepts::range_like<T>)         return "]";
         else if constexpr (csl::ag::concepts::tuple_like<T>)    return ")";
         else                                                    return "}";
     }
@@ -1387,10 +1401,7 @@ namespace csl::ag::io::details::style {
     }
 }
 
-#endif
-
-#if (defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT) \
- or (defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT)
+// Formatters shared machinery (fmt::formatter / std::formatter): backend-agnostic, std-only.
 
 namespace csl::ag::io::details {
 
@@ -1398,7 +1409,8 @@ namespace csl::ag::io::details {
     [[nodiscard]] consteval auto to_chars() noexcept {
 
         constexpr auto digits = [] {
-            std::size_t n = N, count = 1;
+            std::size_t n = N;
+            std::size_t count = 1;
             while (n >= 10) { n /= 10; ++count; }
             return count;
         }();
@@ -1428,15 +1440,16 @@ namespace csl::ag::io::details {
     }
 
     /// \brief Maps a formatter_implementation (fmt::formatter or std::formatter) to its matching format-error exception type
+    ///        Note that the 3rd ttp of fmt::formatter is defaulted (SFINAE, void)
     template <template <typename, typename> class formatter_implementation>
     struct format_error_type;
     template <template <typename, typename> class formatter_implementation>
     using format_error_type_t = typename format_error_type<formatter_implementation>::type;
 
     /// \brief Formatters shared logic (fmt and std) -> parse, format.
-    /// Format options/depth are carried at runtime by the formatted_view_t decorator (see operator|), not baked into this type's template parameters.
-    /// parse() additionally accumulates a parse_options mask from the format-spec string (e.g. ':n'),
-    /// merged with the decorator's options for this node only - it is not propagated to field formatters.
+    ///        Format options/depth are carried at runtime by the formatted_view_t decorator (see operator|), not as TTPs.
+    ///        parse() additionally accumulates a parse_options mask from the format-spec string (e.g. ':n'),
+    ///        merged with the decorator's options for this node only - it is not propagated to field formatters.
     /// \tparam formatter_implementation fmt::formatter or std::formatter (yet, unconstrained here)
     /// \tparam T the structured-bindable aggregate type being formatted
     /// \tparam Char the character type
@@ -1622,486 +1635,6 @@ namespace csl::ag::io::details {
         }
     };
 }
-
-#endif // fmtlib or std::format base
-
-//  Formatting: ostream support
-//
-// Provides operator<<(std::ostream &, structured_bindable) via csl::ag::io.
-//
-// WARNING: prefer fmtlib or std::format support over this when available.
-//
-//   Compile-time cost:
-//      Including <ostream> is one of the heaviest standard headers.
-//      Prefer fmtlib (CSL_AG__ENABLE_FMTLIB_SUPPORT) or std::format (CSL_AG__ENABLE_STD_FORMAT_SUPPORT) for significantly faster build times.
-//
-//   Runtime cost:
-//      std::ios_base::xalloc() and std::ios_base::iword() are used to store the active options on the stream.
-//      Both involve a global mutex and can be a bottleneck in hot paths or multi-threaded code.
-//
-// Design:
-//  - Composable format_options bitmask selected via IO manipulators (one-shot, reset after each print)
-//      or via the view-based operator| API (bypasses iword entirely):
-//      os << value                                          (default: braced, compact)
-//      os << csl::ag::io::no_braces << value                (flat, naked: no outer brackets or separator)
-//      os << csl::ag::io::indented  << value                (multiline, depth-indented)
-//      os << csl::ag::io::indexed   << value                (braced with [N] field indexes)
-//      os << csl::ag::io::typenamed << value                (braced with TypeName: prefixes)
-//      os << (value | csl::ag::io::indented | csl::ag::io::indexed)  (view-based, composable)
-//  - Options propagate to nested structured_bindable fields (no_braces is outermost-only)
-//  - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "..."
-//
-// Usage: using namespace csl::ag::io; std::cout << my_aggregate;
-
-#if defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
-
-#pragma message("[csl::ag] CSL_AG__ENABLE_IOSTREAM_SUPPORT - enabled")
-
-#include <ostream>
-#include <sstream>
-
-namespace csl::ag::io::details {
-
-    /// \brief T has an operator<<(std::ostream &, T) reachable WITHOUT csl::ag::io in scope.
-    // This prevents this library operator<< from satisfying the concept (depend on self).
-    template <typename T>
-    concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
-        os << v;
-    };
-
-    static inline auto mode_index() noexcept -> int {
-        static const int index = std::ios_base::xalloc();
-        return index;
-    }
-
-    inline void write_indent(std::ostream & os, std::size_t depth) {
-        constexpr std::size_t max_depth = 32;
-        static constexpr auto buf =
-            []<std::size_t... Is>(std::index_sequence<Is...>) {
-                return std::array<char, sizeof...(Is)>{((void)Is, ' ')...};
-            }(std::make_index_sequence<max_depth * style::indentation_width>{});
-        os.write(buf.data(), static_cast<std::streamsize>(std::min(max_depth, depth) * style::indentation_width));
-    }
-
-    struct format_options_view {
-
-        bool is_indented;
-        bool is_no_braces;
-        bool is_indexed;
-        bool is_typenamed;
-        format_options nested; // no_braces is outermost-only
-
-        constexpr explicit format_options_view(format_options options) noexcept
-            : is_indented  { bool(options & format_options::indented)  }
-            , is_no_braces { bool(options & format_options::no_braces) }
-            , is_indexed   { bool(options & format_options::indexed)   }
-            , is_typenamed { bool(options & format_options::typenamed) }
-            , nested       { options & ~format_options::no_braces      }
-        {}
-    };
-
-    // NOTE: Forward declaration: print and print_field_value are mutually recursive.
-    template <csl::ag::concepts::structured_bindable T>
-    void print(std::ostream & os, T && value, format_options options, std::size_t depth)
-    requires (not std::is_array_v<std::remove_cvref_t<T>>);
-
-    /// \brief print_field_value: write one field value of type T to an ostream value.
-    // Quoting is consistent with fmtlib: char => 'x', bool => true/false, string => "...".
-    // WARNING(Known limitation) range-like and tuple-like field values are not recursively pretty-printed;
-    //   they require a user-provided operator<< or they hit the static_assert.
-    // TODO: get rid of such a limitation, for consistency sake ?
-    template <typename T>
-    void print_field_value(std::ostream & os, T && value, format_options options, std::size_t depth) {
-        using type = std::remove_cvref_t<T>;
-        if constexpr (std::is_same_v<type, bool>)
-            os << (value ? "true" : "false");
-        else if constexpr (std::is_same_v<type, char>)
-            os << '\'' << value << '\'';
-        else if constexpr (std::is_same_v<type, std::string_view> or std::is_same_v<type, std::string>)
-            os << '"' << value << '"';
-        else if constexpr (ostream_formattable<type>)
-            os << value;
-        else if constexpr (csl::ag::concepts::structured_bindable<type> and not std::is_array_v<type>)
-            print(os, csl_fwd(value), options, depth);
-        else
-            static_assert(false, "[csl::ag::io] field type is not printable: provide operator<<(std::ostream &, T)");
-    }
-
-    template <csl::ag::concepts::structured_bindable T>
-    void print(std::ostream & os, T && value, format_options options, std::size_t depth)
-    requires (not std::is_array_v<std::remove_cvref_t<T>>)
-    {
-        using type = std::remove_cvref_t<T>;
-        constexpr auto size = csl::ag::tuplelike::size_v<type>;
-
-        const auto opt = format_options_view{ options };
-
-        if (not opt.is_no_braces) os << style::opening_bracket<type>();
-        if (opt.is_indented)      os << '\n';
-
-        [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
-            ([&] {
-                
-                if constexpr (indexes > 0) {
-                    if (not opt.is_no_braces)       os << ',';
-                    if (opt.is_indented)            os << '\n';
-                    else if (not opt.is_no_braces)  os << ' ';
-                }
-                
-                if (opt.is_indented)
-                    write_indent(os, depth + 1);
-
-                if (opt.is_indexed)
-                    os << '[' << indexes << "] ";
-                
-                if (opt.is_typenamed) {
-                    using field_type = csl::ag::tuplelike::element_t<indexes, type>;
-                    os << type_name_v<field_type> << ": ";
-                }
-                print_field_value(
-                    os,
-                    csl::ag::tuplelike::get<indexes>(csl_fwd(value)),
-                    opt.nested,
-                    depth + 1
-                );
-            }(), ...);
-        }(std::make_index_sequence<size>{});
-
-        if (opt.is_indented){
-            os << '\n';
-            write_indent(os, depth);
-        }
-        if (not opt.is_no_braces)
-            os << style::closing_bracket<type>();
-    }
-}
-
-namespace csl::ag::io {
-
-    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indented
-    inline auto operator<<(std::ostream & os, indented_t) -> std::ostream & {
-        os.iword(details::mode_index()) |= std::to_underlying(format_options::indented);
-        return os;
-    }
-    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - no_braces
-    inline auto operator<<(std::ostream & os, no_braces_t) -> std::ostream & {
-        os.iword(details::mode_index()) |= std::to_underlying(format_options::no_braces);
-        return os;
-    }
-    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indexed
-    inline auto operator<<(std::ostream & os, indexed_t) -> std::ostream & {
-        os.iword(details::mode_index()) |= std::to_underlying(format_options::indexed);
-        return os;
-    }
-    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - typenamed
-    inline auto operator<<(std::ostream & os, typenamed_t) -> std::ostream & {
-        os.iword(details::mode_index()) |= std::to_underlying(format_options::typenamed);
-        return os;
-    }
-    /// \brief Composable std::ostream manipulator (one-shot, reset after use) - precomputed bitmask
-    /// Mirrors the tag-based manipulators above, for a `format_options` combined ahead of time, e.g.
-    /// `constexpr auto options = indented | indexed | typenamed; os << options << value;`
-    inline auto operator<<(std::ostream & os, format_options options) -> std::ostream & {
-        os.iword(details::mode_index()) |= std::to_underlying(options);
-        return os;
-    }
-
-    /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword.
-    template <typename T>
-    static auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T> const & view)
-    -> std::ostream &
-    {
-        details::print(os, view.value, view.options, view.depth);
-        return os;
-    }
-
-    /// \brief Format a structured_bindable into an std::ostream, using iword options (one-shot) and prints.
-    /// User-defined operator<<(std::ostream &, T) wins via overload resolution (exact match).
-    auto operator<<(std::ostream & os, const csl::ag::concepts::structured_bindable auto & value)
-    -> std::ostream &
-    requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>)
-    and (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
-    {
-        auto options = static_cast<format_options>(os.iword(details::mode_index()));
-        os.iword(details::mode_index()) = 0; // reset (one-shot semantics)
-        details::print(os, value, options, 0);
-        return os;
-    }
-
-}
-
-#endif // CSL_AG__ENABLE_IOSTREAM_SUPPORT
-
-// Opt-in: fmt support
-#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT and not __has_include(<fmt/format.h>)
-    static_assert(false, "csl::ag: [CSL_AG_ENABLE_FMTLIB_SUPPORT] set to [true], but header <fmt/format.h> is missing. Did you forget a dependency ?");
-#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
-
-#pragma message("[csl::ag] CSL_AG__ENABLE_FMTLIB_SUPPORT - enabled")
-
-# include <fmt/ranges.h>
-# include <fmt/compile.h>
-
-namespace csl::ag::io::type_traits {
-
-    // formatter_value_type
-    template <typename T>
-    struct formatter_value_type;
-    template <typename T, typename Char>
-    struct formatter_value_type<fmt::formatter<T, Char>> : std::type_identity<T>{};
-    template <typename T>
-    using formatter_value_type_t = formatter_value_type<T>::type;
-
-}
-
-// fmt_formatter alias: normalises fmt::formatter's 3-param signature to 2 params
-// so it can be passed as a template template parameter to ag_formatter_base.
-namespace csl::ag::io::details {
-    template <typename T, typename Char = char>
-    using fmt_formatter = fmt::formatter<T, Char>;
-
-    template <>
-    struct format_error_type<fmt_formatter> : std::type_identity<fmt::format_error>{};
-}
-
-// fmt_formattable (used upstream: not formatter detection)
-namespace csl::ag::io::details::type_traits {
-    template <typename T, typename Char>
-    struct is_fmt_formattable : fmt::is_formattable<T, Char>{};
-    template <csl::ag::concepts::structured_bindable T, typename Char>
-    struct is_fmt_formattable<T, Char> {
-        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and fmt::is_formattable<csl::ag::tuplelike::element_t<indexes, T>>::value);
-        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
-    };
-    template <typename T, typename Char>
-    constexpr inline static auto is_fmt_formattable_v = is_fmt_formattable<T, Char>::value;
-}
-namespace csl::ag::io::details::concepts {
-
-    template <typename T, typename Char>
-    concept fmt_formattable = type_traits::is_fmt_formattable_v<T, Char>;
-}
-
-/// \brief fmt::formatter for plain aggregate T - default (braced, flat) output.
-/// WARNING: routes through ag_formatter_base, not fmt's native tuple_join_view formatter,
-/// per-element format-spec propagation (fmt feature enabler: FMT_TUPLE_JOIN_SPECIFIERS) is not used/available here.
-/// See simplification commit 000e7d2fb749bca03aadc80b22bad7e2f6d27f26
-template <csl::ag::concepts::aggregate T, typename Char>
-requires (not csl::ag::io::details::concepts::decorator<T>)
-and (not std::ranges::range<T>)
-class fmt::formatter<T, Char>
-    : public csl::ag::io::details::ag_formatter_base<
-        csl::ag::io::details::fmt_formatter, T, Char
-    >
-{};
-
-#pragma region // formatted_view_t formatters (composable options)
-
-namespace csl::ag::io::type_traits {
-    template <typename T, typename Char>
-    struct formatter_value_type<
-        fmt::formatter<csl::ag::io::details::decorators::formatted_view_t<T>, Char>
-    > : std::type_identity<T>{};
-}
-
-// fmt::formatter for formatted_view_t - composite structured_bindable T
-template <
-    csl::ag::concepts::structured_bindable T,
-    typename Char
->
-requires (not csl::ag::io::details::concepts::decorator<T>)
-and csl::ag::io::details::concepts::fmt_formattable<T, Char>
-class fmt::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
-    Char
-> : public csl::ag::io::details::ag_formatter_base<
-        csl::ag::io::details::fmt_formatter, T, Char
-    >
-{};
-
-// fmt::formatter for formatted_view_t - non-structured-bindable leaf T
-template <
-    typename T,
-    typename Char
->
-requires (not csl::ag::concepts::structured_bindable<T>)
-class fmt::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
-    Char
-> : public csl::ag::io::details::ag_formatter_base_leaf<
-        csl::ag::io::details::fmt_formatter, T, Char
-    >
-{};
-#pragma endregion
-
-#endif // CSL_AG__ENABLE_FMTLIB_SUPPORT
-
-// Opt-in: std::format support
-#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT and not __has_include(<format>)
-    static_assert(false, "csl::ag: [CSL_AG__ENABLE_STD_FORMAT_SUPPORT] set to [true], but header <format> is missing.");
-#elif defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT
-
-#pragma message("[csl::ag] CSL_AG__ENABLE_STD_FORMAT_SUPPORT - enabled")
-
-#include <format>
-
-// std_formatter alias: normalises std::formatter's 2-param signature for use as
-// a template template parameter to ag_formatter_base.
-namespace csl::ag::io::details {
-    template <typename T, typename Char = char>
-    using std_formatter = std::formatter<T, Char>;
-
-    template <>
-    struct format_error_type<std_formatter> : std::type_identity<std::format_error>{};
-}
-
-// std::formatter for plain aggregate T - default (braced, flat) output.
-// Mirrors the fmtlib fmt::formatter<T> old path for ergonomic use without a view wrapper.
-template <csl::ag::concepts::aggregate T, typename Char>
-requires (not csl::ag::io::details::concepts::decorator<T>)
-and (not std::ranges::range<T>)
-struct std::formatter<T, Char>
-    : public csl::ag::io::details::ag_formatter_base<
-        csl::ag::io::details::std_formatter, T, Char
-    >
-{};
-
-// std_formattable (used upstream: not formatter detection)
-namespace csl::ag::io::details::type_traits {
-    template <typename T, typename Char>
-    struct is_std_formattable : std::bool_constant<std::formattable<T, Char>>{};
-    template <csl::ag::concepts::structured_bindable T, typename Char>
-    struct is_std_formattable<T, Char> {
-        constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and std::formattable<csl::ag::tuplelike::element_t<indexes, T>, Char>);
-        }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
-    };
-    template <typename T, typename Char>
-    constexpr inline static auto is_std_formattable_v = is_std_formattable<T, Char>::value;
-}
-namespace csl::ag::io::details::concepts {
-
-    template <typename T, typename Char>
-    concept std_formattable = type_traits::is_std_formattable_v<T, Char>;
-}
-
-// std::formatter for formatted_view_t - composite structured_bindable T
-template <
-    csl::ag::concepts::structured_bindable T,
-    typename Char
->
-requires (not csl::ag::io::details::concepts::decorator<T>)
-struct std::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
-    Char
-> : public csl::ag::io::details::ag_formatter_base<
-        csl::ag::io::details::std_formatter, T, Char
-    >
-{};
-
-// std::formatter for formatted_view_t - non-structured-bindable leaf T
-template <
-    typename T,
-    typename Char
->
-requires (not csl::ag::concepts::structured_bindable<T>)
-struct std::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
-    Char
-> : public csl::ag::io::details::ag_formatter_base_leaf<
-        csl::ag::io::details::std_formatter, T, Char
-    >
-{};
-
-#endif // CSL_AG__ENABLE_STD_FORMAT_SUPPORT
-
-// Formatting: to_string
-//
-//  Backed by whichever formatting support is enabled: favor std::format, then fmtlib, then iostream.
-//  Usage: using namespace csl::ag::io;
-//      to_string(value)                            (default: braced, compact)
-//      to_string<indented>(value)                  (single option)
-//      to_string<indented | typenamed>(value)      (composed options)
-//      to_string(value | indented | typenamed)     (equivalent, view-based composition)
-#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT) and CSL_AG__ENABLE_STD_FORMAT_SUPPORT
-
-#include <string>
-
-namespace csl::ag::io {
-
-    template <format_options Options = format_options::none>
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
-    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
-    {
-        // NOTE: at default Options, format `value` directly so a user-defined formatter (if any) wins,
-        // exactly as the plain (option-less) operator<< / formatter<T> specializations do.
-        if constexpr (Options == format_options::none)
-            return std::format("{}", value);
-        else {
-            using value_type = std::remove_cvref_t<decltype(value)>;
-            return std::format("{}", details::decorators::formatted_view_t<value_type>{ .value = value, .options = Options });
-        }
-    }
-    template <typename T>
-    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T> const & view) -> std::string {
-        return std::format("{}", view);
-    }
-}
-
-#elif defined(CSL_AG__ENABLE_FMTLIB_SUPPORT) and CSL_AG__ENABLE_FMTLIB_SUPPORT
-
-#include <string>
-
-namespace csl::ag::io {
-    template <format_options Options = format_options::none>
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
-    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
-    {
-        // NOTE: at default Options, format `value` directly so a user-defined formatter (if any) wins,
-        // exactly as the plain (option-less) operator<< / formatter<T> specializations do.
-        if constexpr (Options == format_options::none)
-            return fmt::format("{}", value);
-        else {
-            using value_type = std::remove_cvref_t<decltype(value)>;
-            return fmt::format("{}", details::decorators::formatted_view_t<value_type>{ .value = value, .options = Options });
-        }
-    }
-    template <typename T>
-    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T> const & view) -> std::string {
-        return fmt::format("{}", view);
-    }
-}
-
-#elif defined(CSL_AG__ENABLE_IOSTREAM_SUPPORT) and CSL_AG__ENABLE_IOSTREAM_SUPPORT
-
-#include <string>
-
-namespace csl::ag::io {
-    template <format_options Options = format_options::none>
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
-    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
-    {
-        // NOTE: at default Options, stream `value` directly so a user-defined operator<< (if any) wins,
-        // exactly as the plain (option-less) operator<< does (overload resolution: exact match).
-        std::ostringstream ss;
-        if constexpr (Options == format_options::none)
-            ss << value;
-        else {
-            using value_type = std::remove_cvref_t<decltype(value)>;
-            ss << details::decorators::formatted_view_t<value_type>{ .value = value, .options = Options };
-        }
-        return std::move(ss).str();
-    }
-    template <typename T>
-    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T> const & view) -> std::string {
-        std::ostringstream ss;
-        ss << view;
-        return std::move(ss).str();
-    }
-}
-
-#endif
 
 namespace csl::ag::concepts {
     template <typename T>

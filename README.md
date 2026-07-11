@@ -33,7 +33,7 @@ A personal incubator for library ideas and experiments, and perhaps a hint of se
 - Some libraries gain **optional enhancements** when another `csl` library is available  
   (e.g. `ag`'s `typenamed` formatting option uses `typeinfo` for compile-time type names).
 
-Such integrations are always **soft** - detected via `__has_include` with a fallback - and **never a hard CMake link** between `csl` components (a component that links a sibling in its interface fails at configure time). This keeps every component's package independent as interops grow.  
+Such integrations are always **soft** - an explicit opt-in **feature header** with a standalone fallback (e.g. `<csl/ag/formatting/typeinfo.hpp>`) - and **never a hard CMake link** between `csl` components (a component that links a sibling in its interface fails at configure time). This keeps every component's package independent as interops grow.  
 Each consuming library is responsible for testing both states itself - with and without the enhancement - self-contained in its own build files.  
 Note that enabling such tests may implicitly enable libraries you did not select.
 
@@ -191,13 +191,9 @@ See project's
 
     💡 The installed package is **dependency-free**: it never ships nor declares third-party libraries.
 
-    Optional enhancements that rely on a third party (e.g. `fmt`) are a source/consumer-time opt-in: enable the feature and provide the dependency in your own build.  
-    Enabling such an opt-in when building `csl` itself (e.g. `-DCSL_AG__ENABLE_FMTLIB_SUPPORT=ON`) affects only `csl`'s own tests and examples:
-    the macro and its third-party link are build-tree-only (`$<BUILD_INTERFACE:>`) and are stripped from the installed/exported target, so the package stays neutral.
-    A component whose interface would still leak an external package into the install is rejected at configure time.
-
-    Because such enhancements are gated by a preprocessor macro in the header, they stay fully available from the installed package: 
-    the consumer provides the dependency and defines the macro in its own build.  
+    Optional enhancements that rely on a third party (e.g. `fmt`) are a source/consumer-time opt-in,
+    materialized as **feature headers** (like fmt's own `<fmt/ranges.h>`): opt-in = `#include`, no macro, no CMake option.  
+    The consumer provides the third-party dependency in its own build - so they stay fully available from the installed package.
 
     For example, to enable `csl::ag`'s `fmt` formatting support:
 
@@ -205,33 +201,28 @@ See project's
     find_package(csl REQUIRED COMPONENTS ag)
     find_package(fmt REQUIRED)                 # consumer provides fmt
     target_link_libraries(app PRIVATE csl::ag fmt::fmt)
-    target_compile_definitions(app PRIVATE CSL_AG__ENABLE_FMTLIB_SUPPORT=1)
     ```
 
-    ⚠️ Such a compile-definition changes the entities `<csl/ag.hpp>` emits, so it is effectively part of the header's ABI:  
-    it must be defined **identically across every translation unit of the whole program** (One Definition Rule).  
-    The `PRIVATE` form above is correct for a single executable.
-    If several libraries in the same program consume `csl::ag`, define it uniformly for all of them
-    (e.g. an `INTERFACE` compile definition on a shared target), never `PRIVATE` on some and not others -
-    an inconsistent definition is undefined behavior (ill-formed, no diagnostic required).
+    ```cpp
+    #include <csl/ag.hpp>
+    #include <csl/ag/formatting/fmt.hpp> // opt-in: fmt::formatter support for aggregates
+    ```
 
-    The program-wide-safe form uses a small **proxy `INTERFACE` target** that carries the configuration
-    once, consumed by everything that uses `csl::ag`:
+    ⚠️ A feature header adds blanket specializations to the entities `<csl/ag.hpp>` declares, so the usual
+    fmt-style ODR contract applies: include it **consistently across every translation unit of the whole program**
+    (as with `<fmt/ranges.h>`) - never in some TUs and not in others when the same types are formatted.
+
+    The same mechanism covers **inter-component enhancements**: e.g. `csl::ag`'s `typenamed` formatting option
+    is enhanced by `csl::typeinfo` through a bridge feature header:
 
     ```cmake
-    find_package(csl REQUIRED COMPONENTS ag)
-    find_package(fmt REQUIRED)
+    find_package(csl REQUIRED COMPONENTS ag typeinfo)
+    target_link_libraries(app PRIVATE csl::ag csl::typeinfo)
+    ```
 
-    # Single source of truth for the csl::ag + fmt formatting configuration.
-    add_library(csl_ag_proxy INTERFACE)
-    target_link_libraries(csl_ag_proxy INTERFACE csl::ag fmt::fmt)
-    target_compile_definitions(csl_ag_proxy INTERFACE CSL_AG__ENABLE_FMTLIB_SUPPORT=1)
-
-    # Every library/executable consumes csl::ag *through the proxy*,
-    # so the macro is identical across the whole program (ODR-safe).
-    target_link_libraries(library_a PUBLIC  csl_ag_proxy)
-    target_link_libraries(library_b PUBLIC  csl_ag_proxy)
-    target_link_libraries(app       PRIVATE library_a library_b)
+    ```cpp
+    #include <csl/ag.hpp>
+    #include <csl/ag/formatting/typeinfo.hpp> // typenamed: compile-time, demangled type names
     ```
 
 #### CMake - options
@@ -351,14 +342,17 @@ int: 42
 
 #### All: pretty-printing
 
-`csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`, each as optins `CSL_<lib>__ENABLE_<backend>_SUPPORT`.
+`csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`.  
+For `csl::ag`, each is an opt-in **feature header** (`csl/ag/formatting/*.hpp`); for `csl::ensure`, an opt-in macro `CSL_ENSURE__ENABLE_<backend>_SUPPORT`.
 
 See live [demonstration here](https://godbolt.org/z/sxbvjGj4K).
 
 ```cpp
 #include <csl/typeinfo.hpp>
-#include <csl/cxx20/ensure.hpp> // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enable from CMake cache
-#include <csl/ag.hpp>           // with CSL_AG__ENABLE_STD_FORMAT_SUPPORT enable from CMake cache
+#include <csl/cxx20/ensure.hpp>           // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enabled from CMake cache
+#include <csl/ag.hpp>
+#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support
+#include <csl/ag/formatting/typeinfo.hpp> // opt-in: compile-time type names for `typenamed`
 
 #include <print>
 

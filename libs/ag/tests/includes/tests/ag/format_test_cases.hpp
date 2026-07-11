@@ -4,6 +4,7 @@
 #include <format>
 #include <string>
 #include <tuple>
+#include <typeindex>
 #include <vector>
 
 #include <catch2/catch_template_test_macros.hpp>
@@ -24,7 +25,7 @@ namespace {
         constexpr bool bitfields_enabled = false;
 #endif
 
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
         constexpr bool typeinfo_linked = true;
 #else
         constexpr bool typeinfo_linked = false;
@@ -115,7 +116,7 @@ TEMPLATE_TEST_CASE(":x" + implementation::name_suffix() + "", implementation::ta
     CHECK(implementation::format("{:x}", f::value) == f::indexed_expected);
 }
 
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 TEMPLATE_TEST_CASE(":t" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -186,7 +187,7 @@ TEMPLATE_TEST_CASE("indexed" + implementation::name_suffix() + "", implementatio
     CHECK(implementation::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
 }
 
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 TEMPLATE_TEST_CASE("typenamed" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -255,6 +256,23 @@ TEMPLATE_TEST_CASE("view composition" + implementation::name_suffix() + "", impl
 }
 #endif
 
+#if not (defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO)
+// Fallback contract: without the typeinfo bridge, type_name is std::type_index(typeid(T)).name()
+// (implementation-defined, possibly mangled - but deterministic).
+TEMPLATE_TEST_CASE("typenamed: <typeindex> runtime fallback" + implementation::name_suffix() + "", implementation::tags(),
+    types::field_2
+) {
+    using f = fixture<TestType>;
+    const auto expected = std::format("{{{}: 123, {}: 'A'}}",
+        std::type_index(typeid(int)).name(),
+        std::type_index(typeid(char)).name()
+    );
+    CHECK(implementation::format("{}", f::value | csl::ag::io::typenamed) == expected);
+    CHECK(implementation::format("{:t}", f::value) == expected);
+}
+#endif
+
+#if defined(CSL_AG_TEST__HAS_TO_STRING) and CSL_AG_TEST__HAS_TO_STRING
 TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -267,7 +285,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::nam
     CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
 }
 
-#if __has_include(<csl/typeinfo.hpp>)
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + implementation::name_suffix() + "", implementation::tags(),
     types::field_1,
     types::field_2,
@@ -300,6 +318,7 @@ TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output" + implementatio
     );
 }
 #endif
+#endif // CSL_AG_TEST__HAS_TO_STRING
 
 // NOLINTEND(*-avoid-magic-numbers)
 // NOLINTEND(*cert-err58-cpp)

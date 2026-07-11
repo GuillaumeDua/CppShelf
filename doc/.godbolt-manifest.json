@@ -8,12 +8,12 @@
     "url": "https://godbolt.org/z/7WTnn9P5P"
   },
   "libs/ag/examples/19_formatting_ostream_advanced.cpp": {
-    "sha256": "ea6d85755dfbe597f818659760120f1142ac0bc2bf4e6d02362047626cbc3ad8",
-    "url": "https://godbolt.org/z/MY7PYePTd"
+    "sha256": "9287f45c10824a2cf8d3cb06e71de2786d5b3108e0024a71592306a9e865f9eb",
+    "url": "https://godbolt.org/z/xsTxxExrG"
   },
   "libs/ag/examples/18_formatting_ostream_simple.cpp": {
-    "sha256": "156309f6a6a205f7e5fe849d09ac2c7037a791ff369d1fbabfa826048d7222f4",
-    "url": "https://godbolt.org/z/Wve3j19b9"
+    "sha256": "c353c8eb9efb879eeae5caf9afdb27286ea76060dab3e8f5380ef16d0cda4987",
+    "url": "https://godbolt.org/z/4763osbv1"
   },
   "libs/ag/examples/17_for_each.cpp": {
     "sha256": "ef4dc0f22e5d0f49e187a91c50a96d492246ce889f6fa9a2b46310226a7a461e",
@@ -80,7 +80,7 @@
     "url": "https://godbolt.org/z/3jrKPhT8P"
   },
   "libs/ag/examples/01_overview_demo.cpp": {
-    "sha256": "c0f0416009c4ce13f6878d7869401e8fe90dfab841d66a13abb08f9a0fa3dadf",
-    "url": "https://godbolt.org/z/zW31zz3fh"
+    "sha256": "029a975bc56610342523e545f5a1f1bc443d143e262dff0b9609d2e2688a4122",
+    "url": "https://godbolt.org/z/7WKeTWsvv"
   }
 }

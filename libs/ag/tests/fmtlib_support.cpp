@@ -6,9 +6,11 @@
 #  define CSL_AG__ENABLE_BITFIELDS_SUPPORT true
 #endif
 
-#define CSL_AG__ENABLE_FMTLIB_SUPPORT true
-
 #include <csl/ag.hpp>
+#include <csl/ag/formatting/fmt.hpp>
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
+#   include <csl/ag/formatting/typeinfo.hpp>
+#endif
 #include <tests/types.hpp>
 #include <tests/ag/typeinfo_specializations.hpp>
 
@@ -33,6 +35,15 @@ namespace tests::concepts::fmt_formattable {
     static_assert(concepts::fmt_formattable<std::vector<types::field_1>, char>);
     static_assert(concepts::fmt_formattable<std::tuple<int>, char>);
     static_assert(concepts::fmt_formattable<std::array<int, 3>, char>);
+
+    // wired into fmt::formatter<formatted_view_t<T>> (composite view):
+    // a non-formattable field disables the specialization, so fmt::is_formattable answers false.
+    // NOTE: the field must be a non-aggregate - an (even empty) aggregate is formattable
+    //       through this library's own blanket fmt::formatter
+    struct not_formattable_field { explicit not_formattable_field() = default; };
+    struct with_not_formattable_field { not_formattable_field f; };
+    static_assert(not concepts::fmt_formattable<with_not_formattable_field, char>);
+    static_assert(not fmt::is_formattable<csl::ag::io::details::decorators::formatted_view_t<with_not_formattable_field>, char>::value);
 }
 
 namespace {
@@ -51,4 +62,6 @@ namespace {
     }
 } // namespace
 
+// to_string is std::format-backed, ships with <csl/ag/formatting/format.hpp> only
+#define CSL_AG_TEST__HAS_TO_STRING 0
 #include <tests/ag/format_test_cases.hpp>
