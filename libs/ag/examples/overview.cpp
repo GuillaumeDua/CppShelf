@@ -1,5 +1,5 @@
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp> // opt-in: std::formatter support
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
 
 #include <cstdint>
 #include <format>
@@ -74,11 +74,11 @@ auto main(int, char*[]) -> int
     static_assert(std::tuple_size_v<decltype(view)> == 2);
     static_assert(std::get<0>(view) == 3);
 
-    // --- opt-in: std::format formatting (#include <csl/ag/formatting/format.hpp>) ---
+    // --- opt-in: std::format formatting (#include <csl/ag/formatting/backend/std_format.hpp>) ---
     std::cout << std::format("{}\n", value);                          // compact:  (3, 4)
     std::cout << std::format("{}\n", value | csl::ag::io::indented);  // indented: multi-line
 
-    // --- opt-in: fmt formatting (#include <csl/ag/formatting/fmt.hpp>) ---
+    // --- opt-in: fmt formatting (#include <csl/ag/formatting/backend/fmt.hpp>) ---
     // fmt::print("{}\n", value);
     // fmt::print("{}\n", value | csl::ag::io::indented);
 }

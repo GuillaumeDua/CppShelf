@@ -1,7 +1,7 @@
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support
-#include <csl/typeinfo.hpp>               // bridge prerequisite (explicit, for godbolt raw-URL include order)
-#include <csl/ag/formatting/typeinfo.hpp> // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
+#include <csl/typeinfo.hpp>                         // bridge prerequisite (explicit, for godbolt raw-URL include order)
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
 #include <format>
 #include <iostream>
 

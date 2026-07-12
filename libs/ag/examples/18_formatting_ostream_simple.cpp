@@ -1,5 +1,5 @@
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
+#include <csl/ag/formatting/backend/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
 #include <iostream>
 
 auto main() -> int {

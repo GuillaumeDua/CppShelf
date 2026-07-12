@@ -2,7 +2,7 @@
 // this TU includes the typeinfo bridge, the sibling TU (odr_mixed_plain.cpp) does not - each formats *different* types.
 // The resulting binary must link and behave deterministically.
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>
+#include <csl/ag/formatting/backend/std_format.hpp>
 #include <csl/ag/formatting/typeinfo.hpp>
 
 #include <format>
