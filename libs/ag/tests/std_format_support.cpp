@@ -7,7 +7,7 @@
 #endif
 
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>
+#include <csl/ag/formatting/backend/std_format.hpp>
 #if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 #   include <csl/ag/formatting/typeinfo.hpp>
 #endif
@@ -18,7 +18,7 @@
 
 namespace types = test::ag::types;
 
-// csl::ag::io::details::concepts::std_formattable: see csl/ag/formatting/format.hpp.
+// csl::ag::io::details::concepts::std_formattable: see csl/ag/formatting/backend/std_format.hpp.
 namespace tests::concepts::std_formattable {
 
     namespace concepts = csl::ag::io::details::concepts;

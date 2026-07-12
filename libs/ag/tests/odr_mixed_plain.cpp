@@ -1,7 +1,7 @@
 // ODR sanity (fmt-style feature-header contract):
 // this TU does NOT include the typeinfo bridge - see odr_mixed_bridge.cpp for the rationale and the contract being verified.
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>
+#include <csl/ag/formatting/backend/std_format.hpp>
 
 #include <format>
 #include <typeindex>

@@ -30,10 +30,10 @@ The following example demonstrates some of the features which are available in `
 <!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support
-#include <csl/typeinfo.hpp>               // bridge prerequisite (explicit, for godbolt raw-URL include order)
-#include <csl/ag/formatting/typeinfo.hpp> // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
-#include <iostream> // std::print might not be available yet: use `std::cout << std::format(...)`
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
+#include <csl/typeinfo.hpp>                         // bridge prerequisite (explicit, for godbolt raw-URL include order)
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
+#include <iostream>                                 // std::print might not be available yet: use `std::cout << std::format(...)`
 
 struct S { char c; int i; };
 
@@ -52,15 +52,15 @@ auto main() -> int {
     constexpr auto format_options = indexed | typenamed | indented;
     std::cout << std::format("{}", value | format_options); // equivalent to std::println("{:xit}", value)
 
-    // alternative: #include <csl/ag/formatting/ostream.hpp>
+    // alternative: #include <csl/ag/formatting/backend/ostream.hpp>
     // std::cout << "value: " << format_options << value << '\n';
 
-    // alternative: #include <csl/ag/formatting/fmt.hpp>
+    // alternative: #include <csl/ag/formatting/backend/fmt.hpp>
     // fmt::println("{:xit}", value)
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/E6bn4cjKo)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xhhbh1Ycn)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
@@ -122,9 +122,9 @@ The **core of this library ships as a single, standalone header**: `csl/ag.hpp` 
 
 | Feature header | Adds | Requires |
 | --- | --- | --- |
-| `csl/ag/formatting/format.hpp` | `std::formatter` support | `<format>` |
-| `csl/ag/formatting/fmt.hpp` | `fmt::formatter` support | [fmtlib](https://github.com/fmtlib/fmt), provided by the consumer |
-| `csl/ag/formatting/ostream.hpp` | `operator<<(std::ostream &, ...)` support | - |
+| `csl/ag/formatting/backend/std_format.hpp` | `std::formatter` support | `<format>` |
+| `csl/ag/formatting/backend/fmt.hpp` | `fmt::formatter` support | [fmtlib](https://github.com/fmtlib/fmt), provided by the consumer |
+| `csl/ag/formatting/backend/ostream.hpp` | `operator<<(std::ostream &, ...)` support | - |
 | `csl/ag/formatting/typeinfo.hpp` | compile-time type names for the `typenamed` formatting option | [csl::typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp) |
 
 > ℹ️ Feature headers add blanket specializations: like `<fmt/ranges.h>`, include them **consistently across the whole program** (ODR).  
@@ -214,11 +214,11 @@ Formatting backends are **not CMake options**: each is an opt-in **feature heade
 (see [Getting starting](#getting-starting) for the list, and [formatting and printing](#formatting-and-printing) for complete documentation).
 
 ```cpp
-#include <csl/ag.hpp>                     // reflection + io core (options, views, operator|) - no backend
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter
-#include <csl/ag/formatting/fmt.hpp>      // opt-in: fmt::formatter (fmtlib provided by the consumer)
-#include <csl/ag/formatting/ostream.hpp>  // opt-in: operator<<(std::ostream &, ...)
-#include <csl/ag/formatting/typeinfo.hpp> // opt-in: compile-time type names for `typenamed`
+#include <csl/ag.hpp>                               // reflection + io core (options, views, operator|) - no backend
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter
+#include <csl/ag/formatting/backend/fmt.hpp>        // opt-in: fmt::formatter (fmtlib provided by the consumer)
+#include <csl/ag/formatting/backend/ostream.hpp>    // opt-in: operator<<(std::ostream &, ...)
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: compile-time type names for `typenamed`
 ```
 
 Backends may coexist in one translation unit, and format-specs are composable:
@@ -784,8 +784,8 @@ Output:
 
 There are two ways to pretty-print aggregate types, each being an opt-in **feature header**:
 
-- (✅ Best) using `std::format` (`csl/ag/formatting/format.hpp`) or the `fmt` library (`csl/ag/formatting/fmt.hpp`)
-- using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/ostream.hpp`)
+- (✅ Best) using `std::format` (`csl/ag/formatting/backend/std_format.hpp`) or the `fmt` library (`csl/ag/formatting/backend/fmt.hpp`)
+- using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/backend/ostream.hpp`)
 
 Backends may coexist in the same translation unit - each one specializes a different framework's entity.  
 The `typenamed` option renders compile-time, demangled type names when `csl/ag/formatting/typeinfo.hpp` is included,
@@ -805,7 +805,7 @@ Opt-in by include:
 
 ```cpp
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>
+#include <csl/ag/formatting/backend/std_format.hpp>
 ```
 
 This specializes `std::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
@@ -889,7 +889,7 @@ Opt-in by include - same setup as `std::format` above:
 
 ```cpp
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/fmt.hpp>
+#include <csl/ag/formatting/backend/fmt.hpp>
 ```
 
 > [fmtlib](https://github.com/fmtlib/fmt) is provided **by the consumer** (e.g. `find_package(fmt)`, then link `fmt::fmt` or `fmt::fmt-header-only`): the header uses it, `csl` never acquires nor ships it.  
@@ -899,14 +899,14 @@ Opt-in by include - same setup as `std::format` above:
 
 #### using std::ostream
 
-Opt-in by include: `csl/ag/formatting/ostream.hpp` *(prefer `std::format`/`fmt` when available: `<ostream>` is heavy at compile time, and options ride `std::ios_base::iword`)*.
+Opt-in by include: `csl/ag/formatting/backend/ostream.hpp` *(prefer `std::format`/`fmt` when available: `<ostream>` is heavy at compile time, and options ride `std::ios_base::iword`)*.
 
 Simple example :
 
 <!-- EXAMPLE_BEGIN: 18_formatting_ostream_simple.cpp -->
 ```cpp
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
+#include <csl/ag/formatting/backend/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
 #include <iostream>
 
 auto main() -> int {
@@ -917,7 +917,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/4763osbv1)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/Y3jncj97T)
 <!-- EXAMPLE_END: 18_formatting_ostream_simple.cpp -->
 
 Output:
@@ -931,7 +931,7 @@ Advanced example :
 <!-- EXAMPLE_BEGIN: 19_formatting_ostream_advanced.cpp -->
 ```cpp
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
+#include <csl/ag/formatting/backend/ostream.hpp> // opt-in: operator<<(std::ostream &, ...) support
 #include <array>
 #include <iostream>
 #include <string>
@@ -969,7 +969,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xsTxxExrG)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/PT8nGeKsh)
 <!-- EXAMPLE_END: 19_formatting_ostream_advanced.cpp -->
 
 Output:

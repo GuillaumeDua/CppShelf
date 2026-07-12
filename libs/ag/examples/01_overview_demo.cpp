@@ -1,8 +1,8 @@
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support
-#include <csl/typeinfo.hpp>               // bridge prerequisite (explicit, for godbolt raw-URL include order)
-#include <csl/ag/formatting/typeinfo.hpp> // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
-#include <iostream> // std::print might not be available yet: use `std::cout << std::format(...)`
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
+#include <csl/typeinfo.hpp>                         // bridge prerequisite (explicit, for godbolt raw-URL include order)
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
+#include <iostream>                                 // std::print might not be available yet: use `std::cout << std::format(...)`
 
 struct S { char c; int i; };
 
@@ -21,9 +21,9 @@ auto main() -> int {
     constexpr auto format_options = indexed | typenamed | indented;
     std::cout << std::format("{}", value | format_options); // equivalent to std::println("{:xit}", value)
 
-    // alternative: #include <csl/ag/formatting/ostream.hpp>
+    // alternative: #include <csl/ag/formatting/backend/ostream.hpp>
     // std::cout << "value: " << format_options << value << '\n';
 
-    // alternative: #include <csl/ag/formatting/fmt.hpp>
+    // alternative: #include <csl/ag/formatting/backend/fmt.hpp>
     // fmt::println("{:xit}", value)
 }

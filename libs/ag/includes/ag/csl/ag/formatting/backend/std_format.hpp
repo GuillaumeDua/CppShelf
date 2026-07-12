@@ -10,7 +10,7 @@
 #endif
 
 #if not __has_include(<format>)
-#   error "csl/ag/formatting/format.hpp : missing <format> (std::format requires C++20)."
+#   error "csl/ag/formatting/backend/std_format.hpp : missing <format> (std::format requires C++20)."
 #endif
 
 #include <format>

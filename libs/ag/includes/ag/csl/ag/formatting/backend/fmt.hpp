@@ -11,7 +11,7 @@
 #endif
 
 #if not __has_include(<fmt/format.h>)
-#   error "[csl::ag] csl/ag/formatting/fmt.hpp : missing <fmt/format.h>. Provide fmtlib in the build - https://github.com/fmtlib/fmt (on Compiler Explorer: Libraries -> add fmt)."
+#   error "[csl::ag] csl/ag/formatting/backend/fmt.hpp : missing <fmt/format.h>. Provide fmtlib in the build - https://github.com/fmtlib/fmt (on Compiler Explorer: Libraries -> add fmt)."
 #endif
 
 #include <fmt/ranges.h>

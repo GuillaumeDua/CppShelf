@@ -205,7 +205,7 @@ See project's
 
     ```cpp
     #include <csl/ag.hpp>
-    #include <csl/ag/formatting/fmt.hpp> // opt-in: fmt::formatter support for aggregates
+    #include <csl/ag/formatting/backend/fmt.hpp> // opt-in: fmt::formatter support for aggregates
     ```
 
     ⚠️ A feature header adds blanket specializations to the entities `<csl/ag.hpp>` declares, so the usual
@@ -349,10 +349,10 @@ See live [demonstration here](https://godbolt.org/z/sxbvjGj4K).
 
 ```cpp
 #include <csl/typeinfo.hpp>
-#include <csl/cxx20/ensure.hpp>           // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enabled from CMake cache
+#include <csl/cxx20/ensure.hpp>                     // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enabled from CMake cache
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support
-#include <csl/ag/formatting/typeinfo.hpp> // opt-in: compile-time type names for `typenamed`
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: compile-time type names for `typenamed`
 
 #include <print>
 

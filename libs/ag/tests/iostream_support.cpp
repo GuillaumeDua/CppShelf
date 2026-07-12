@@ -7,7 +7,7 @@
 #endif
 
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/ostream.hpp>
+#include <csl/ag/formatting/backend/ostream.hpp>
 #if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
 #   include <csl/ag/formatting/typeinfo.hpp>
 #endif

@@ -46,7 +46,7 @@ CE_COMPILER_OPTIONS = '-std=c++23 -O2'
 #   Handles both single-header components and feature headers:
 #       csl/<lib>.hpp             -> libs/<lib>/includes/<lib>/csl/<lib>.hpp
 #       csl/<lib>/<feature>.hpp   -> libs/<lib>/includes/<lib>/csl/<lib>/<feature>.hpp
-#   (e.g. csl/ag/formatting/fmt.hpp -> libs/ag/includes/ag/csl/ag/formatting/fmt.hpp)
+#   (e.g. csl/ag/formatting/backend/fmt.hpp -> libs/ag/includes/ag/csl/ag/formatting/backend/fmt.hpp)
 #   NOTE: include order matters on CE: a feature header self-includes its prerequisites only
 #   when they are reachable (or already included, detected via the CSL_<LIB>__INCLUDED markers) -
 #   examples list <csl/<lib>.hpp> (and any sibling-component prerequisite) first.

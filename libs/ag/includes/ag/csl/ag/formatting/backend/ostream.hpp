@@ -10,8 +10,8 @@
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 /// 
-/// @warning Prefer @c <csl/ag/formatting/format.hpp> (std::format) or
-///          @c <csl/ag/formatting/fmt.hpp> (fmtlib) over this when available.
+/// @warning Prefer @c <csl/ag/formatting/backend/std_format.hpp> (std::format) or
+///          @c <csl/ag/formatting/backend/fmt.hpp> (fmtlib) over this when available.
 /// 
 /// @par Compile-time cost
 ///      Including @c <ostream> is one of the heaviest standard headers, with
