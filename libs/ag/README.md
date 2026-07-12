@@ -30,7 +30,7 @@ The following example demonstrates some of the features which are available in `
 <!-- EXAMPLE_BEGIN: 01_overview_demo.cpp -->
 ```cpp
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support (+ csl::ag::io::to_string)
+#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter support
 #include <csl/typeinfo.hpp>               // bridge prerequisite (explicit, for godbolt raw-URL include order)
 #include <csl/ag/formatting/typeinfo.hpp> // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
 #include <iostream> // std::print might not be available yet: use `std::cout << std::format(...)`
@@ -60,7 +60,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/7WKeTWsvv)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/E6bn4cjKo)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
@@ -122,7 +122,7 @@ The **core of this library ships as a single, standalone header**: `csl/ag.hpp` 
 
 | Feature header | Adds | Requires |
 | --- | --- | --- |
-| `csl/ag/formatting/format.hpp` | `std::formatter` support + [`csl::ag::io::to_string`](#using-to_stringformat_options) | `<format>` |
+| `csl/ag/formatting/format.hpp` | `std::formatter` support | `<format>` |
 | `csl/ag/formatting/fmt.hpp` | `fmt::formatter` support | [fmtlib](https://github.com/fmtlib/fmt), provided by the consumer |
 | `csl/ag/formatting/ostream.hpp` | `operator<<(std::ostream &, ...)` support | - |
 | `csl/ag/formatting/typeinfo.hpp` | compile-time type names for the `typenamed` formatting option | [csl::typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp) |
@@ -215,7 +215,7 @@ Formatting backends are **not CMake options**: each is an opt-in **feature heade
 
 ```cpp
 #include <csl/ag.hpp>                     // reflection + io core (options, views, operator|) - no backend
-#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter + csl::ag::io::to_string
+#include <csl/ag/formatting/format.hpp>   // opt-in: std::formatter
 #include <csl/ag/formatting/fmt.hpp>      // opt-in: fmt::formatter (fmtlib provided by the consumer)
 #include <csl/ag/formatting/ostream.hpp>  // opt-in: operator<<(std::ostream &, ...)
 #include <csl/ag/formatting/typeinfo.hpp> // opt-in: compile-time type names for `typenamed`
@@ -224,9 +224,8 @@ Formatting backends are **not CMake options**: each is an opt-in **feature heade
 Backends may coexist in one translation unit, and format-specs are composable:
 `indexed` (":x"), `indented` (":i"), and `typenamed` (":t").
 
-> ⚠️ **Migration note** *(API break)*: the `CSL_AG__ENABLE_{STD_FORMAT,FMTLIB,IOSTREAM}_SUPPORT` macros and CMake options
-> were **removed** (silently ignored if still defined). Replace each with the matching feature-header `#include` above.  
-> `csl::ag::io::to_string` is now `std::format`-backed, and ships with `csl/ag/formatting/format.hpp` only.
+> ⚠️ Each backend keeps its native formatting idiom - `std::format("{}", value)`, `fmt::format("{}", value)`, `stream << value`:
+> `csl::ag` offers no homogeneous API across backends (at least, for now).
 
 About compact vs. pretty presentations, with type names (`typenamed`):
 
@@ -783,15 +782,22 @@ Output:
 
 ### Formatting and printing
 
-There are three ways to pretty-print aggregate types, each being an opt-in **feature header**:
+There are two ways to pretty-print aggregate types, each being an opt-in **feature header**:
 
 - (✅ Best) using `std::format` (`csl/ag/formatting/format.hpp`) or the `fmt` library (`csl/ag/formatting/fmt.hpp`)
 - using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/ostream.hpp`)
-- using `csl::ag::io::to_string<format_options>`, `std::format`-backed (ships with `csl/ag/formatting/format.hpp`)
 
 Backends may coexist in the same translation unit - each one specializes a different framework's entity.  
 The `typenamed` option renders compile-time, demangled type names when `csl/ag/formatting/typeinfo.hpp` is included,
 and falls back to `<typeindex>` runtime names otherwise.
+
+Formatting options are reachable through two **equivalent** syntaxes:
+
+- a **format-spec letter**: `no_braces` (`:n`), `indented` (`:i`), `indexed` (`:x`), `typenamed` (`:t`) - e.g. `std::format("{:ixt}", value)`
+- a **composable view**: `value | indented | indexed | typenamed`
+
+A composed view carries its options: formatting it with a plain `"{}"` applies them - no format-spec letter required.
+Both syntaxes produce identical outputs, and can be mixed.
 
 #### using std::format
 
@@ -970,48 +976,6 @@ Output:
 
 ```text
 {{13, 0.12}, user-defined operator<<(std::ostream&, const B &), 42, "str", 'c', (true, 2), ['a', 'b', 'c']}
-```
-
-#### using `to_string<format_options>`
-
-`csl::ag::io::to_string` returns a `std::string` directly.  
-It is `std::format`-backed, and ships with `csl/ag/formatting/format.hpp`.
-
-Options are selected as a non-type template argument. Tags (`indented`, `no_braces`, `indexed`, `typenamed`) implicitly convert to `format_options` and compose via `operator|`, so they can be combined directly as the template argument - or, equivalently, via the view-based `operator|` on the value itself:
-
-```cpp
-#include <csl/ag.hpp>
-#include <csl/ag/formatting/format.hpp>
-
-struct point { int x; int y; };
-struct rect  { point top_left; point bottom_right; };
-
-auto main() -> int {
-    using namespace csl::ag::io;
-
-    constexpr auto r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };
-
-    to_string(r);                     // "{{0, 0}, {10, 5}}"        (default, compact)
-    to_string<no_braces>(r);          // "{0, 0}{10, 5}"            (no outer brackets)
-    to_string<indented>(r);           // multiline, see below
-    to_string<indented | indexed>(r); // composed options, as NTTP
-    to_string(r | indented | indexed); // equivalent, view-based composition
-}
-```
-
-`to_string<indented>(r)`:
-
-```text
-{
-    {
-        0,
-        0
-    },
-    {
-        10,
-        5
-    }
-}
 ```
 
 ## Homogeneity API with tuple-likes

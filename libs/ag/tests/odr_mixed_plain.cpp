@@ -18,7 +18,7 @@ namespace test::ag::odr {
 TEST_CASE("odr-mixed: plain TU - typenamed uses the <typeindex> fallback", "[ag][formatting][odr]") {
     using namespace csl::ag::io;
     const auto expected = std::format("{{{}: 'A'}}", std::type_index(typeid(char)).name());
-    CHECK(to_string<typenamed>(test::ag::odr::plain{ .c = 'A' }) == expected);
+    CHECK(std::format("{}", test::ag::odr::plain{ .c = 'A' } | typenamed) == expected);
 }
 
 // NOLINTEND(*-avoid-magic-numbers)

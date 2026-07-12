@@ -87,6 +87,8 @@ TEMPLATE_TEST_CASE(":n" + implementation::name_suffix() + "", implementation::ta
     types::field_everything
 ) {
     using f = fixture<TestType>;
+    CHECK(implementation::format("{:n}", f::value | csl::ag::io::no_braces) == f::no_braces_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::no_braces) == f::no_braces_expected);
     CHECK(implementation::format("{:n}", f::value) == f::no_braces_expected);
 }
 
@@ -100,6 +102,7 @@ TEMPLATE_TEST_CASE(":i" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:i}", f::value | csl::ag::io::indented) == f::indented_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::indented) == f::indented_expected);
     CHECK(implementation::format("{:i}", f::value) == f::indented_expected);
 }
 
@@ -113,6 +116,7 @@ TEMPLATE_TEST_CASE(":x" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:x}", f::value | csl::ag::io::indexed) == f::indexed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
     CHECK(implementation::format("{:x}", f::value) == f::indexed_expected);
 }
 
@@ -127,6 +131,7 @@ TEMPLATE_TEST_CASE(":t" + implementation::name_suffix() + "", implementation::ta
 ) {
     using f = fixture<TestType>;
     CHECK(implementation::format("{:t}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
     CHECK(implementation::format("{:t}", f::value) == f::typenamed_expected);
 }
 
@@ -142,6 +147,10 @@ TEMPLATE_TEST_CASE(":ixt" + implementation::name_suffix() + "", implementation::
 
     CHECK(
         implementation::format("{:ixt}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
+        == f::indented_indexed_typenamed_expected
+    );
+    CHECK(
+        implementation::format("{}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
         == f::indented_indexed_typenamed_expected
     );
     CHECK(implementation::format("{:ixt}", f::value) == f::indented_indexed_typenamed_expected);
@@ -271,54 +280,6 @@ TEMPLATE_TEST_CASE("typenamed: <typeindex> runtime fallback" + implementation::n
     CHECK(implementation::format("{:t}", f::value) == expected);
 }
 #endif
-
-#if defined(CSL_AG_TEST__HAS_TO_STRING) and CSL_AG_TEST__HAS_TO_STRING
-TEMPLATE_TEST_CASE("csl::ag::io::to_string default output" + implementation::name_suffix() + "", implementation::tags(),
-    types::field_1,
-    types::field_2,
-    types::field_3_nested,
-    types::field_3_nested_tuplelike,
-    types::field_4_nested_range,
-    types::field_everything
-) {
-    using f = fixture<TestType>;
-    CHECK(csl::ag::io::to_string(f::value) == f::default_expected);
-}
-
-#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed view output" + implementation::name_suffix() + "", implementation::tags(),
-    types::field_1,
-    types::field_2,
-    types::field_3_nested,
-    types::field_3_nested_tuplelike,
-    types::field_4_nested_range,
-    types::field_everything
-) {
-    using namespace csl::ag::io;
-    using f = fixture<TestType>;
-    CHECK(
-        to_string(f::value | indented | indexed | typenamed)
-        == f::indented_indexed_typenamed_expected
-    );
-}
-
-TEMPLATE_TEST_CASE("csl::ag::io::to_string composed NTTP output" + implementation::name_suffix() + "", implementation::tags(),
-    types::field_1,
-    types::field_2,
-    types::field_3_nested,
-    types::field_3_nested_tuplelike,
-    types::field_4_nested_range,
-    types::field_everything
-) {
-    using namespace csl::ag::io;
-    using f = fixture<TestType>;
-    CHECK(
-        to_string<indented | indexed | typenamed>(f::value)
-        == f::indented_indexed_typenamed_expected
-    );
-}
-#endif
-#endif // CSL_AG_TEST__HAS_TO_STRING
 
 // NOLINTEND(*-avoid-magic-numbers)
 // NOLINTEND(*cert-err58-cpp)

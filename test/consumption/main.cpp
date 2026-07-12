@@ -7,6 +7,8 @@
 #include <csl/typeinfo.hpp>
 #include <csl/wf.hpp>
 
+#include <format>
+
 struct point { int x, y; };
 static_assert(csl::ag::size_v<point> == 2);
 
@@ -30,5 +32,5 @@ static_assert(csl::ag::io::type_name_v<int> == "int");
 
 auto main() -> int {
     using namespace csl::ag::io;
-    return to_string<typenamed>(point{ .x = 1, .y = 2 }) == "{int: 1, int: 2}" ? 0 : 1;
+    return std::format("{}", point{ .x = 1, .y = 2 } | typenamed) == "{int: 1, int: 2}" ? 0 : 1;
 }

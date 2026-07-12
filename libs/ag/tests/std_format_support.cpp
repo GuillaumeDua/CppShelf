@@ -26,8 +26,8 @@ namespace tests::concepts::std_formattable {
     static_assert(concepts::std_formattable<types::field_1, char>);
     static_assert(concepts::std_formattable<types::field_2, char>);
     static_assert(concepts::std_formattable<types::field_3_nested, char>);
-    // P2286-independent: this library's view machinery formats tuple-like/range elements itself,
-    // so these hold even when the STL lacks std::formatter<tuple-like> (e.g. libstdc++ 13)
+    // NOTE(P2286-independent) this librarys formats tuple-like/range elements itself,
+    // so these hold even when the STL lacks std::formatter<tuple-like> (e.g. libstdc++-13)
     static_assert(concepts::std_formattable<types::field_3_nested_tuplelike, char>);
     static_assert(concepts::std_formattable<types::field_4_nested_range, char>);
     static_assert(concepts::std_formattable<types::field_everything, char>);
@@ -35,18 +35,21 @@ namespace tests::concepts::std_formattable {
     static_assert(concepts::std_formattable<int, char>);
     static_assert(concepts::std_formattable<std::string, char>);
 
-    // wired into std::formatter<formatted_view_t<T>> (composite view):
-    // a non-formattable field disables the specialization, so std::formattable answers false.
-    // NOTE: the field must be a non-aggregate - an (even empty) aggregate is formattable
-    //       through this library's own blanket std::formatter
-    struct not_formattable_field { explicit not_formattable_field() = default; };
-    struct with_not_formattable_field { not_formattable_field f; };
-    static_assert(not concepts::std_formattable<with_not_formattable_field, char>);
-    static_assert(not std::formattable<csl::ag::io::details::decorators::formatted_view_t<with_not_formattable_field>, char>);
+    // empty types are valid aggregates
+    struct empty{};
+    struct nested_empty{ empty e; int i; };
+    static_assert(concepts::std_formattable<empty, char>);
+    static_assert(concepts::std_formattable<nested_empty, char>);
+    static_assert(std::formattable<csl::ag::io::details::decorators::formatted_view_t<empty>, char>);
+    static_assert(std::formattable<csl::ag::io::details::decorators::formatted_view_t<nested_empty>, char>);
 
-    // recursion: the non-formattable leaf is reached through a nested aggregate
-    struct nested_with_not_formattable_field { with_not_formattable_field w; int i; };
-    static_assert(not concepts::std_formattable<nested_with_not_formattable_field, char>);
+    // non-aggregates types are not supported
+    struct not_formattable { explicit not_formattable() = default; };
+    struct nested_not_formattable { not_formattable f; };
+    static_assert(not concepts::std_formattable<not_formattable, char>);
+    static_assert(not concepts::std_formattable<nested_not_formattable, char>);
+    static_assert(not std::formattable<csl::ag::io::details::decorators::formatted_view_t<not_formattable>, char>);
+    static_assert(not std::formattable<csl::ag::io::details::decorators::formatted_view_t<nested_not_formattable>, char>);
 }
 
 namespace {
@@ -65,5 +68,4 @@ namespace {
     }
 } // namespace
 
-#define CSL_AG_TEST__HAS_TO_STRING 1
 #include <tests/ag/format_test_cases.hpp>

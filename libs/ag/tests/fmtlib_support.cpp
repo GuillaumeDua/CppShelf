@@ -62,6 +62,4 @@ namespace {
     }
 } // namespace
 
-// to_string is std::format-backed, ships with <csl/ag/formatting/format.hpp> only
-#define CSL_AG_TEST__HAS_TO_STRING 0
 #include <tests/ag/format_test_cases.hpp>

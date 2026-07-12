@@ -5,6 +5,8 @@
 #include <csl/ag/formatting/format.hpp>
 #include <csl/ag/formatting/typeinfo.hpp>
 
+#include <format>
+
 #include <catch2/catch_test_macros.hpp>
 
 // NOLINTBEGIN(*-avoid-do-while)
@@ -18,7 +20,7 @@ TEST_CASE("odr-mixed: bridged TU - typenamed uses csl::typeinfo", "[ag][formatti
     using namespace csl::ag::io;
 
     // NOTE: int demangling seems stable across compilers
-    CHECK(to_string<typenamed>(test::ag::odr::bridged{ .i = 42 }) == "{int: 42}");
+    CHECK(std::format("{}", test::ag::odr::bridged{ .i = 42 } | typenamed) == "{int: 42}");
 }
 
 // NOLINTEND(*-avoid-magic-numbers)
