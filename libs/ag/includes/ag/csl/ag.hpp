@@ -1181,7 +1181,7 @@ namespace csl::ag::tuplelike {
 //
 // Formatting backends are opt-in feature headers, include them consistently program-wide:
 //
-//  <csl/ag/formatting/format.hpp>      std::formatter support, csl::ag::io::to_string
+//  <csl/ag/formatting/format.hpp>      std::formatter support
 //  <csl/ag/formatting/fmt.hpp>         fmt::formatter support (fmtlib is provided by the consumer)
 //  <csl/ag/formatting/ostream.hpp>     operator<<(std::ostream &, ...) support
 //  <csl/ag/formatting/typeinfo.hpp>    compile-time type names for the typenamed option (csl::typeinfo-backed)

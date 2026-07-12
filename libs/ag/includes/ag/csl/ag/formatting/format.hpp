@@ -3,7 +3,7 @@
 // under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
 // https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
-// Provides std::formatter specializations for aggregates and formatted views (see operator|) via csl::ag::io, and csl::ag::io::to_string.
+// Provides std::formatter specializations for aggregates and formatted views (see operator|) via csl::ag::io.
 
 #if not defined(CSL_AG__INCLUDED)
 #   include <csl/ag.hpp>
@@ -14,7 +14,6 @@
 #endif
 
 #include <format>
-#include <string>
 
 namespace csl::ag::io::details {
     template <>
@@ -54,6 +53,7 @@ namespace csl::ag::io::details::concepts {
     concept std_formattable = type_traits::is_std_formattable_v<T, Char>;
 }
 
+// NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
 // std::formatter<formatted_view_t>: composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
@@ -82,35 +82,4 @@ struct std::formatter<
         std::formatter, T, Char
     >
 {};
-
-/// \brief Formatting: to_string (std::format-backed)
-///        Usage:
-///
-///         using namespace csl::ag::io;
-///         to_string(value)                        (default: braced, compact)
-///         to_string<indented>(value)              (single option)
-///         to_string<indented | typenamed>(value)  (composed options)
-///         to_string(value | indented | typenamed) (equivalent, view-based composition)
-namespace csl::ag::io {
-
-    template <format_options Options = format_options::none>
-    [[nodiscard]] auto to_string(csl::ag::concepts::structured_bindable auto const & value) -> std::string
-    requires (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
-    {
-        // NOTE: at default Options, format `value` directly so a user-defined formatter (if any) wins,
-        // exactly as the plain (option-less) operator<< / formatter<T> specializations do.
-        if constexpr (Options == format_options::none)
-            return std::format("{}", value);
-        else {
-            using value_type = std::remove_cvref_t<decltype(value)>;
-            return std::format("{}", details::decorators::formatted_view_t<value_type>{
-                .value = value,
-                .options = Options
-            });
-        }
-    }
-    template <typename T>
-    [[nodiscard]] auto to_string(details::decorators::formatted_view_t<T> const & view) -> std::string {
-        return std::format("{}", view);
-    }
-}
+// NOLINTEND(cert-dcl58-cpp)

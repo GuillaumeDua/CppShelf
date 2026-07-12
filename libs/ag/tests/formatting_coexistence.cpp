@@ -34,7 +34,6 @@ TEST_CASE("all formatting backends coexist in one TU", "[ag][formatting][coexist
 
     CHECK(std::format("{}", value) == expected);
     CHECK(fmt::format("{}", value) == expected);
-    CHECK(csl::ag::io::to_string(value) == expected);
     {
         std::ostringstream ss;
         using namespace csl::ag::io;
@@ -51,7 +50,6 @@ TEST_CASE("all formatting backends coexist in one TU - composed views", "[ag][fo
 
     CHECK(std::format("{}", value | indexed | typenamed) == expected);
     CHECK(fmt::format("{}", value | indexed | typenamed) == expected);
-    CHECK(to_string(value | indexed | typenamed) == expected);
     {
         std::ostringstream ss;
         ss << (value | indexed | typenamed);

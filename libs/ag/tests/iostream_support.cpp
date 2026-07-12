@@ -77,7 +77,6 @@ namespace {
         return value;
     }
 
-    // to_string is std::format-backed (ships with <csl/ag/formatting/format.hpp>): stream instead
     [[nodiscard]] auto stream_out(auto const & value) -> std::string {
         using namespace csl::ag::io;
         std::ostringstream ss;

@@ -150,7 +150,7 @@ foreach(bitfields IN ITEMS 0 1)
 endforeach()
 
 # Every formatting feature header in a single TU: backends must coexist (each specializes
-# a different framework's entity; to_string ships with format.hpp only)
+# a different framework's entity)
 csl_ag_make_test_target(
     NAME        formatting_coexistence
     SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/formatting_coexistence.cpp
