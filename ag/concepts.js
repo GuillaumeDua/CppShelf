@@ -19,6 +19,11 @@ var concepts =
           [ "concepts", null, [
             [ "non_stl_aggregate", "conceptcsl_1_1ag_1_1tuplelike_1_1concepts_1_1non__stl__aggregate.html", null ]
           ] ]
+        ] ],
+        [ "io", null, [
+          [ "concepts", null, [
+            [ "format_option", "conceptcsl_1_1ag_1_1io_1_1concepts_1_1format__option.html", null ]
+          ] ]
         ] ]
       ] ]
     ] ],

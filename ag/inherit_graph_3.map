@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structcsl_1_1ag_1_1to__template__type__nttp__ttps__tag.html" title=" " alt="" coords="5,5,168,60"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,191,60"/>
+<area shape="rect" id="Node000001" href="$structstd_1_1formatter_3_01T_00_01Char_01_4.html" title="std::formatter for plain aggregate: default (braced, flat) output." alt="" coords="239,13,377,53"/>
+<area shape="poly" id="edge5_Node000000_Node000001" title=" " alt="" coords="204,30,239,30,239,35,204,35"/>
 </map>

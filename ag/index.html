@@ -145,10 +145,11 @@ Overall presentation</h1>
 <h2 class="doxsection"><a class="anchor" id="overview-demo"></a>
 Overview demo</h2>
 <p>The following example demonstrates some of the features which are available in <span class="tt">csl::ag</span>.</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/typeinfo.hpp&gt;</span> <span class="comment">// optional: gives csl::ag::io::typenamed clean type names (e.g. &quot;int&quot;)</span></div>
-<div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT 1</span></div>
-<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span> <span class="comment">// std::print might not be available yet: use `std::cout &lt;&lt; std::format(...)`</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/std_format.hpp&gt;</span> <span class="comment">// opt-in: std::formatter support</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/typeinfo.hpp&gt;</span>                         <span class="comment">// bridge prerequisite (explicit, for godbolt raw-URL include order)</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/typeinfo.hpp&gt;</span>           <span class="comment">// opt-in: gives csl::ag::io::typenamed clean type names (e.g. &quot;int&quot;)</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span>                                 <span class="comment">// std::print might not be available yet: use `std::cout &lt;&lt; std::format(...)`</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">struct </span>S { <span class="keywordtype">char</span> c; <span class="keywordtype">int</span> i; };</div>
 <div class="line"> </div>
@@ -167,14 +168,14 @@ Overview demo</h2>
 <div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> format_options = indexed | typenamed | indented;</div>
 <div class="line">    std::cout &lt;&lt; std::format(<span class="stringliteral">&quot;{}&quot;</span>, value | format_options); <span class="comment">// equivalent to std::println(&quot;{:xit}&quot;, value)</span></div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">// legacy alternative: CSL_AG__ENABLE_IOSTREAM_SUPPORT</span></div>
+<div class="line">    <span class="comment">// alternative: #include &lt;csl/ag/formatting/backend/ostream.hpp&gt;</span></div>
 <div class="line">    <span class="comment">// std::cout &lt;&lt; &quot;value: &quot; &lt;&lt; format_options &lt;&lt; value &lt;&lt; &#39;\n&#39;;</span></div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">// other alternative: CSL_AG__ENABLE_FMT_SUPPORT</span></div>
+<div class="line">    <span class="comment">// alternative: #include &lt;csl/ag/formatting/backend/fmt.hpp&gt;</span></div>
 <div class="line">    <span class="comment">// fmt::println(&quot;{:xit}&quot;, value)</span></div>
 <div class="line">}</div>
-<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1aggregate_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a></div><div class="ttdef"><b>Definition</b> ag.hpp:158</div></div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/zW31zz3fh"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1aggregate_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a></div><div class="ttdef"><b>Definition</b> ag.hpp:161</div></div>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/xhhbh1Ycn"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Output:</p>
 <div class="fragment"><div class="line">value: {</div>
 <div class="line">    [0] char: &#39;A&#39;,</div>
@@ -215,18 +216,31 @@ Introduction</h2>
 <hr  />
 <h2 class="doxsection"><a class="anchor" id="getting-starting"></a>
 Getting starting</h2>
-<p>This library is single-header, header-only. <br  />
- Users may use it in various ways, however <a href="https://cmake.org/">CMake</a> is the promoted one for both download and configuration.</p>
+<p>The <b>core of this library ships as a single, standalone header</b>: <span class="tt">csl/ag.hpp</span> alone provides the full reflection API, header-only. <br  />
+ <b>Opt-in features are additional headers</b> - purely additive, opt-in = <span class="tt">#include</span> (no macro, no CMake option, no auto-detection):</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Feature header  </th><th class="markdownTableHeadNone">Adds  </th><th class="markdownTableHeadNone">Requires  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">csl/ag/formatting/backend/std_format.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::formatter</span> support  </td><td class="markdownTableBodyNone"><span class="tt">&lt;format&gt;</span>  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">csl/ag/formatting/backend/fmt.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">fmt::formatter</span> support  </td><td class="markdownTableBodyNone"><a href="https://github.com/fmtlib/fmt">fmtlib</a>, provided by the consumer  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">csl/ag/formatting/backend/ostream.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">operator&lt;&lt;(std::ostream &amp;, ...)</span> support  </td><td class="markdownTableBodyNone">-  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">csl/ag/formatting/typeinfo.hpp</span>  </td><td class="markdownTableBodyNone">compile-time type names for the <span class="tt">typenamed</span> formatting option  </td><td class="markdownTableBodyNone"><a href="https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp">csl::typeinfo</a>  </td></tr>
+</table>
 <blockquote class="doxtable">
-<p>ℹ️ The <span class="tt">typenamed</span> formatting option (see <a class="el" href="#formatting-and-printing" title="Formatting and printing">formatting and printing</a>formatting and printing) optionally enhances itself with <a href="https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp">csl::typeinfo</a> for compile-time type names, detected via <span class="tt">__has_include</span>. <br  />
- Without it, a <span class="tt">&lt;typeindex&gt;</span>-based runtime (inconsistent) fallback is used instead - <span class="tt">ag.hpp</span> stays usable as a single, standalone header either way. </p>
+<p>ℹ️ Feature headers add blanket specializations: like <span class="tt">&lt;fmt/ranges.h&gt;</span>, include them <b>consistently across the whole program</b> (ODR). <br  />
+ Without <span class="tt">csl/ag/formatting/typeinfo.hpp</span>, the <span class="tt">typenamed</span> option falls back to <span class="tt">&lt;typeindex&gt;</span> runtime names (deterministic, implementation-defined, possibly mangled) - <span class="tt">ag.hpp</span> stays fully usable standalone either way. </p>
 </blockquote>
+<p>Users may use it in various ways, however <a href="https://cmake.org/">CMake</a> is the promoted one for both download and configuration.</p>
 <h3 class="doxsection"><a class="anchor" id="integration"></a>
 Integration</h3>
 <h4 class="doxsection"><a class="anchor" id="plain-download"></a>
 Plain download</h4>
 <ul>
-<li><b>Fetch</b> <a href="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/libs/ag/includes/ag/csl/ag.hpp">the header file</a> and deal with the build yourself, or ...</li>
+<li><b>Fetch</b> <a href="https://raw.githubusercontent.com/GuillaumeDua/CppShelf/main/libs/ag/includes/ag/csl/ag.hpp">the header file</a> - and optionally the <a href="https://github.com/GuillaumeDua/CppShelf/tree/main/libs/ag/includes/ag/csl/ag/formatting">feature headers</a> - and deal with the build yourself, or ...</li>
 <li><b>Clone</b> the repo, or add it as a <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">git submodule</a> to your project.</li>
 </ul>
 <blockquote class="doxtable">
@@ -289,58 +303,16 @@ Formatting and printing</h4>
 <blockquote class="doxtable">
 <p>💡 Everything related to formatting and printing lives in the <span class="tt">csl::ag::io</span> namespace. </p>
 </blockquote>
+<p>Formatting backends are <b>not CMake options</b>: each is an opt-in <b>feature header</b> - <span class="tt">#include</span> what you need (see <a class="el" href="#getting-starting" title="Getting starting">Getting starting</a>Getting starting for the list, and <a class="el" href="#formatting-and-printing" title="Formatting and printing">formatting and printing</a>formatting and printing for complete documentation).</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span>                               <span class="comment">// reflection + io core (options, views, operator|) - no backend</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/std_format.hpp&gt;</span> <span class="comment">// opt-in: std::formatter</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/fmt.hpp&gt;</span>        <span class="comment">// opt-in: fmt::formatter (fmtlib provided by the consumer)</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/ostream.hpp&gt;</span>    <span class="comment">// opt-in: operator&lt;&lt;(std::ostream &amp;, ...)</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/typeinfo.hpp&gt;</span>           <span class="comment">// opt-in: compile-time type names for `typenamed`</span></div>
+</div><!-- fragment --><p>Backends may coexist in one translation unit, and format-specs are composable: <span class="tt">indexed</span> (":x"), <span class="tt">indented</span> (":i"), and <span class="tt">typenamed</span> (":t").</p>
 <blockquote class="doxtable">
-<p>💡 All options in this section are opt-ins <em>(<span class="tt">OFF</span> by default)</em>, and can be combined. </p>
+<p>⚠️ Each backend keeps its native formatting idiom - <span class="tt">std::format("{}", value)</span>, <span class="tt">fmt::format("{}", value)</span>, <span class="tt">stream &lt;&lt; value</span>: <span class="tt">csl::ag</span> offers no homogeneous API across backends (at least, for now). </p>
 </blockquote>
-<p>Supports 3 parallel backends:</p>
-<ul>
-<li><span class="tt">std::format</span></li>
-<li><span class="tt">fmt</span></li>
-<li><span class="tt">std::ostream</span> (e.g <span class="tt">std::cout</span>)</li>
-</ul>
-<p>Format-specs are composable, and include <span class="tt">indexed</span> (":x"), <span class="tt">indented</span> (":i"), and <span class="tt">typenamed</span> (":t").</p>
-<div class="fragment"><div class="line"><span class="keyword">struct </span>A{ <span class="keywordtype">int</span> i{}; };</div>
-<div class="line"><span class="keyword">struct </span>my_aggregate{ <span class="keywordtype">char</span> c = <span class="charliteral">&#39;a&#39;</span>; A a = A{ .i = 13} };</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> my_aggregate_value = my_aggregate{};</div>
-</div><!-- fragment --><ul>
-<li><p class="startli"><span class="tt">CSL_AG__ENABLE_STD_FORMAT_SUPPORT</span>: add <span class="tt">std::formatter&lt;csl::ag::aggregate T&gt;</span></p>
-<div class="fragment"><div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value);                         <span class="comment">// compact, default → {&#39;a&#39;, {13}}</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{:n}&quot;</span>,   my_aggregate_value);                         <span class="comment">// no outer brackets → &#39;a&#39;{13}</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{:xti}&quot;</span>, my_aggregate_value);                         <span class="comment">// format-spec letters: x=indexed, t=typenamed, i=indented</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value | csl::ag::io::indented); <span class="comment">// pretty, multi-line → see below</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> view = indexed | typenamed | indented;             <span class="comment">// composed format_options, reusable</span></div>
-<div class="line">std::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value | view);                      <span class="comment">// view-based composition → same as &quot;{:xti}&quot;</span></div>
-</div><!-- fragment --></li>
-<li><span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span>: makes <span class="tt">csl::ag</span> depends on the <span class="tt">fmt</span> library, and add <span class="tt">fmt::formatter&lt;csl::ag::aggregate T&gt;</span>.</li>
-</ul>
-<blockquote class="doxtable">
-<p>If <a href="https://github.com/fmtlib/fmt">fmtlib</a>'s <span class="tt">cmake</span> target <span class="tt">fmt::fmt-header-only</span> is not available when building <span class="tt">csl::ag</span> with <span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span> set to <span class="tt">ON</span>, then such a dependency will be injected using <span class="tt">cmake FetchContent</span>. </p>
-</blockquote>
-<div class="fragment"><div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value);</div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{:n}&quot;</span>,   my_aggregate_value);</div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{:xti}&quot;</span>, my_aggregate_value); <span class="comment">// format-spec letters: x=indexed, t=typenamed, i=indented</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>,     my_aggregate_value | csl::ag::io::indented);</div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">auto</span> view = indexed | typenamed | indented; <span class="comment">// composed format_options, reusable</span></div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}&quot;</span>, my_aggregate_value | view);          <span class="comment">// view-based composition → same as &quot;{:xti}&quot;</span></div>
-</div><!-- fragment --><ul>
-<li><p class="startli"><span class="tt">CSL_AG__ENABLE_IOSTREAM_SUPPORT</span>: add <span class="tt">csl::ag::io::operator&lt;&lt;(std::ostream &amp;, <a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> auto const &amp;)</span></p>
-<div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line">std::cout &lt;&lt; my_aggregate_value;              <span class="comment">// compact, default</span></div>
-<div class="line">std::cout &lt;&lt; no_braces &lt;&lt; my_aggregate_value; <span class="comment">// one-shot manipulator → no outer brackets</span></div>
-<div class="line">std::cout &lt;&lt; (my_aggregate_value | indented); <span class="comment">// view-based composition → pretty, multi-line</span></div>
-</div><!-- fragment --></li>
-<li><p class="startli"><span class="tt">csl::ag::io::to_string</span>: available as soon as any one of the options above is enabled. Returns a <span class="tt">std::string</span> directly, with the same call syntax regardless of which backend is active (favors <span class="tt">std::format</span>, then <span class="tt">fmt::format</span>, then <span class="tt">std::ostream</span>).</p>
-<div class="fragment"><div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line">to_string(my_aggregate_value);                                    <span class="comment">// compact, default     → {&#39;a&#39;, {13}}</span></div>
-<div class="line">to_string&lt;no_braces&gt;(my_aggregate_value);                         <span class="comment">// no outer brackets    → &#39;a&#39;{13}</span></div>
-<div class="line">to_string&lt;indented&gt;(my_aggregate_value);                          <span class="comment">// pretty, multi-line   → see below</span></div>
-<div class="line">to_string&lt;indexed | typenamed | indented&gt;(my_aggregate_value);    <span class="comment">// pretty, multi-line, indexed, typenamed</span></div>
-</div><!-- fragment --></li>
-</ul>
 <p>About compact vs. pretty presentations, with type names (<span class="tt">typenamed</span>):</p>
 <ul>
 <li>Compact (<span class="tt">typenamed</span>):</li>
@@ -407,11 +379,11 @@ csl::ag::size&lt;T&gt;</h4>
 <div class="line"><span class="keyword">static_assert</span>(csl::ag::size_v&lt;A&gt;      == 2);</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {}</div>
-<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition</b> ag.hpp:761</div></div>
+<div class="ttc" id="astructcsl_1_1ag_1_1size_html"><div class="ttname"><a href="structcsl_1_1ag_1_1size.html">csl::ag::size</a></div><div class="ttdef"><b>Definition</b> ag.hpp:764</div></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/61PonYhxh"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Just like <span class="tt">std::tuple_size</span>/<span class="tt">std::tuple_size_v</span>, the <b>value</b> can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;csl::ag::concepts::aggregate T&gt;</div>
-<div class="line"><span class="keyword">constexpr</span> <span class="keyword">inline</span> <span class="keyword">static</span> <span class="keyword">auto</span> size_v = size&lt;T&gt;::value;</div>
+<div class="line"><span class="keyword">constexpr</span> <span class="keyword">inline</span> <span class="keyword">static</span> <span class="keyword">auto</span> size_v = <a class="code hl_struct" href="structcsl_1_1ag_1_1size.html">size&lt;T&gt;::value</a>;</div>
 </div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="cslagelementstdsize_t-conceptsaggregate"></a>
 csl::ag::element&lt;std::size_t, concepts::aggregate&gt;</h4>
 <p>Type-identity of a field's type of a given aggregate type.</p>
@@ -446,7 +418,8 @@ csl::ag::view_element&lt;std::size_t, concepts::aggregate&gt;</h4>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/xazP1vKds"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>The <span class="tt">type</span> nested-type can be accessed using a convenience alias :</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span> &lt;std::<span class="keywordtype">size_t</span> N, concepts::aggregate T&gt;</div>
-<div class="line"><span class="keyword">using </span>view_element_t = <span class="keyword">typename</span> view_element&lt;N, T&gt;::type;</div>
+<div class="line"><span class="keyword">using </span>view_element_t = <span class="keyword">typename</span> <a class="code hl_struct" href="structcsl_1_1ag_1_1view__element.html">view_element&lt;N, T&gt;::type</a>;</div>
+<div class="ttc" id="astructcsl_1_1ag_1_1view__element_html"><div class="ttname"><a href="structcsl_1_1ag_1_1view__element.html">csl::ag::view_element</a></div><div class="ttdef"><b>Definition</b> ag.hpp:807</div></div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="to-tuple-conversion"></a>
 to-tuple conversion</h3>
 <p>This library provides two ways to convert an aggregate's value to <a href="https://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>, distinguishing between proprietary and non-proprietary tuples of values.</p>
@@ -594,32 +567,33 @@ Non-owning conversion (view, lightweight accessor)</h4>
 <div class="line">    <span class="keywordtype">int</span> i = 42; <span class="comment">// NOLINT(*-avoid-magic-numbers)</span></div>
 <div class="line"> </div>
 <div class="line">    { <span class="comment">// rvalue source: non-ref fields acquire rvalue-ref qualification</span></div>
-<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(type::make(i));</div>
+<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> <a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a> = csl::ag::to_tuple_view(type::make(i));</div>
 <div class="line"> </div>
 <div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            <span class="keyword">decltype</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>),</div>
 <div class="line">            csl::ag::view_t&lt;type&amp;&amp;&gt;</div>
 <div class="line">        &gt;);</div>
 <div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            <span class="keyword">decltype</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>),</div>
 <div class="line">            std::tuple&lt;int&amp;&amp;, int&amp;, const int&amp;, int&amp;&amp;&gt;</div>
 <div class="line">        &gt;);</div>
 <div class="line">    }</div>
 <div class="line"> </div>
 <div class="line">    { <span class="comment">// const-lvalue source: non-ref fields acquire const-lvalue-ref qualification</span></div>
 <div class="line">        <span class="keyword">const</span> <span class="keyword">auto</span> &amp; value = type::make(i); <span class="comment">// lifetime extension</span></div>
-<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> view = csl::ag::to_tuple_view(value);</div>
+<div class="line">        [[maybe_unused]] <span class="keyword">auto</span> <a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a> = csl::ag::to_tuple_view(value);</div>
 <div class="line"> </div>
 <div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            <span class="keyword">decltype</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>),</div>
 <div class="line">            csl::ag::view_t&lt;const type&amp;&gt;</div>
 <div class="line">        &gt;);</div>
 <div class="line">        <span class="keyword">static_assert</span>(std::same_as&lt;</div>
-<div class="line">            <span class="keyword">decltype</span>(view),</div>
+<div class="line">            <span class="keyword">decltype</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>),</div>
 <div class="line">            std::tuple&lt;const int&amp;, int&amp;, const int&amp;, int&amp;&amp;&gt;</div>
 <div class="line">        &gt;);</div>
 <div class="line">    }</div>
 <div class="line">}</div>
+<div class="ttc" id="astructcsl_1_1ag_1_1view_html"><div class="ttname"><a href="structcsl_1_1ag_1_1view.html">csl::ag::view</a></div><div class="ttdef"><b>Definition</b> ag.hpp:800</div></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/eMM3P9GTz"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Additionally, <span class="tt"><a class="el" href="structcsl_1_1ag_1_1view__element.html">csl::ag::view_element(_t)</a>&lt;N,T&gt;</span> can be used to obtains a field's type information, by index.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
@@ -746,30 +720,42 @@ csl::ag::for_each</h4>
 <div class="fragment"><div class="line">42 0.13 </div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="formatting-and-printing-1"></a>
 Formatting and printing</h3>
-<p>There are three ways to pretty-print aggregate types :</p>
+<p>There are 3 ways to pretty-print aggregate types, each being an opt-in <b>feature header</b> offering a dedicated backend wiring:</p>
 <ul>
-<li>(✅ Best) using <span class="tt">std::format</span> or the <span class="tt">fmt</span> library</li>
-<li>using the C++'s legacy way : <span class="tt">std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, T&amp;&amp;)</span> overload</li>
-<li>using <span class="tt">csl::ag::io::to_string&lt;format_options&gt;</span>, a homogeneous (yet, less efficient) API across all of the above</li>
+<li>(✅ Best) Using <span class="tt">std::format</span> (<span class="tt">csl/ag/formatting/backend/std_format.hpp</span>)</li>
+<li>(🟡 OK) Using the <span class="tt">fmt</span> library (<span class="tt">csl/ag/formatting/backend/fmt.hpp</span>) - best if <span class="tt">std::format</span> is not available.</li>
+<li>(🔴 Worst) Using the C++'s legacy way : <span class="tt">std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, T&amp;&amp;)</span> overload (<span class="tt">csl/ag/formatting/backend/ostream.hpp</span>)</li>
 </ul>
+<p>Backends may coexist in the same translation unit - each one specializes a different framework's entity. <br  />
+ The <span class="tt">typenamed</span> option renders compile-time, demangled type names when <span class="tt">csl/ag/formatting/typeinfo.hpp</span> is included, and falls back to <span class="tt">&lt;typeindex&gt;</span> runtime names otherwise.</p>
+<p>Formatting options are reachable through two <b>equivalent</b> syntaxes:</p>
+<ul>
+<li>a <b>format-spec letter</b>: <span class="tt">no_braces</span> (<span class="tt">:n</span>), <span class="tt">indented</span> (<span class="tt">:i</span>), <span class="tt">indexed</span> (<span class="tt">:x</span>), <span class="tt">typenamed</span> (<span class="tt">:t</span>) - e.g. <span class="tt">std::format("{:ixt}", value)</span></li>
+<li>a <b>composable view</b>: <span class="tt">value | indented | indexed | typenamed</span></li>
+</ul>
+<p>A composed view carries its options: formatting it with a plain <span class="tt">"{}"</span> applies them - no format-spec letter required. Both syntaxes produce identical outputs, and can be mixed.</p>
 <h4 class="doxsection"><a class="anchor" id="using-stdformat"></a>
 using std::format</h4>
-<p>Requires <span class="tt">CSL_AG__ENABLE_STD_FORMAT_SUPPORT</span> (opt-in, off by default). <br  />
- Enable via CMake or by defining the macro before including the header:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_STD_FORMAT_SUPPORT true</span></div>
-<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;format&gt;</span></div>
+<p>Opt-in by include:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/std_format.hpp&gt;</span></div>
 </div><!-- fragment --><p>This specializes <span class="tt">std::formatter&lt;T&gt;</span> for any <span class="tt"><a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1aggregate.html">csl::ag::concepts::aggregate</a> T</span> whose fields are all formattable.</p>
-<p>Three format modes are available:</p>
+<p>Format modes - each reachable as a format-spec letter, and/or as its composable-view equivalent (<span class="tt">"{}"</span> on the composed view; tags live in <span class="tt">csl::ag::io</span>):</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Format string  </th><th class="markdownTableHeadNone">Output style  </th></tr>
+<th class="markdownTableHeadNone">Format string  </th><th class="markdownTableHeadNone">View equivalent (<span class="tt">"{}"</span> on)  </th><th class="markdownTableHeadNone">Output style  </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">"{}"</span>  </td><td class="markdownTableBodyNone">compact - fields wrapped in <span class="tt">{}</span>, nested aggregates recursed  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">"{}"</span>  </td><td class="markdownTableBodyNone"><span class="tt">value</span>  </td><td class="markdownTableBodyNone">compact - fields wrapped in <span class="tt">{}</span>, nested aggregates recursed  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">"{:n}"</span>  </td><td class="markdownTableBodyNone">no outer brackets  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">"{:n}"</span>  </td><td class="markdownTableBodyNone"><span class="tt">value \| no_braces</span>  </td><td class="markdownTableBodyNone">no outer brackets (outermost-only)  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">"{}"</span> on <span class="tt">value \| csl::ag::io::indented</span>  </td><td class="markdownTableBodyNone">indented multi-line  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">"{:i}"</span>  </td><td class="markdownTableBodyNone"><span class="tt">value \| indented</span>  </td><td class="markdownTableBodyNone">indented multi-line  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">"{:x}"</span>  </td><td class="markdownTableBodyNone"><span class="tt">value \| indexed</span>  </td><td class="markdownTableBodyNone"><span class="tt">[N]</span> field indexes  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">"{:t}"</span>  </td><td class="markdownTableBodyNone"><span class="tt">value \| typenamed</span>  </td><td class="markdownTableBodyNone"><span class="tt">TypeName:</span> field prefixes  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">"{:ixt}"</span>  </td><td class="markdownTableBodyNone"><span class="tt">value \| indented \| indexed \| typenamed</span>  </td><td class="markdownTableBodyNone">composed options (any combination, any order)  </td></tr>
 </table>
 <p>Example:</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>point     { <span class="keywordtype">int</span> x; <span class="keywordtype">int</span> y; };</div>
@@ -783,10 +769,11 @@ using std::format</h4>
 <div class="line"><span class="keyword">using namespace </span>csl::ag::io;</div>
 <div class="line"><span class="comment">// NOTE: prefer std::print, if available</span></div>
 <div class="line">std::cout</div>
-<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,   r)                                     <span class="comment">// compact</span></div>
-<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{:n}\n&quot;</span>, r)                                     <span class="comment">// no brackets</span></div>
-<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,   r | indented)                          <span class="comment">// indented</span></div>
-<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,   r | indexed | typenamed | indented)    <span class="comment">// indexed, typenamed, indented</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,     r)                                   <span class="comment">// compact</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{:n}\n&quot;</span>,   r)                                   <span class="comment">// no brackets</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,     r | indented)                        <span class="comment">// indented</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>,     r | indexed | typenamed | indented)  <span class="comment">// indexed, typenamed, indented</span></div>
+<div class="line">    &lt;&lt; std::format(<span class="stringliteral">&quot;{:xti}\n&quot;</span>, r)                                   <span class="comment">// indexed, typenamed, indented</span></div>
 <div class="line">;</div>
 </div><!-- fragment --><p>Compact (<span class="tt">{}</span>):</p>
 <div class="fragment"><div class="line">{{0, 0}, {10, 5}}</div>
@@ -803,7 +790,7 @@ using std::format</h4>
 <div class="line">        5</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>Indexed and typenamed and indented (<span class="tt">| indexed | typenamed | indented</span>):</p>
+</div><!-- fragment --><p>Indexed and typenamed and indented (<span class="tt">{:xti}</span> and/or <span class="tt">| indexed | typenamed | indented</span>):</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">    [0] point: {</div>
 <div class="line">        [0] int: 0,</div>
@@ -817,22 +804,21 @@ using std::format</h4>
 </div><!-- fragment --><p>Mixed-content aggregates (containing tuple-likes, ranges, etc.) are also supported - tuples render as <span class="tt">(...)</span>, arrays and other ranges as <span class="tt">[...]</span>, etc.</p>
 <h4 class="doxsection"><a class="anchor" id="using-fmt"></a>
 using fmt</h4>
-<p>Requires <span class="tt">CSL_AG__ENABLE_FMTLIB_SUPPORT</span> (opt-in, off by default) - same macro-driven setup as <span class="tt">std::format</span> above:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_FMTLIB_SUPPORT true</span></div>
-<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;fmt/format.h&gt;</span></div>
+<p>Opt-in by include - same setup as <span class="tt">std::format</span> above:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/fmt.hpp&gt;</span></div>
 </div><!-- fragment --><blockquote class="doxtable">
-<p>If <span class="tt">fmt::fmt-header-only</span> is not available as a CMake target, it will be fetched automatically via CMake's <span class="tt">FetchContent</span>. <br  />
+<p><a href="https://github.com/fmtlib/fmt">fmtlib</a> is provided <b>by the consumer</b> (e.g. <span class="tt">find_package(fmt)</span>, then link <span class="tt">fmt::fmt</span> or <span class="tt">fmt::fmt-header-only</span>): the header uses it, <span class="tt">csl</span> never acquires nor ships it. <br  />
  fmtlib &gt;= 11 is required for the <span class="tt">:n</span> specifier. </p>
 </blockquote>
 <p><span class="tt">fmt::formatter&lt;T&gt;</span> / <span class="tt">fmt::format</span> / <span class="tt">fmt::print</span> behave identically to their <span class="tt">std::formatter</span> / <span class="tt">std::format</span> / <span class="tt">std::print</span> counterparts described above: same format modes, same composable <span class="tt">csl::ag::io::indented | indexed | typenamed</span> options, same output. <br  />
 </p>
 <h4 class="doxsection"><a class="anchor" id="using-stdostream"></a>
 using std::ostream</h4>
+<p>Opt-in by include: <span class="tt">csl/ag/formatting/backend/ostream.hpp</span> <em>(prefer <span class="tt">std::format</span>/<span class="tt">fmt</span> when available: <span class="tt">&lt;ostream&gt;</span> is heavy at compile time, and options ride <span class="tt">std::ios_base::iword</span>)</em>.</p>
 <p>Simple example :</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1</span></div>
-<div class="line"> </div>
-<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/ostream.hpp&gt;</span> <span class="comment">// opt-in: operator&lt;&lt;(std::ostream &amp;, ...) support</span></div>
 <div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
@@ -841,13 +827,12 @@ using std::ostream</h4>
 <div class="line">    <span class="keyword">struct </span>A { <span class="keywordtype">int</span> i; <span class="keywordtype">float</span> f; };</div>
 <div class="line">    std::cout &lt;&lt; A{ .i = 42, .f = .13F };</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/Wve3j19b9"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/Y3jncj97T"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Output:</p>
 <div class="fragment"><div class="line">{42, 0.13}</div>
 </div><!-- fragment --><p>Advanced example :</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_AG__ENABLE_IOSTREAM_SUPPORT 1</span></div>
-<div class="line"> </div>
-<div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/ostream.hpp&gt;</span> <span class="comment">// opt-in: operator&lt;&lt;(std::ostream &amp;, ...) support</span></div>
 <div class="line"><span class="preprocessor">#include &lt;array&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;string&gt;</span></div>
@@ -883,41 +868,9 @@ using std::ostream</h4>
 <div class="line">    };</div>
 <div class="line">    std::cout &lt;&lt; value;</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><a href="https://godbolt.org/z/MY7PYePTd"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
+</div><!-- fragment --><p><a href="https://godbolt.org/z/PT8nGeKsh"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <p>Output:</p>
 <div class="fragment"><div class="line">{{13, 0.12}, user-defined operator&lt;&lt;(std::ostream&amp;, const B &amp;), 42, &quot;str&quot;, &#39;c&#39;, (true, 2), [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]}</div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="using-to_stringformat_options"></a>
-using <span class="tt">to_string&lt;format_options&gt;</span></h4>
-<p><span class="tt">csl::ag::io::to_string</span> returns a <span class="tt">std::string</span> directly, with an consistent/homogeneous API regardless of which formatting support is enabled, <br  />
- favoring <span class="tt">std::format</span>, then <span class="tt">fmt::format</span>, then <span class="tt">std::ostream</span>.</p>
-<p>Options are selected as a non-type template argument. Tags (<span class="tt">indented</span>, <span class="tt">no_braces</span>, <span class="tt">indexed</span>, <span class="tt">typenamed</span>) implicitly convert to <span class="tt">format_options</span> and compose via <span class="tt">operator|</span>, so they can be combined directly as the template argument - or, equivalently, via the view-based <span class="tt">operator|</span> on the value itself:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">struct </span>point { <span class="keywordtype">int</span> x; <span class="keywordtype">int</span> y; };</div>
-<div class="line"><span class="keyword">struct </span>rect  { point top_left; point bottom_right; };</div>
-<div class="line"> </div>
-<div class="line"><span class="keyword">auto</span> main() -&gt; <span class="keywordtype">int</span> {</div>
-<div class="line">    <span class="keyword">using namespace </span>csl::ag::io;</div>
-<div class="line"> </div>
-<div class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> r = rect{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };</div>
-<div class="line"> </div>
-<div class="line">    to_string(r);                     <span class="comment">// &quot;{{0, 0}, {10, 5}}&quot;        (default, compact)</span></div>
-<div class="line">    to_string&lt;no_braces&gt;(r);          <span class="comment">// &quot;{0, 0}{10, 5}&quot;            (no outer brackets)</span></div>
-<div class="line">    to_string&lt;indented&gt;(r);           <span class="comment">// multiline, see below</span></div>
-<div class="line">    to_string&lt;indented | indexed&gt;(r); <span class="comment">// composed options, as NTTP</span></div>
-<div class="line">    to_string(r | indented | indexed); <span class="comment">// equivalent, view-based composition</span></div>
-<div class="line">}</div>
-</div><!-- fragment --><p><span class="tt">to_string&lt;indented&gt;(r)</span>:</p>
-<div class="fragment"><div class="line">{</div>
-<div class="line">    {</div>
-<div class="line">        0,</div>
-<div class="line">        0</div>
-<div class="line">    },</div>
-<div class="line">    {</div>
-<div class="line">        10,</div>
-<div class="line">        5</div>
-<div class="line">    }</div>
-<div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="homogeneity-api-with-tuple-likes"></a>
 Homogeneity API with tuple-likes</h2>
 <p>As is, it is quite easy to handle aggregates and tuple in an homogeneous way, despite limitation listed in the next section below.</p>
@@ -946,7 +899,7 @@ Homogeneity API with tuple-likes</h2>
 <div class="line">    do_stuff(A{ .i = 1, .f = 2.f });</div>
 <div class="line">    do_stuff(std::tuple&lt;int, float&gt;{ 1, 2.f });</div>
 <div class="line">}</div>
-<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1structured__bindable_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a></div><div class="ttdef"><b>Definition</b> ag.hpp:215</div></div>
+<div class="ttc" id="aconceptcsl_1_1ag_1_1concepts_1_1structured__bindable_html"><div class="ttname"><a href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a></div><div class="ttdef"><b>Definition</b> ag.hpp:218</div></div>
 </div><!-- fragment --><p><a href="https://godbolt.org/z/7WTnn9P5P"><img src="https://github.com/GuillaumeDua/CppShelf/blob/main/doc/details/images/compiler-explorer.png?raw=true" alt="CE" class="inline"/> Try me on compiler-explorer</a></p>
 <h2 class="doxsection"><a class="anchor" id="current-limitations"></a>
 Current limitations</h2>
@@ -999,8 +952,11 @@ Slow path - for non default_initializable&lt;T&gt; or when bitfield support is e
 <h2 class="doxsection"><a class="anchor" id="example"></a>
 Example</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ag.hpp&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;csl/ag/formatting/backend/std_format.hpp&gt;</span> <span class="comment">// opt-in: std::formatter support</span></div>
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;format&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;tuple&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">struct </span>point  { <span class="keywordtype">int</span> x, y; };</div>
@@ -1071,20 +1027,15 @@ Example</h2>
 <div class="line">    <span class="keyword">static_assert</span>(std::tuple_size_v&lt;<span class="keyword">decltype</span>(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>)&gt; == 2);</div>
 <div class="line">    <span class="keyword">static_assert</span>(std::get&lt;0&gt;(<a class="code hl_struct" href="structcsl_1_1ag_1_1view.html">view</a>) == 3);</div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">// --- opt-in: fmt formatting (CSL_AG__ENABLE_FMTLIB_SUPPORT) ---</span></div>
-<div class="line"><span class="preprocessor">#if defined(CSL_AG__ENABLE_FMTLIB_SUPPORT)</span></div>
-<div class="line">    fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value);  <span class="comment">// compact:  (3, 4)</span></div>
-<div class="line">    fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value | csl::ag::io::indented);  <span class="comment">// indented: multi-line</span></div>
-<div class="line"><span class="preprocessor">#endif</span></div>
+<div class="line">    <span class="comment">// --- opt-in: std::format formatting (#include &lt;csl/ag/formatting/backend/std_format.hpp&gt;) ---</span></div>
+<div class="line">    std::cout &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>, value);                          <span class="comment">// compact:  (3, 4)</span></div>
+<div class="line">    std::cout &lt;&lt; std::format(<span class="stringliteral">&quot;{}\n&quot;</span>, value | csl::ag::io::indented);  <span class="comment">// indented: multi-line</span></div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">// --- opt-in: std::format (CSL_AG__ENABLE_STD_FORMAT_SUPPORT) ---</span></div>
-<div class="line"><span class="preprocessor">#if defined(CSL_AG__ENABLE_STD_FORMAT_SUPPORT)</span></div>
-<div class="line">    std::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value);</div>
-<div class="line">    std::print(<span class="stringliteral">&quot;{}\n&quot;</span>, value | csl::ag::io::indented);</div>
-<div class="line"><span class="preprocessor">#endif</span></div>
+<div class="line">    <span class="comment">// --- opt-in: fmt formatting (#include &lt;csl/ag/formatting/backend/fmt.hpp&gt;) ---</span></div>
+<div class="line">    <span class="comment">// fmt::print(&quot;{}\n&quot;, value);</span></div>
+<div class="line">    <span class="comment">// fmt::print(&quot;{}\n&quot;, value | csl::ag::io::indented);</span></div>
 <div class="line">}</div>
 <div class="line"><span class="comment">// NOLINTEND(*-magic-numbers)</span></div>
-<div class="ttc" id="astructcsl_1_1ag_1_1view_html"><div class="ttname"><a href="structcsl_1_1ag_1_1view.html">csl::ag::view</a></div><div class="ttdef"><b>Definition</b> ag.hpp:797</div></div>
 </div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->

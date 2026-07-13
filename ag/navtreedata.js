@@ -68,8 +68,7 @@ var NAVTREE =
         [ "Formatting and printing", "index.html#formatting-and-printing-1", [
           [ "using std::format", "index.html#using-stdformat", null ],
           [ "using fmt", "index.html#using-fmt", null ],
-          [ "using std::ostream", "index.html#using-stdostream", null ],
-          [ "using <span class=\"tt\">to_string&lt;format_options&gt;</span>", "index.html#using-to_stringformat_options", null ]
+          [ "using std::ostream", "index.html#using-stdostream", null ]
         ] ]
       ] ],
       [ "Homogeneity API with tuple-likes", "index.html#homogeneity-api-with-tuple-likes", null ],

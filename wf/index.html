@@ -234,13 +234,13 @@ function_view&lt;F&gt;</h2>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> f = [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x * 2; };</div>
 <div class="line"><a class="code hl_struct" href="structcsl_1_1wf_1_1function__view.html">csl::wf::function_view</a> view{f};</div>
 <div class="line">view(21);  <span class="comment">// -&gt; 42</span></div>
-<div class="ttc" id="astructcsl_1_1wf_1_1function__view_html"><div class="ttname"><a href="structcsl_1_1wf_1_1function__view.html">csl::wf::function_view</a></div><div class="ttdef"><b>Definition</b> wf.hpp:946</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1function__view_html"><div class="ttname"><a href="structcsl_1_1wf_1_1function__view.html">csl::wf::function_view</a></div><div class="ttdef"><b>Definition</b> wf.hpp:949</div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="function_reff"></a>
 function_ref&lt;F&gt;</h2>
 <p>Stores <span class="tt">F</span> by <b>pointer</b>. Rebindable, swappable, nullable-checked on construction.</p>
 <div class="fragment"><div class="line"><a class="code hl_struct" href="structcsl_1_1wf_1_1function__ref.html">csl::wf::function_ref</a> ref{f};</div>
 <div class="line">ref(21);  <span class="comment">// -&gt; 42</span></div>
-<div class="ttc" id="astructcsl_1_1wf_1_1function__ref_html"><div class="ttname"><a href="structcsl_1_1wf_1_1function__ref.html">csl::wf::function_ref</a></div><div class="ttdef"><b>Definition</b> wf.hpp:1025</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1function__ref_html"><div class="ttname"><a href="structcsl_1_1wf_1_1function__ref.html">csl::wf::function_ref</a></div><div class="ttdef"><b>Definition</b> wf.hpp:1028</div></div>
 </div><!-- fragment --><p>Both throw <span class="tt">std::invalid_argument</span> if constructed from <span class="tt">nullptr</span>.</p>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="repetition"></a>
@@ -281,7 +281,7 @@ Route - pipeline composition</h1>
 <div class="line">    [](<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x * 3; }</div>
 <div class="line">};</div>
 <div class="line">r(4);  <span class="comment">// -&gt; 15</span></div>
-<div class="ttc" id="astructcsl_1_1wf_1_1route_html"><div class="ttname"><a href="structcsl_1_1wf_1_1route.html">csl::wf::route</a></div><div class="ttdef"><b>Definition</b> wf.hpp:1533</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1route_html"><div class="ttname"><a href="structcsl_1_1wf_1_1route.html">csl::wf::route</a></div><div class="ttdef"><b>Definition</b> wf.hpp:1536</div></div>
 </div><!-- fragment --><p>Access individual nodes with <span class="tt">r.at&lt;N&gt;()</span> or <span class="tt">csl::wf::get&lt;N&gt;(r)</span>.</p>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="edsl-operators"></a>
@@ -332,7 +332,7 @@ Chain traits - csl::wf::mp::chain_trait&lt;Fs...&gt;</h1>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static_assert</span>(pipe::is_invocable&lt;int&gt;);</div>
 <div class="line"><span class="keyword">static_assert</span>(std::same_as&lt;pipe::invoke_result_t&lt;int&gt;, std::string&gt;);</div>
-<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1chain__trait_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1chain__trait.html">csl::wf::mp::chain_trait</a></div><div class="ttdef"><b>Definition</b> wf.hpp:1461</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1chain__trait_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1chain__trait.html">csl::wf::mp::chain_trait</a></div><div class="ttdef"><b>Definition</b> wf.hpp:1464</div></div>
 </div><!-- fragment --><hr  />
 <h1 class="doxsection"><a class="anchor" id="example"></a>
 Example</h1>
@@ -423,8 +423,8 @@ Example</h1>
 <div class="line">    assert(fref(43) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
 <div class="line">    assert(fvw (43) == 42); <span class="comment">// NOLINT(*-assert)</span></div>
 <div class="line">}</div>
-<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1args_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1args.html">csl::wf::mp::args</a></div><div class="ttdef"><b>Definition</b> wf.hpp:141</div></div>
-<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1ttps_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1ttps.html">csl::wf::mp::ttps</a></div><div class="ttdef"><b>Definition</b> wf.hpp:130</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1args_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1args.html">csl::wf::mp::args</a></div><div class="ttdef"><b>Definition</b> wf.hpp:144</div></div>
+<div class="ttc" id="astructcsl_1_1wf_1_1mp_1_1ttps_html"><div class="ttname"><a href="structcsl_1_1wf_1_1mp_1_1ttps.html">csl::wf::mp::ttps</a></div><div class="ttdef"><b>Definition</b> wf.hpp:133</div></div>
 </div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->

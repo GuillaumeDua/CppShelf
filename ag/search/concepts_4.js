@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['opt_5fin_5fstd_5ftuple_5finterface_0',['opt_in_std_tuple_interface',['../conceptcsl_1_1ag_1_1concepts_1_1opt__in__std__tuple__interface.html',1,'csl::ag::concepts']]]
+  ['non_5fstl_5faggregate_0',['non_stl_aggregate',['../conceptcsl_1_1ag_1_1tuplelike_1_1concepts_1_1non__stl__aggregate.html',1,'csl::ag::tuplelike::concepts']]]
 ];
