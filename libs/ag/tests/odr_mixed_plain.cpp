@@ -11,6 +11,10 @@
 // NOLINTBEGIN(*-avoid-do-while)
 // NOLINTBEGIN(*-avoid-magic-numbers)
 
+#if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
+# error "CSL_AG_TEST__WITH_TYPEINFO must not be defined for this test"
+#endif
+
 namespace test::ag::odr {
     struct plain { char c; };
 }

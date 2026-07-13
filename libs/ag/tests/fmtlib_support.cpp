@@ -38,8 +38,7 @@ namespace tests::concepts::fmt_formattable {
 
     // wired into fmt::formatter<formatted_view_t<T>> (composite view):
     // a non-formattable field disables the specialization, so fmt::is_formattable answers false.
-    // NOTE: the field must be a non-aggregate - an (even empty) aggregate is formattable
-    //       through this library's own blanket fmt::formatter
+    // NOTE: the field must be a non-aggregate - an (even empty) aggregate is formattable through this library's own blanket fmt::formatter
     struct not_formattable_field { explicit not_formattable_field() = default; };
     struct with_not_formattable_field { not_formattable_field f; };
     static_assert(not concepts::fmt_formattable<with_not_formattable_field, char>);
