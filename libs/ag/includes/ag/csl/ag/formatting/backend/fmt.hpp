@@ -1,10 +1,41 @@
 #pragma once
-// cpp shelf library : aggregates utility - formatting: fmtlib support (opt-in feature header)
-// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
-// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
-// Provides fmt::formatter specializations for aggregates and formatted views (see operator|) via csl::ag::io.
-// fmtlib is provided by the consumer.
+/// @file
+/// @brief fmtlib support for structured bindables (opt-in feature header).
+///
+/// cpp shelf library : aggregates utility - formatting.
+///
+/// Provides `fmt::formatter` specializations for aggregates and formatted views (see operator|) via `csl::ag::io`.
+///
+/// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
+/// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
+///
+/// @warning Adds blanket specializations: like @c <fmt/ranges.h>, include this header
+///          **consistently across the whole program** (ODR).
+///
+/// @par Requirements
+///      fmtlib (https://github.com/fmtlib/fmt) is provided by the consumer - this header does not fetch it.
+///      fmtlib >= 11 is required for the @c :n specifier.
+///
+/// @par Design
+///      - Blanket @c fmt::formatter<T> for any aggregate @c T (non-range, non-decorator) whose fields are all formattable.
+///      - Composable @c format_options selected via format-spec letters, or via the view-based @c operator| API - both are equivalent, and mixable:
+///         @code
+///         fmt::format("{}", value)                                       // default: braced, compact
+///         fmt::format("{:n}", value)                                     // flat, naked: no outer brackets or separator
+///         fmt::format("{}", value | csl::ag::io::indented)               // multiline, depth-indented
+///         fmt::format("{}", value | csl::ag::io::indexed)                // braced with [N] field indexes
+///         fmt::format("{}", value | csl::ag::io::typenamed)              // braced with TypeName: prefixes
+///         fmt::format("{:ixt}", value)                                   // spec letters compose too
+///         @endcode
+///      - Options propagate to nested structured_bindable fields (no_braces is outermost-only).
+///      - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "...".
+///
+/// @par Usage
+///      @code
+///      using namespace csl::ag::io;
+///      fmt::println("{}", my_aggregate);
+///      @endcode
 
 #if not defined(CSL_AG__INCLUDED)
 #   include <csl/ag.hpp>

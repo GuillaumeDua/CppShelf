@@ -1,9 +1,39 @@
 #pragma once
-// cpp shelf library : aggregates utility - formatting: std::format support (opt-in feature header)
-// under MIT License - Copyright (c) 2021 Guillaume Dua "Guss"
-// https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 
-// Provides std::formatter specializations for aggregates and formatted views (see operator|) via csl::ag::io.
+/// @file
+/// @brief std::format support for structured bindables (opt-in feature header).
+///
+/// cpp shelf library : aggregates utility - formatting.
+///
+/// Provides `std::formatter` specializations for aggregates and formatted views (see operator|) via `csl::ag::io`.
+///
+/// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
+/// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
+///
+/// @warning Adds blanket specializations: like @c <fmt/ranges.h>, include this header
+///          **consistently across the whole program** (ODR).
+///
+/// @par Design
+///      - Blanket @c std::formatter<T> for any aggregate @c T (non-range, non-decorator) whose fields are all formattable.
+///      - Composable @c format_options selected via format-spec letters, or via the view-based @c operator| API - both are equivalent, and mixable:
+///         @code
+///         std::format("{}", value)                                       // default: braced, compact
+///         std::format("{:n}", value)                                     // flat, naked: no outer brackets or separator
+///         std::format("{}", value | csl::ag::io::indented)               // multiline, depth-indented
+///         std::format("{}", value | csl::ag::io::indexed)                // braced with [N] field indexes
+///         std::format("{}", value | csl::ag::io::typenamed)              // braced with TypeName: prefixes
+///         std::format("{:ixt}", value)                                   // spec letters compose too
+///         @endcode
+///      - Options propagate to nested structured_bindable fields (no_braces is outermost-only).
+///      - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "...".
+///      - Tuple-like and range fields are formatted by this library's own machinery:
+///        no dependency on the STL's P2286 formatters (e.g. absent in libstdc++ 13).
+///
+/// @par Usage
+///      @code
+///      using namespace csl::ag::io;
+///      std::println("{}", my_aggregate);
+///      @endcode
 
 #if not defined(CSL_AG__INCLUDED)
 #   include <csl/ag.hpp>

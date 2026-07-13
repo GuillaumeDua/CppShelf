@@ -782,10 +782,11 @@ Output:
 
 ### Formatting and printing
 
-There are two ways to pretty-print aggregate types, each being an opt-in **feature header**:
+There are 3 ways to pretty-print aggregate types, each being an opt-in **feature header** offering a dedicated backend wiring:
 
-- (✅ Best) using `std::format` (`csl/ag/formatting/backend/std_format.hpp`) or the `fmt` library (`csl/ag/formatting/backend/fmt.hpp`)
-- using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/backend/ostream.hpp`)
+- (✅ Best) Using `std::format` (`csl/ag/formatting/backend/std_format.hpp`)
+- (🟡 OK) Using the `fmt` library (`csl/ag/formatting/backend/fmt.hpp`) - best if `std::format` is not available.
+- (🔴 Worst) Using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/backend/ostream.hpp`)
 
 Backends may coexist in the same translation unit - each one specializes a different framework's entity.  
 The `typenamed` option renders compile-time, demangled type names when `csl/ag/formatting/typeinfo.hpp` is included,
@@ -810,13 +811,16 @@ Opt-in by include:
 
 This specializes `std::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
 
-Three format modes are available:
+Format modes - each reachable as a format-spec letter, and/or as its composable-view equivalent (`"{}"` on the composed view; tags live in `csl::ag::io`):
 
-| Format string                              | Output style                                                 |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| `"{}"`                                     | compact - fields wrapped in `{}`, nested aggregates recursed |
-| `"{:n}"`                                   | no outer brackets                                            |
-| `"{}"` on `value \| csl::ag::io::indented` | indented multi-line                                          |
+| Format string | View equivalent (`"{}"` on)                 | Output style                                                 |
+| ------------- | ------------------------------------------- | ------------------------------------------------------------ |
+| `"{}"`        | `value`                                     | compact - fields wrapped in `{}`, nested aggregates recursed |
+| `"{:n}"`      | `value \| no_braces`                        | no outer brackets (outermost-only)                           |
+| `"{:i}"`      | `value \| indented`                         | indented multi-line                                          |
+| `"{:x}"`      | `value \| indexed`                          | `[N]` field indexes                                          |
+| `"{:t}"`      | `value \| typenamed`                        | `TypeName:` field prefixes                                   |
+| `"{:ixt}"`    | `value \| indented \| indexed \| typenamed` | composed options (any combination, any order)                |
 
 Example:
 
@@ -832,10 +836,11 @@ constexpr auto r = rectangle{
 using namespace csl::ag::io;
 // NOTE: prefer std::print, if available
 std::cout
-    << std::format("{}\n",   r)                                     // compact
-    << std::format("{:n}\n", r)                                     // no brackets
-    << std::format("{}\n",   r | indented)                          // indented
-    << std::format("{}\n",   r | indexed | typenamed | indented)    // indexed, typenamed, indented
+    << std::format("{}\n",     r)                                   // compact
+    << std::format("{:n}\n",   r)                                   // no brackets
+    << std::format("{}\n",     r | indented)                        // indented
+    << std::format("{}\n",     r | indexed | typenamed | indented)  // indexed, typenamed, indented
+    << std::format("{:xti}\n", r)                                   // indexed, typenamed, indented
 ;
 ```
 
@@ -866,7 +871,7 @@ Indented (`| csl::ag::io::indented`):
 }
 ```
 
-Indexed and typenamed and indented (`| indexed | typenamed | indented`):
+Indexed and typenamed and indented (`{:xti}` and/or `| indexed | typenamed | indented`):
 
 ```text
 {

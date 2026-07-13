@@ -59,7 +59,10 @@ namespace csl::ag::io::details {
         os << v;
     };
 
-    static inline auto mode_index() noexcept -> int {
+    // NOTE: external linkage (inline, not static) is required here:
+    //       the local static must be the same object in every TU ([dcl.inline]/6),
+    //       or each TU would xalloc() its own iword slot.
+    inline auto mode_index() noexcept -> int {
         static const int index = std::ios_base::xalloc();
         return index;
     }
@@ -201,7 +204,7 @@ namespace csl::ag::io {
 
     /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword.
     template <typename T>
-    static auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T> const & view)
+    auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T> const & view)
     -> std::ostream &
     {
         details::print(os, view.value, view.options, view.depth);

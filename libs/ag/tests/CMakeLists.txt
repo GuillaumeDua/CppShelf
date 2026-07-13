@@ -95,8 +95,9 @@ endfunction()
 #     - no_typeinfo: <typeindex> runtime fallback (deterministic, implementation-defined names)
 #
 #   Outside the matrix:
-#     - formatting_coexistence.cpp:   every feature header in one TU
-#     - odr_mixed_{bridge,plain}.cpp: one binary, two TUs, only one includes the bridge
+#     - formatting_coexistence.cpp:      every feature header in one TU
+#     - odr_mixed_{bridge,plain}.cpp:    one binary, two TUs, only one includes the bridge
+#     - ostream_iword_cross_tu*.cpp:     one binary, two TUs, iword slot must be program-wide
 # ---------------------------------------------------------------------------------------------
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
@@ -149,8 +150,7 @@ foreach(bitfields IN ITEMS 0 1)
 
 endforeach()
 
-# Every formatting feature header in a single TU: backends must coexist (each specializes
-# a different framework's entity)
+# Every formatting feature header in a single TU: backends must coexist (each specializes a different framework's entity)
 csl_ag_make_test_target(
     NAME        formatting_coexistence
     SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/formatting_coexistence.cpp
@@ -160,12 +160,21 @@ csl_ag_make_test_target(
 )
 add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
 
-# ODR sanity (fmt-style feature-header contract): two TUs, only one includes the typeinfo
-# bridge, each formats different types - must link and behave deterministically
+# ODR sanity (fmt-style feature-header contract):
+# - two TUs, only one includes the typeinfo bridge, each formats different types - must link and behave deterministically
 csl_ag_make_test_target(
     NAME        odr_mixed
     SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/odr_mixed_bridge.cpp ${CMAKE_CURRENT_SOURCE_DIR}/odr_mixed_plain.cpp
     EXTRA_LIBS  ${PROJECT_NAME}::typeinfo
+    RESULT      target_name
+)
+add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+# iword cross-TU contract: two TUs
+# - a manipulator applied in one TU must be seen by a print in the other (details::mode_index() must yield one xalloc slot program-wide)
+csl_ag_make_test_target(
+    NAME        ostream_iword_cross_tu
+    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/ostream_iword_cross_tu.cpp ${CMAKE_CURRENT_SOURCE_DIR}/ostream_iword_cross_tu_remote.cpp
     RESULT      target_name
 )
 add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
