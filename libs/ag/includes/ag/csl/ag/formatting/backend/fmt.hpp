@@ -38,6 +38,9 @@
 ///      @endcode
 
 #if not defined(CSL_AG__INCLUDED)
+#   if not __has_include(<csl/ag.hpp>)
+#       error "[csl::ag] csl/ag/formatting/backend/fmt.hpp : missing <csl/ag.hpp>. This is an opt-in feature header: make <csl/ag.hpp> reachable, or #include it before this header (e.g. on Compiler Explorer, using its raw URL)."
+#   endif
 #   include <csl/ag.hpp>
 #endif
 
