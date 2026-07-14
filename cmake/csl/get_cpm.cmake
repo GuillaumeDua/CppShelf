@@ -1,6 +1,6 @@
 include_guard(GLOBAL)
 
-set(CSL_GET_CPM_DEFAULT_VERSION "0.42.1" CACHE STRING "Default CPM.cmake version used by csl_get_cpm()")
+set(CSL_GET_CPM_DEFAULT_VERSION "0.43.1" CACHE STRING "Default CPM.cmake version used by csl_get_cpm()")
 
 # csl_get_cpm([VERSION <version>])
 #
