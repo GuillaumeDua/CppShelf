@@ -134,7 +134,7 @@ RUN apt update -qqy && apt install -qqy --no-install-recommends \
         bash zsh \
     # && yes '' | sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" \
     # ZSH: Default powerline10k theme, no plugins installed
-    && yes | sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.5/zsh-in-docker.sh)" \
+    && yes | sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" \
     && rm -rf /var/lib/apt/lists/*
 # see https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell
 
