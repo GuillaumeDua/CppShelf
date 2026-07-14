@@ -10,8 +10,8 @@
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 ///
-/// @warning Adds blanket specializations: like @c <fmt/ranges.h>, include this header
-///          **consistently across the whole program** (ODR).
+/// @warning Adds blanket specializations: like @c <fmt/ranges.h>,
+///          include this header **consistently across the whole program** (ODR).
 ///
 /// @par Design
 ///      - Blanket @c std::formatter<T> for any aggregate @c T (non-range, non-decorator) whose fields are all formattable.

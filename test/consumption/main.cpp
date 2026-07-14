@@ -2,6 +2,7 @@
 #include <csl/ag/formatting/backend/std_format.hpp>
 #include <csl/ag/formatting/typeinfo.hpp>
 #include <csl/ensure.hpp>
+#include <csl/ensure/formatting/backend/std_format.hpp>
 #include <csl/functional.hpp>
 #include <csl/mp.hpp>
 #include <csl/typeinfo.hpp>
@@ -14,6 +15,7 @@ static_assert(csl::ag::size_v<point> == 2);
 
 using id = csl::ensure::strong_type<int, struct id_tag>;
 static_assert(std::is_constructible_v<id, int>);
+static_assert(std::formattable<id, char>);
 
 static_assert(std::is_same_v<
     csl::functional::function_trait<bool(int, char)>::result_type,

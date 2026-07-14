@@ -10,8 +10,8 @@
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 ///
-/// @warning Adds blanket specializations: like @c <fmt/ranges.h>, include this header
-///          **consistently across the whole program** (ODR).
+/// @warning Adds blanket specializations: like @c <fmt/ranges.h>,
+///          include this header **consistently across the whole program** (ODR).
 ///
 /// @par Requirements
 ///      fmtlib (https://github.com/fmtlib/fmt) is provided by the consumer - this header does not fetch it.

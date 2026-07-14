@@ -36,13 +36,8 @@
         "CSL_EXAMPLE": true,
         "CSL_DOC": true,
         "CSL_BENCHMARK": true,
-        "CSL_INSTALL": true,
-        // CSL OPT-INS
-        // TODO(Guss): test matrix
-        // csl::ensure
-        "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT": true,
-        "CSL_ENSURE__ENABLE_FMT_SUPPORT": true
-        // csl::ag formatting opt-ins are feature headers (csl/ag/formatting/*.hpp), not macros
+        "CSL_INSTALL": true
+        // formatting opt-ins are feature headers (csl/<name>/formatting/backend/*.hpp), not macros
     },
     "cmake.options.statusBarVisibility": "compact",
     "[cpp][c]": {
