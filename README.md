@@ -261,17 +261,17 @@ Using the way you prefer, acquire a component/library file.
 - etc.
 
 Use it in your project using an `#include` preprocessor directive.  
-Refer to the component's documention to check for configuration preprocessor constant.
+Refer to the component's documentation for available opt-in **feature headers**.
 
 Example:
 
 ```cpp
-#define CSL_ENSURE__ENABLE_FMT_SUPPORT // enable `fmt` support, if available
 #include <csl/ensure.hpp>
+#include <csl/ensure/formatting/backend/fmt.hpp> // opt-in: fmt::formatter support
 
 void func(){
     using meters = csl::ensure::strong_type<int, struct meter_tag>;
-    fmt::print(meters{ 42 });
+    fmt::print("{}", meters{ 42 });
 }
 ```
 
@@ -343,16 +343,17 @@ int: 42
 #### All: pretty-printing
 
 `csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`.  
-For `csl::ag`, each is an opt-in **feature header** (`csl/ag/formatting/*.hpp`); for `csl::ensure`, an opt-in macro `CSL_ENSURE__ENABLE_<backend>_SUPPORT`.
+Each is an opt-in **feature header**: `csl/ag/formatting/backend/*.hpp` for `csl::ag`, `csl/ensure/formatting/backend/*.hpp` for `csl::ensure`.
 
 See live [demonstration here](https://godbolt.org/z/sxbvjGj4K).
 
 ```cpp
 #include <csl/typeinfo.hpp>
-#include <csl/cxx20/ensure.hpp>                     // with CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT enabled from CMake cache
+#include <csl/ensure.hpp>
+#include <csl/ensure/formatting/backend/std_format.hpp> // opt-in: std::formatter support (strong types)
 #include <csl/ag.hpp>
-#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
-#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: compile-time type names for `typenamed`
+#include <csl/ag/formatting/backend/std_format.hpp>     // opt-in: std::formatter support (aggregates)
+#include <csl/ag/formatting/typeinfo.hpp>               // opt-in: compile-time type names for `typenamed`
 
 #include <print>
 

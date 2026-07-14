@@ -144,44 +144,47 @@ CPO types are also provided for use as explicit comparators/hashers in container
 
 ## Opt-in features
 
-Enabled via preprocessor defines before including the header.
+Formatting backends are **not macros, nor CMake options**: each is an opt-in **feature header** - `#include` what you need
+(same model as fmtlib's `<fmt/ranges.h>`, and as `csl::ag`):
 
-### CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT
+| Feature header | Provides | Requires |
+| -------------- | -------- | -------- |
+| `csl/ensure/formatting/backend/std_format.hpp` | `std::formatter` specialization | `<format>` (C++20) |
+| `csl/ensure/formatting/backend/fmt.hpp` | `fmt::formatter` specialization | [fmtlib](https://github.com/fmtlib/fmt), provided by the consumer |
+| `csl/ensure/formatting/backend/ostream.hpp` | `operator<<(std::ostream &, ...)` in `csl::io` | - |
 
-Adds `operator<<` for `std::ostream`, delegating to the underlying type's stream operator:
+Each delegates to the underlying type's formatter/stream operator - format-spec included - and only participates when the underlying type supports the operation.
 
-```cpp
-#define CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT
-#include <ensure/csl/ensure.hpp>
+> [!IMPORTANT]
+> Like `<fmt/ranges.h>`, a feature header must be included **consistently across the whole program** (ODR).
 
-std::cout << meters{ 42 } << '\n';  // prints: 42
-```
-
-### CSL_ENSURE__ENABLE_FMT_SUPPORT
-
-Adds a `fmt::formatter` specialisation, delegating to the underlying type's formatter:
-
-```cpp
-#define CSL_ENSURE__ENABLE_FMT_SUPPORT
-#include <ensure/csl/ensure.hpp>
-
-fmt::print("{}\n", meters{ 42 });   // prints: 42
-```
-
-Requires `<fmt/core.h>` and `<fmt/format.h>` to be available.
-
-### CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT
-
-Adds a `std::formatter` specialisation, delegating to the underlying type's formatter:
+### std::format
 
 ```cpp
-#define CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT
-#include <ensure/csl/ensure.hpp>
+#include <csl/ensure/formatting/backend/std_format.hpp>
 
-std::println("{}", meters{ 42 });   // prints: 42
+std::println("{}", meters{ 42 });       // prints: 42
+std::format("{:#x}", meters{ 42 });     // == std::format("{:#x}", 42)
 ```
 
-Requires `<format>` to be available.
+### fmt
+
+```cpp
+#include <csl/ensure/formatting/backend/fmt.hpp>
+
+fmt::print("{}\n", meters{ 42 });       // prints: 42
+```
+
+### std::ostream
+
+```cpp
+#include <csl/ensure/formatting/backend/ostream.hpp>
+
+using namespace csl::io;
+std::cout << meters{ 42 } << '\n';      // prints: 42
+```
+
+Each backend keeps its native formatting idiom - `std::format("{}", value)`, `fmt::format("{}", value)`, `stream << value`: `csl::ensure` offers no homogeneous API across backends (at least, for now).
 
 ---
 

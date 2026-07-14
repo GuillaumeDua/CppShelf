@@ -10,3 +10,9 @@
 #else
 # error "csl::ensure: requires at least C++17"
 #endif
+
+// Formatting backends are opt-in feature headers, include them consistently program-wide:
+//
+//  <csl/ensure/formatting/backend/std_format.hpp>  std::formatter support (requires C++20)
+//  <csl/ensure/formatting/backend/fmt.hpp>         fmt::formatter support (fmtlib is provided by the consumer)
+//  <csl/ensure/formatting/backend/ostream.hpp>     operator<<(std::ostream &, ...) support

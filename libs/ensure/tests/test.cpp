@@ -1,12 +1,13 @@
 #include <csl/ensure.hpp>
+#include <csl/ensure/formatting/backend/ostream.hpp>
+#include <csl/ensure/formatting/backend/fmt.hpp>
+#if __cplusplus >= 202002L
+#   include <csl/ensure/formatting/backend/std_format.hpp>
+#endif
 #include <csl/internal/test/types/semantic.hpp>
 
 #include <type_traits>
 #include <string>
-
-#if defined(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT) and __cplusplus >= 202002L
-#include <print>
-#endif
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
@@ -349,16 +350,17 @@ TEST_CASE("ensure::CPO::three_way", "[ensure][compile_time]") {
 }
 #endif
 
-#if defined(CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT)
-#include <iostream>
+#include <sstream>
 TEST_CASE("ensure::io::ostream", "[ensure][runtime]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     using namespace csl::io;
-    std::cout << "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT: value = " << mm{42} << '\n'; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-}
-#endif
 
-#if defined(CSL_ENSURE__ENABLE_FMT_SUPPORT)
+    // delegates to the underlying type's operator<<
+    auto os = std::ostringstream{};
+    os << mm{42}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    CHECK(os.str() == "42");
+}
+
 #if defined(__cpp_concepts)
 TEST_CASE("ensure::io::fmt::formattable", "[ensure][compile_time]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
@@ -373,12 +375,9 @@ TEST_CASE("ensure::io::fmt", "[ensure][runtime]") {
     CHECK(fmt::format("{}",    mm{42}) == fmt::format("{}",    42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     CHECK(fmt::format("{:5}",  mm{42}) == fmt::format("{:5}",  42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     CHECK(fmt::format("{:#x}", mm{42}) == fmt::format("{:#x}", 42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-
-    fmt::print("CSL_ENSURE__ENABLE_FMT_SUPPORT: value = {}\n", mm{42}); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
-#endif
 
-#if defined(CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT) and __cplusplus >= 202002L
+#if __cplusplus >= 202002L
 TEST_CASE("ensure::io::std_format::formattable", "[ensure][compile_time]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     STATIC_REQUIRE(std::formattable<mm, char>);
@@ -391,7 +390,5 @@ TEST_CASE("ensure::io::std_format", "[ensure][runtime]") {
     CHECK(std::format("{}",    mm{42}) == std::format("{}",    42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     CHECK(std::format("{:5}",  mm{42}) == std::format("{:5}",  42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     CHECK(std::format("{:#x}", mm{42}) == std::format("{:#x}", 42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-
-    std::println("CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT: value = {}", mm{42}); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 #endif
