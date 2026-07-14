@@ -8,6 +8,9 @@ var hierarchy =
       [ "csl::ensure::type_traits::is_strong_type_of< typename, typename >", "structcsl_1_1ensure_1_1type__traits_1_1is__strong__type__of.html", null ],
       [ "csl::ensure::type_traits::is_tagged_by< typename, typename >", "structcsl_1_1ensure_1_1type__traits_1_1is__tagged__by.html", null ]
     ] ],
+    [ "formatter", null, [
+      [ "std::formatter< csl::ensure::strong_type< T, tag > >", "structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html", null ]
+    ] ],
     [ "csl::ensure::strong_type&lt; T, tag &gt;", "structcsl_1_1ensure_1_1strong__type.html", null ],
     [ "csl::ensure::strong_type_compare_three_way", "structcsl_1_1ensure_1_1strong__type__compare__three__way.html", null ],
     [ "csl::ensure::strong_type_equal_to", "structcsl_1_1ensure_1_1strong__type__equal__to.html", null ],

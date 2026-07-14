@@ -19,13 +19,13 @@ var NAVTREEINDEX0 =
 "index.html#comparison":[0,1,1],
 "index.html#concepts---cslensureconcepts":[0,3],
 "index.html#construction-and-access":[0,1,0],
-"index.html#csl_ensure__enable_fmt_support":[0,5,1],
-"index.html#csl_ensure__enable_iostream_support":[0,5,0],
-"index.html#csl_ensure__enable_std_format_support":[0,5,2],
 "index.html#example":[0,6],
+"index.html#fmt":[0,5,1],
 "index.html#include":[0,0],
 "index.html#invocation":[0,1,2],
 "index.html#opt-in-features":[0,5],
+"index.html#stdformat":[0,5,0],
+"index.html#stdostream":[0,5,2],
 "index.html#stl-compatibility":[0,4],
 "index.html#strong_typet-tag":[0,1],
 "index.html#type-traits---cslensuretype_traits":[0,2],
@@ -46,5 +46,6 @@ var NAVTREEINDEX0 =
 "structcsl_1_1ensure_1_1type__traits_1_1underlying__type_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html":[2,0,0,0,0,7],
 "structcsl_1_1ensure_1_1type__traits_1_1unwrap__result__type.html":[2,0,0,0,0,10],
 "structcsl_1_1ensure_1_1type__traits_1_1unwrap__result__type_3_01T_01_4.html":[2,0,0,0,0,11],
-"structstd_1_1hash_3_01T_01_4.html":[2,0,1,0]
+"structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html":[2,0,1,0],
+"structstd_1_1hash_3_01T_01_4.html":[2,0,1,1]
 };

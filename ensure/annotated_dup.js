@@ -23,6 +23,7 @@ var annotated_dup =
       ] ]
     ] ],
     [ "std", null, [
+      [ "formatter&lt; csl::ensure::strong_type&lt; T, tag &gt; &gt;", "structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html", null ],
       [ "hash&lt; T &gt;", "structstd_1_1hash_3_01T_01_4.html", null ]
     ] ]
 ];

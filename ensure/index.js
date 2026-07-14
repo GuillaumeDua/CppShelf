@@ -10,9 +10,9 @@ var index =
     [ "Concepts - csl::ensure::concepts", "index.html#concepts---cslensureconcepts", null ],
     [ "STL compatibility", "index.html#stl-compatibility", null ],
     [ "Opt-in features", "index.html#opt-in-features", [
-      [ "CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT", "index.html#csl_ensure__enable_iostream_support", null ],
-      [ "CSL_ENSURE__ENABLE_FMT_SUPPORT", "index.html#csl_ensure__enable_fmt_support", null ],
-      [ "CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT", "index.html#csl_ensure__enable_std_format_support", null ]
+      [ "std::format", "index.html#stdformat", null ],
+      [ "fmt", "index.html#fmt", null ],
+      [ "std::ostream", "index.html#stdostream", null ]
     ] ],
     [ "Example", "index.html#example", null ]
 ];

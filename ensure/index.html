@@ -256,30 +256,37 @@ STL compatibility</h1>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="opt-in-features"></a>
 Opt-in features</h1>
-<p>Enabled via preprocessor defines before including the header.</p>
-<h2 class="doxsection"><a class="anchor" id="csl_ensure__enable_iostream_support"></a>
-CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT</h2>
-<p>Adds <span class="tt">operator&lt;&lt;</span> for <span class="tt">std::ostream</span>, delegating to the underlying type's stream operator:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_ENSURE__ENABLE_IOSTREAM_SUPPORT</span></div>
-<div class="line"><span class="preprocessor">#include &lt;ensure/csl/ensure.hpp&gt;</span></div>
+<p>Formatting backends are <b>not macros, nor CMake options</b>: each is an opt-in <b>feature header</b> - <span class="tt">#include</span> what you need (same model as fmtlib's <span class="tt">&lt;fmt/ranges.h&gt;</span>, and as <span class="tt">csl::ag</span>):</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Feature header  </th><th class="markdownTableHeadNone">Provides  </th><th class="markdownTableHeadNone">Requires  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">csl/ensure/formatting/backend/std_format.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::formatter</span> specialization  </td><td class="markdownTableBodyNone"><span class="tt">&lt;format&gt;</span> (C++20)  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">csl/ensure/formatting/backend/fmt.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">fmt::formatter</span> specialization  </td><td class="markdownTableBodyNone"><a href="https://github.com/fmtlib/fmt">fmtlib</a>, provided by the consumer  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">csl/ensure/formatting/backend/ostream.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">operator&lt;&lt;(std::ostream &amp;, ...)</span> in <span class="tt">csl::io</span>  </td><td class="markdownTableBodyNone">-  </td></tr>
+</table>
+<p>Each delegates to the underlying type's formatter/stream operator - format-spec included - and only participates when the underlying type supports the operation.</p>
+<dl class="section important"><dt>Important</dt><dd>Like <span class="tt">&lt;fmt/ranges.h&gt;</span>, a feature header must be included <b>consistently across the whole program</b> (ODR).</dd></dl>
+<h2 class="doxsection"><a class="anchor" id="stdformat"></a>
+std::format</h2>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ensure/formatting/backend/std_format.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line">std::cout &lt;&lt; meters{ 42 } &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;  <span class="comment">// prints: 42</span></div>
-</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="csl_ensure__enable_fmt_support"></a>
-CSL_ENSURE__ENABLE_FMT_SUPPORT</h2>
-<p>Adds a <span class="tt">fmt::formatter</span> specialisation, delegating to the underlying type's formatter:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_ENSURE__ENABLE_FMT_SUPPORT</span></div>
-<div class="line"><span class="preprocessor">#include &lt;ensure/csl/ensure.hpp&gt;</span></div>
+<div class="line">std::println(<span class="stringliteral">&quot;{}&quot;</span>, meters{ 42 });       <span class="comment">// prints: 42</span></div>
+<div class="line">std::format(<span class="stringliteral">&quot;{:#x}&quot;</span>, meters{ 42 });     <span class="comment">// == std::format(&quot;{:#x}&quot;, 42)</span></div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="fmt"></a>
+fmt</h2>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ensure/formatting/backend/fmt.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line">fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, meters{ 42 });   <span class="comment">// prints: 42</span></div>
-</div><!-- fragment --><p>Requires <span class="tt">&lt;fmt/core.h&gt;</span> and <span class="tt">&lt;fmt/format.h&gt;</span> to be available.</p>
-<h2 class="doxsection"><a class="anchor" id="csl_ensure__enable_std_format_support"></a>
-CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT</h2>
-<p>Adds a <span class="tt">std::formatter</span> specialisation, delegating to the underlying type's formatter:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define CSL_ENSURE__ENABLE_STD_FORMAT_SUPPORT</span></div>
-<div class="line"><span class="preprocessor">#include &lt;ensure/csl/ensure.hpp&gt;</span></div>
+<div class="line">fmt::print(<span class="stringliteral">&quot;{}\n&quot;</span>, meters{ 42 });       <span class="comment">// prints: 42</span></div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="stdostream"></a>
+std::ostream</h2>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/ensure/formatting/backend/ostream.hpp&gt;</span></div>
 <div class="line"> </div>
-<div class="line">std::println(<span class="stringliteral">&quot;{}&quot;</span>, meters{ 42 });   <span class="comment">// prints: 42</span></div>
-</div><!-- fragment --><p>Requires <span class="tt">&lt;format&gt;</span> to be available.</p>
+<div class="line"><span class="keyword">using namespace </span>csl::io;</div>
+<div class="line">std::cout &lt;&lt; meters{ 42 } &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;      <span class="comment">// prints: 42</span></div>
+</div><!-- fragment --><p>Each backend keeps its native formatting idiom - <span class="tt">std::format("{}", value)</span>, <span class="tt">fmt::format("{}", value)</span>, <span class="tt">stream &lt;&lt; value</span>: <span class="tt">csl::ensure</span> offers no homogeneous API across backends (at least, for now).</p>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="example"></a>
 Example</h1>
