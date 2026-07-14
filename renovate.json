@@ -9,7 +9,9 @@
     {
       "customType": "regex",
       "description": "CPM.cmake bootstrap version pinned in csl_get_cpm()",
-      "fileMatch": ["^cmake/csl/get_cpm\\.cmake$"],
+      "managerFilePatterns": [
+        "/^cmake/csl/get_cpm\\.cmake$/"
+      ],
       "matchStrings": [
         "set\\(CSL_GET_CPM_DEFAULT_VERSION\\s+\"(?<currentValue>[^\"]+)\"\\s+CACHE"
       ],
@@ -20,7 +22,9 @@
     {
       "customType": "regex",
       "description": "zsh-in-docker release URL in Dockerfile",
-      "fileMatch": ["^\\.devcontainer/Dockerfile$"],
+      "managerFilePatterns": [
+        "/^\\.devcontainer/Dockerfile$/"
+      ],
       "matchStrings": [
         "github\\.com/deluan/zsh-in-docker/releases/download/v(?<currentValue>[^/]+)/zsh-in-docker\\.sh"
       ],
