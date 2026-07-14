@@ -43,7 +43,7 @@ jobs:
           - { preset: gcc,             compiler: gcc,   version: latest-stable }
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set CPM env vars
       run: |
@@ -51,7 +51,7 @@ jobs:
         echo "CPM_USE_LOCAL_PACKAGES=ON" >> $GITHUB_ENV
 
     - name: Cache CPM packages
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.cache/CPM
         key: cpm-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/cmake/**') }}
@@ -63,7 +63,7 @@ jobs:
         echo "CCACHE_MAXSIZE=300M" >> $GITHUB_ENV
 
     - name: Cache ccache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.cache/ccache
         key: ccache-${{ runner.os }}-${{ matrix.configuration.preset }}-${{ matrix.configuration.version }}-${{ github.run_id }}
