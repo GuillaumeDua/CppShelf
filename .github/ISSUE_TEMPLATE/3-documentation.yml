@@ -1,0 +1,36 @@
+name: Documentation issue
+description: Report incorrect, unclear, or missing documentation
+title: "[doc] "
+labels: [documentation]
+body:
+  - type: dropdown
+    id: location
+    attributes:
+      label: Where
+      options:
+        - Doxygen site (guillaumedua.github.io/CppShelf)
+        - per-library README / doc/
+        - root README
+        - godbolt links
+        - examples
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Link / location
+      placeholder: "e.g. https://guillaumedua.github.io/CppShelf/mp/"
+    validations:
+      required: false
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: false

@@ -1,0 +1,75 @@
+name: Bug report
+description: Report a defect in one of the csl libraries
+title: "[<component>] "
+labels: [bug]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the project is affected?
+      options:
+        - ag
+        - mp
+        - wf
+        - functional
+        - typeinfo
+        - ensure
+        - cmake / build system
+        - CI
+        - other
+    validations:
+      required: true
+  - type: input
+    id: compiler
+    attributes:
+      label: Compiler & version
+      placeholder: "e.g. clang 22.0.0, gcc 15.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: stdlib
+    attributes:
+      label: Standard library
+      options:
+        - libstdc++
+        - libc++
+        - MS STL
+        - other / not relevant
+    validations:
+      required: true
+  - type: dropdown
+    id: standard
+    attributes:
+      label: C++ standard
+      description: The project targets C++23.
+      options:
+        - C++23
+        - C++26
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happens, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: >-
+        A godbolt (https://godbolt.org) link is the preferred way to share a
+        reproduction. Otherwise, paste a self-contained snippet below.
+      render: cpp
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Compiler output, build logs, known workaround, ...
+    validations:
+      required: false
