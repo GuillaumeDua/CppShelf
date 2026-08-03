@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest an enhancement to one of the csl libraries
+title: "[<component>] "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the project is concerned?
+      options:
+        - ag
+        - mp
+        - wf
+        - functional
+        - typeinfo
+        - ensure
+        - cmake / build system
+        - CI
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem / motivation
+      description: What need or limitation does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / API sketch
+      description: Optional sketch of the intended usage or API.
+      render: cpp
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

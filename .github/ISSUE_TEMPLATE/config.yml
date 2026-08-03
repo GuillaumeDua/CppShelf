@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📚 Documentation
+    url: https://guillaumedua.github.io/CppShelf/
+    about: Check the project and per-library documentation before filing an issue.
