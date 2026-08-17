@@ -208,9 +208,10 @@ See project's
     #include <csl/ag/formatting/backend/fmt.hpp> // opt-in: fmt::formatter support for aggregates
     ```
 
-    ⚠️ A feature header adds blanket specializations to the entities `<csl/ag.hpp>` declares, so the usual
-    fmt-style ODR contract applies: include it **consistently across every translation unit of the whole program**
+    ⚠️ A feature header adds specializations for `csl`-owned types, and gives you an opt-in base class for your own,
+    so the usual fmt-style ODR contract applies: include it **consistently across every translation unit of the whole program**
     (as with `<fmt/ranges.h>`) - never in some TUs and not in others when the same types are formatted.
+    The same goes for your own per-type opt-ins: declare them next to the type they format.
 
     The same mechanism covers **inter-component enhancements**: e.g. `csl::ag`'s `typenamed` formatting option
     is enhanced by `csl::typeinfo` through a bridge feature header:
@@ -231,12 +232,12 @@ See project's
 
 General options:
 
-| Option              | Type | Default            | Description                                  |
-| ------------------- | ---- | ------------------ | -------------------------------------------- |
-| `CSL_INSTALL`   | bool | top-level: ON      | install/package **all** components (all-or-nothing) |
-| `CSL_TEST`      | bool | top-level: ON      | enable/disable all components **tests**      |
-| `CSL_EXAMPLE`   | bool | top-level: ON      | enable/disable all components **examples**   |
-| `CSL_BENCHMARK` | bool | OFF                | enable/disable all components **benchmarks** |
+| Option          | Type | Default       | Description                                         |
+| --------------- | ---- | ------------- | --------------------------------------------------- |
+| `CSL_INSTALL`   | bool | top-level: ON | install/package **all** components (all-or-nothing) |
+| `CSL_TEST`      | bool | top-level: ON | enable/disable all components **tests**             |
+| `CSL_EXAMPLE`   | bool | top-level: ON | enable/disable all components **examples**          |
+| `CSL_BENCHMARK` | bool | OFF           | enable/disable all components **benchmarks**        |
 
 > 💡 `CSL_INSTALL` defaults to `PROJECT_IS_TOP_LEVEL`: **ON** for a standalone `csl` build, **OFF** when `csl` is consumed via `add_subdirectory` / `FetchContent`  
 > (so a parent project's `cmake --install` never ships `csl`'s headers and export sets).  
@@ -345,7 +346,7 @@ int: 42
 `csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`.  
 Each is an opt-in **feature header**: `csl/ag/formatting/backend/*.hpp` for `csl::ag`, `csl/ensure/formatting/backend/*.hpp` for `csl::ensure`.
 
-See live [demonstration here](https://godbolt.org/z/sxbvjGj4K).
+See live [demonstration here](https://godbolt.org/z/KcEeW77dj).
 
 ```cpp
 #include <csl/typeinfo.hpp>
@@ -354,6 +355,7 @@ See live [demonstration here](https://godbolt.org/z/sxbvjGj4K).
 #include <csl/ag.hpp>
 #include <csl/ag/formatting/backend/std_format.hpp>     // opt-in: std::formatter support (aggregates)
 #include <csl/ag/formatting/typeinfo.hpp>               // opt-in: compile-time type names for `typenamed`
+#include <csl/mp.hpp>
 
 #include <print>
 
@@ -368,6 +370,11 @@ struct C {
     B b;
     csl::mp::tuple<bool> tuple { true };
 };
+
+// per-type opt-in, for the type formatted directly
+// `A` and `B` need none: they are only nested fields
+template <>
+struct std::formatter<C> : csl::ag::io::std_formatter<C>{};
 
 auto main() -> int {
     std::print("default is compact:\n{}\n\n", C{});

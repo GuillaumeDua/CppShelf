@@ -10,6 +10,11 @@ struct point  { int x, y; };
 struct rgb    { std::uint8_t r, g, b; };
 struct single { float value; };
 
+// Per-type opt-in: required to format a point directly (see std::format below).
+// Nested fields and `value | option` views need none.
+template <>
+struct std::formatter<point> : csl::ag::io::std_formatter<point>{}; // NOLINT(cert-dcl58-cpp)
+
 // size and element type
 static_assert(csl::ag::size_v<point>  == 2);
 static_assert(csl::ag::size_v<rgb>    == 3);
