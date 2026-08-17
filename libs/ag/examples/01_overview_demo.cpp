@@ -6,6 +6,11 @@
 
 struct S { char c; int i; };
 
+// Per-type opt-in: required to format an S directly, e.g. std::println("{:xit}", value).
+// The `value | options` view form below needs none.
+template <>
+struct std::formatter<S> : csl::ag::io::std_formatter<S>{}; // NOLINT(cert-dcl58-cpp)
+
 static_assert(
     csl::ag::concepts::aggregate<S> and
     csl::ag::size_v<S> == 2

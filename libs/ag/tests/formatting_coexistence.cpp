@@ -15,6 +15,8 @@
 #   include <csl/ag/formatting/typeinfo.hpp>
 #endif
 #include <tests/types.hpp>
+#include <tests/ag/format_optins_std.hpp>
+#include <tests/ag/format_optins_fmt.hpp>
 
 #include <sstream>
 #include <string>

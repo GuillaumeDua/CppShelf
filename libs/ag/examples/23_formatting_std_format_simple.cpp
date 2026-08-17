@@ -5,10 +5,16 @@
 #include <format>
 #include <iostream>
 
+struct A { int i; char c; };
+
+// Per-type opt-in: required to format an A directly, whether with "{}" or a format-spec letter.
+// The view forms below (value | indented, ...) need none.
+template <>
+struct std::formatter<A> : csl::ag::io::std_formatter<A>{}; // NOLINT(cert-dcl58-cpp)
+
 auto main() -> int {
     using namespace csl::ag::io;
 
-    struct A { int i; char c; };
     const A value{ .i = 42, .c = 'x' };
 
     // csl::ag::io options are reachable through two equivalent syntaxes, which produce identical outputs:

@@ -60,6 +60,9 @@ namespace test::ag::types {
         field_4_nested_range f3{};
     };
 
+    // Never opted into any formatting backend: guards against blanket formatter specializations.
+    struct not_opted_in { int i; };
+
     // BUG: struct two_fields_inheritance : two_fields { }; // decomposes into 2 elements, but only 1 name was provided
     // TODO(Guillaume): handle empty ?
 }

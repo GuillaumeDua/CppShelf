@@ -13,6 +13,7 @@
 #endif
 #include <tests/types.hpp>
 #include <tests/ag/typeinfo_specializations.hpp>
+#include <tests/ag/format_optins_fmt.hpp>
 
 // TODO: check possible clash with user-defined formatters -> complete, partial/generics, etc.
 
@@ -38,7 +39,8 @@ namespace tests::concepts::fmt_formattable {
 
     // wired into fmt::formatter<formatted_view_t<T>> (composite view):
     // a non-formattable field disables the specialization, so fmt::is_formattable answers false.
-    // NOTE: the field must be a non-aggregate - an (even empty) aggregate is formattable through this library's own blanket fmt::formatter
+    // NOTE: the field must be a non-aggregate - is_fmt_formattable folds over a structured_bindable's elements,
+    //       so an empty aggregate folds over zero elements and answers true.
     struct not_formattable_field { explicit not_formattable_field() = default; };
     struct with_not_formattable_field { not_formattable_field f; };
     static_assert(not concepts::fmt_formattable<with_not_formattable_field, char>);

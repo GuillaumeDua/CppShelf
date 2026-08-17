@@ -37,6 +37,11 @@ The following example demonstrates some of the features which are available in `
 
 struct S { char c; int i; };
 
+// Per-type opt-in: required to format an S directly, e.g. std::println("{:xit}", value).
+// The `value | options` view form below needs none.
+template <>
+struct std::formatter<S> : csl::ag::io::std_formatter<S>{}; // NOLINT(cert-dcl58-cpp)
+
 static_assert(
     csl::ag::concepts::aggregate<S> and
     csl::ag::size_v<S> == 2
@@ -60,7 +65,7 @@ auto main() -> int {
 }
 ```
 
-[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/xhhbh1Ycn)
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/987obbWbv)
 <!-- EXAMPLE_END: 01_overview_demo.cpp -->
 
 Output:
@@ -127,7 +132,8 @@ The **core of this library ships as a single, standalone header**: `csl/ag.hpp` 
 | `csl/ag/formatting/backend/ostream.hpp` | `operator<<(std::ostream &, ...)` support | - |
 | `csl/ag/formatting/typeinfo.hpp` | compile-time type names for the `typenamed` formatting option | [csl::typeinfo](https://github.com/GuillaumeDua/CppShelf/blob/main/libs/typeinfo/includes/typeinfo/csl/typeinfo.hpp) |
 
-> ℹ️ Feature headers add blanket specializations: like `<fmt/ranges.h>`, include them **consistently across the whole program** (ODR).  
+> ℹ️ Feature headers add specializations for `csl::ag`-owned types (the formatted views), plus an opt-in base class for your own types.
+> Like `<fmt/ranges.h>`, include them **consistently across the whole program** (ODR) - and likewise, declare your own per-type opt-ins next to the type they format, so every translation unit sees them.  
 > Without `csl/ag/formatting/typeinfo.hpp`, the `typenamed` option falls back to `<typeindex>` runtime names
 > (deterministic, implementation-defined, possibly mangled) - `ag.hpp` stays fully usable standalone either way.
 
@@ -215,14 +221,17 @@ Formatting backends are **not CMake options**: each is an opt-in **feature heade
 
 ```cpp
 #include <csl/ag.hpp>                               // reflection + io core (options, views, operator|) - no backend
-#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter
-#include <csl/ag/formatting/backend/fmt.hpp>        // opt-in: fmt::formatter (fmtlib provided by the consumer)
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter (per-type, see csl::ag::io::std_formatter)
+#include <csl/ag/formatting/backend/fmt.hpp>        // opt-in: fmt::formatter (per-type, see csl::ag::io::fmt_formatter - fmtlib provided by the consumer)
 #include <csl/ag/formatting/backend/ostream.hpp>    // opt-in: operator<<(std::ostream &, ...)
 #include <csl/ag/formatting/typeinfo.hpp>           // opt-in: compile-time type names for `typenamed`
 ```
 
 Backends may coexist in one translation unit, and format-specs are composable:
 `indexed` (":x"), `indented` (":i"), and `typenamed` (":t").
+
+Formatting a value **directly** (`std::format("{}", value)`) requires a one-line, per-type opt-in.
+The view form (`value | indented`) and nested aggregate fields require none.
 
 > ⚠️ Each backend keeps its native formatting idiom - `std::format("{}", value)`, `fmt::format("{}", value)`, `stream << value`:
 > `csl::ag` offers no homogeneous API across backends (at least, for now).
@@ -800,6 +809,10 @@ Formatting options are reachable through two **equivalent** syntaxes:
 A composed view carries its options: formatting it with a plain `"{}"` applies them - no format-spec letter required.
 Both syntaxes produce identical outputs, and can be mixed.
 
+Formatting a value **directly** - `std::format("{}", value)`, `fmt::format("{}", value)` - is a **per-type opt-in**:
+one line, next to the type. Only the type you format directly needs it; nested structured-bindable fields and any
+`value | option` view need none.
+
 #### using std::format
 
 Opt-in by include:
@@ -809,9 +822,70 @@ Opt-in by include:
 #include <csl/ag/formatting/backend/std_format.hpp>
 ```
 
-This specializes `std::formatter<T>` for any `csl::ag::concepts::aggregate T` whose fields are all formattable.
+This library adds **no blanket** `std::formatter`. Opting a type in is explicit and per-type - one line, next to the type:
 
-Format modes - each reachable as a format-spec letter, and/or as its composable-view equivalent (`"{}"` on the composed view; tags live in `csl::ag::io`):
+```cpp
+struct point { int x; int y; };
+
+template <>
+struct std::formatter<point> : csl::ag::io::std_formatter<point>{};
+```
+
+Only the type you format **directly** needs it: nested structured-bindable fields, and any `value | option` view,
+work without any opt-in. If you want the default output without opting in,
+`value | csl::ag::io::format_options::none` is byte-identical to the bare form.
+
+> [!NOTE]
+> **Why not a blanket?** `std::formatter<csl::ag::concepts::aggregate T, Char>` would violate
+> [[namespace.std]/2](https://eel.is/c++draft/namespace.std#2) - an added declaration must depend on a program-defined **type**, and a concept is not one.  
+> It would also silently claim standard aggregates (`std::monostate`, `std::identity`, `std::plus<>`, `std::less<>`, `std::suspend_always`, ...)
+> and become an unfixable `ambiguous partial specializations` error against any other library doing the same.
+>
+> `csl::ag::io::std_formatter<T, Char = char>` currently supports `Char = char` only.
+
+Runnable demonstration - opt-in, nested fields, and the no-opt-in view forms:
+
+<!-- EXAMPLE_BEGIN: 24_formatting_optin.cpp -->
+```cpp
+#include <csl/ag.hpp>
+#include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
+#include <csl/typeinfo.hpp>                         // bridge prerequisite (explicit, for godbolt raw-URL include order)
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
+#include <iostream>                                 // std::print might not be available yet: use `std::cout << std::format(...)`
+
+struct point     { int x; int y; };
+struct rectangle { point top_left; point bottom_right; };
+
+// Opting a type in is explicit and per-type: one line, next to the type.
+// `point` needs none - it is only a nested field of `rectangle`.
+template <>
+struct std::formatter<rectangle> : csl::ag::io::std_formatter<rectangle>{}; // NOLINT(cert-dcl58-cpp)
+
+static_assert(std::formattable<rectangle, char>);
+static_assert(not std::formattable<point, char>);
+
+auto main() -> int {
+    using namespace csl::ag::io;
+
+    constexpr auto value = rectangle{ .top_left = { 0, 0 }, .bottom_right = { 10, 5 } };
+
+    // opted in: format the value directly, with "{}" or a format-spec letter
+    std::cout << std::format("opt-in, default   -> {}\n",   value);
+    std::cout << std::format("opt-in, spec :xit -> {}\n\n", std::format("{:xit}", value));
+
+    // no opt-in needed: a decorated view carries its own options
+    std::cout << std::format("view | indexed    -> {}\n", value.top_left | indexed);
+
+    // ... and format_options::none reproduces the default output, without any opt-in
+    std::cout << std::format("view | none       -> {}\n", value.top_left | format_options::none);
+}
+```
+
+[![CE][ce-icon] Try me on compiler-explorer](https://godbolt.org/z/McbE57xjE)
+<!-- EXAMPLE_END: 24_formatting_optin.cpp -->
+
+Format modes - applied to an opted-in type, or to any `value | option` view.
+Each is reachable as a format-spec letter, and/or as its composable-view equivalent (`"{}"` on the composed view; tags live in `csl::ag::io`):
 
 | Format string | View equivalent (`"{}"` on)                 | Output style                                                 |
 | ------------- | ------------------------------------------- | ------------------------------------------------------------ |
@@ -827,6 +901,11 @@ Example:
 ```cpp
 struct point     { int x; int y; };
 struct rectangle { point top_left; point bottom_right; };
+
+// opt-in, once, for the type formatted directly
+// `point` needs none: it is only a nested field
+template <>
+struct std::formatter<rectangle> : csl::ag::io::std_formatter<rectangle>{};
 
 constexpr auto r = rectangle{
     .top_left = { 0, 0 },
@@ -887,6 +966,34 @@ Indexed and typenamed and indented (`{:xti}` and/or `| indexed | typenamed | ind
 ```
 
 Mixed-content aggregates (containing tuple-likes, ranges, etc.) are also supported - tuples render as `(...)`, arrays and other ranges as `[...]`, etc.
+Only the type you format directly needs the opt-in: nested aggregates, tuple-likes and ranges are handled by this library's own machinery.
+
+<details>
+<summary>Formatting every aggregate without opting in (demos only)</summary>
+
+> [!WARNING]
+> **This is undefined behaviour.** [[namespace.std]/2](https://eel.is/c++draft/namespace.std#2) allows adding a
+> specialization to `std` only if *"the added declaration depends on at least one program-defined type"* -
+> `csl::ag::concepts::aggregate` is a concept, not a type, so this declaration depends on nothing program-defined.
+> It also claims standard aggregates it does not own (`std::monostate`, `std::identity`, `std::plus<>`,
+> `std::less<>`, `std::suspend_always`, ...), and becomes an unfixable `ambiguous partial specializations`
+> error against any other library that does the same.
+>
+> Fine for a [Compiler Explorer](https://godbolt.org/) demo or a throwaway `main.cpp`.
+> Never in shipped code, and never in a header other people include.
+
+```cpp
+template <csl::ag::concepts::aggregate T>
+requires (not csl::ag::io::details::concepts::decorator<T>)
+struct std::formatter<T, char> : csl::ag::io::std_formatter<T>{};
+```
+
+Fixing the second parameter to `char` keeps this out of the way of `wchar_t`, which the machinery does not support.
+Keep the `decorator` guard: `formatted_view_t` is itself an aggregate, so without it this overlaps the library's own
+view formatter and you are relying on partial ordering to resolve it. Add `and (not std::ranges::range<T>)` too if any
+of your aggregates are ranges, to leave the standard's own range formatters alone.
+
+</details>
 
 #### using fmt
 
@@ -900,7 +1007,12 @@ Opt-in by include - same setup as `std::format` above:
 > [fmtlib](https://github.com/fmtlib/fmt) is provided **by the consumer** (e.g. `find_package(fmt)`, then link `fmt::fmt` or `fmt::fmt-header-only`): the header uses it, `csl` never acquires nor ships it.  
 > fmtlib >= 11 is required for the `:n` specifier.
 
-`fmt::formatter<T>` / `fmt::format` / `fmt::print` behave identically to their `std::formatter` / `std::format` / `std::print` counterparts described above: same format modes, same composable `csl::ag::io::indented | indexed | typenamed` options, same output.  
+`fmt::formatter<T>` / `fmt::format` / `fmt::print` behave identically to their `std::formatter` / `std::format` / `std::print` counterparts described above: same format modes, same composable `csl::ag::io::indented | indexed | typenamed` options, same output - including the same per-type opt-in, via `csl::ag::io::fmt_formatter`:
+
+```cpp
+template <>
+struct fmt::formatter<point> : csl::ag::io::fmt_formatter<point>{};
+```
 
 #### using std::ostream
 

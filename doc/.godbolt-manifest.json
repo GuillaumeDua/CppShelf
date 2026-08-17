@@ -80,7 +80,11 @@
     "url": "https://godbolt.org/z/3jrKPhT8P"
   },
   "libs/ag/examples/01_overview_demo.cpp": {
-    "sha256": "559db7a4ffc5ff34ecd0a1cd687f9bdf6615a10daad8fd0441cfe7b4706a887d",
-    "url": "https://godbolt.org/z/xhhbh1Ycn"
+    "sha256": "16ad226859e7d9d164bd243f179a6991d871ec0bd6ebcc3874e30e24979036d1",
+    "url": "https://godbolt.org/z/987obbWbv"
+  },
+  "libs/ag/examples/24_formatting_optin.cpp": {
+    "sha256": "6bba75839ec53ab6ffecc5c9e0f9c82ffc0e15d7dac9cdb093341dfbd3671499",
+    "url": "https://godbolt.org/z/McbE57xjE"
   }
 }

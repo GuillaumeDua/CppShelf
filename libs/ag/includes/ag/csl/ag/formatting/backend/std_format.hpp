@@ -5,16 +5,20 @@
 ///
 /// cpp shelf library : aggregates utility - formatting.
 ///
-/// Provides `std::formatter` specializations for aggregates and formatted views (see operator|) via `csl::ag::io`.
+/// Provides the `csl::ag::io::std_formatter` opt-in base and `std::formatter` specializations
+/// for formatted views (see operator|) via `csl::ag::io`.
 ///
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 ///
-/// @warning Adds blanket specializations: like @c <fmt/ranges.h>,
-///          include this header **consistently across the whole program** (ODR).
+/// @warning Include this header **consistently across the whole program** (ODR),
+///          as with @c <fmt/ranges.h>.
+///          The same contract applies to your own per-type opt-ins:
+///          declare them next to the type they format.
 ///
 /// @par Design
-///      - Blanket @c std::formatter<T> for any aggregate @c T (non-range, non-decorator) whose fields are all formattable.
+///      - Per-type opt-in: derive @c std::formatter<T> from @c csl::ag::io::std_formatter<T>.
+///        Nested structured_bindable fields and decorated views need no opt-in.
 ///      - Composable @c format_options selected via format-spec letters, or via the view-based @c operator| API - both are equivalent, and mixable:
 ///         @code
 ///         std::format("{}", value)                                       // default: braced, compact
@@ -31,8 +35,13 @@
 ///
 /// @par Usage
 ///      @code
+///      struct my_aggregate { int i; char c; };
+///
+///      template <>
+///      struct std::formatter<my_aggregate> : csl::ag::io::std_formatter<my_aggregate>{};
+///
 ///      using namespace csl::ag::io;
-///      std::println("{}", my_aggregate);
+///      std::println("{}", my_aggregate{ 42, 'x' });
 ///      @endcode
 
 #if not defined(CSL_AG__INCLUDED)
@@ -53,21 +62,11 @@ namespace csl::ag::io::details {
     struct format_error_type<std::formatter> : std::type_identity<std::format_error>{};
 }
 
-/// \brief std::formatter for plain aggregate: default (braced, flat) output.
-template <csl::ag::concepts::aggregate T, typename Char>
-requires (not csl::ag::io::details::concepts::decorator<T>)
-    and  (not std::ranges::range<T>)
-struct std::formatter<T, Char>
-    : public csl::ag::io::details::ag_formatter_base<
-        std::formatter, T, Char
-    >
-{};
-
 namespace csl::ag::io::details::type_traits {
 
     /// \brief used upstream: not formatter detection
     ///       Recurses through structured_bindable elements std::formattable is consulted at leaves only.
-    ///       NOTE: this library's view machinery formats those itself, so the STL's P2286 tuple-like/range formatters must NOT be required (e.g. absent in libstdc++ 13). 
+    ///       NOTE: this library's view machinery formats those itself, so the STL's P2286 tuple-like/range formatters must NOT be required (e.g. absent in libstdc++ 13).
     template <typename T, typename Char>
     struct is_std_formattable : std::bool_constant<std::formattable<T, Char>>{};
     template <csl::ag::concepts::structured_bindable T, typename Char>
@@ -84,6 +83,50 @@ namespace csl::ag::io::details::concepts {
     /// \brief used upstream: not formatter detection
     template <typename T, typename Char>
     concept std_formattable = type_traits::is_std_formattable_v<T, Char>;
+}
+
+namespace csl::ag::io {
+
+    /// \brief Opt-in base making T formattable directly by std::format.
+    ///
+    ///        \code
+    ///        struct point { int x; int y; };
+    ///
+    ///        template <>
+    ///        struct std::formatter<point> : csl::ag::io::std_formatter<point>{};
+    ///        \endcode
+    ///
+    ///        Only the type formatted directly needs this:
+    ///        nested structured_bindable fields, and any decorated view
+    ///        (value | csl::ag::io::indented, see operator|), need no opt-in.
+    ///        `value | csl::ag::io::format_options::none` reproduces the default output,
+    ///        without any opt-in.
+    ///
+    /// \note  There is deliberately no blanket std::formatter for aggregates:
+    ///        [namespace.std]/2 requires an added declaration to depend on a program-defined
+    ///        *type*, and a concept is not one.
+    ///        A blanket would also claim standard aggregates
+    ///        (std::monostate, std::identity, std::plus<>, ...),
+    ///        and collide with any other library specializing std::formatter on its own concept.
+    /// \note  Known limitation: the formatting machinery is char-based -
+    ///        csl::ag::io::type_name and details::style::opening_bracket both yield
+    ///        std::string_view - so Char is restricted to char.
+    template <
+        csl::ag::concepts::structured_bindable T,
+        typename Char = char
+    >
+    requires std::same_as<Char, char>
+        and (not details::concepts::decorator<T>)
+    struct std_formatter
+        : public details::ag_formatter_base<
+            std::formatter, T, Char
+        >
+    {
+        static_assert(
+            details::concepts::std_formattable<T, Char>,
+            "[csl::ag::io::std_formatter] at least one of T's fields is not std-formattable."
+        );
+    };
 }
 
 // NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
