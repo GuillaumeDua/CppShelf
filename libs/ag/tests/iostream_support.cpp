@@ -40,7 +40,7 @@ struct with_printable_field {
 
 namespace tests::compile_time {
 
-    using namespace csl::ag::io::details;
+    using namespace csl::ag::formatting::details;
 
     static_assert(ostream_formattable<int>);
     static_assert(ostream_formattable<char>);
@@ -78,7 +78,7 @@ namespace {
     }
 
     [[nodiscard]] auto stream_out(auto const & value) -> std::string {
-        using namespace csl::ag::io;
+        using namespace csl::ag::formatting;
         std::ostringstream ss;
         ss << value;
         return std::move(ss).str();
@@ -379,20 +379,20 @@ R"({
 
 }
 
-TEST_CASE("csl::ag::io operator<< returns std::ostream &" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting operator<< returns std::ostream &" + name_suffix() + "",
           "[ag][iostream]")
 {
     std::ostringstream ss;
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     std::ostream & result = (ss << types::field_1{42});
     CHECK(&result == static_cast<std::ostream *>(&ss));
 }
 
-TEST_CASE("csl::ag::io operator<< supports chaining" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting operator<< supports chaining" + name_suffix() + "",
           "[ag][iostream]")
 {
     std::ostringstream ss;
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     constexpr auto v = fixture<types::field_1>::value;
     ss << v << '|' << v;
     auto out = ss.str();
@@ -402,12 +402,12 @@ TEST_CASE("csl::ag::io operator<< supports chaining" + name_suffix() + "",
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
 }
 
-TEST_CASE("csl::ag::io no_braces manipulator is one-shot" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting no_braces manipulator is one-shot" + name_suffix() + "",
           "[ag][iostream]")
 {
     // After printing with non-default (here, no_braces), the next print should revert to default (braced).
     std::ostringstream ss;
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
 
     constexpr auto v = fixture<types::field_1>::value;
     ss << no_braces << v << '|' << v;
@@ -419,11 +419,11 @@ TEST_CASE("csl::ag::io no_braces manipulator is one-shot" + name_suffix() + "",
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
 }
 
-TEST_CASE("csl::ag::io indented manipulator is one-shot" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting indented manipulator is one-shot" + name_suffix() + "",
           "[ag][iostream]")
 {
     std::ostringstream ss;
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     
     constexpr auto v = fixture<types::field_1>::value;
     ss << indented << v << '|' << v;
@@ -435,7 +435,7 @@ TEST_CASE("csl::ag::io indented manipulator is one-shot" + name_suffix() + "",
     CHECK(out.substr(sep + 1) == fixture<types::field_1>::default_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io default (braced) output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting default (braced) output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -444,12 +444,12 @@ TEMPLATE_TEST_CASE("csl::ag::io default (braced) output" + name_suffix() + "",
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value) == f::default_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io no_braces output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting no_braces output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -458,12 +458,12 @@ TEMPLATE_TEST_CASE("csl::ag::io no_braces output" + name_suffix() + "",
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value | no_braces) == f::no_braces_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io indented output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting indented output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -472,39 +472,39 @@ TEMPLATE_TEST_CASE("csl::ag::io indented output" + name_suffix() + "",
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value | indented) == f::indented_expected);
 }
 
-TEST_CASE("csl::ag::io user operator<< preferred for ostream_formattable types" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting user operator<< preferred for ostream_formattable types" + name_suffix() + "",
           "[ag][iostream]")
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     // printable_t: structured_bindable AND has user-defined operator<<.
     // - exact-match overload wins over our constrained template.
     CHECK(stream_out(printable_t{42}) == "printable:42");
 }
 
-TEST_CASE("csl::ag::io ostream_formattable field: user operator<< used directly" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting ostream_formattable field: user operator<< used directly" + name_suffix() + "",
           "[ag][iostream]")
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     // with_printable_field: { printable_t p; int x; }
     // Field p is ostream_formattable - user's operator<< is used (not recursive print).
     auto out = stream_out(with_printable_field{.p = {42}, .x = 7}); // NOLINT(*-magic-numbers)
     CHECK(out == "{printable:42, 7}");
 }
 
-TEST_CASE("csl::ag::io empty aggregate" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting empty aggregate" + name_suffix() + "",
           "[ag][iostream]")
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     CHECK(stream_out(types::empty{})             == "{}");
     CHECK(stream_out(types::empty{} | no_braces) == "");
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io indexed output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting indexed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -513,13 +513,13 @@ TEMPLATE_TEST_CASE("csl::ag::io indexed output" + name_suffix() + "",
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value | indexed) == f::indexed_expected);
 }
 
 #if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
-TEMPLATE_TEST_CASE("csl::ag::io typenamed output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting typenamed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -528,12 +528,12 @@ TEMPLATE_TEST_CASE("csl::ag::io typenamed output" + name_suffix() + "",
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value | typenamed) == f::typenamed_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting indented+indexed+typenamed output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -542,12 +542,12 @@ TEMPLATE_TEST_CASE("csl::ag::io indented+indexed+typenamed output" + name_suffix
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value | (indented | indexed | typenamed)) == f::indented_indexed_typenamed_expected);
 }
 
-TEMPLATE_TEST_CASE("csl::ag::io composed view output" + name_suffix() + "",
+TEMPLATE_TEST_CASE("csl::ag::formatting composed view output" + name_suffix() + "",
                    "[ag][iostream]",
                    types::field_1,
                    types::field_2,
@@ -556,7 +556,7 @@ TEMPLATE_TEST_CASE("csl::ag::io composed view output" + name_suffix() + "",
                    types::field_4_nested_range,
                    types::field_everything)
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<TestType>;
     CHECK(stream_out(f::value | indented | indexed | typenamed) == f::indented_indexed_typenamed_expected);
 }
@@ -565,10 +565,10 @@ TEMPLATE_TEST_CASE("csl::ag::io composed view output" + name_suffix() + "",
 #if not (defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO)
 // Fallback contract: without the typeinfo bridge, type_name is std::type_index(typeid(T)).name()
 // (implementation-defined, possibly mangled - but deterministic).
-TEST_CASE("csl::ag::io typenamed <typeindex> runtime fallback" + name_suffix() + "",
+TEST_CASE("csl::ag::formatting typenamed <typeindex> runtime fallback" + name_suffix() + "",
           "[ag][iostream]")
 {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     using f = fixture<types::field_2>;
     const auto expected = "{" + std::string{ std::type_index(typeid(int)).name() } + ": 123, "
         + std::string{ std::type_index(typeid(char)).name() } + ": 'A'}";

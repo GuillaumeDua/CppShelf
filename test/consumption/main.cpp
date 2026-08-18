@@ -15,7 +15,7 @@ static_assert(csl::ag::size_v<point> == 2);
 
 // formatting a value directly is a per-type opt-in
 template <>
-struct std::formatter<point> : csl::ag::io::std_formatter<point>{}; // NOLINT(cert-dcl58-cpp)
+struct std::formatter<point> : csl::ag::formatting::std_formatter<point>{}; // NOLINT(cert-dcl58-cpp)
 static_assert(std::formattable<point, char>);
 
 // ... which the library never installs on its own
@@ -38,11 +38,11 @@ static_assert(std::is_same_v<
 
 static_assert(csl::typeinfo::type_name_v<int> == "int");
 
-// typeinfo bridge: csl::ag::io::type_name is csl::typeinfo-backed (compile-time)
-static_assert(csl::ag::io::type_name_v<int> == "int");
+// typeinfo bridge: csl::ag::formatting::type_name is csl::typeinfo-backed (compile-time)
+static_assert(csl::ag::formatting::type_name_v<int> == "int");
 
 auto main() -> int {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     constexpr auto value = point{ .x = 1, .y = 2 };
 
     const bool ok =

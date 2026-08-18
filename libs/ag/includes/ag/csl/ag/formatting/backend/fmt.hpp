@@ -5,8 +5,8 @@
 ///
 /// cpp shelf library : aggregates utility - formatting.
 ///
-/// Provides the `csl::ag::io::fmt_formatter` opt-in base and `fmt::formatter` specializations
-/// for formatted views (see operator|) via `csl::ag::io`.
+/// Provides the `csl::ag::formatting::fmt_formatter` opt-in base and `fmt::formatter` specializations
+/// for formatted views (see operator|) via `csl::ag::formatting`.
 ///
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
@@ -21,16 +21,16 @@
 ///      fmtlib >= 11 is required for the @c :n specifier.
 ///
 /// @par Design
-///      - Per-type opt-in: derive @c fmt::formatter<T> from @c csl::ag::io::fmt_formatter<T>.
+///      - Per-type opt-in: derive @c fmt::formatter<T> from @c csl::ag::formatting::fmt_formatter<T>.
 ///        Nested structured_bindable fields and decorated views need no opt-in.
 ///      - Composable @c format_options selected via format-spec letters, or via the view-based @c operator| API - both are equivalent, and mixable:
 ///         @code
-///         fmt::format("{}", value)                                       // default: braced, compact
-///         fmt::format("{:n}", value)                                     // flat, naked: no outer brackets or separator
-///         fmt::format("{}", value | csl::ag::io::indented)               // multiline, depth-indented
-///         fmt::format("{}", value | csl::ag::io::indexed)                // braced with [N] field indexes
-///         fmt::format("{}", value | csl::ag::io::typenamed)              // braced with TypeName: prefixes
-///         fmt::format("{:ixt}", value)                                   // spec letters compose too
+///         fmt::format("{}", value)                                  // default: braced, compact
+///         fmt::format("{:n}", value)                                // flat, naked: no outer brackets or separator
+///         fmt::format("{}", value | csl::ag::formatting::indented)  // multiline, depth-indented
+///         fmt::format("{}", value | csl::ag::formatting::indexed)   // braced with [N] field indexes
+///         fmt::format("{}", value | csl::ag::formatting::typenamed) // braced with TypeName: prefixes
+///         fmt::format("{:ixt}", value)                              // spec letters compose too
 ///         @endcode
 ///      - Options propagate to nested structured_bindable fields (no_braces is outermost-only).
 ///      - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "...".
@@ -40,9 +40,9 @@
 ///      struct my_aggregate { int i; char c; };
 ///
 ///      template <>
-///      struct fmt::formatter<my_aggregate> : csl::ag::io::fmt_formatter<my_aggregate>{};
+///      struct fmt::formatter<my_aggregate> : csl::ag::formatting::fmt_formatter<my_aggregate>{};
 ///
-///      using namespace csl::ag::io;
+///      using namespace csl::ag::formatting;
 ///      fmt::println("{}", my_aggregate{ 42, 'x' });
 ///      @endcode
 
@@ -60,7 +60,7 @@
 #include <fmt/ranges.h>
 #include <fmt/compile.h>
 
-namespace csl::ag::io::details {
+namespace csl::ag::formatting::details {
 
     /// \brief normalises fmt::formatter's 3-param signature (T, Char, SFINAE-Enable) to 2 params,
     ///        so it can be passed as a template template parameter to ag_formatter_base.
@@ -72,7 +72,7 @@ namespace csl::ag::io::details {
     struct format_error_type<fmt_formatter_arity2> : std::type_identity<fmt::format_error>{};
 }
 
-namespace csl::ag::io::details::type_traits {
+namespace csl::ag::formatting::details::type_traits {
 
     /// \brief used upstream, not formatter detection
     template <typename T, typename Char>
@@ -86,14 +86,14 @@ namespace csl::ag::io::details::type_traits {
     template <typename T, typename Char>
     constexpr inline static auto is_fmt_formattable_v = is_fmt_formattable<T, Char>::value;
 }
-namespace csl::ag::io::details::concepts {
+namespace csl::ag::formatting::details::concepts {
 
     /// \brief used upstream, not formatter detection
     template <typename T, typename Char>
     concept fmt_formattable = type_traits::is_fmt_formattable_v<T, Char>;
 }
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     /// \brief Opt-in base making T formattable directly by fmt::format.
     ///
@@ -101,23 +101,23 @@ namespace csl::ag::io {
     ///        struct point { int x; int y; };
     ///
     ///        template <>
-    ///        struct fmt::formatter<point> : csl::ag::io::fmt_formatter<point>{};
+    ///        struct fmt::formatter<point> : csl::ag::formatting::fmt_formatter<point>{};
     ///        \endcode
     ///
     ///        Only the type formatted directly needs this:
     ///        nested structured_bindable fields, and any decorated view
-    ///        (value | csl::ag::io::indented, see operator|), need no opt-in.
-    ///        `value | csl::ag::io::format_options::none` reproduces the default output,
+    ///        (value | csl::ag::formatting::indented, see operator|), need no opt-in.
+    ///        `value | csl::ag::formatting::format_options::none` reproduces the default output,
     ///        without any opt-in.
     ///
     /// \note  There is deliberately no blanket fmt::formatter for aggregates:
     ///        it would claim standard aggregates
     ///        (std::monostate, std::identity, std::plus<>, ...),
     ///        and collide with any other library specializing fmt::formatter on its own concept.
-    ///        See csl::ag::io::std_formatter, which carries the same model -
+    ///        See csl::ag::formatting::std_formatter, which carries the same model -
     ///        plus, for std::formatter, a [namespace.std]/2 constraint.
     /// \note  Known limitation: the formatting machinery is char-based -
-    ///        csl::ag::io::type_name and details::style::opening_bracket both yield
+    ///        csl::ag::formatting::type_name and details::style::opening_bracket both yield
     ///        std::string_view - so Char is restricted to char.
     ///
     ///        WARNING: routes through ag_formatter_base,
@@ -138,7 +138,7 @@ namespace csl::ag::io {
     {
         static_assert(
             details::concepts::fmt_formattable<T, Char>,
-            "[csl::ag::io::fmt_formatter] at least one of T's fields is not fmt-formattable."
+            "[csl::ag::formatting::fmt_formatter] at least one of T's fields is not fmt-formattable."
         );
     };
 }
@@ -150,13 +150,13 @@ template <
     csl::ag::concepts::structured_bindable T,
     typename Char
 >
-requires (not csl::ag::io::details::concepts::decorator<T>)
-and csl::ag::io::details::concepts::fmt_formattable<T, Char>
+requires (not csl::ag::formatting::details::concepts::decorator<T>)
+and csl::ag::formatting::details::concepts::fmt_formattable<T, Char>
 class fmt::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
+    csl::ag::formatting::details::decorators::formatted_view_t<T>,
     Char
-> : public csl::ag::io::details::ag_formatter_base<
-        csl::ag::io::details::fmt_formatter_arity2, T, Char
+> : public csl::ag::formatting::details::ag_formatter_base<
+        csl::ag::formatting::details::fmt_formatter_arity2, T, Char
     >
 {};
 
@@ -167,10 +167,10 @@ template <
 >
 requires (not csl::ag::concepts::structured_bindable<T>)
 class fmt::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
+    csl::ag::formatting::details::decorators::formatted_view_t<T>,
     Char
-> : public csl::ag::io::details::ag_formatter_base_leaf<
-        csl::ag::io::details::fmt_formatter_arity2, T, Char
+> : public csl::ag::formatting::details::ag_formatter_base_leaf<
+        csl::ag::formatting::details::fmt_formatter_arity2, T, Char
     >
 {};
 #pragma endregion

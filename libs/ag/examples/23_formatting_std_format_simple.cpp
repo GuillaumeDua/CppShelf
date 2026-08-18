@@ -1,7 +1,7 @@
 #include <csl/ag.hpp>
 #include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
 #include <csl/typeinfo.hpp>                         // bridge prerequisite (explicit, for godbolt raw-URL include order)
-#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::formatting::typenamed clean type names (e.g. "int")
 #include <format>
 #include <iostream>
 
@@ -10,14 +10,14 @@ struct A { int i; char c; };
 // Per-type opt-in: required to format an A directly, whether with "{}" or a format-spec letter.
 // The view forms below (value | indented, ...) need none.
 template <>
-struct std::formatter<A> : csl::ag::io::std_formatter<A>{}; // NOLINT(cert-dcl58-cpp)
+struct std::formatter<A> : csl::ag::formatting::std_formatter<A>{}; // NOLINT(cert-dcl58-cpp)
 
 auto main() -> int {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
 
     const A value{ .i = 42, .c = 'x' };
 
-    // csl::ag::io options are reachable through two equivalent syntaxes, which produce identical outputs:
+    // csl::ag::formatting options are reachable through two equivalent syntaxes, which produce identical outputs:
     //   - a format-spec letter,   e.g. std::format("{:i}", value)
     //   - a composable view,      e.g. value | indented
     // Also, both can be mixed.

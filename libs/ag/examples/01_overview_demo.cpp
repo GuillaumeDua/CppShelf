@@ -1,7 +1,7 @@
 #include <csl/ag.hpp>
 #include <csl/ag/formatting/backend/std_format.hpp> // opt-in: std::formatter support
 #include <csl/typeinfo.hpp>                         // bridge prerequisite (explicit, for godbolt raw-URL include order)
-#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::io::typenamed clean type names (e.g. "int")
+#include <csl/ag/formatting/typeinfo.hpp>           // opt-in: gives csl::ag::formatting::typenamed clean type names (e.g. "int")
 #include <iostream>                                 // std::print might not be available yet: use `std::cout << std::format(...)`
 
 struct S { char c; int i; };
@@ -9,7 +9,7 @@ struct S { char c; int i; };
 // Per-type opt-in: required to format an S directly, e.g. std::println("{:xit}", value).
 // The `value | options` view form below needs none.
 template <>
-struct std::formatter<S> : csl::ag::io::std_formatter<S>{}; // NOLINT(cert-dcl58-cpp)
+struct std::formatter<S> : csl::ag::formatting::std_formatter<S>{}; // NOLINT(cert-dcl58-cpp)
 
 static_assert(
     csl::ag::concepts::aggregate<S> and
@@ -22,7 +22,7 @@ auto main() -> int {
     auto value = S{ .c='A', .i=41 }; // NOLINT
     ++csl::ag::get<1>(value);
 
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     constexpr auto format_options = indexed | typenamed | indented;
     std::cout << std::format("{}", value | format_options); // equivalent to std::println("{:xit}", value)
 

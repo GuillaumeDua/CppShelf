@@ -38,7 +38,7 @@ TEST_CASE("all formatting backends coexist in one TU", "[ag][formatting][coexist
     CHECK(fmt::format("{}", value) == expected);
     {
         std::ostringstream ss;
-        using namespace csl::ag::io;
+        using namespace csl::ag::formatting;
         ss << value;
         CHECK(ss.str() == expected);
     }
@@ -46,7 +46,7 @@ TEST_CASE("all formatting backends coexist in one TU", "[ag][formatting][coexist
 
 TEST_CASE("all formatting backends coexist in one TU - composed views", "[ag][formatting][coexistence]") {
 
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     constexpr auto value = types::field_2{ .i = 123, .c = 'A' };
     constexpr std::string_view expected = "{[0] int: 123, [1] char: 'A'}";
 

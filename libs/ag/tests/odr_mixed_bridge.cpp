@@ -17,7 +17,7 @@ namespace test::ag::odr {
 }
 
 TEST_CASE("odr-mixed: bridged TU - typenamed uses csl::typeinfo", "[ag][formatting][odr]") {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
 
     // NOTE: int demangling seems stable across compilers
     CHECK(std::format("{}", test::ag::odr::bridged{ .i = 42 } | typenamed) == "{int: 42}");

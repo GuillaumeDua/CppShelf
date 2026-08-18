@@ -8,20 +8,20 @@
 // NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
 template <>
 struct std::formatter<test::ag::types::field_1>
-    : csl::ag::io::std_formatter<test::ag::types::field_1>{};
+    : csl::ag::formatting::std_formatter<test::ag::types::field_1>{};
 template <>
 struct std::formatter<test::ag::types::field_2>
-    : csl::ag::io::std_formatter<test::ag::types::field_2>{};
+    : csl::ag::formatting::std_formatter<test::ag::types::field_2>{};
 template <>
 struct std::formatter<test::ag::types::field_3_nested>
-    : csl::ag::io::std_formatter<test::ag::types::field_3_nested>{};
+    : csl::ag::formatting::std_formatter<test::ag::types::field_3_nested>{};
 template <>
 struct std::formatter<test::ag::types::field_3_nested_tuplelike>
-    : csl::ag::io::std_formatter<test::ag::types::field_3_nested_tuplelike>{};
+    : csl::ag::formatting::std_formatter<test::ag::types::field_3_nested_tuplelike>{};
 template <>
 struct std::formatter<test::ag::types::field_4_nested_range>
-    : csl::ag::io::std_formatter<test::ag::types::field_4_nested_range>{};
+    : csl::ag::formatting::std_formatter<test::ag::types::field_4_nested_range>{};
 template <>
 struct std::formatter<test::ag::types::field_everything>
-    : csl::ag::io::std_formatter<test::ag::types::field_everything>{};
+    : csl::ag::formatting::std_formatter<test::ag::types::field_everything>{};
 // NOLINTEND(cert-dcl58-cpp)
