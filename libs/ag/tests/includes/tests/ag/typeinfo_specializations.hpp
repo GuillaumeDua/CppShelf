@@ -7,7 +7,7 @@
 #include <array>
 #include <string_view>
 #include <tuple>
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     template <>
     struct type_name<std::string_view> {

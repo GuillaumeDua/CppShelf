@@ -3,7 +3,7 @@
 #include <iostream>
 
 auto main() -> int {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
 
     struct A { int i; float f; };
     std::cout << A{ .i = 42, .f = .13F };

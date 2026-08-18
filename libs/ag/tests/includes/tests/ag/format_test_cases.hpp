@@ -78,7 +78,7 @@ namespace tests::concepts::produced {
     static_assert(not csl::ag::concepts::produced<implementation::formatter<std::suspend_always>>);
 
     // ... whereas the view form needs no opt-in, for any of them
-    namespace decorators = csl::ag::io::details::decorators;
+    namespace decorators = csl::ag::formatting::details::decorators;
     static_assert(csl::ag::concepts::produced<implementation::formatter<decorators::formatted_view_t<types::not_opted_in>>>);
     static_assert(csl::ag::concepts::produced<implementation::formatter<decorators::formatted_view_t<std::monostate>>>);
 }
@@ -99,9 +99,9 @@ TEST_CASE("view form requires no opt-in" + implementation::name_suffix() + "", i
 
     constexpr auto value = types::not_opted_in{ .i = 42 };
 
-    CHECK(implementation::format("{}", value | csl::ag::io::indented) == "{\n    42\n}");
+    CHECK(implementation::format("{}", value | csl::ag::formatting::indented) == "{\n    42\n}");
     // format_options::none reproduces the default output, without any opt-in
-    CHECK(implementation::format("{}", value | csl::ag::io::format_options::none) == "{42}");
+    CHECK(implementation::format("{}", value | csl::ag::formatting::format_options::none) == "{42}");
 }
 
 TEMPLATE_TEST_CASE(":n" + implementation::name_suffix() + "", implementation::tags(),
@@ -113,8 +113,8 @@ TEMPLATE_TEST_CASE(":n" + implementation::name_suffix() + "", implementation::ta
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{:n}", f::value | csl::ag::io::no_braces) == f::no_braces_expected);
-    CHECK(implementation::format("{}", f::value | csl::ag::io::no_braces) == f::no_braces_expected);
+    CHECK(implementation::format("{:n}", f::value | csl::ag::formatting::no_braces) == f::no_braces_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::no_braces) == f::no_braces_expected);
     CHECK(implementation::format("{:n}", f::value) == f::no_braces_expected);
 }
 
@@ -127,8 +127,8 @@ TEMPLATE_TEST_CASE(":i" + implementation::name_suffix() + "", implementation::ta
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{:i}", f::value | csl::ag::io::indented) == f::indented_expected);
-    CHECK(implementation::format("{}", f::value | csl::ag::io::indented) == f::indented_expected);
+    CHECK(implementation::format("{:i}", f::value | csl::ag::formatting::indented) == f::indented_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::indented) == f::indented_expected);
     CHECK(implementation::format("{:i}", f::value) == f::indented_expected);
 }
 
@@ -141,8 +141,8 @@ TEMPLATE_TEST_CASE(":x" + implementation::name_suffix() + "", implementation::ta
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{:x}", f::value | csl::ag::io::indexed) == f::indexed_expected);
-    CHECK(implementation::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
+    CHECK(implementation::format("{:x}", f::value | csl::ag::formatting::indexed) == f::indexed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::indexed) == f::indexed_expected);
     CHECK(implementation::format("{:x}", f::value) == f::indexed_expected);
 }
 
@@ -156,8 +156,8 @@ TEMPLATE_TEST_CASE(":t" + implementation::name_suffix() + "", implementation::ta
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{:t}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
-    CHECK(implementation::format("{}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
+    CHECK(implementation::format("{:t}", f::value | csl::ag::formatting::typenamed) == f::typenamed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::typenamed) == f::typenamed_expected);
     CHECK(implementation::format("{:t}", f::value) == f::typenamed_expected);
 }
 
@@ -172,11 +172,11 @@ TEMPLATE_TEST_CASE(":ixt" + implementation::name_suffix() + "", implementation::
     using f = fixture<TestType>;
 
     CHECK(
-        implementation::format("{:ixt}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
+        implementation::format("{:ixt}", f::value | csl::ag::formatting::indented | csl::ag::formatting::indexed | csl::ag::formatting::typenamed)
         == f::indented_indexed_typenamed_expected
     );
     CHECK(
-        implementation::format("{}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
+        implementation::format("{}", f::value | csl::ag::formatting::indented | csl::ag::formatting::indexed | csl::ag::formatting::typenamed)
         == f::indented_indexed_typenamed_expected
     );
     CHECK(implementation::format("{:ixt}", f::value) == f::indented_indexed_typenamed_expected);
@@ -193,8 +193,8 @@ TEMPLATE_TEST_CASE(":z (unrecognized spec letter) throws" + implementation::name
 ) {
     using f = fixture<TestType>;
     CHECK_THROWS_WITH(
-        implementation::format("{:z}", f::value | csl::ag::io::indented),
-        "csl::ag::io: unrecognized format-spec letter (expected one of: n, i, x, t)"
+        implementation::format("{:z}", f::value | csl::ag::formatting::indented),
+        "csl::ag::formatting: unrecognized format-spec letter (expected one of: n, i, x, t)"
     );
 }
 
@@ -207,7 +207,7 @@ TEMPLATE_TEST_CASE("indented" + implementation::name_suffix() + "", implementati
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{}", f::value | csl::ag::io::indented) == f::indented_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::indented) == f::indented_expected);
 }
 
 TEMPLATE_TEST_CASE("indexed" + implementation::name_suffix() + "", implementation::tags(),
@@ -219,7 +219,7 @@ TEMPLATE_TEST_CASE("indexed" + implementation::name_suffix() + "", implementatio
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{}", f::value | csl::ag::io::indexed) == f::indexed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::indexed) == f::indexed_expected);
 }
 
 #if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
@@ -232,7 +232,7 @@ TEMPLATE_TEST_CASE("typenamed" + implementation::name_suffix() + "", implementat
     types::field_everything
 ) {
     using f = fixture<TestType>;
-    CHECK(implementation::format("{}", f::value | csl::ag::io::typenamed) == f::typenamed_expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::typenamed) == f::typenamed_expected);
 }
 
 TEMPLATE_TEST_CASE("indented+indexed+typenamed" + implementation::name_suffix() + "", implementation::tags(),
@@ -245,7 +245,7 @@ TEMPLATE_TEST_CASE("indented+indexed+typenamed" + implementation::name_suffix() 
 ) {
     using f = fixture<TestType>;
     CHECK(
-        implementation::format("{}", f::value | csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed)
+        implementation::format("{}", f::value | csl::ag::formatting::indented | csl::ag::formatting::indexed | csl::ag::formatting::typenamed)
         == f::indented_indexed_typenamed_expected
     );
 }
@@ -261,12 +261,12 @@ TEMPLATE_TEST_CASE("view composition" + implementation::name_suffix() + "", impl
     using f = fixture<TestType>;
 
     {
-        constexpr auto view = csl::ag::io::indented | csl::ag::io::indexed | csl::ag::io::typenamed;
+        constexpr auto view = csl::ag::formatting::indented | csl::ag::formatting::indexed | csl::ag::formatting::typenamed;
         CHECK(implementation::format("{}", f::value | view) == f::indented_indexed_typenamed_expected);
     }
 
     {
-        constexpr auto view = csl::ag::io::indexed | csl::ag::io::typenamed | csl::ag::io::indented;
+        constexpr auto view = csl::ag::formatting::indexed | csl::ag::formatting::typenamed | csl::ag::formatting::indented;
         CHECK(
             implementation::format("{}", f::value |  view)
             == f::indented_indexed_typenamed_expected
@@ -274,17 +274,17 @@ TEMPLATE_TEST_CASE("view composition" + implementation::name_suffix() + "", impl
     }
 
     {
-        constexpr auto partial_view = csl::ag::io::indexed | csl::ag::io::typenamed;
+        constexpr auto partial_view = csl::ag::formatting::indexed | csl::ag::formatting::typenamed;
         CHECK(
-            implementation::format("{}", f::value | csl::ag::io::indented | partial_view)
+            implementation::format("{}", f::value | csl::ag::formatting::indented | partial_view)
             == f::indented_indexed_typenamed_expected
         );
     }
 
     {
-        constexpr auto partial_view = csl::ag::io::indexed | csl::ag::io::typenamed;
+        constexpr auto partial_view = csl::ag::formatting::indexed | csl::ag::formatting::typenamed;
         CHECK(
-            implementation::format("{}", f::value | partial_view | csl::ag::io::indented)
+            implementation::format("{}", f::value | partial_view | csl::ag::formatting::indented)
             == f::indented_indexed_typenamed_expected
         );
     }
@@ -302,7 +302,7 @@ TEMPLATE_TEST_CASE("typenamed: <typeindex> runtime fallback" + implementation::n
         std::type_index(typeid(int)).name(),
         std::type_index(typeid(char)).name()
     );
-    CHECK(implementation::format("{}", f::value | csl::ag::io::typenamed) == expected);
+    CHECK(implementation::format("{}", f::value | csl::ag::formatting::typenamed) == expected);
     CHECK(implementation::format("{:t}", f::value) == expected);
 }
 #endif

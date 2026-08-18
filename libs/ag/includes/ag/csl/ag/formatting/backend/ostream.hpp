@@ -5,7 +5,7 @@
 /// 
 /// cpp shelf library : aggregates utility - formatting.
 /// 
-/// Provides `operator<<(std::ostream &, structured_bindable)` via `csl::ag::io`.
+/// Provides `operator<<(std::ostream &, structured_bindable)` via `csl::ag::formatting`.
 /// 
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
@@ -27,18 +27,18 @@
 ///        (one-shot, reset after each print) or via the view-based @c operator| API (bypasses iword entirely):
 ///         @code
 ///         os << value                                                    // default: braced, compact
-///         os << csl::ag::io::no_braces << value                          // flat, naked: no outer brackets or separator
-///         os << csl::ag::io::indented  << value                          // multiline, depth-indented
-///         os << csl::ag::io::indexed   << value                          // braced with [N] field indexes
-///         os << csl::ag::io::typenamed << value                          // braced with TypeName: prefixes
-///         os << (value | csl::ag::io::indented | csl::ag::io::indexed)   // view-based, composable
+///         os << csl::ag::formatting::no_braces << value                          // flat, naked: no outer brackets or separator
+///         os << csl::ag::formatting::indented  << value                          // multiline, depth-indented
+///         os << csl::ag::formatting::indexed   << value                          // braced with [N] field indexes
+///         os << csl::ag::formatting::typenamed << value                          // braced with TypeName: prefixes
+///         os << (value | csl::ag::formatting::indented | csl::ag::formatting::indexed)   // view-based, composable
 ///         @endcode
 ///      - Options propagate to nested structured_bindable fields (no_braces is outermost-only).
 ///      - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "...".
 /// 
 /// @par Usage
 ///      @code
-///      using namespace csl::ag::io;
+///      using namespace csl::ag::formatting;
 ///      std::cout << my_aggregate;
 ///      @endcode
 
@@ -53,9 +53,9 @@
 
 #define csl_fwd(...) static_cast<decltype(__VA_ARGS__) &&>(__VA_ARGS__) // NOLINT(cppcoreguidelines-macro-usage)
 
-namespace csl::ag::io::details {
+namespace csl::ag::formatting::details {
 
-    /// \brief T has an operator<<(std::ostream &, T) reachable WITHOUT csl::ag::io in scope.
+    /// \brief T has an operator<<(std::ostream &, T) reachable WITHOUT csl::ag::formatting in scope.
     // This prevents this library operator<< from satisfying the concept (depend on self).
     template <typename T>
     concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
@@ -120,7 +120,7 @@ namespace csl::ag::io::details {
         else if constexpr (csl::ag::concepts::structured_bindable<type> and not std::is_array_v<type>)
             print(os, csl_fwd(value), options, depth);
         else
-            static_assert(false, "[csl::ag::io] field type is not printable: provide operator<<(std::ostream &, T)");
+            static_assert(false, "[csl::ag::formatting] field type is not printable: provide operator<<(std::ostream &, T)");
     }
 
     template <csl::ag::concepts::structured_bindable T>
@@ -172,7 +172,7 @@ namespace csl::ag::io::details {
     }
 }
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indented
     inline auto operator<<(std::ostream & os, indented_t) -> std::ostream & {

@@ -22,14 +22,14 @@ namespace {
 }
 
 TEST_CASE("ostream: iword slot is program-wide", "[ag][formatting][iostream][odr]") {
-    CHECK(test::ag::cross_tu::iword_slot() == csl::ag::io::details::mode_index());
+    CHECK(test::ag::cross_tu::iword_slot() == csl::ag::formatting::details::mode_index());
 }
 
 TEST_CASE("ostream: manipulator applied in another TU", "[ag][formatting][iostream][odr]") {
     std::ostringstream os;
     test::ag::cross_tu::set_indented(os);
 
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     os << A{ .i = 42, .c = 'x' };
     CHECK(os.str() ==
 R"({

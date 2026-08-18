@@ -5,6 +5,6 @@
 #include <ostream>
 
 namespace test::ag::cross_tu {
-    auto iword_slot() -> int { return csl::ag::io::details::mode_index(); }
-    void set_indented(std::ostream & os) { os << csl::ag::io::indented; }
+    auto iword_slot() -> int { return csl::ag::formatting::details::mode_index(); }
+    void set_indented(std::ostream & os) { os << csl::ag::formatting::indented; }
 }

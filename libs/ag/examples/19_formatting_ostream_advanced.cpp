@@ -24,7 +24,7 @@ struct C {
 };
 
 auto main() -> int {
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
 
     int i = 42;
     char c = 'c';

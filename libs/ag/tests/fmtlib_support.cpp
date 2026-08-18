@@ -21,7 +21,7 @@ namespace types = test::ag::types;
 
 namespace tests::concepts::fmt_formattable {
 
-    namespace concepts = csl::ag::io::details::concepts;
+    namespace concepts = csl::ag::formatting::details::concepts;
 
     static_assert(concepts::fmt_formattable<types::field_1, char>);
     static_assert(concepts::fmt_formattable<types::field_2, char>);
@@ -44,7 +44,7 @@ namespace tests::concepts::fmt_formattable {
     struct not_formattable_field { explicit not_formattable_field() = default; };
     struct with_not_formattable_field { not_formattable_field f; };
     static_assert(not concepts::fmt_formattable<with_not_formattable_field, char>);
-    static_assert(not fmt::is_formattable<csl::ag::io::details::decorators::formatted_view_t<with_not_formattable_field>, char>::value);
+    static_assert(not fmt::is_formattable<csl::ag::formatting::details::decorators::formatted_view_t<with_not_formattable_field>, char>::value);
 }
 
 namespace {

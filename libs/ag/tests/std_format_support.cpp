@@ -19,10 +19,10 @@
 
 namespace types = test::ag::types;
 
-// csl::ag::io::details::concepts::std_formattable: see csl/ag/formatting/backend/std_format.hpp.
+// csl::ag::formatting::details::concepts::std_formattable: see csl/ag/formatting/backend/std_format.hpp.
 namespace tests::concepts::std_formattable {
 
-    namespace concepts = csl::ag::io::details::concepts;
+    namespace concepts = csl::ag::formatting::details::concepts;
 
     static_assert(concepts::std_formattable<types::field_1, char>);
     static_assert(concepts::std_formattable<types::field_2, char>);
@@ -41,22 +41,22 @@ namespace tests::concepts::std_formattable {
     struct nested_empty{ empty e; int i; };
     static_assert(concepts::std_formattable<empty, char>);
     static_assert(concepts::std_formattable<nested_empty, char>);
-    static_assert(std::formattable<csl::ag::io::details::decorators::formatted_view_t<empty>, char>);
-    static_assert(std::formattable<csl::ag::io::details::decorators::formatted_view_t<nested_empty>, char>);
+    static_assert(std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<empty>, char>);
+    static_assert(std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<nested_empty>, char>);
 
     // formattability of the fields is independent from opting the type in:
     // not_opted_in has no std::formatter, yet its field is std-formattable (hence its views are).
     static_assert(concepts::std_formattable<types::not_opted_in, char>);
     static_assert(not std::formattable<types::not_opted_in, char>);
-    static_assert(std::formattable<csl::ag::io::details::decorators::formatted_view_t<types::not_opted_in>, char>);
+    static_assert(std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<types::not_opted_in>, char>);
 
     // non-aggregates types are not supported
     struct not_formattable { explicit not_formattable() = default; };
     struct nested_not_formattable { not_formattable f; };
     static_assert(not concepts::std_formattable<not_formattable, char>);
     static_assert(not concepts::std_formattable<nested_not_formattable, char>);
-    static_assert(not std::formattable<csl::ag::io::details::decorators::formatted_view_t<not_formattable>, char>);
-    static_assert(not std::formattable<csl::ag::io::details::decorators::formatted_view_t<nested_not_formattable>, char>);
+    static_assert(not std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<not_formattable>, char>);
+    static_assert(not std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<nested_not_formattable>, char>);
 }
 
 namespace {

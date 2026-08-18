@@ -13,7 +13,7 @@ struct single { float value; };
 // Per-type opt-in: required to format a point directly (see std::format below).
 // Nested fields and `value | option` views need none.
 template <>
-struct std::formatter<point> : csl::ag::io::std_formatter<point>{}; // NOLINT(cert-dcl58-cpp)
+struct std::formatter<point> : csl::ag::formatting::std_formatter<point>{}; // NOLINT(cert-dcl58-cpp)
 
 // size and element type
 static_assert(csl::ag::size_v<point>  == 2);
@@ -80,11 +80,11 @@ auto main(int, char*[]) -> int
     static_assert(std::get<0>(view) == 3);
 
     // --- opt-in: std::format formatting (#include <csl/ag/formatting/backend/std_format.hpp>) ---
-    std::cout << std::format("{}\n", value);                          // compact:  (3, 4)
-    std::cout << std::format("{}\n", value | csl::ag::io::indented);  // indented: multi-line
+    std::cout << std::format("{}\n", value);                                 // compact:  (3, 4)
+    std::cout << std::format("{}\n", value | csl::ag::formatting::indented); // indented: multi-line
 
     // --- opt-in: fmt formatting (#include <csl/ag/formatting/backend/fmt.hpp>) ---
     // fmt::print("{}\n", value);
-    // fmt::print("{}\n", value | csl::ag::io::indented);
+    // fmt::print("{}\n", value | csl::ag::formatting::indented);
 }
 // NOLINTEND(*-magic-numbers)

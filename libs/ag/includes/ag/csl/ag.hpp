@@ -1168,10 +1168,10 @@ namespace csl::ag::tuplelike {
 }
 
 // ------------------------------
-//  formatting/printing - io core
+//  formatting/printing - core
 // ------------------------------
 //
-// csl/ag.hpp only ships the backend-agnostic io core (std-only, always compiled, no blanket specialization):
+// csl/ag.hpp only ships the backend-agnostic formatting core (std-only, always compiled, no blanket specialization):
 // - format options
 // - format tags
 // - decorated views
@@ -1191,7 +1191,7 @@ namespace csl::ag::tuplelike {
 
 #include <typeindex>
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     /// @brief Customization point (type-trait) providing the type name written by the @c typenamed formatting option.
     ///
@@ -1225,7 +1225,7 @@ namespace csl::ag::io {
 
 // Formatting(shared): composable format options, tag types, decorated view, operator|
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
     /// \brief Bitmask of composable formatting options.
     ///        NOTE: underlying type is long for compatibility with std::ios_base::iword().
     enum class format_options : long { // NOLINT(*-enum-size, *-runtime-int)
@@ -1307,7 +1307,7 @@ namespace csl::ag::io {
     }
 }
 
-namespace csl::ag::io::details::decorators {
+namespace csl::ag::formatting::details::decorators {
 
     /// \brief Carries formatting informations.
     template <typename T>
@@ -1315,7 +1315,7 @@ namespace csl::ag::io::details::decorators {
 
         static_assert(std::is_same_v<T, std::remove_cvref_t<T>>, "requires unqualified T");
 
-        using csl_ag_io_decorator = void;
+        using csl_ag_formatting_decorator = void;
         using value_type = T;
 
         /*explicit*/ operator const value_type &() const { return value; } // NOLINT(*-explicit-constructor)
@@ -1326,14 +1326,14 @@ namespace csl::ag::io::details::decorators {
     };
 }
 
-namespace csl::ag::io::details::concepts {
-    // NOTE: type-requirement (typename): csl_ag_io_decorator is a member type alias -
+namespace csl::ag::formatting::details::concepts {
+    // NOTE: type-requirement (typename): csl_ag_formatting_decorator is a member type alias -
     //       a simple-requirement would test it as an (invalid) expression and never be satisfied
     template <typename T>
-    concept decorator = requires { typename T::csl_ag_io_decorator; };
+    concept decorator = requires { typename T::csl_ag_formatting_decorator; };
 }
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     /// \brief structured_bindable T | format_options (one tag, e.g. `indented`, or several composed, e.g. `indented | indexed`) => formatted_view_t
     /// Tags (indented, indexed, typenamed, no_braces) implicitly convert to format_options, so this single overload covers both cases.
@@ -1362,7 +1362,7 @@ namespace csl::ag::io {
 }
 
 /// \brief Formatting presentation constants/helpers shared by every backend (ostream, fmt, std::format).
-namespace csl::ag::io::details::style {
+namespace csl::ag::formatting::details::style {
 
     constexpr static std::size_t indentation_width = 4;
 
@@ -1403,7 +1403,7 @@ namespace csl::ag::io::details::style {
 
 // Formatters shared machinery (fmt::formatter / std::formatter): backend-agnostic, std-only.
 
-namespace csl::ag::io::details {
+namespace csl::ag::formatting::details {
 
     template <typename Char, std::size_t N>
     [[nodiscard]] consteval auto to_chars() noexcept {
@@ -1566,7 +1566,7 @@ namespace csl::ag::io::details {
                     case 'i': parse_options |= format_options::indented;  break;
                     case 'x': parse_options |= format_options::indexed;   break;
                     case 't': parse_options |= format_options::typenamed; break;
-                    default: throw format_error_type_t<formatter_implementation>{"csl::ag::io: unrecognized format-spec letter (expected one of: n, i, x, t)"};
+                    default: throw format_error_type_t<formatter_implementation>{"csl::ag::formatting: unrecognized format-spec letter (expected one of: n, i, x, t)"};
                 }
                 ++it;
             }

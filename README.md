@@ -346,7 +346,7 @@ int: 42
 `csl` offers 3 formatting support backends: `std::format`, `fmt`, and `std::ostream/cout`.  
 Each is an opt-in **feature header**: `csl/ag/formatting/backend/*.hpp` for `csl::ag`, `csl/ensure/formatting/backend/*.hpp` for `csl::ensure`.
 
-See live [demonstration here](https://godbolt.org/z/KcEeW77dj).
+See live [demonstration here](https://godbolt.org/z/rjvTqT13W).
 
 ```cpp
 #include <csl/typeinfo.hpp>
@@ -374,12 +374,12 @@ struct C {
 // per-type opt-in, for the type formatted directly
 // `A` and `B` need none: they are only nested fields
 template <>
-struct std::formatter<C> : csl::ag::io::std_formatter<C>{};
+struct std::formatter<C> : csl::ag::formatting::std_formatter<C>{};
 
 auto main() -> int {
     std::print("default is compact:\n{}\n\n", C{});
 
-    using namespace csl::ag::io;
+    using namespace csl::ag::formatting;
     constexpr auto format_view = indexed | typenamed | indented;
     std::println("pretty formatting:\n{}", C{} | format_view); // equivalent to std::println("{:xti}\n", A{});
 }

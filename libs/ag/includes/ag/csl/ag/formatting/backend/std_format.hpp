@@ -5,8 +5,8 @@
 ///
 /// cpp shelf library : aggregates utility - formatting.
 ///
-/// Provides the `csl::ag::io::std_formatter` opt-in base and `std::formatter` specializations
-/// for formatted views (see operator|) via `csl::ag::io`.
+/// Provides the `csl::ag::formatting::std_formatter` opt-in base and `std::formatter` specializations
+/// for formatted views (see operator|) via `csl::ag::formatting`.
 ///
 /// @copyright Copyright (c) 2021 Guillaume Dua "Guss". MIT License.
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
@@ -17,16 +17,16 @@
 ///          declare them next to the type they format.
 ///
 /// @par Design
-///      - Per-type opt-in: derive @c std::formatter<T> from @c csl::ag::io::std_formatter<T>.
+///      - Per-type opt-in: derive @c std::formatter<T> from @c csl::ag::formatting::std_formatter<T>.
 ///        Nested structured_bindable fields and decorated views need no opt-in.
 ///      - Composable @c format_options selected via format-spec letters, or via the view-based @c operator| API - both are equivalent, and mixable:
 ///         @code
-///         std::format("{}", value)                                       // default: braced, compact
-///         std::format("{:n}", value)                                     // flat, naked: no outer brackets or separator
-///         std::format("{}", value | csl::ag::io::indented)               // multiline, depth-indented
-///         std::format("{}", value | csl::ag::io::indexed)                // braced with [N] field indexes
-///         std::format("{}", value | csl::ag::io::typenamed)              // braced with TypeName: prefixes
-///         std::format("{:ixt}", value)                                   // spec letters compose too
+///         std::format("{}", value)                                  // default: braced, compact
+///         std::format("{:n}", value)                                // flat, naked: no outer brackets or separator
+///         std::format("{}", value | csl::ag::formatting::indented)  // multiline, depth-indented
+///         std::format("{}", value | csl::ag::formatting::indexed)   // braced with [N] field indexes
+///         std::format("{}", value | csl::ag::formatting::typenamed) // braced with TypeName: prefixes
+///         std::format("{:ixt}", value)                              // spec letters compose too
 ///         @endcode
 ///      - Options propagate to nested structured_bindable fields (no_braces is outermost-only).
 ///      - Leaf values consistent with fmtlib: char => 'x', bool => true/false, string => "...".
@@ -38,9 +38,9 @@
 ///      struct my_aggregate { int i; char c; };
 ///
 ///      template <>
-///      struct std::formatter<my_aggregate> : csl::ag::io::std_formatter<my_aggregate>{};
+///      struct std::formatter<my_aggregate> : csl::ag::formatting::std_formatter<my_aggregate>{};
 ///
-///      using namespace csl::ag::io;
+///      using namespace csl::ag::formatting;
 ///      std::println("{}", my_aggregate{ 42, 'x' });
 ///      @endcode
 
@@ -57,12 +57,12 @@
 
 #include <format>
 
-namespace csl::ag::io::details {
+namespace csl::ag::formatting::details {
     template <>
     struct format_error_type<std::formatter> : std::type_identity<std::format_error>{};
 }
 
-namespace csl::ag::io::details::type_traits {
+namespace csl::ag::formatting::details::type_traits {
 
     /// \brief used upstream: not formatter detection
     ///       Recurses through structured_bindable elements std::formattable is consulted at leaves only.
@@ -78,14 +78,14 @@ namespace csl::ag::io::details::type_traits {
     template <typename T, typename Char>
     constexpr inline static auto is_std_formattable_v = is_std_formattable<T, Char>::value;
 }
-namespace csl::ag::io::details::concepts {
+namespace csl::ag::formatting::details::concepts {
 
     /// \brief used upstream: not formatter detection
     template <typename T, typename Char>
     concept std_formattable = type_traits::is_std_formattable_v<T, Char>;
 }
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     /// \brief Opt-in base making T formattable directly by std::format.
     ///
@@ -93,13 +93,13 @@ namespace csl::ag::io {
     ///        struct point { int x; int y; };
     ///
     ///        template <>
-    ///        struct std::formatter<point> : csl::ag::io::std_formatter<point>{};
+    ///        struct std::formatter<point> : csl::ag::formatting::std_formatter<point>{};
     ///        \endcode
     ///
     ///        Only the type formatted directly needs this:
     ///        nested structured_bindable fields, and any decorated view
-    ///        (value | csl::ag::io::indented, see operator|), need no opt-in.
-    ///        `value | csl::ag::io::format_options::none` reproduces the default output,
+    ///        (value | csl::ag::formatting::indented, see operator|), need no opt-in.
+    ///        `value | csl::ag::formatting::format_options::none` reproduces the default output,
     ///        without any opt-in.
     ///
     /// \note  There is deliberately no blanket std::formatter for aggregates:
@@ -109,7 +109,7 @@ namespace csl::ag::io {
     ///        (std::monostate, std::identity, std::plus<>, ...),
     ///        and collide with any other library specializing std::formatter on its own concept.
     /// \note  Known limitation: the formatting machinery is char-based -
-    ///        csl::ag::io::type_name and details::style::opening_bracket both yield
+    ///        csl::ag::formatting::type_name and details::style::opening_bracket both yield
     ///        std::string_view - so Char is restricted to char.
     template <
         csl::ag::concepts::structured_bindable T,
@@ -124,7 +124,7 @@ namespace csl::ag::io {
     {
         static_assert(
             details::concepts::std_formattable<T, Char>,
-            "[csl::ag::io::std_formatter] at least one of T's fields is not std-formattable."
+            "[csl::ag::formatting::std_formatter] at least one of T's fields is not std-formattable."
         );
     };
 }
@@ -135,12 +135,12 @@ template <
     csl::ag::concepts::structured_bindable T,
     typename Char
 >
-requires (not csl::ag::io::details::concepts::decorator<T>)
-and csl::ag::io::details::concepts::std_formattable<T, Char>
+requires (not csl::ag::formatting::details::concepts::decorator<T>)
+and csl::ag::formatting::details::concepts::std_formattable<T, Char>
 struct std::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
+    csl::ag::formatting::details::decorators::formatted_view_t<T>,
     Char
-> : public csl::ag::io::details::ag_formatter_base<
+> : public csl::ag::formatting::details::ag_formatter_base<
         std::formatter, T, Char
     >
 {};
@@ -152,9 +152,9 @@ template <
 >
 requires (not csl::ag::concepts::structured_bindable<T>)
 struct std::formatter<
-    csl::ag::io::details::decorators::formatted_view_t<T>,
+    csl::ag::formatting::details::decorators::formatted_view_t<T>,
     Char
-> : public csl::ag::io::details::ag_formatter_base_leaf<
+> : public csl::ag::formatting::details::ag_formatter_base_leaf<
         std::formatter, T, Char
     >
 {};

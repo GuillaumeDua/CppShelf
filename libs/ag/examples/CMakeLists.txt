@@ -1,7 +1,7 @@
 set(component_name ag)
 
 # csl::ag's formatting examples optionally enhance themselves with csl::typeinfo (clean type names for
-# csl::ag::io::typenamed, e.g. "int" instead of the <typeindex> mangled fallback): self-provision it here,
+# csl::ag::formatting::typenamed, e.g. "int" instead of the <typeindex> mangled fallback): self-provision it here,
 # the same way ag's tests do, so examples build standalone regardless of whether typeinfo is enabled at
 # the top level.
 if (NOT TARGET csl::typeinfo)
@@ -19,7 +19,7 @@ foreach(example_file IN LISTS ${component_name}_EXAMPLES_LIST)
 
     set(target_name example_${component_name}_${example_name})
 
-    # NOTE: csl::typeinfo gives `csl::ag::io::typenamed` clean type names (e.g. "int") instead of the <typeindex> mangled fallback.
+    # NOTE: csl::typeinfo gives `csl::ag::formatting::typenamed` clean type names (e.g. "int") instead of the <typeindex> mangled fallback.
     set(example_extra_libs ${PROJECT_NAME}::typeinfo)
 
     # NOTE: fmtlib support requires linkage with fmt.

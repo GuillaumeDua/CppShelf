@@ -9,7 +9,7 @@
 /// @see https://github.com/GuillaumeDua/CppShelf/blob/main/LICENSE
 ///
 /// @details
-/// Backs the @c typenamed formatting option (@c csl::ag::io::type_name customization trait) with csl::typeinfo:
+/// Backs the @c typenamed formatting option (@c csl::ag::formatting::type_name customization trait) with csl::typeinfo:
 /// compile-time, demangled type names, instead of the @c <typeindex> runtime fallback.
 ///
 /// Orthogonal to csl::ag formatting backends: enhances whichever formatting feature headers are included, if any.
@@ -30,7 +30,7 @@
 #   error "[csl::ag] csl/ag/formatting/typeinfo.hpp : missing <csl/typeinfo.hpp> (csl::typeinfo). Make it reachable, or #include it before this header (e.g. on Compiler Explorer, using its raw URL)."
 #endif
 
-namespace csl::ag::io {
+namespace csl::ag::formatting {
 
     template <typename T>
     requires requires {
