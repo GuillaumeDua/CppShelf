@@ -70,7 +70,7 @@ namespace tests::concepts::produced {
 
     // formatting is a per-type opt-in: a type its owner never opted in must not be claimed.
     // std-owned aggregates matter most here - claiming them would violate [namespace.std]/2.
-    static_assert(not csl::ag::concepts::produced<implementation::formatter<types::not_opted_in>>);
+    static_assert(not csl::ag::concepts::produced<implementation::formatter<types::without_formatter>>);
     static_assert(not csl::ag::concepts::produced<implementation::formatter<std::monostate>>);
     static_assert(not csl::ag::concepts::produced<implementation::formatter<std::identity>>);
     static_assert(not csl::ag::concepts::produced<implementation::formatter<std::plus<>>>);
@@ -79,7 +79,7 @@ namespace tests::concepts::produced {
 
     // ... whereas the view form needs no opt-in, for any of them
     namespace decorators = csl::ag::formatting::details::decorators;
-    static_assert(csl::ag::concepts::produced<implementation::formatter<decorators::formatted_view_t<types::not_opted_in>>>);
+    static_assert(csl::ag::concepts::produced<implementation::formatter<decorators::formatted_view_t<types::without_formatter>>>);
     static_assert(csl::ag::concepts::produced<implementation::formatter<decorators::formatted_view_t<std::monostate>>>);
 }
 
@@ -97,7 +97,7 @@ TEMPLATE_TEST_CASE("default" + implementation::name_suffix() + "", implementatio
 
 TEST_CASE("view form requires no opt-in" + implementation::name_suffix() + "", implementation::tags()) {
 
-    constexpr auto value = types::not_opted_in{ .i = 42 };
+    constexpr auto value = types::without_formatter{ .i = 42 };
 
     CHECK(implementation::format("{}", value | csl::ag::formatting::indented) == "{\n    42\n}");
     // format_options::none reproduces the default output, without any opt-in

@@ -19,8 +19,8 @@ struct std::formatter<point> : csl::ag::formatting::std_formatter<point>{}; // N
 static_assert(std::formattable<point, char>);
 
 // ... which the library never installs on its own
-struct not_opted_in { int i; };
-static_assert(not std::formattable<not_opted_in, char>);
+struct without_formatter { int i; };
+static_assert(not std::formattable<without_formatter, char>);
 
 using id = csl::ensure::strong_type<int, struct id_tag>;
 static_assert(std::is_constructible_v<id, int>);
