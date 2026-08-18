@@ -2,7 +2,7 @@
 
 // Per-type fmt::formatter opt-ins for the shared test types (tests/types.hpp).
 // Include after <csl/ag/formatting/backend/fmt.hpp> and <tests/types.hpp>.
-// NOTE: test::ag::types::not_opted_in is deliberately absent - its absence is what guards
+// NOTE: test::ag::types::without_formatter is deliberately absent - its absence is what guards
 //       against a blanket fmt::formatter reappearing.
 
 template <>

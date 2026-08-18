@@ -45,10 +45,10 @@ namespace tests::concepts::std_formattable {
     static_assert(std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<nested_empty>, char>);
 
     // formattability of the fields is independent from opting the type in:
-    // not_opted_in has no std::formatter, yet its field is std-formattable (hence its views are).
-    static_assert(concepts::std_formattable<types::not_opted_in, char>);
-    static_assert(not std::formattable<types::not_opted_in, char>);
-    static_assert(std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<types::not_opted_in>, char>);
+    // without_formatter has no std::formatter, yet its field is std-formattable (hence its views are).
+    static_assert(concepts::std_formattable<types::without_formatter, char>);
+    static_assert(not std::formattable<types::without_formatter, char>);
+    static_assert(std::formattable<csl::ag::formatting::details::decorators::formatted_view_t<types::without_formatter>, char>);
 
     // non-aggregates types are not supported
     struct not_formattable { explicit not_formattable() = default; };
