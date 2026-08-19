@@ -47,9 +47,9 @@ namespace tests::concepts::fmt_formattable {
     static_assert(not fmt::is_formattable<csl::ag::formatting::details::decorators::formatted_view_t<with_not_formattable_field>, char>::value);
 }
 
-namespace {
 #include <tests/ag/format_fixtures.hpp>
 
+namespace {
     namespace implementation {
         template <typename T, typename Char = char>
         using formatter = fmt::formatter<T, Char>;

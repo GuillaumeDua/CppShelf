@@ -1,9 +1,9 @@
 #pragma once
 
-// Per-type fmt::formatter opt-ins for the shared test types (tests/types.hpp).
-// Include after <csl/ag/formatting/backend/fmt.hpp> and <tests/types.hpp>.
-// NOTE: test::ag::types::without_formatter is deliberately absent
-//       its absence is what guards against a blanket fmt::formatter reappearing.
+#include <csl/ag/formatting/backend/fmt.hpp>
+#include <tests/types.hpp>
+
+// Per-type fmt::formatter opt-ins for the shared test types.
 
 template <>
 struct fmt::formatter<test::ag::types::field_1>
