@@ -1,9 +1,9 @@
 #pragma once
 
-// Per-type std::formatter opt-ins for the shared test types (tests/types.hpp).
-// Include after <csl/ag/formatting/backend/std_format.hpp> and <tests/types.hpp>.
-// NOTE: test::ag::types::without_formatter is deliberately absent.
-//       its absence is what guards against a blanket std::formatter reappearing.
+#include <csl/ag/formatting/backend/std_format.hpp>
+#include <tests/types.hpp>
+
+// Per-type std::formatter opt-ins for the shared test types.
 
 // NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
 template <>

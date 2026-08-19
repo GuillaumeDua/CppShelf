@@ -1,9 +1,9 @@
 #pragma once
 
-// Must be included after <csl/ag/formatting/typeinfo.hpp>.
-
 // QUICK-FIX: consistent typeinfo outputs
 #if defined(CSL_AG_TEST__WITH_TYPEINFO) and CSL_AG_TEST__WITH_TYPEINFO
+#include <csl/ag/formatting/typeinfo.hpp>
+
 #include <array>
 #include <string_view>
 #include <tuple>

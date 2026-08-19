@@ -1,7 +1,10 @@
 #pragma once
 
+#include <tests/types.hpp>
+
+#include <string_view>
+
 // Shared fixture data for csl::ag formatting tests (fmtlib_support.cpp, std_format_support.cpp).
-// Must be included inside an anonymous namespace, after `namespace types = test::ag::types;`.
 
 // NOLINTBEGIN(*-avoid-magic-numbers)
 
@@ -10,8 +13,8 @@ struct fixture;
 
 #pragma region fixture specializations
 template <>
-struct fixture<types::field_1> {
-    constexpr static types::field_1 value{ .i = 42 };
+struct fixture<test::ag::types::field_1> {
+    constexpr static test::ag::types::field_1 value{ .i = 42 };
     constexpr static std::string_view default_expected = "{42}";
     constexpr static std::string_view no_braces_expected = "42";
     constexpr static std::string_view indented_expected =
@@ -27,8 +30,8 @@ R"({
 };
 
 template <>
-struct fixture<types::field_2> {
-    constexpr static types::field_2 value{ .i = 123, .c = 'A' };
+struct fixture<test::ag::types::field_2> {
+    constexpr static test::ag::types::field_2 value{ .i = 123, .c = 'A' };
     constexpr static std::string_view default_expected = "{123, 'A'}";
     constexpr static std::string_view no_braces_expected = "123'A'";
     constexpr static std::string_view indented_expected =
@@ -46,11 +49,11 @@ R"({
 };
 
 template <>
-struct fixture<types::field_3_nested> {
-    constexpr static types::field_3_nested value{
+struct fixture<test::ag::types::field_3_nested> {
+    constexpr static test::ag::types::field_3_nested value{
         .i  = 1,
-        .f1 = fixture<types::field_1>::value,
-        .f2 = fixture<types::field_2>::value
+        .f1 = fixture<test::ag::types::field_1>::value,
+        .f2 = fixture<test::ag::types::field_2>::value
     };
     constexpr static std::string_view default_expected = "{1, {42}, {123, 'A'}}";
     constexpr static std::string_view no_braces_expected = "1{42}{123, 'A'}";
@@ -83,8 +86,8 @@ R"({
 };
 
 template <>
-struct fixture<types::field_3_nested_tuplelike> {
-    constexpr static types::field_3_nested_tuplelike value{
+struct fixture<test::ag::types::field_3_nested_tuplelike> {
+    constexpr static test::ag::types::field_3_nested_tuplelike value{
         .tu = { 2, 'b', "str"},
         .a  = {'a', 'b', 'c'},
         .p  = { 42, 43 }, // NOLINT
@@ -132,8 +135,8 @@ R"({
 };
 
 template <>
-struct fixture<types::field_4_nested_range> {
-    constexpr static types::field_4_nested_range value{
+struct fixture<test::ag::types::field_4_nested_range> {
+    constexpr static test::ag::types::field_4_nested_range value{
         .sv   = "hello",
         .a_c  = { 'a', 'b', 'c' },
         .a_i  = { 42, 43, 44 },
@@ -186,12 +189,12 @@ R"({
 };
 
 template <>
-struct fixture<types::field_everything> {
-    constexpr static types::field_everything value{
+struct fixture<test::ag::types::field_everything> {
+    constexpr static test::ag::types::field_everything value{
         .b  = true,
-        .f1 = fixture<types::field_3_nested>::value,
-        .f2 = fixture<types::field_3_nested_tuplelike>::value,
-        .f3 = fixture<types::field_4_nested_range>::value,
+        .f1 = fixture<test::ag::types::field_3_nested>::value,
+        .f2 = fixture<test::ag::types::field_3_nested_tuplelike>::value,
+        .f3 = fixture<test::ag::types::field_4_nested_range>::value,
     };
     constexpr static std::string_view default_expected = R"({true, {1, {42}, {123, 'A'}}, {(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)}, {"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]}})";
     constexpr static std::string_view no_braces_expected = R"(true{1, {42}, {123, 'A'}}{(2, 'b', "str"), ['a', 'b', 'c'], (42, 43)}{"hello", ['a', 'b', 'c'], [42, 43, 44], ["a", "b", "c"]})";

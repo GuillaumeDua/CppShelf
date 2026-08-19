@@ -1,5 +1,15 @@
 #pragma once
 
+// Backend-agnostic csl::ag formatting test cases: the includer supplies the backend.
+//
+// Include at file scope, with `namespace types = test::ag::types;` in scope.
+// The includer must first define, in the unnamed namespace, an `implementation` namespace holding:
+// - `name`
+// - `format(fmt_str, value)`
+// - `formatter<T, Char>`
+
+#include <tests/ag/format_fixtures.hpp>
+
 #include <array>
 #include <coroutine>
 #include <format>
