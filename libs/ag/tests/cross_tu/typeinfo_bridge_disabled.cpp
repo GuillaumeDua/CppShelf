@@ -1,5 +1,5 @@
-// ODR sanity (fmt-style feature-header contract):
-// this TU does NOT include the typeinfo bridge - see odr_mixed_bridge.cpp for the rationale and the contract being verified.
+// Cross-TU feature-header contract (fmt-style):
+// this TU does NOT include the typeinfo bridge - see typeinfo_bridge_enabled.cpp for the rationale and the contract being verified.
 #include <csl/ag.hpp>
 #include <csl/ag/formatting/backend/std_format.hpp>
 
@@ -15,14 +15,14 @@
 # error "CSL_AG_TEST__WITH_TYPEINFO must not be defined for this test"
 #endif
 
-namespace test::ag::odr {
+namespace test::ag::cross_tu {
     struct plain { char c; };
 }
 
-TEST_CASE("odr-mixed: plain TU - typenamed uses the <typeindex> fallback", "[ag][formatting][odr]") {
+TEST_CASE("cross-TU: typeinfo bridge disabled - typenamed uses the <typeindex> fallback", "[ag][formatting][cross_tu]") {
     using namespace csl::ag::formatting;
     const auto expected = std::format("{{{}: 'A'}}", std::type_index(typeid(char)).name());
-    CHECK(std::format("{}", test::ag::odr::plain{ .c = 'A' } | typenamed) == expected);
+    CHECK(std::format("{}", test::ag::cross_tu::plain{ .c = 'A' } | typenamed) == expected);
 }
 
 // NOLINTEND(*-avoid-magic-numbers)

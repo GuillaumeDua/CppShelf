@@ -96,8 +96,8 @@ endfunction()
 #
 #   Outside the matrix:
 #     - formatting_coexistence.cpp:      every feature header in one TU
-#     - odr_mixed_{bridge,plain}.cpp:    one binary, two TUs, only one includes the bridge
-#     - ostream_iword_cross_tu*.cpp:     one binary, two TUs, iword slot must be program-wide
+#     - cross_tu/typeinfo_bridge_*.cpp:  one binary, two TUs, only one includes the bridge
+#     - cross_tu/ostream_iword*.cpp:     one binary, two TUs, iword slot must be program-wide
 # ---------------------------------------------------------------------------------------------
 add_custom_target(${PROJECT_NAME}_${component_name}_build_all_tests)
 
@@ -163,8 +163,8 @@ add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name
 # ODR sanity (fmt-style feature-header contract):
 # - two TUs, only one includes the typeinfo bridge, each formats different types - must link and behave deterministically
 csl_ag_make_test_target(
-    NAME        odr_mixed
-    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/odr_mixed_bridge.cpp ${CMAKE_CURRENT_SOURCE_DIR}/odr_mixed_plain.cpp
+    NAME        typeinfo_bridge_cross_tu
+    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/cross_tu/typeinfo_bridge_enabled.cpp ${CMAKE_CURRENT_SOURCE_DIR}/cross_tu/typeinfo_bridge_disabled.cpp
     EXTRA_LIBS  ${PROJECT_NAME}::typeinfo
     RESULT      target_name
 )
@@ -174,7 +174,7 @@ add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name
 # - a manipulator applied in one TU must be seen by a print in the other (details::mode_index() must yield one xalloc slot program-wide)
 csl_ag_make_test_target(
     NAME        ostream_iword_cross_tu
-    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/ostream_iword_cross_tu.cpp ${CMAKE_CURRENT_SOURCE_DIR}/ostream_iword_cross_tu_remote.cpp
+    SOURCE      ${CMAKE_CURRENT_SOURCE_DIR}/cross_tu/ostream_iword.cpp ${CMAKE_CURRENT_SOURCE_DIR}/cross_tu/ostream_iword_remote.cpp
     RESULT      target_name
 )
 add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
