@@ -1,4 +1,4 @@
-// Cross-TU feature-header contract (fmt-style):
+// Cross-TU/ODR feature-header contract (fmt-style):
 // this TU includes the typeinfo bridge, the sibling TU (typeinfo_bridge_disabled.cpp) does not - each formats *different* types.
 // The resulting binary must link and behave deterministically.
 #include <csl/ag.hpp>

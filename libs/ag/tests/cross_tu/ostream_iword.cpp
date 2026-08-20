@@ -1,6 +1,7 @@
-// iword cross-TU contract: details::mode_index() must return the same xalloc slot in every TU,
+// iword cross-TU/ODR contract: details::mode_index() must return the same xalloc slot in every TU,
 // so manipulator state applied in one TU is seen by prints in another.
-// (regression: an internal-linkage - static - mode_index gave each TU its own slot)
+//
+// NOTE(regression): an internal-linkage - static - mode_index gave each TU its own slot
 #include <csl/ag.hpp>
 #include <csl/ag/formatting/backend/ostream.hpp>
 

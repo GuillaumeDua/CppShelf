@@ -1,4 +1,4 @@
-// Cross-TU feature-header contract (fmt-style):
+// Cross-TU/ODR feature-header contract (fmt-style):
 // this TU does NOT include the typeinfo bridge - see typeinfo_bridge_enabled.cpp for the rationale and the contract being verified.
 #include <csl/ag.hpp>
 #include <csl/ag/formatting/backend/std_format.hpp>

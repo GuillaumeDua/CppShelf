@@ -63,13 +63,14 @@
 namespace csl::ag::formatting::details {
 
     /// \brief normalises fmt::formatter's 3-param signature (T, Char, SFINAE-Enable) to 2 params,
-    ///        so it can be passed as a template template parameter to ag_formatter_base.
+    ///        so it can be passed as a template template parameter to ag_formatter_base,
+    ///        and is consistent with std::formatter<T, CharT>.
     ///        Reason: P0522 relaxed template template matching is not the default before Clang 19.
     template <typename T, typename Char = char>
-    using fmt_formatter_arity2 = fmt::formatter<T, Char>;
+    using fmt_formatter_adapter = fmt::formatter<T, Char>;
 
     template <>
-    struct format_error_type<fmt_formatter_arity2> : std::type_identity<fmt::format_error>{};
+    struct format_error_type<fmt_formatter_adapter> : std::type_identity<fmt::format_error>{};
 }
 
 namespace csl::ag::formatting::details::type_traits {
@@ -117,8 +118,8 @@ namespace csl::ag::formatting {
     ///        See csl::ag::formatting::std_formatter, which carries the same model -
     ///        plus, for std::formatter, a [namespace.std]/2 constraint.
     /// \note  Known limitation: the formatting machinery is char-based -
-    ///        csl::ag::formatting::type_name and details::style::opening_bracket both yield
-    ///        std::string_view - so Char is restricted to char.
+    ///        csl::ag::formatting::type_name and details::style::opening_bracket both yield std::string_view -
+    ///        so Char is restricted to char.
     ///
     ///        WARNING: routes through ag_formatter_base,
     ///        not fmt's native tuple_join_view formatter:
@@ -133,7 +134,7 @@ namespace csl::ag::formatting {
         and (not details::concepts::decorator<T>)
     struct fmt_formatter
         : public details::ag_formatter_base<
-            details::fmt_formatter_arity2, T, Char
+            details::fmt_formatter_adapter, T, Char
         >
     {
         static_assert(
@@ -156,7 +157,7 @@ class fmt::formatter<
     csl::ag::formatting::details::decorators::formatted_view_t<T>,
     Char
 > : public csl::ag::formatting::details::ag_formatter_base<
-        csl::ag::formatting::details::fmt_formatter_arity2, T, Char
+        csl::ag::formatting::details::fmt_formatter_adapter, T, Char
     >
 {};
 
@@ -170,7 +171,7 @@ class fmt::formatter<
     csl::ag::formatting::details::decorators::formatted_view_t<T>,
     Char
 > : public csl::ag::formatting::details::ag_formatter_base_leaf<
-        csl::ag::formatting::details::fmt_formatter_arity2, T, Char
+        csl::ag::formatting::details::fmt_formatter_adapter, T, Char
     >
 {};
 #pragma endregion
