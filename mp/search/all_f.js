@@ -6,8 +6,8 @@ var searchData=
   ['unique_3',['unique',['../structcsl_1_1mp_1_1type__traits_1_1unique.html',1,'csl::mp::type_traits']]],
   ['unique_3c_20t_20_3e_4',['unique&lt; T &gt;',['../structcsl_1_1mp_1_1type__traits_1_1unique_3_01T_01_4.html',1,'csl::mp::type_traits']]],
   ['uniqued_5',['uniqued',['../conceptcsl_1_1mp_1_1concepts_1_1uniqued.html',1,'csl::mp::concepts']]],
-  ['unwrap_5fref_5fdecay_6',['unwrap_ref_decay',['../structP0318_1_1unwrap__ref__decay.html',1,'P0318']]],
-  ['unwrap_5freference_7',['unwrap_reference',['../structP0318_1_1unwrap__reference.html',1,'P0318']]],
-  ['unwrap_5freference_3c_20std_3a_3adecay_5ft_3c_20t_20_3e_20_3e_8',['unwrap_reference&lt; std::decay_t&lt; T &gt; &gt;',['../structP0318_1_1unwrap__reference.html',1,'P0318']]],
-  ['unwrap_5freference_3c_20std_3a_3areference_5fwrapper_3c_20t_20_3e_20_3e_9',['unwrap_reference&lt; std::reference_wrapper&lt; T &gt; &gt;',['../structP0318_1_1unwrap__reference_3_01std_1_1reference__wrapper_3_01T_01_4_01_4.html',1,'P0318']]]
+  ['unwrap_5fref_5fdecay_6',['unwrap_ref_decay',['../structcsl_1_1mp_1_1P0318_1_1unwrap__ref__decay.html',1,'csl::mp::P0318::unwrap_ref_decay&lt; T &gt;'],['../structcsl_1_1mp_1_1P0318_1_1unwrap__ref__decay.html',1,'csl::mp::unwrap_ref_decay&lt; T &gt;']]],
+  ['unwrap_5freference_7',['unwrap_reference',['../structcsl_1_1mp_1_1P0318_1_1unwrap__reference.html',1,'csl::mp::P0318::unwrap_reference&lt; T &gt;'],['../structcsl_1_1mp_1_1P0318_1_1unwrap__reference.html',1,'csl::mp::unwrap_reference&lt; T &gt;']]],
+  ['unwrap_5freference_3c_20std_3a_3adecay_5ft_3c_20t_20_3e_20_3e_8',['unwrap_reference&lt; std::decay_t&lt; T &gt; &gt;',['../structcsl_1_1mp_1_1P0318_1_1unwrap__reference.html',1,'csl::mp::P0318']]],
+  ['unwrap_5freference_3c_20std_3a_3areference_5fwrapper_3c_20t_20_3e_20_3e_9',['unwrap_reference&lt; std::reference_wrapper&lt; T &gt; &gt;',['../structcsl_1_1mp_1_1P0318_1_1unwrap__reference_3_01std_1_1reference__wrapper_3_01T_01_4_01_4.html',1,'csl::mp::P0318::unwrap_reference&lt; std::reference_wrapper&lt; T &gt; &gt;'],['../structcsl_1_1mp_1_1P0318_1_1unwrap__reference_3_01std_1_1reference__wrapper_3_01T_01_4_01_4.html',1,'csl::mp::unwrap_reference&lt; std::reference_wrapper&lt; T &gt; &gt;']]]
 ];

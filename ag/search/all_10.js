@@ -9,14 +9,13 @@ var searchData=
   ['traits_6',['Type-traits',['../index.html#type-traits',1,'']]],
   ['tuple_20conversion_7',['to-tuple conversion',['../index.html#to-tuple-conversion',1,'']]],
   ['tuple_20likes_8',['Homogeneity API with tuple-likes',['../index.html#homogeneity-api-with-tuple-likes',1,'']]],
-  ['tuple_5felement_9',['tuple_element',['../conceptP2165_1_1tuple__element.html',1,'P2165']]],
-  ['tuple_5flike_10',['tuple_like',['../conceptP2165_1_1tuple__like.html',1,'P2165']]],
+  ['tuple_5felement_9',['tuple_element',['../conceptcsl_1_1ag_1_1concepts_1_1P2165_1_1tuple__element.html',1,'csl::ag::concepts::P2165']]],
+  ['tuple_5flike_10',['tuple_like',['../conceptcsl_1_1ag_1_1concepts_1_1P2165_1_1tuple__like.html',1,'csl::ag::concepts::P2165']]],
   ['tuple_5fsize_11',['tuple_size',['../structcsl_1_1ag_1_1tuple__size.html',1,'csl::ag']]],
   ['tuplelike_12',['tuplelike&amp;lt;T&amp;gt;',['../index.html#tupleliket',1,'']]],
   ['tuplelike_20interface_13',['tuplelike interface',['../index.html#tuplelike-interface',1,'']]],
-  ['type_14',['type',['../structcsl_1_1ag_1_1io_1_1type__traits_1_1formatter__value__type.html',1,'csl::ag::io::type_traits']]],
-  ['type_20traits_15',['Type-traits',['../index.html#type-traits',1,'']]],
-  ['type_5fname_16',['type_name',['../structcsl_1_1ag_1_1io_1_1type__name.html',1,'csl::ag::io']]],
-  ['type_5fname_3c_20t_20_3e_17',['type_name&lt; T &gt;',['../structcsl_1_1ag_1_1io_1_1type__name_3_01T_01_4.html',1,'csl::ag::io']]],
-  ['typenamed_5ft_18',['typenamed_t',['../structcsl_1_1ag_1_1io_1_1typenamed__t.html',1,'csl::ag::io']]]
+  ['type_20traits_14',['Type-traits',['../index.html#type-traits',1,'']]],
+  ['type_5fname_15',['type_name',['../structcsl_1_1ag_1_1formatting_1_1type__name.html',1,'csl::ag::formatting']]],
+  ['type_5fname_3c_20t_20_3e_16',['type_name&lt; T &gt;',['../structcsl_1_1ag_1_1formatting_1_1type__name_3_01T_01_4.html',1,'csl::ag::formatting']]],
+  ['typenamed_5ft_17',['typenamed_t',['../structcsl_1_1ag_1_1formatting_1_1typenamed__t.html',1,'csl::ag::formatting']]]
 ];

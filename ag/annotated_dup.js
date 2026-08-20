@@ -8,17 +8,15 @@ var annotated_dup =
           [ "element", "structcsl_1_1ag_1_1tuplelike_1_1element.html", null ],
           [ "element&lt; I, T &gt;", "structcsl_1_1ag_1_1tuplelike_1_1element_3_01I_00_01T_01_4.html", null ]
         ] ],
-        [ "io", null, [
-          [ "type_traits", null, [
-            [ "formatter_value_type", "structcsl_1_1ag_1_1io_1_1type__traits_1_1formatter__value__type.html", null ],
-            [ "formatter_value_type&lt; fmt::formatter&lt; T, Char &gt; &gt;", "structcsl_1_1ag_1_1io_1_1type__traits_1_1formatter__value__type_3_01fmt_1_1formatter_3_01T_00_01Char_01_4_01_4.html", null ]
-          ] ],
-          [ "indented_t", "structcsl_1_1ag_1_1io_1_1indented__t.html", null ],
-          [ "indexed_t", "structcsl_1_1ag_1_1io_1_1indexed__t.html", null ],
-          [ "no_braces_t", "structcsl_1_1ag_1_1io_1_1no__braces__t.html", null ],
-          [ "type_name", "structcsl_1_1ag_1_1io_1_1type__name.html", null ],
-          [ "type_name&lt; T &gt;", "structcsl_1_1ag_1_1io_1_1type__name_3_01T_01_4.html", null ],
-          [ "typenamed_t", "structcsl_1_1ag_1_1io_1_1typenamed__t.html", null ]
+        [ "formatting", null, [
+          [ "fmt_formatter", "structcsl_1_1ag_1_1formatting_1_1fmt__formatter.html", null ],
+          [ "indented_t", "structcsl_1_1ag_1_1formatting_1_1indented__t.html", null ],
+          [ "indexed_t", "structcsl_1_1ag_1_1formatting_1_1indexed__t.html", null ],
+          [ "no_braces_t", "structcsl_1_1ag_1_1formatting_1_1no__braces__t.html", null ],
+          [ "std_formatter", "structcsl_1_1ag_1_1formatting_1_1std__formatter.html", null ],
+          [ "type_name", "structcsl_1_1ag_1_1formatting_1_1type__name.html", null ],
+          [ "type_name&lt; T &gt;", "structcsl_1_1ag_1_1formatting_1_1type__name_3_01T_01_4.html", null ],
+          [ "typenamed_t", "structcsl_1_1ag_1_1formatting_1_1typenamed__t.html", null ]
         ] ],
         [ "size", "structcsl_1_1ag_1_1size.html", null ],
         [ "empty", "structcsl_1_1ag_1_1empty.html", null ],
@@ -31,11 +29,5 @@ var annotated_dup =
         [ "to_template_type_ttp_nttps_tag", "structcsl_1_1ag_1_1to__template__type__ttp__nttps__tag.html", null ],
         [ "to_template_type_nttp_ttps_tag", "structcsl_1_1ag_1_1to__template__type__nttp__ttps__tag.html", null ]
       ] ]
-    ] ],
-    [ "fmt", null, [
-      [ "formatter&lt; T, Char &gt;", "classfmt_1_1formatter_3_01T_00_01Char_01_4.html", null ]
-    ] ],
-    [ "std", null, [
-      [ "formatter&lt; T, Char &gt;", "structstd_1_1formatter_3_01T_00_01Char_01_4.html", null ]
     ] ]
 ];

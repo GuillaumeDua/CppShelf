@@ -26,6 +26,7 @@ var NAVTREE =
 [
   [ "🧙 csl::mp", "index.html", [
     [ "csl::mp", "index.html", "index" ],
+    [ "Deprecated List", "deprecated.html", null ],
     [ "Concepts", "concepts.html", "concepts" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],

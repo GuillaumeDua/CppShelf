@@ -16,8 +16,8 @@ var searchData=
   ['tuple_5flike_13',['tuple_like',['../conceptcsl_1_1mp_1_1concepts_1_1P2165_1_1tuple__like.html',1,'csl::mp::concepts::P2165'],['../conceptcsl_1_1mp_1_1concepts_1_1tuple__like.html',1,'csl::mp::concepts']]],
   ['tuple_5fsize_3c_20csl_3a_3amp_3a_3atuple_3c_20ts_2e_2e_2e_20_3e_20_3e_14',['tuple_size&lt; csl::mp::tuple&lt; Ts... &gt; &gt;',['../structstd_1_1tuple__size_3_01csl_1_1mp_1_1tuple_3_01Ts_8_8_8_01_4_01_4.html',1,'std']]],
   ['tuples_20algorithms_20csl_3a_3amp_3a_3atype_5ftraits_15',['Tuples algorithms - csl::mp::type_traits',['../index.html#tuples-algorithms---cslmptype_traits',1,'']]],
-  ['type_16',['type',['../structcsl_1_1mp_1_1reverse.html',1,'csl::mp::type&lt; T &gt;'],['../structcsl_1_1mp_1_1to__tuplelike.html',1,'csl::mp::type&lt; T &gt;'],['../structcsl_1_1mp_1_1type__traits_1_1negate_1_1type.html',1,'csl::mp::type_traits::negate&lt; P &gt;::type&lt; T &gt;'],['../structP0318_1_1unwrap__reference.html',1,'P0318::type&lt; T &gt;']]],
+  ['type_16',['type',['../structcsl_1_1mp_1_1P0318_1_1unwrap__reference.html',1,'csl::mp::P0318::type&lt; T &gt;'],['../structcsl_1_1mp_1_1reverse.html',1,'csl::mp::type&lt; T &gt;'],['../structcsl_1_1mp_1_1to__tuplelike.html',1,'csl::mp::type&lt; T &gt;'],['../structcsl_1_1mp_1_1type__traits_1_1negate_1_1type.html',1,'csl::mp::type_traits::negate&lt; P &gt;::type&lt; T &gt;']]],
   ['type_20traits_20csl_3a_3amp_3a_3atype_5ftraits_17',['Type traits - csl::mp::type_traits',['../index.html#type-traits---cslmptype_traits',1,'']]],
   ['type_5fgettable_18',['type_gettable',['../conceptcsl_1_1mp_1_1concepts_1_1type__gettable.html',1,'csl::mp::concepts']]],
-  ['type_5fidentity_19',['type_identity',['../structP0887_1_1type__identity.html',1,'P0887']]]
+  ['type_5fidentity_19',['type_identity',['../structcsl_1_1mp_1_1P0887_1_1type__identity.html',1,'csl::mp::P0887::type_identity&lt; T &gt;'],['../structcsl_1_1mp_1_1P0887_1_1type__identity.html',1,'csl::mp::type_identity&lt; T &gt;']]]
 ];

@@ -3,6 +3,11 @@ var concepts =
     [ "csl", null, [
       [ "ag", null, [
         [ "concepts", null, [
+          [ "P2165", null, [
+            [ "tuple_element", "conceptcsl_1_1ag_1_1concepts_1_1P2165_1_1tuple__element.html", null ],
+            [ "tuple_like", "conceptcsl_1_1ag_1_1concepts_1_1P2165_1_1tuple__like.html", null ],
+            [ "pair_like", "conceptcsl_1_1ag_1_1concepts_1_1P2165_1_1pair__like.html", null ]
+          ] ],
           [ "unqualified_aggregate", "conceptcsl_1_1ag_1_1concepts_1_1unqualified__aggregate.html", null ],
           [ "aggregate", "conceptcsl_1_1ag_1_1concepts_1_1aggregate.html", null ],
           [ "aggregate_default_initializable", "conceptcsl_1_1ag_1_1concepts_1_1aggregate__default__initializable.html", null ],
@@ -20,16 +25,11 @@ var concepts =
             [ "non_stl_aggregate", "conceptcsl_1_1ag_1_1tuplelike_1_1concepts_1_1non__stl__aggregate.html", null ]
           ] ]
         ] ],
-        [ "io", null, [
+        [ "formatting", null, [
           [ "concepts", null, [
-            [ "format_option", "conceptcsl_1_1ag_1_1io_1_1concepts_1_1format__option.html", null ]
+            [ "format_option", "conceptcsl_1_1ag_1_1formatting_1_1concepts_1_1format__option.html", null ]
           ] ]
         ] ]
       ] ]
-    ] ],
-    [ "P2165", null, [
-      [ "tuple_element", "conceptP2165_1_1tuple__element.html", null ],
-      [ "tuple_like", "conceptP2165_1_1tuple__like.html", null ],
-      [ "pair_like", "conceptP2165_1_1pair__like.html", null ]
     ] ]
 ];

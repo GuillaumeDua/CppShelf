@@ -9,7 +9,8 @@ var searchData=
   ['std_3a_3aget_6',['std::get',['../index.html#stdget',1,'']]],
   ['std_3a_3aostream_7',['using std::ostream',['../index.html#using-stdostream',1,'']]],
   ['std_3a_3atuple_5felement_8',['std::tuple_element',['../index.html#stdtuple_element',1,'']]],
-  ['structured_5fbindable_9',['structured_bindable',['../conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html',1,'csl::ag::concepts']]],
-  ['support_10',['support',['../index.html#bitfields-support',1,'Bitfields support'],['../index.html#fast-path---for-default_initializablet-without-bitfield-support',1,'Fast path - for default_initializable&amp;lt;T&amp;gt; without bitfield support']]],
-  ['support_20is_20enabled_11',['Slow path - for non default_initializable&amp;lt;T&amp;gt; or when bitfield support is enabled',['../index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled',1,'']]]
+  ['std_5fformatter_9',['std_formatter',['../structcsl_1_1ag_1_1formatting_1_1std__formatter.html',1,'csl::ag::formatting']]],
+  ['structured_5fbindable_10',['structured_bindable',['../conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html',1,'csl::ag::concepts']]],
+  ['support_11',['support',['../index.html#bitfields-support',1,'Bitfields support'],['../index.html#fast-path---for-default_initializablet-without-bitfield-support',1,'Fast path - for default_initializable&amp;lt;T&amp;gt; without bitfield support']]],
+  ['support_20is_20enabled_12',['Slow path - for non default_initializable&amp;lt;T&amp;gt; or when bitfield support is enabled',['../index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled',1,'']]]
 ];

@@ -23,9 +23,9 @@
 <title>Node2</title>
 <g id="a_Node000002"><a xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="134,-107 0,-107 0,-66 134,-66 134,-107"/>
-<text text-anchor="start" x="8" y="-95" font-family="Helvetica,sans-Serif" font-size="10.00">csl::mp::type_identity</text>
-<text text-anchor="start" x="8" y="-84" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; decltype(get&lt; I &gt;(std</text>
-<text text-anchor="middle" x="67" y="-73" font-family="Helvetica,sans-Serif" font-size="10.00">::declval&lt; T &gt;()))&gt;</text>
+<text text-anchor="start" x="8" y="-95" font-family="Helvetica,sans-Serif" font-size="10.00">type_identity&lt; decltype</text>
+<text text-anchor="start" x="8" y="-84" font-family="Helvetica,sans-Serif" font-size="10.00">(get&lt; I &gt;(std::declval</text>
+<text text-anchor="middle" x="67" y="-73" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; T &gt;()))&gt;</text>
 </a>
 </g>
 </g>
