@@ -69,7 +69,9 @@ namespace csl::typeinfo::details
 }
 
 /// \brief constexpr typeinfo that does not relies on __cpp_rtti
-/// WARNIN: Produced outputs ARE NOT portable: inconsistencies exist across compilers (GCC, Clang, msvc-cl)
+///
+/// WARNING: Produced outputs ARE NOT portable.
+///          Inconsistencies exist across compilers (GCC, Clang, msvc-cl).s
 ///
 /// Known limitations :
 ///
