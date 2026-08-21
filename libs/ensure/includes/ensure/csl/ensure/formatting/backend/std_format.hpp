@@ -18,6 +18,7 @@
 /// @par Design
 ///      - Delegates to the underlying type's formatter: same output, format-spec included.
 ///      - Only participates when the underlying type is std-formattable.
+///      - Generic over the character type: whichever CharT the underlying type's formatter supports.
 ///
 /// @par Usage
 ///      @code
@@ -39,16 +40,31 @@
 #endif
 
 #include <format>
+#include <iterator>
+#include <string>
+
+namespace csl::ensure::details::mp::type_traits {
+    // NOTE: Cannot use std::formattable (C++23)s.
+    //       This context is a concrete instantiation used only to probe format(): std::format_context's iterator type is unspecified.
+    template <typename CharT>
+    using format_context_for = std::basic_format_context<
+        std::back_insert_iterator<std::basic_string<CharT>>, CharT
+    >;
+}
 
 // NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
-template <typename T, typename tag>
-requires requires (const std::formatter<T> & underlying, const T & value, std::format_context & context) {
+template <typename T, typename tag, typename CharT>
+requires requires (
+    const std::formatter<T, CharT> & underlying,
+    const T & value,
+    csl::ensure::details::mp::type_traits::format_context_for<CharT> & context
+) {
     underlying.format(value, context);
 }
-struct std::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
+struct std::formatter<csl::ensure::strong_type<T, tag>, CharT> : formatter<T, CharT> {
     template <typename Context>
     constexpr auto format(const csl::ensure::strong_type<T, tag> & value, Context & context) const {
-        return formatter<T>::format(csl::ensure::to_underlying(value), context);
+        return formatter<T, CharT>::format(csl::ensure::to_underlying(value), context);
     }
 };
 // NOLINTEND(cert-dcl58-cpp)

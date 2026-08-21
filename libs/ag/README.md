@@ -192,7 +192,7 @@ If you plan to use features of this library with aggregate types containing bitf
 > The (compile-time) algorithm internally used by the library to count fields for aggregate types possibly containing bitfields is much slower than the default one.  
 > One might want to challenge his/her project's design in order to avoid such high performance cost.
 
-#### Highier limit for aggregate field count
+#### Higher limit for aggregate field count
 
 This library relies on a **CMake** cache variable `CSL_AG__MAX_SUPPORTED_FIELDS_COUNT` to generate code in order to properly handle aggregate types with fields up to this value.
 
@@ -212,7 +212,7 @@ To extend such support, edit your **CMake** cache to set `CSL_AG__MAX_SUPPORTED_
 >
 > 👉 If you are willing to propose a better design, you can submit a [PR here](https://github.com/GuillaumeDua/CppShelf/pulls).
 
-#### Formatting and printing
+#### Formatting backends
 
 > 💡 Everything related to formatting and printing lives in the `csl::ag::formatting` namespace.
 
@@ -793,13 +793,15 @@ Output:
 
 There are 3 ways to pretty-print aggregate types, each being an opt-in **feature header** offering a dedicated backend wiring:
 
-- (✅ Best) Using `std::format` (`csl/ag/formatting/backend/std_format.hpp`)
-- (🟡 OK) Using the `fmt` library (`csl/ag/formatting/backend/fmt.hpp`) - best if `std::format` is not available.
-- (🔴 Worst) Using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/backend/ostream.hpp`)
+| Recommendation | Backend                                                                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✅ Best        | Using `std::format` (`csl/ag/formatting/backend/std_format.hpp`)                                                                                    |
+| 🟡 OK          | Using the `fmt` library (`csl/ag/formatting/backend/fmt.hpp`) - best if `std::format` is not available, but requires linking with the `fmt` library |
+| 🔴 Worst       | Using the C++'s legacy way : `std::ostream& operator<<(std::ostream&, T&&)` overload (`csl/ag/formatting/backend/ostream.hpp`)                      |
 
-Backends may coexist in the same translation unit - each one specializes a different framework's entity.  
-The `typenamed` option renders compile-time, demangled type names when `csl/ag/formatting/typeinfo.hpp` is included,
-and falls back to `<typeindex>` runtime names otherwise.
+Backends may coexist in the same translation unit - each one specializes a different framework's entity.
+
+#### Options and syntaxes
 
 Formatting options are reachable through two **equivalent** syntaxes:
 
@@ -812,6 +814,53 @@ Both syntaxes produce identical outputs, and can be mixed.
 Formatting a value **directly** - `std::format("{}", value)`, `fmt::format("{}", value)` - is a **per-type opt-in**:
 one line, next to the type. Only the type you format directly needs it; nested structured-bindable fields and any
 `value | option` view need none.
+
+> [!CAUTION]
+> ⚠️ The `typenamed` option renders compile-time, demangled type names when `csl/ag/formatting/typeinfo.hpp` is included (using `csl::typeinfo`),  
+> and falls back to `<typeindex>` runtime names otherwise.
+
+#### Character types support
+
+All three backends are generic over the character type, `char` and `wchar_t`:
+
+```cpp
+struct point { int x; int y; };
+
+template <typename CharT>
+struct std::formatter<point, CharT> : csl::ag::formatting::std_formatter<point, CharT>{};
+// or using full specialization:
+// template <> struct std::formatter<point>          : csl::ag::formatting::std_formatter<point>{};
+// template <> struct std::formatter<point, wchar_t> : csl::ag::formatting::std_formatter<point, wchar_t>{};
+
+std::format( "{:x}", point{1, 2}); //  "{[0] 1, [1] 2}"
+std::format(L"{:x}", point{1, 2}); // L"{[0] 1, [1] 2}"
+
+using namespace csl::ag::formatting; // operator<< lives here
+std::wcout << indented << point{1, 2};
+```
+
+Which character types are supported is expressed by `csl::ag::formatting::concepts::supported_char_type`.  
+Unsupported ones report as not-formattable rather than failing to compile:
+
+```cpp
+static_assert(    std::formattable<formatted_view_t<point>, wchar_t>);
+static_assert(not std::formattable<formatted_view_t<point>, char8_t>);
+```
+
+> [!NOTE]
+> `char8_t`, `char16_t` and `char32_t` are deliberately excluded, to stay consistent with the standard rather
+> than ahead of it: [[format.formatter.spec]](https://eel.is/c++draft/format.formatter.spec) provides
+> `formatter` specializations for `char` and `wchar_t` only ("Let `charT` be either `char` or `wchar_t`"),
+> so the leaves of an aggregate have nothing to delegate to.  
+> The machinery itself is character-type agnostic: should the standard grow the `charN_t` family, widening `supported_char_type` is the only change required.
+
+Two consequences worth knowing:
+
+- A field is only wide-formattable if *its own* formatter is.  
+  An aggregate holding a `std::string_view` is narrow-only, since the standard provides no `std::formatter<std::string_view, wchar_t>`.
+- `fmtlib` exposes wide formatting through `<fmt/xchar.h>` - include it alongside the backend header.  
+  It also provides no `fmt::formatter<char, wchar_t>`, so a narrow `char` field is rendered as the output
+  character type. `std::format` does the same, natively.
 
 #### using std::format
 
@@ -836,12 +885,13 @@ work without any opt-in. If you want the default output without opting in,
 `value | csl::ag::formatting::format_options::none` is byte-identical to the bare form.
 
 > [!NOTE]
-> **Why not a blanket?** `std::formatter<csl::ag::concepts::aggregate T, Char>` would violate
+> **Why not a blanket?** `std::formatter<csl::ag::concepts::aggregate T, CharT>` would violate
 > [[namespace.std]/2](https://eel.is/c++draft/namespace.std#2) - an added declaration must depend on a program-defined **type**, and a concept is not one.  
 > It would also silently claim standard aggregates (`std::monostate`, `std::identity`, `std::plus<>`, `std::less<>`, `std::suspend_always`, ...)
 > and become an unfixable `ambiguous partial specializations` error against any other library doing the same.
 >
-> `csl::ag::formatting::std_formatter<T, Char = char>` currently supports `Char = char` only.
+> `csl::ag::formatting::std_formatter<T, CharT = char>` supports `CharT = char` and `CharT = wchar_t`.
+> See [Character types support](#character-types-support).
 
 Runnable demonstration - opt-in, nested fields, and the no-opt-in view forms:
 
@@ -988,7 +1038,7 @@ requires (not csl::ag::formatting::details::concepts::decorator<T>)
 struct std::formatter<T, char> : csl::ag::formatting::std_formatter<T>{};
 ```
 
-Fixing the second parameter to `char` keeps this out of the way of `wchar_t`, which the machinery does not support.
+Fixing the second parameter to `char` keeps this out of the way of `wchar_t` - write a second blanket for it if you want both.
 Keep the `decorator` guard: `formatted_view_t` is itself an aggregate, so without it this overlaps the library's own
 view formatter and you are relying on partial ordering to resolve it. Add `and (not std::ranges::range<T>)` too if any
 of your aggregates are ranges, to leave the standard's own range formatters alone.
@@ -1017,6 +1067,9 @@ struct fmt::formatter<point> : csl::ag::formatting::fmt_formatter<point>{};
 #### using std::ostream
 
 Opt-in by include: `csl/ag/formatting/backend/ostream.hpp` *(prefer `std::format`/`fmt` when available: `<ostream>` is heavy at compile time, and options ride `std::ios_base::iword`)*.
+
+Narrow and wide streams are both supported (`std::basic_ostream<CharT, Traits>`), and share a single
+`std::ios_base::xalloc()` slot: the index is allocated once, program-wide, and is valid for every stream.
 
 Simple example :
 
@@ -1139,6 +1192,9 @@ As-is, this implementation internally relies on structured-binding, which design
 - By-default behaviors injections, using STL extension/customization point (e.g injecting in the `std` namespace definitions for `get`/`tuple_element`/`tuple_size(_v)` won't work).
 - Aggregate types with more fields than their size are currently not supported, but that's non-sense from a design perspective anyway.
 - Ill-formed aggregate types using union-fields are not supported
+- Formatting supports `char` and `wchar_t` only - see [Character types support](#character-types-support).
+- Presentation literals (brackets, separators) and type names are widened by a per-character cast, which is correct for the basic execution character set.  
+  A `csl::ag::formatting::type_name` specialization holding non-ASCII bytes is not transcoded.
 
 ## (Internal details) Where's the magic ?
 

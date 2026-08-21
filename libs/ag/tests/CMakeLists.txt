@@ -88,6 +88,7 @@ endfunction()
 #
 #   - compile_time.cpp  	    (core static_assert suite, unaffected by inject_csl_typeinfo)
 #   - <formatting>_support.cpp  (one formatting feature header each: ostream, fmt, std::format)
+#   - wchar_support.cpp         (every backend, CharT = wchar_t)
 #
 #   inject_csl_typeinfo covers both `typenamed` code paths - CSL_AG_TEST__WITH_TYPEINFO gates
 #   the <csl/ag/formatting/typeinfo.hpp> include in the test sources:
@@ -143,6 +144,15 @@ foreach(bitfields IN ITEMS 0 1)
             SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/std_format_support.cpp
             DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} CSL_AG_TEST__WITH_TYPEINFO=${inject_csl_typeinfo}
             EXTRA_LIBS      ${_maybe_csl_typeinfo}
+            RESULT          target_name
+        )
+        add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})
+
+        csl_ag_make_test_target(
+            NAME            wchar_support
+            SOURCE          ${CMAKE_CURRENT_SOURCE_DIR}/wchar_support.cpp
+            DEFINITIONS     FORCE_CSL_AG__ENABLE_BITFIELDS_SUPPORT=${bitfields} CSL_AG_TEST__WITH_TYPEINFO=${inject_csl_typeinfo}
+            EXTRA_LIBS      fmt::fmt-header-only ${_maybe_csl_typeinfo}
             RESULT          target_name
         )
         add_dependencies(${PROJECT_NAME}_${component_name}_build_all_tests ${target_name})

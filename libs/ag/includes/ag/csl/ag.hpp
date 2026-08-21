@@ -1361,42 +1361,89 @@ namespace csl::ag::formatting {
     }
 }
 
-/// \brief Formatting presentation constants/helpers shared by every backend (ostream, fmt, std::format).
+namespace csl::ag::formatting::concepts {
+
+    /// \brief Supported formatting character types
+    ///
+    /// \note Consistent with the standard  [format.formatter.spec]: only char and wchar_t, not so char8_t/char16_t/char32_t
+    ///       Should the standard grow support of charN_t family, then this concept will change.
+    template <typename CharT>
+    concept supported_char_type
+        =   std::same_as<CharT, char>
+        or  std::same_as<CharT, wchar_t>
+    ;
+}
+
+/// \brief Widens narrow string literals into any supported character type, at compile-time.
+namespace csl::ag::formatting::details::widening {
+
+    /// \brief Structural NTTP wrapper for a narrow string literal, null-terminator included.
+    template <std::size_t N>
+    struct fixed_string {
+        std::array<char, N> value;
+
+        // NOLINTNEXTLINE(*-avoid-c-arrays,*-explicit-constructor,*-explicit-conversions)
+        consteval fixed_string(const char (&literal)[N]) {
+            if (literal[N - 1] != '\0')
+                throw "[csl::ag::formatting] fixed_string expects a null-terminated string literal";
+            for (std::size_t i = 0; i < N; ++i)
+                value[i] = literal[i]; // NOLINT(*-pro-bounds-constant-array-index)
+        }
+    };
+
+    /// \brief Storage for a narrow literal widened to CharT.
+    template <typename CharT, fixed_string literal>
+    constexpr static inline auto literal_storage = [] {
+        std::array<CharT, literal.value.size()> result{};
+        for (std::size_t i = 0; i < result.size(); ++i)
+            result[i] = static_cast<CharT>(static_cast<unsigned char>(literal.value[i]));
+        return result;
+    }();
+
+    /// \brief A narrow string literal as a basic_string_view<CharT>, e.g. literal_v<CharT, ", ">, excluding terminators
+    template <typename CharT, fixed_string literal>
+    constexpr static inline std::basic_string_view<CharT> literal_v {
+        literal_storage<CharT, literal>.data(),
+        literal.value.size() - 1
+    };
+}
+
+/// \brief Formatting presentation constants/helpers shared by every backend (std::ostream, fmt, std::format).
 namespace csl::ag::formatting::details::style {
 
     constexpr static std::size_t indentation_width = 4;
 
-    template <typename T>
-    [[nodiscard]] constexpr auto opening_bracket() noexcept -> std::string_view {
-        if constexpr (csl::ag::concepts::range_like<T>)         return "[";
-        else if constexpr (csl::ag::concepts::tuple_like<T>)    return "(";
-        else                                                    return "{";
+    template <typename T, typename CharT = char>
+    [[nodiscard]] constexpr auto opening_bracket() noexcept -> std::basic_string_view<CharT> {
+        if constexpr (csl::ag::concepts::range_like<T>)      return widening::literal_v<CharT, "[">;
+        else if constexpr (csl::ag::concepts::tuple_like<T>) return widening::literal_v<CharT, "(">;
+        else                                                 return widening::literal_v<CharT, "{">;
     }
-    template <typename T>
-    [[nodiscard]] constexpr auto closing_bracket() noexcept -> std::string_view {
-        if constexpr (csl::ag::concepts::range_like<T>)         return "]";
-        else if constexpr (csl::ag::concepts::tuple_like<T>)    return ")";
-        else                                                    return "}";
+    template <typename T, typename CharT = char>
+    [[nodiscard]] constexpr auto closing_bracket() noexcept -> std::basic_string_view<CharT> {
+        if constexpr (csl::ag::concepts::range_like<T>)      return widening::literal_v<CharT, "]">;
+        else if constexpr (csl::ag::concepts::tuple_like<T>) return widening::literal_v<CharT, ")">;
+        else                                                 return widening::literal_v<CharT, "}">;
     }
 
     /// \brief Brackets/separator for one formatted node, resolved once from options.
-    template <typename Char>
+    template <typename CharT>
     struct brackets_t {
-        std::basic_string_view<Char> opening_bracket;
-        std::basic_string_view<Char> closing_bracket;
-        std::basic_string_view<Char> separator;
+        std::basic_string_view<CharT> opening_bracket;
+        std::basic_string_view<CharT> closing_bracket;
+        std::basic_string_view<CharT> separator;
     };
-    template <typename T, typename Char>
-    [[nodiscard]] constexpr auto make_brackets(format_options options) noexcept -> brackets_t<Char> {
+    template <typename T, typename CharT>
+    [[nodiscard]] constexpr auto make_brackets(format_options options) noexcept -> brackets_t<CharT> {
 
         if (bool(options & format_options::no_braces))
             return {};
         return {
-            .opening_bracket = std::basic_string_view<Char>{ opening_bracket<T>() },
-            .closing_bracket = std::basic_string_view<Char>{ closing_bracket<T>() },
+            .opening_bracket = opening_bracket<T, CharT>(),
+            .closing_bracket = closing_bracket<T, CharT>(),
             .separator       = bool(options & format_options::indented)
-                ? std::basic_string_view<Char>{","}
-                : std::basic_string_view<Char>{", "}
+                ? widening::literal_v<CharT, ",">
+                : widening::literal_v<CharT, ", ">
         };
     }
 }
@@ -1405,7 +1452,7 @@ namespace csl::ag::formatting::details::style {
 
 namespace csl::ag::formatting::details {
 
-    template <typename Char, std::size_t N>
+    template <typename CharT, std::size_t N>
     [[nodiscard]] consteval auto to_chars() noexcept {
 
         constexpr auto digits = [] {
@@ -1415,28 +1462,41 @@ namespace csl::ag::formatting::details {
             return count;
         }();
 
-        std::array<Char, digits> result{};
+        std::array<CharT, digits> result{};
         auto index = N;
         for (std::size_t i = digits; i > 0; --i) {
-            result[i - 1] = Char{'0'} + static_cast<Char>(index % 10);
+            result[i - 1] = CharT{'0'} + static_cast<CharT>(index % 10);
             index /= 10;
         }
         return result;
     }
 
-    template <typename Char, typename OutputIt>
-    [[nodiscard]] auto write(OutputIt out, std::basic_string_view<Char> sv) noexcept -> OutputIt {
-        for (Char c : sv)
+    template <typename CharT, typename OutputIt>
+    [[nodiscard]] auto write(OutputIt out, std::basic_string_view<CharT> sv) noexcept -> OutputIt {
+        for (CharT c : sv)
             *out++ = c;
         return out;
     }
 
-    template <typename Char, typename OutputIt>
-    [[nodiscard]] auto write(OutputIt out, Char c) noexcept -> OutputIt
+    template <typename CharT, typename OutputIt>
+    [[nodiscard]] auto write(OutputIt out, CharT c) noexcept -> OutputIt
     requires requires { *out = c; }
     {
         *out = c;
         return ++out;
+    }
+
+    /// \brief Write a narrow string into a CharT output, widening per character.
+    ///        Used for type names: the compiler-provided sources (__PRETTY_FUNCTION__, std::type_index::name()) are narrow by construction
+    template <typename CharT, typename OutputIt>
+    [[nodiscard]] auto write_narrow(OutputIt out, std::string_view value) noexcept -> OutputIt {
+        if constexpr (std::same_as<CharT, char>)
+            return write<CharT>(out, value);
+        else {
+            for (char c : value)
+                *out++ = static_cast<CharT>(static_cast<unsigned char>(c));
+            return out;
+        }
     }
 
     /// \brief Maps a formatter_implementation (fmt::formatter or std::formatter) to its matching format-error exception type
@@ -1452,11 +1512,11 @@ namespace csl::ag::formatting::details {
     ///        merged with the decorator's options for this node only - it is not propagated to field formatters.
     /// \tparam formatter_implementation fmt::formatter or std::formatter (yet, unconstrained here)
     /// \tparam T the structured-bindable aggregate type being formatted
-    /// \tparam Char the character type
+    /// \tparam CharT the character type
     template <
         template <typename, typename> class formatter_implementation,
         csl::ag::concepts::structured_bindable T,
-        typename Char
+        csl::ag::formatting::concepts::supported_char_type CharT
     >
     requires (not details::concepts::decorator<T>)
     class ag_formatter_base {
@@ -1466,7 +1526,7 @@ namespace csl::ag::formatting::details {
         -> std::tuple<
             formatter_implementation<
                 decorators::formatted_view_t<csl::ag::tuplelike::element_t<indexes, T>>,
-                Char
+                CharT
             >...
         >;
         using field_formatters_t = decltype(make_field_formatters(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{}));
@@ -1478,7 +1538,7 @@ namespace csl::ag::formatting::details {
         void format_element(
             const FieldType & field_value,
             Context & context,
-            std::basic_string_view<Char> separator,
+            std::basic_string_view<CharT> separator,
             format_options options,
             std::size_t depth
         ) const {
@@ -1486,26 +1546,26 @@ namespace csl::ag::formatting::details {
             const auto indented = bool(options & format_options::indented);
 
             if constexpr (FieldIndex > 0) {
-                context.advance_to(write<Char>(context.out(), separator));
+                context.advance_to(write<CharT>(context.out(), separator));
                 if (indented)
-                    context.advance_to(write<Char>(context.out(), '\n'));
+                    context.advance_to(write<CharT>(context.out(), '\n'));
             }
 
             if (indented)
-                context.advance_to(std::fill_n(context.out(), (depth + 1) * style::indentation_width, Char{' '}));
+                context.advance_to(std::fill_n(context.out(), (depth + 1) * style::indentation_width, CharT{' '}));
 
             if (bool(options & format_options::indexed)) {
-                context.advance_to(write<Char>(context.out(), '['));
-                constexpr auto index_chars = to_chars<Char, FieldIndex>();
-                context.advance_to(write<Char>(context.out(), std::basic_string_view<Char>{index_chars.data(), index_chars.size()}));
-                context.advance_to(write<Char>(context.out(), ']'));
-                context.advance_to(write<Char>(context.out(), ' '));
+                context.advance_to(write<CharT>(context.out(), '['));
+                constexpr auto index_chars = to_chars<CharT, FieldIndex>();
+                context.advance_to(write<CharT>(context.out(), std::basic_string_view<CharT>{index_chars.data(), index_chars.size()}));
+                context.advance_to(write<CharT>(context.out(), ']'));
+                context.advance_to(write<CharT>(context.out(), ' '));
             }
 
             if (bool(options & format_options::typenamed)) {
-                context.advance_to(write<Char>(context.out(), std::basic_string_view<Char>{type_name_v<FieldType>}));
-                context.advance_to(write<Char>(context.out(), ':'));
-                context.advance_to(write<Char>(context.out(), ' '));
+                context.advance_to(write_narrow<CharT>(context.out(), type_name_v<FieldType>));
+                context.advance_to(write<CharT>(context.out(), ':'));
+                context.advance_to(write<CharT>(context.out(), ' '));
             }
 
             decorators::formatted_view_t<FieldType> field_view{
@@ -1521,11 +1581,11 @@ namespace csl::ag::formatting::details {
 
             const format_options effective_options = options | parse_options;
             const bool indented = bool(effective_options & format_options::indented);
-            const auto brackets = style::make_brackets<T, Char>(effective_options);
+            const auto brackets = style::make_brackets<T, CharT>(effective_options);
 
-            context.advance_to(write<Char>(context.out(), brackets.opening_bracket));
+            context.advance_to(write<CharT>(context.out(), brackets.opening_bracket));
             if (indented)
-                context.advance_to(write<Char>(context.out(), '\n'));
+                context.advance_to(write<CharT>(context.out(), '\n'));
 
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
                 (
@@ -1540,10 +1600,10 @@ namespace csl::ag::formatting::details {
             }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
 
             if (indented) {
-                context.advance_to(write<Char>(context.out(), '\n'));
-                context.advance_to(std::fill_n(context.out(), depth * style::indentation_width, Char{' '}));
+                context.advance_to(write<CharT>(context.out(), '\n'));
+                context.advance_to(std::fill_n(context.out(), depth * style::indentation_width, CharT{' '}));
             }
-            context.advance_to(write<Char>(context.out(), brackets.closing_bracket));
+            context.advance_to(write<CharT>(context.out(), brackets.closing_bracket));
             return context.out();
         }
 
@@ -1560,7 +1620,7 @@ namespace csl::ag::formatting::details {
 
             auto it  = context.begin();
             auto end = context.end();
-            while (it != end and *it != static_cast<Char>('}')) {
+            while (it != end and *it != static_cast<CharT>('}')) {
                 switch (static_cast<char>(*it)) {
                     case 'n': parse_options |= format_options::no_braces; break;
                     case 'i': parse_options |= format_options::indented;  break;
@@ -1575,7 +1635,7 @@ namespace csl::ag::formatting::details {
             // NOTE: Propagate parse to field formatters with an empty spec
             [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
                 ([&] {
-                    auto empty_context = std::remove_cvref_t<decltype(context)>(std::basic_string_view<Char>{});
+                    auto empty_context = std::remove_cvref_t<decltype(context)>(std::basic_string_view<CharT>{});
                     std::get<indexes>(field_formatters).parse(empty_context);
                 }(), ...);
             }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
@@ -1598,16 +1658,27 @@ namespace csl::ag::formatting::details {
     template <
         template <typename, typename> class formatter_implementation,
         typename T,
-        typename Char
+        csl::ag::formatting::concepts::supported_char_type CharT
     >
     requires (not csl::ag::concepts::structured_bindable<T>)
     class ag_formatter_base_leaf {
-        formatter_implementation<T, Char> value_formatter{};
+
+        // NOTE: fmt provides no formatter<char, wchar_t> : it maps a narrow char to the target character type instead.
+        using leaf_type = std::conditional_t<std::same_as<T, char>, CharT, T>;
+
+        [[nodiscard]] constexpr static auto as_leaf(const T & value) noexcept -> decltype(auto) {
+            if constexpr (std::same_as<leaf_type, T>)
+                return (value);
+            else
+                return static_cast<leaf_type>(static_cast<unsigned char>(value));
+        }
+
+        formatter_implementation<leaf_type, CharT> value_formatter{};
     public:
         using csl_ag_product = void;
 
         constexpr auto parse(auto & context) {
-            auto empty_context = std::remove_cvref_t<decltype(context)>(std::basic_string_view<Char>{});
+            auto empty_context = std::remove_cvref_t<decltype(context)>(std::basic_string_view<CharT>{});
             value_formatter.parse(empty_context);
             return context.begin();
         }
@@ -1618,20 +1689,20 @@ namespace csl::ag::formatting::details {
 
             if constexpr (requires { value_formatter.set_debug_format(); }){
                 value_formatter.set_debug_format();
-                return value_formatter.format(value, context);
+                return value_formatter.format(as_leaf(value), context);
             }
-            else if constexpr (std::same_as<T, Char>) {
-                auto out = write<Char>(context.out(), static_cast<Char>('\''));
-                out = write<Char>(out, value);
-                return write<Char>(out, static_cast<Char>('\''));
+            else if constexpr (std::same_as<T, CharT> or std::same_as<T, char>) {
+                context.advance_to(write<CharT>(context.out(), static_cast<CharT>('\'')));
+                context.advance_to(value_formatter.format(as_leaf(value), context));
+                return write<CharT>(context.out(), static_cast<CharT>('\''));
             }
-            else if constexpr (std::convertible_to<T, std::basic_string_view<Char>>) {
-                auto out = write<Char>(context.out(), static_cast<Char>('"'));
-                out = write<Char>(out, static_cast<std::basic_string_view<Char>>(value));
-                return write<Char>(out, static_cast<Char>('"'));
+            else if constexpr (std::convertible_to<T, std::basic_string_view<CharT>>) {
+                auto out = write<CharT>(context.out(), static_cast<CharT>('"'));
+                out = write<CharT>(out, static_cast<std::basic_string_view<CharT>>(value));
+                return write<CharT>(out, static_cast<CharT>('"'));
             }
             else
-                return value_formatter.format(value, context);
+                return value_formatter.format(as_leaf(value), context);
         }
     };
 }

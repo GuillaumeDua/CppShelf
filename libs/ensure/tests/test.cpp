@@ -1,6 +1,7 @@
 #include <csl/ensure.hpp>
 #include <csl/ensure/formatting/backend/ostream.hpp>
 #include <csl/ensure/formatting/backend/fmt.hpp>
+#include <fmt/xchar.h>
 #if __cplusplus >= 202002L
 #   include <csl/ensure/formatting/backend/std_format.hpp>
 #endif
@@ -361,10 +362,27 @@ TEST_CASE("ensure::io::ostream", "[ensure][runtime]") {
     CHECK(os.str() == "42");
 }
 
+TEST_CASE("ensure::io::ostream - wchar_t", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+    using namespace csl::io;
+
+    auto os = std::wostringstream{};
+    os << mm{42}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    CHECK(os.str() == L"42");
+}
+
 #if defined(__cpp_concepts)
 TEST_CASE("ensure::io::fmt::formattable", "[ensure][compile_time]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     STATIC_REQUIRE(fmt::formattable<mm, char>);
+    STATIC_REQUIRE(fmt::formattable<mm, wchar_t>);
+
+    // Formattability is delegated, character type included.
+    // fmt has no fmt::formatter<char, wchar_t> - it maps a narrow char through its argument mapper instead -
+    // so a strong_type<char> inherits that disabled formatter and reports as not formattable.
+    using cc = csl::ensure::strong_type<char, struct cc_tag>;
+    STATIC_REQUIRE(fmt::formattable<cc, char>);
+    STATIC_REQUIRE(not fmt::formattable<cc, wchar_t>);
 }
 #endif
 
@@ -377,10 +395,19 @@ TEST_CASE("ensure::io::fmt", "[ensure][runtime]") {
     CHECK(fmt::format("{:#x}", mm{42}) == fmt::format("{:#x}", 42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
+TEST_CASE("ensure::io::fmt - wchar_t", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+
+    CHECK(fmt::format(L"{}",    mm{42}) == fmt::format(L"{}",    42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    CHECK(fmt::format(L"{:5}",  mm{42}) == fmt::format(L"{:5}",  42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    CHECK(fmt::format(L"{:#x}", mm{42}) == fmt::format(L"{:#x}", 42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+
 #if __cplusplus >= 202002L
 TEST_CASE("ensure::io::std_format::formattable", "[ensure][compile_time]") {
     using mm = csl::ensure::strong_type<int, struct mm_tag>;
     STATIC_REQUIRE(std::formattable<mm, char>);
+    STATIC_REQUIRE(std::formattable<mm, wchar_t>);
 }
 
 TEST_CASE("ensure::io::std_format", "[ensure][runtime]") {
@@ -390,5 +417,13 @@ TEST_CASE("ensure::io::std_format", "[ensure][runtime]") {
     CHECK(std::format("{}",    mm{42}) == std::format("{}",    42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     CHECK(std::format("{:5}",  mm{42}) == std::format("{:5}",  42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     CHECK(std::format("{:#x}", mm{42}) == std::format("{:#x}", 42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+}
+
+TEST_CASE("ensure::io::std_format - wchar_t", "[ensure][runtime]") {
+    using mm = csl::ensure::strong_type<int, struct mm_tag>;
+
+    CHECK(std::format(L"{}",    mm{42}) == std::format(L"{}",    42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    CHECK(std::format(L"{:5}",  mm{42}) == std::format(L"{:5}",  42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    CHECK(std::format(L"{:#x}", mm{42}) == std::format(L"{:#x}", 42)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 #endif

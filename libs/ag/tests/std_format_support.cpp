@@ -63,8 +63,8 @@ namespace tests::concepts::std_formattable {
 
 namespace {
     namespace implementation {
-        template <typename T, typename Char = char>
-        using formatter = std::formatter<T, Char>;
+        template <typename T, typename CharT = char>
+        using formatter = std::formatter<T, CharT>;
 
         constexpr std::string_view name = "std";
 

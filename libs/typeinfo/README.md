@@ -10,7 +10,7 @@ Part of [CppShelf](https://github.com/GuillaumeDua/CppShelf) - a collection of s
 ## Include
 
 ```cpp
-#include <typeinfo/csl/typeinfo.hpp>
+#include <csl/typeinfo.hpp>
 ```
 
 ## type_name_v<T>
@@ -23,17 +23,24 @@ static_assert(csl::typeinfo::type_name_v<float>             == "float");
 static_assert(csl::typeinfo::type_name_v<std::vector<int>>  == "std::vector<int>"); // GCC/Clang approximation
 ```
 
-A function form is also available for contexts where the variable template cannot be used:
+The underlying trait is `csl::typeinfo::type_name<T>`, whose `::value` member holds the same `std::string_view`.
+For the type of a value, query `decltype`:
 
 ```cpp
-std::string_view name = csl::typeinfo::type_name<T>();
+static_assert(csl::typeinfo::type_name_v<decltype(42)> == "int");
 ```
 
-`type_name` is also overloaded for non-type template parameters - `type_name<value>()` returns the type of `value`:
+### type_name_as_v<T, CharT>
+
+The compiler-provided sources (`__PRETTY_FUNCTION__`, `__FUNCSIG__`) are narrow by construction, and have no
+wide counterpart. `type_name_as_v<T, CharT>` is `type_name_v<T>` widened into `constexpr` per-`<T, CharT>` storage:
 
 ```cpp
-static_assert(csl::typeinfo::type_name<42>() == "int");
+static_assert(csl::typeinfo::type_name_as_v<int, wchar_t>  == L"int");
+static_assert(csl::typeinfo::type_name_as_v<int, char16_t> == u"int");
 ```
+
+Widening is a per-character cast, valid for the basic execution character set.
 
 ### Known limitations - type_name
 
@@ -57,10 +64,14 @@ static_assert(csl::typeinfo::value_name_v<42>          == "42");         // GCC,
 static_assert(csl::typeinfo::value_name_v<color::red>  == "color::red"); // GCC, Clang
 ```
 
-A function form is also available:
+The underlying trait is `csl::typeinfo::value_name<V>`, whose `::value` member holds the same `std::string_view`.
+
+### value_name_as_v<V, CharT>
+
+The widened counterpart, mirroring `type_name_as_v`:
 
 ```cpp
-std::string_view name = csl::typeinfo::value_name<V>();
+static_assert(csl::typeinfo::value_name_as_v<42, wchar_t> == L"42"); // GCC, Clang
 ```
 
 ### Known limitations - value_name

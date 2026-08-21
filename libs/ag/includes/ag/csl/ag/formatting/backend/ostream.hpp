@@ -55,10 +55,10 @@
 
 namespace csl::ag::formatting::details {
 
-    /// \brief T has an operator<<(std::ostream &, T) reachable WITHOUT csl::ag::formatting in scope.
+    /// \brief T has an operator<<(std::basic_ostream<CharT, Traits> &, T) reachable WITHOUT csl::ag::formatting in scope.
     // This prevents this library operator<< from satisfying the concept (depend on self).
-    template <typename T>
-    concept ostream_formattable = requires(std::ostream & os, const std::remove_cvref_t<T> & v) {
+    template <typename T, typename CharT = char, typename Traits = std::char_traits<CharT>>
+    concept ostream_formattable = requires(std::basic_ostream<CharT, Traits> & os, const std::remove_cvref_t<T> & v) {
         os << v;
     };
 
@@ -70,13 +70,26 @@ namespace csl::ag::formatting::details {
         return index;
     }
 
-    inline void write_indent(std::ostream & os, std::size_t depth) {
+    template <typename CharT, typename Traits>
+    void write_indent(std::basic_ostream<CharT, Traits> & os, std::size_t depth) {
         constexpr std::size_t max_depth = 32;
         static constexpr auto buf =
             []<std::size_t... Is>(std::index_sequence<Is...>) {
-                return std::array<char, sizeof...(Is)>{ ((void)Is, ' ')... };
+                return std::array<CharT, sizeof...(Is)>{ ((void)Is, CharT{' '})... };
             }(std::make_index_sequence<max_depth * style::indentation_width>{});
         os.write(buf.data(), static_cast<std::streamsize>(std::min(max_depth, depth) * style::indentation_width));
+    }
+
+    /// \brief Write a narrow string to a possibly-wide stream.
+    ///        Type names are narrow by construction, and basic_string_view<char> has no widening inserter -
+    ///        unlike char, which [ostream.inserters.character] widens through os.widen().
+    template <typename CharT, typename Traits>
+    void write_narrow(std::basic_ostream<CharT, Traits> & os, std::string_view value) {
+        if constexpr (std::same_as<CharT, char>)
+            os << value;
+        else
+            for (char c : value)
+                os << c;
     }
 
     struct format_options_view {
@@ -97,8 +110,8 @@ namespace csl::ag::formatting::details {
     };
 
     // NOTE: Forward declaration: print and print_field_value are mutually recursive.
-    template <csl::ag::concepts::structured_bindable T>
-    void print(std::ostream & os, T && value, format_options options, std::size_t depth)
+    template <typename CharT, typename Traits, csl::ag::concepts::structured_bindable T>
+    void print(std::basic_ostream<CharT, Traits> & os, T && value, format_options options, std::size_t depth)
     requires (not std::is_array_v<std::remove_cvref_t<T>>);
 
     /// \brief print_field_value: write one field value of type T to an ostream value.
@@ -106,25 +119,26 @@ namespace csl::ag::formatting::details {
     // WARNING(Known limitation) range-like and tuple-like field values are not recursively pretty-printed;
     //   they require a user-provided operator<< or they hit the static_assert.
     // TODO: get rid of such a limitation, for consistency sake ?
-    template <typename T>
-    void print_field_value(std::ostream & os, T && value, format_options options, std::size_t depth) {
+    template <typename CharT, typename Traits, typename T>
+    void print_field_value(std::basic_ostream<CharT, Traits> & os, T && value, format_options options, std::size_t depth) {
         using type = std::remove_cvref_t<T>;
         if constexpr (std::is_same_v<type, bool>)
             os << (value ? "true" : "false");
-        else if constexpr (std::is_same_v<type, char>)
+        // NOTE: a narrow char is quoted on a wide stream too - the inserter widens it. The converse is not true: operator<<(ostream &, wchar_t) is deleted.
+        else if constexpr (std::is_same_v<type, CharT> or std::is_same_v<type, char>)
             os << '\'' << value << '\'';
-        else if constexpr (std::is_same_v<type, std::string_view> or std::is_same_v<type, std::string>)
+        else if constexpr (std::is_same_v<type, std::basic_string_view<CharT, Traits>> or std::is_same_v<type, std::basic_string<CharT, Traits>>)
             os << '"' << value << '"';
-        else if constexpr (ostream_formattable<type>)
+        else if constexpr (ostream_formattable<type, CharT, Traits>)
             os << value;
         else if constexpr (csl::ag::concepts::structured_bindable<type> and not std::is_array_v<type>)
             print(os, csl_fwd(value), options, depth);
         else
-            static_assert(false, "[csl::ag::formatting] field type is not printable: provide operator<<(std::ostream &, T)");
+            static_assert(false, "[csl::ag::formatting] field type is not printable: provide operator<<(std::basic_ostream<CharT, Traits> &, T)");
     }
 
-    template <csl::ag::concepts::structured_bindable T>
-    void print(std::ostream & os, T && value, format_options options, std::size_t depth)
+    template <typename CharT, typename Traits, csl::ag::concepts::structured_bindable T>
+    void print(std::basic_ostream<CharT, Traits> & os, T && value, format_options options, std::size_t depth)
     requires (not std::is_array_v<std::remove_cvref_t<T>>)
     {
         using type = std::remove_cvref_t<T>;
@@ -132,7 +146,7 @@ namespace csl::ag::formatting::details {
 
         const auto opt = format_options_view{ options };
 
-        if (not opt.is_no_braces) os << style::opening_bracket<type>();
+        if (not opt.is_no_braces) os << style::opening_bracket<type, CharT>();
         if (opt.is_indented)      os << '\n';
 
         [&]<std::size_t ... indexes>(std::index_sequence<indexes...>) {
@@ -152,7 +166,8 @@ namespace csl::ag::formatting::details {
                 
                 if (opt.is_typenamed) {
                     using field_type = csl::ag::tuplelike::element_t<indexes, type>;
-                    os << type_name_v<field_type> << ": ";
+                    write_narrow(os, type_name_v<field_type>);
+                    os << ": ";
                 }
                 print_field_value(
                     os,
@@ -168,29 +183,33 @@ namespace csl::ag::formatting::details {
             write_indent(os, depth);
         }
         if (not opt.is_no_braces)
-            os << style::closing_bracket<type>();
+            os << style::closing_bracket<type, CharT>();
     }
 }
 
 namespace csl::ag::formatting {
 
     /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indented
-    inline auto operator<<(std::ostream & os, indented_t) -> std::ostream & {
+    template <typename CharT, typename Traits>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, indented_t) -> std::basic_ostream<CharT, Traits> & {
         os.iword(details::mode_index()) |= std::to_underlying(format_options::indented);
         return os;
     }
     /// \brief Composable std::ostream manipulator (one-shot, reset after use) - no_braces
-    inline auto operator<<(std::ostream & os, no_braces_t) -> std::ostream & {
+    template <typename CharT, typename Traits>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, no_braces_t) -> std::basic_ostream<CharT, Traits> & {
         os.iword(details::mode_index()) |= std::to_underlying(format_options::no_braces);
         return os;
     }
     /// \brief Composable std::ostream manipulator (one-shot, reset after use) - indexed
-    inline auto operator<<(std::ostream & os, indexed_t) -> std::ostream & {
+    template <typename CharT, typename Traits>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, indexed_t) -> std::basic_ostream<CharT, Traits> & {
         os.iword(details::mode_index()) |= std::to_underlying(format_options::indexed);
         return os;
     }
     /// \brief Composable std::ostream manipulator (one-shot, reset after use) - typenamed
-    inline auto operator<<(std::ostream & os, typenamed_t) -> std::ostream & {
+    template <typename CharT, typename Traits>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, typenamed_t) -> std::basic_ostream<CharT, Traits> & {
         os.iword(details::mode_index()) |= std::to_underlying(format_options::typenamed);
         return os;
     }
@@ -200,24 +219,26 @@ namespace csl::ag::formatting {
     ///        constexpr auto options = indented | indexed | typenamed;
     ///        os << options << value;
     ///        @endcode
-    inline auto operator<<(std::ostream & os, format_options options) -> std::ostream & {
+    template <typename CharT, typename Traits>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, format_options options) -> std::basic_ostream<CharT, Traits> & {
         os.iword(details::mode_index()) |= std::to_underlying(options);
         return os;
     }
 
-    /// \brief std::ostream formatting using formatted_view. Effectively bypasses iword.
-    template <typename T>
-    auto operator<<(std::ostream & os, details::decorators::formatted_view_t<T> const & view)
-    -> std::ostream &
+    /// \brief std::basic_ostream formatting using formatted_view. Effectively bypasses iword.
+    template <typename CharT, typename Traits, typename T>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, details::decorators::formatted_view_t<T> const & view)
+    -> std::basic_ostream<CharT, Traits> &
     {
         details::print(os, view.value, view.options, view.depth);
         return os;
     }
 
-    /// \brief Format a structured_bindable into an std::ostream, using iword options (one-shot) and prints.
-    /// User-defined operator<<(std::ostream &, T) wins via overload resolution (exact match).
-    auto operator<<(std::ostream & os, const csl::ag::concepts::structured_bindable auto & value)
-    -> std::ostream &
+    /// \brief Format a structured_bindable into an std::basic_ostream, using iword options (one-shot) and prints.
+    /// User-defined operator<<(std::ostream &, T) wins via overload resolution (a non-template beats this template).
+    template <typename CharT, typename Traits>
+    auto operator<<(std::basic_ostream<CharT, Traits> & os, const csl::ag::concepts::structured_bindable auto & value)
+    -> std::basic_ostream<CharT, Traits> &
     requires (not std::is_array_v<std::remove_cvref_t<decltype(value)>>)
     and (not details::concepts::decorator<std::remove_cvref_t<decltype(value)>>)
     {

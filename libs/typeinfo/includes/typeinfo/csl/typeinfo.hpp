@@ -11,6 +11,8 @@
 // TODO(Guillaume): refactor type_name, value_name when universal template parameter are available
 
 #include <string_view>
+#include <array>
+#include <cstddef>
 
 namespace csl::typeinfo::details
 {
@@ -66,12 +68,23 @@ namespace csl::typeinfo::details
         static_assert(false, "csl::typeinfo : unhandled plateform");
 #endif
     }
+
+    /// \brief Widen a narrow name into a CharT array.
+    ///        The compiler-provided sources (__PRETTY_FUNCTION__, __FUNCSIG__) are narrow by construction, and have no wide counterpart.
+    ///        Per-character cast: valid for the basic execution character set.
+    template <typename CharT, std::size_t N>
+    [[nodiscard]] constexpr static auto widen(std::string_view value) -> std::array<CharT, N> {
+        std::array<CharT, N> result{};
+        for (std::size_t i = 0; i < N; ++i)
+            result[i] = static_cast<CharT>(static_cast<unsigned char>(value[i]));
+        return result;
+    }
 }
 
 /// \brief constexpr typeinfo that does not relies on __cpp_rtti
 ///
 /// WARNING: Produced outputs ARE NOT portable.
-///          Inconsistencies exist across compilers (GCC, Clang, msvc-cl).s
+///          Inconsistencies exist across compilers (GCC, Clang, msvc-cl).
 ///
 /// Known limitations :
 ///
@@ -101,6 +114,17 @@ namespace csl::typeinfo
     template <typename T>
     constexpr inline static auto type_name_v = type_name<T>::value;
 
+    /// \brief type_name<T> widened to CharT, e.g. type_name_as_v<int, wchar_t> == L"int".
+    template <typename T, typename CharT>
+    struct type_name_as {
+    private:
+        constexpr static auto storage = details::widen<CharT, type_name<T>::value.size()>(type_name<T>::value);
+    public:
+        constexpr static std::basic_string_view<CharT> value{ storage.data(), storage.size() };
+    };
+    template <typename T, typename CharT>
+    constexpr inline static auto type_name_as_v = type_name_as<T, CharT>::value;
+
 
     template <auto v>
     struct value_name {
@@ -108,6 +132,17 @@ namespace csl::typeinfo
     };
     template <auto v>
     constexpr inline static auto value_name_v = value_name<v>::value;
+
+    /// \brief value_name<v> widened to CharT, e.g. value_name_as_v<42, wchar_t> == L"42".
+    template <auto v, typename CharT>
+    struct value_name_as {
+    private:
+        constexpr static auto storage = details::widen<CharT, value_name<v>::value.size()>(value_name<v>::value);
+    public:
+        constexpr static std::basic_string_view<CharT> value{ storage.data(), storage.size() };
+    };
+    template <auto v, typename CharT>
+    constexpr inline static auto value_name_as_v = value_name_as<v, CharT>::value;
 
     // TODO(Guss): hash_code, see #93 https://github.com/GuillaumeDua/CppShelf/issues/93
     //  - update example accordingly

@@ -6,7 +6,7 @@
 // and `implementation` already defined in the unnamed namespace, providing:
 // - `name`
 // - `format(fmt_str, value)`
-// - `formatter<T, Char>`
+// - `formatter<T, CharT>`
 
 #include <tests/ag/format_fixtures.hpp>
 
