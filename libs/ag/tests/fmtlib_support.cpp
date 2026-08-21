@@ -51,8 +51,8 @@ namespace tests::concepts::fmt_formattable {
 
 namespace {
     namespace implementation {
-        template <typename T, typename Char = char>
-        using formatter = fmt::formatter<T, Char>;
+        template <typename T, typename CharT = char>
+        using formatter = fmt::formatter<T, CharT>;
 
         constexpr std::string_view name = "fmt";
 

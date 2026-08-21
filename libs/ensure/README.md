@@ -151,9 +151,21 @@ Formatting backends are **not macros, nor CMake options**: each is an opt-in **f
 | -------------- | -------- | -------- |
 | `csl/ensure/formatting/backend/std_format.hpp` | `std::formatter` specialization | `<format>` (C++20) |
 | `csl/ensure/formatting/backend/fmt.hpp` | `fmt::formatter` specialization | [fmtlib](https://github.com/fmtlib/fmt), provided by the consumer |
-| `csl/ensure/formatting/backend/ostream.hpp` | `operator<<(std::ostream &, ...)` in `csl::io` | - |
+| `csl/ensure/formatting/backend/ostream.hpp` | `operator<<(std::basic_ostream<CharT, Traits> &, ...)` in `csl::io` | - |
 
 Each delegates to the underlying type's formatter/stream operator - format-spec included - and only participates when the underlying type supports the operation.
+
+Delegation also carries the character type: a `strong_type<T, tag>` is formattable as whichever `CharT` the
+underlying `T` is formattable as, with no extra opt-in.
+
+```cpp
+std::format( "{:#x}", meters{ 42 });    //  "0x2a"
+std::format(L"{:#x}", meters{ 42 });    // L"0x2a"
+std::wcout << meters{ 42 };             // wide streams too
+```
+
+> [!NOTE]
+> fmtlib exposes wide formatting through `<fmt/xchar.h>` - include it alongside the backend header.
 
 > [!IMPORTANT]
 > Like `<fmt/ranges.h>`, a feature header must be included **consistently across the whole program** (ODR).

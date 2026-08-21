@@ -19,6 +19,8 @@
 ///      - Delegates to the underlying type's formatter: same output, format-spec included.
 ///      - Only participates when the underlying type is fmt-formattable.
 ///      - C++17 compatible (SFINAE below C++20, constraints otherwise).
+///      - Generic over the character type: whichever CharT the underlying type's formatter supports.
+///        Wide formatting additionally requires fmtlib's <fmt/xchar.h>, which the consumer provides.
 ///
 /// @par Usage
 ///      @code
@@ -40,37 +42,26 @@
 
 #if __cplusplus >= 202002L
 
-template <typename T, typename tag>
-requires requires (const fmt::formatter<T> & underlying, const T & value, fmt::format_context & context) {
-    underlying.format(value, context);
-}
-struct fmt::formatter<csl::ensure::strong_type<T, tag>> : formatter<T> {
-    constexpr auto format(const csl::ensure::strong_type<T, tag> & value, fmt::format_context & context) const {
-        return formatter<T>::format(csl::ensure::to_underlying(value), context);
+template <typename T, typename tag, typename CharT>
+requires (fmt::is_formattable<T, CharT>::value)
+struct fmt::formatter<csl::ensure::strong_type<T, tag>, CharT> : formatter<T, CharT> {
+    template <typename Context>
+    constexpr auto format(const csl::ensure::strong_type<T, tag> & value, Context & context) const {
+        return formatter<T, CharT>::format(csl::ensure::to_underlying(value), context);
     }
 };
 
 #else
 
-namespace csl::ensure::details::mp::type_traits {
-    // has_fmt_formatter
-    template <typename T, class = void>
-    struct has_fmt_formatter : std::false_type{};
-    template <typename T>
-    struct has_fmt_formatter<T, std::void_t<decltype(
-        std::declval<const fmt::formatter<T> &>().format(std::declval<const T &>(), std::declval<fmt::format_context&>())
-    )>> : std::true_type{};
-    template <typename T>
-    constexpr inline static bool has_fmt_formatter_v = has_fmt_formatter<T>::value;
-}
-
-template <typename T, typename tag>
+// NOTE: the SFINAE payload belongs in fmt::formatter's third (Enable) parameter, leaving the second (CharT) free.
+template <typename T, typename tag, typename CharT>
 struct fmt::formatter<
-    csl::ensure::strong_type<T, tag>,
-    std::enable_if_t<csl::ensure::details::mp::type_traits::has_fmt_formatter_v<T>, char>
-> : formatter<T> {
-    constexpr auto format(const csl::ensure::strong_type<T, tag> & value, format_context & context) const {
-        return fmt::formatter<T>::format(csl::ensure::to_underlying(value), context);
+    csl::ensure::strong_type<T, tag>, CharT,
+    std::enable_if_t<fmt::is_formattable<T, CharT>::value>
+> : formatter<T, CharT> {
+    template <typename Context>
+    constexpr auto format(const csl::ensure::strong_type<T, tag> & value, Context & context) const {
+        return fmt::formatter<T, CharT>::format(csl::ensure::to_underlying(value), context);
     }
 };
 

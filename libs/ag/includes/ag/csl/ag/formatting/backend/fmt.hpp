@@ -62,12 +62,12 @@
 
 namespace csl::ag::formatting::details {
 
-    /// \brief normalises fmt::formatter's 3-param signature (T, Char, SFINAE-Enable) to 2 params,
+    /// \brief normalises fmt::formatter's 3-param signature (T, CharT, SFINAE-Enable) to 2 params,
     ///        so it can be passed as a template template parameter to ag_formatter_base,
     ///        and is consistent with std::formatter<T, CharT>.
     ///        Reason: P0522 relaxed template template matching is not the default before Clang 19.
-    template <typename T, typename Char = char>
-    using fmt_formatter_adapter = fmt::formatter<T, Char>;
+    template <typename T, typename CharT = char>
+    using fmt_formatter_adapter = fmt::formatter<T, CharT>;
 
     template <>
     struct format_error_type<fmt_formatter_adapter> : std::type_identity<fmt::format_error>{};
@@ -76,22 +76,22 @@ namespace csl::ag::formatting::details {
 namespace csl::ag::formatting::details::type_traits {
 
     /// \brief used upstream, not formatter detection
-    template <typename T, typename Char>
-    struct is_fmt_formattable : fmt::is_formattable<T, Char>{};
-    template <csl::ag::concepts::structured_bindable T, typename Char>
-    struct is_fmt_formattable<T, Char> {
+    template <typename T, typename CharT>
+    struct is_fmt_formattable : fmt::is_formattable<T, CharT>{};
+    template <csl::ag::concepts::structured_bindable T, typename CharT>
+    struct is_fmt_formattable<T, CharT> {
         constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and is_fmt_formattable<csl::ag::tuplelike::element_t<indexes, T>, Char>::value);
+            return (true and ... and is_fmt_formattable<csl::ag::tuplelike::element_t<indexes, T>, CharT>::value);
         }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
     };
-    template <typename T, typename Char>
-    constexpr inline static auto is_fmt_formattable_v = is_fmt_formattable<T, Char>::value;
+    template <typename T, typename CharT>
+    constexpr inline static auto is_fmt_formattable_v = is_fmt_formattable<T, CharT>::value;
 }
 namespace csl::ag::formatting::details::concepts {
 
     /// \brief used upstream, not formatter detection
-    template <typename T, typename Char>
-    concept fmt_formattable = type_traits::is_fmt_formattable_v<T, Char>;
+    template <typename T, typename CharT>
+    concept fmt_formattable = type_traits::is_fmt_formattable_v<T, CharT>;
 }
 
 namespace csl::ag::formatting {
@@ -117,9 +117,10 @@ namespace csl::ag::formatting {
     ///        and collide with any other library specializing fmt::formatter on its own concept.
     ///        See csl::ag::formatting::std_formatter, which carries the same model -
     ///        plus, for std::formatter, a [namespace.std]/2 constraint.
-    /// \note  Known limitation: the formatting machinery is char-based -
-    ///        csl::ag::formatting::type_name and details::style::opening_bracket both yield std::string_view -
-    ///        so Char is restricted to char.
+    /// \note  CharT is char or wchar_t (csl::ag::formatting::concepts::supported_char_type).
+    ///        [format.formatter.spec] provides standard formatter specializations for those two only,
+    ///        so char8_t/char16_t/char32_t have no leaf formatter to delegate to.
+    ///        Wide formatting additionally requires fmtlib's <fmt/xchar.h>, which the consumer provides.
     ///
     ///        WARNING: routes through ag_formatter_base,
     ///        not fmt's native tuple_join_view formatter:
@@ -128,17 +129,16 @@ namespace csl::ag::formatting {
     ///        See simplification commit 000e7d2fb749bca03aadc80b22bad7e2f6d27f26
     template <
         csl::ag::concepts::structured_bindable T,
-        typename Char = char
+        concepts::supported_char_type CharT = char
     >
-    requires std::same_as<Char, char>
-        and (not details::concepts::decorator<T>)
+    requires (not details::concepts::decorator<T>)
     struct fmt_formatter
         : public details::ag_formatter_base<
-            details::fmt_formatter_adapter, T, Char
+            details::fmt_formatter_adapter, T, CharT
         >
     {
         static_assert(
-            details::concepts::fmt_formattable<T, Char>,
+            details::concepts::fmt_formattable<T, CharT>,
             "[csl::ag::formatting::fmt_formatter] at least one of T's fields is not fmt-formattable."
         );
     };
@@ -149,29 +149,29 @@ namespace csl::ag::formatting {
 // fmt::formatter<formatted_view_t>: composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
-    typename Char
+    csl::ag::formatting::concepts::supported_char_type CharT
 >
 requires (not csl::ag::formatting::details::concepts::decorator<T>)
-and csl::ag::formatting::details::concepts::fmt_formattable<T, Char>
+and csl::ag::formatting::details::concepts::fmt_formattable<T, CharT>
 class fmt::formatter<
     csl::ag::formatting::details::decorators::formatted_view_t<T>,
-    Char
+    CharT
 > : public csl::ag::formatting::details::ag_formatter_base<
-        csl::ag::formatting::details::fmt_formatter_adapter, T, Char
+        csl::ag::formatting::details::fmt_formatter_adapter, T, CharT
     >
 {};
 
 // fmt::formatter<formatted_view_t>: non-structured-bindable leaf T
 template <
     typename T,
-    typename Char
+    csl::ag::formatting::concepts::supported_char_type CharT
 >
 requires (not csl::ag::concepts::structured_bindable<T>)
 class fmt::formatter<
     csl::ag::formatting::details::decorators::formatted_view_t<T>,
-    Char
+    CharT
 > : public csl::ag::formatting::details::ag_formatter_base_leaf<
-        csl::ag::formatting::details::fmt_formatter_adapter, T, Char
+        csl::ag::formatting::details::fmt_formatter_adapter, T, CharT
     >
 {};
 #pragma endregion

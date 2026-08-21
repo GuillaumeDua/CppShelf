@@ -15,6 +15,7 @@
 /// @par Design
 ///      - Delegates to the underlying type's `operator<<`.
 ///      - Only participates in overload resolution when the underlying type is ostream-shiftable.
+///      - Generic over the stream's character type.
 ///      - C++17 compatible (SFINAE below C++20, constraints otherwise).
 ///
 /// @par Usage
@@ -35,9 +36,9 @@
 #if __cplusplus >= 202002L
 
 namespace csl::io {
-    template <typename T, typename tag>
-    requires requires (std::ostream & os, const T & value) { os << value; }
-    std::ostream & operator<<(std::ostream & os, const csl::ensure::strong_type<T, tag> & value){
+    template <typename CharT, typename Traits, typename T, typename tag>
+    requires requires (std::basic_ostream<CharT, Traits> & os, const T & value) { os << value; }
+    std::basic_ostream<CharT, Traits> & operator<<(std::basic_ostream<CharT, Traits> & os, const csl::ensure::strong_type<T, tag> & value){
         const auto & underlying_value = static_cast<const T &>(value);
         return os << underlying_value;
     }
@@ -47,21 +48,21 @@ namespace csl::io {
 
 namespace csl::ensure::details::mp::type_traits {
     // is_ostream_shiftable
-    template <typename T, class = void>
+    template <typename T, typename CharT, typename Traits, class = void>
     struct is_ostream_shiftable : std::false_type{};
-    template <typename T>
-    struct is_ostream_shiftable<T,  std::void_t<
-        decltype(std::declval<std::ostream&>() << std::declval<const T&>())
+    template <typename T, typename CharT, typename Traits>
+    struct is_ostream_shiftable<T, CharT, Traits, std::void_t<
+        decltype(std::declval<std::basic_ostream<CharT, Traits>&>() << std::declval<const T&>())
     >> : std::true_type{};
-    template <typename T>
-    constexpr inline static bool is_ostream_shiftable_v = is_ostream_shiftable<T>::value;
+    template <typename T, typename CharT, typename Traits>
+    constexpr inline static bool is_ostream_shiftable_v = is_ostream_shiftable<T, CharT, Traits>::value;
 }
 namespace csl::io {
     template <
-        typename T, typename tag,
-        std::enable_if_t<csl::ensure::details::mp::type_traits::is_ostream_shiftable_v<T>, bool> = true
+        typename CharT, typename Traits, typename T, typename tag,
+        std::enable_if_t<csl::ensure::details::mp::type_traits::is_ostream_shiftable_v<T, CharT, Traits>, bool> = true
     >
-    std::ostream & operator<<(std::ostream & os, const csl::ensure::strong_type<T, tag> & value){
+    std::basic_ostream<CharT, Traits> & operator<<(std::basic_ostream<CharT, Traits> & os, const csl::ensure::strong_type<T, tag> & value){
         const auto & underlying_value = static_cast<const T &>(value);
         return os << underlying_value;
     }

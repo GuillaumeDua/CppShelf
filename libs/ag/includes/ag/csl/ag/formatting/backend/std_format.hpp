@@ -67,22 +67,22 @@ namespace csl::ag::formatting::details::type_traits {
     /// \brief used upstream: not formatter detection
     ///       Recurses through structured_bindable elements std::formattable is consulted at leaves only.
     ///       NOTE: this library's view machinery formats those itself, so the STL's P2286 tuple-like/range formatters must NOT be required (e.g. absent in libstdc++ 13).
-    template <typename T, typename Char>
-    struct is_std_formattable : std::bool_constant<std::formattable<T, Char>>{};
-    template <csl::ag::concepts::structured_bindable T, typename Char>
-    struct is_std_formattable<T, Char> {
+    template <typename T, typename CharT>
+    struct is_std_formattable : std::bool_constant<std::formattable<T, CharT>>{};
+    template <csl::ag::concepts::structured_bindable T, typename CharT>
+    struct is_std_formattable<T, CharT> {
         constexpr static auto value = []<std::size_t ... indexes>(std::index_sequence<indexes...>){
-            return (true and ... and is_std_formattable<csl::ag::tuplelike::element_t<indexes, T>, Char>::value);
+            return (true and ... and is_std_formattable<csl::ag::tuplelike::element_t<indexes, T>, CharT>::value);
         }(std::make_index_sequence<csl::ag::tuplelike::size_v<T>>{});
     };
-    template <typename T, typename Char>
-    constexpr inline static auto is_std_formattable_v = is_std_formattable<T, Char>::value;
+    template <typename T, typename CharT>
+    constexpr inline static auto is_std_formattable_v = is_std_formattable<T, CharT>::value;
 }
 namespace csl::ag::formatting::details::concepts {
 
     /// \brief used upstream: not formatter detection
-    template <typename T, typename Char>
-    concept std_formattable = type_traits::is_std_formattable_v<T, Char>;
+    template <typename T, typename CharT>
+    concept std_formattable = type_traits::is_std_formattable_v<T, CharT>;
 }
 
 namespace csl::ag::formatting {
@@ -108,22 +108,21 @@ namespace csl::ag::formatting {
     ///        A blanket would also claim standard aggregates
     ///        (std::monostate, std::identity, std::plus<>, ...),
     ///        and collide with any other library specializing std::formatter on its own concept.
-    /// \note  Known limitation: the formatting machinery is char-based -
-    ///        csl::ag::formatting::type_name and details::style::opening_bracket both yield
-    ///        std::string_view - so Char is restricted to char.
+    /// \note  CharT is char or wchar_t (csl::ag::formatting::concepts::supported_char_type).
+    ///        [format.formatter.spec] provides standard formatter specializations for those two only,
+    ///        so char8_t/char16_t/char32_t have no leaf formatter to delegate to.
     template <
         csl::ag::concepts::structured_bindable T,
-        typename Char = char
+        concepts::supported_char_type CharT = char
     >
-    requires std::same_as<Char, char>
-        and (not details::concepts::decorator<T>)
+    requires (not details::concepts::decorator<T>)
     struct std_formatter
         : public details::ag_formatter_base<
-            std::formatter, T, Char
+            std::formatter, T, CharT
         >
     {
         static_assert(
-            details::concepts::std_formattable<T, Char>,
+            details::concepts::std_formattable<T, CharT>,
             "[csl::ag::formatting::std_formatter] at least one of T's fields is not std-formattable."
         );
     };
@@ -133,29 +132,29 @@ namespace csl::ag::formatting {
 // std::formatter<formatted_view_t>: composite structured_bindable T
 template <
     csl::ag::concepts::structured_bindable T,
-    typename Char
+    csl::ag::formatting::concepts::supported_char_type CharT
 >
 requires (not csl::ag::formatting::details::concepts::decorator<T>)
-and csl::ag::formatting::details::concepts::std_formattable<T, Char>
+and csl::ag::formatting::details::concepts::std_formattable<T, CharT>
 struct std::formatter<
     csl::ag::formatting::details::decorators::formatted_view_t<T>,
-    Char
+    CharT
 > : public csl::ag::formatting::details::ag_formatter_base<
-        std::formatter, T, Char
+        std::formatter, T, CharT
     >
 {};
 
 // std::formatter<formatted_view_t>: non-structured-bindable leaf T
 template <
     typename T,
-    typename Char
+    csl::ag::formatting::concepts::supported_char_type CharT
 >
 requires (not csl::ag::concepts::structured_bindable<T>)
 struct std::formatter<
     csl::ag::formatting::details::decorators::formatted_view_t<T>,
-    Char
+    CharT
 > : public csl::ag::formatting::details::ag_formatter_base_leaf<
-        std::formatter, T, Char
+        std::formatter, T, CharT
     >
 {};
 // NOLINTEND(cert-dcl58-cpp)
