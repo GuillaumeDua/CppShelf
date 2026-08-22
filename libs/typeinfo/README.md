@@ -41,6 +41,7 @@ static_assert(csl::typeinfo::type_name_as_v<int, char16_t> == u"int");
 ```
 
 Widening is a per-character cast, valid for the basic execution character set.
+`CharT = char` is a pass-through: no storage, no conversion - `type_name_as_v<T, char>` *is* `type_name_v<T>`.
 
 ### Known limitations - type_name
 
@@ -68,7 +69,7 @@ The underlying trait is `csl::typeinfo::value_name<V>`, whose `::value` member h
 
 ### value_name_as_v<V, CharT>
 
-The widened counterpart, mirroring `type_name_as_v`:
+The widened counterpart, mirroring `type_name_as_v` - `CharT = char` likewise being a pass-through:
 
 ```cpp
 static_assert(csl::typeinfo::value_name_as_v<42, wchar_t> == L"42"); // GCC, Clang
