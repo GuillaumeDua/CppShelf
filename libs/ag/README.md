@@ -1033,15 +1033,25 @@ Only the type you format directly needs the opt-in: nested aggregates, tuple-lik
 > Never in shipped code, and never in a header other people include.
 
 ```cpp
-template <csl::ag::concepts::aggregate T>
+template <
+    csl::ag::concepts::aggregate T,
+    csl::ag::formatting::concepts::supported_char_type CharT
+>
 requires (not csl::ag::formatting::details::concepts::decorator<T>)
-struct std::formatter<T, char> : csl::ag::formatting::std_formatter<T>{};
+and (not std::ranges::range<T>)
+struct std::formatter<T, CharT> : csl::ag::formatting::std_formatter<T, CharT>{};
 ```
 
-Fixing the second parameter to `char` keeps this out of the way of `wchar_t` - write a second blanket for it if you want both.
-Keep the `decorator` guard: `formatted_view_t` is itself an aggregate, so without it this overlaps the library's own
-view formatter and you are relying on partial ordering to resolve it. Add `and (not std::ranges::range<T>)` too if any
-of your aggregates are ranges, to leave the standard's own range formatters alone.
+A single blanket covers both `char` and `wchar_t`; `CharT` must be forwarded to `std_formatter`, whose own second
+parameter otherwise defaults to `char`.
+
+Both guards are load-bearing:
+
+- `decorator`: `formatted_view_t` is itself an aggregate, so without it this overlaps the library's own view formatter,
+  and you are relying on partial ordering to resolve it.
+- `std::ranges::range`: an aggregate that is also a range matches the standard's `formatter<R, charT>` just as well as
+  it matches this blanket - deduction succeeds both ways and neither constraint subsumes the other, so the specializations are ambiguous.  
+  Excluding ranges here is the only fix; nothing can be done at the use site.
 
 </details>
 
