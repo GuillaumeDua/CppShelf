@@ -122,6 +122,9 @@ namespace csl::typeinfo
     public:
         constexpr static std::basic_string_view<CharT> value{ storage.data(), storage.size() };
     };
+    template <typename T>
+    struct type_name_as<T, char> : type_name<T>{};
+
     template <typename T, typename CharT>
     constexpr inline static auto type_name_as_v = type_name_as<T, CharT>::value;
 
@@ -141,6 +144,9 @@ namespace csl::typeinfo
     public:
         constexpr static std::basic_string_view<CharT> value{ storage.data(), storage.size() };
     };
+    template <auto v>
+    struct value_name_as<v, char> : value_name<v>{};
+
     template <auto v, typename CharT>
     constexpr inline static auto value_name_as_v = value_name_as<v, CharT>::value;
 

@@ -1,6 +1,9 @@
 #include <csl/typeinfo.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <string_view>
+#include <type_traits>
+
 namespace test::value_name::enums {
     enum global_ns_colors : int { red, blue, yellow, orange, green, purple };
 }
@@ -33,6 +36,14 @@ TEST_CASE("typeinfo::type_name_as", "[typeinfo][compile_time]") {
     STATIC_REQUIRE(csl::typeinfo::type_name_as_v<colors, wchar_t>.size() == csl::typeinfo::type_name_v<colors>.size());
 }
 
+TEST_CASE("typeinfo::type_name_as<T, char> : no widening storage", "[typeinfo][compile_time]") {
+    STATIC_REQUIRE(std::is_same_v<
+        decltype(csl::typeinfo::type_name_as_v<int, char>),
+        const std::string_view
+    >);
+    STATIC_REQUIRE(csl::typeinfo::type_name_as_v<int, char>.data() == csl::typeinfo::type_name_v<int>.data());
+}
+
 TEST_CASE("typeinfo::value_name_as", "[typeinfo][compile_time]") {
 #if defined(__GNUC__) or defined(__clang__)
     STATIC_REQUIRE(csl::typeinfo::value_name_as_v<int{ 42 }, wchar_t> == L"42"); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
@@ -42,5 +53,16 @@ TEST_CASE("typeinfo::value_name_as", "[typeinfo][compile_time]") {
     STATIC_REQUIRE(
         csl::typeinfo::value_name_as_v<test::value_name::enums::global_ns_colors::red, wchar_t>
         == L"test::value_name::enums::red"
+    );
+}
+
+TEST_CASE("typeinfo::value_name_as<v, char> : no widening storage", "[typeinfo][compile_time]") {
+    STATIC_REQUIRE(std::is_same_v<
+        decltype(csl::typeinfo::value_name_as_v<int{ 42 }, char>), // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        const std::string_view
+    >);
+    STATIC_REQUIRE(
+        csl::typeinfo::value_name_as_v<int{ 42 }, char>.data() // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        == csl::typeinfo::value_name_v<int{ 42 }>.data() // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     );
 }
