@@ -35,8 +35,8 @@
 namespace types = test::ag::types;
 
 // The wide-formattable subset of the shared test types: every leaf is formattable as wchar_t.
-// Types carrying std::string_view / std::string fields are narrow-only by construction -
-// the standard provides no std::formatter<std::string_view, wchar_t>.
+// Types carrying std::string_view / std::string fields are left out:
+// [format.formatter.spec]/4 disables the narrow-character formatters for wide output.
 
 // NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
 template <>
@@ -59,6 +59,26 @@ struct fmt::formatter<types::field_2, wchar_t>
 template <>
 struct fmt::formatter<types::field_3_nested, wchar_t>
     : csl::ag::formatting::fmt_formatter<types::field_3_nested, wchar_t>{};
+
+namespace {
+    // A leaf that is narrow-only by construction, independently of the standard library's [format.formatter.spec]/4 status.
+    // NOTE: the leaf must be a non-aggregate - is_std_formattable folds over a structured_bindable's elements.
+    struct narrow_only_leaf { explicit narrow_only_leaf() = default; };
+    struct with_narrow_only_leaf { narrow_only_leaf leaf; };
+}
+
+// NOLINTBEGIN(cert-dcl58-cpp) - std::formatter is a CPO
+template <>
+struct std::formatter<narrow_only_leaf, char> {
+    constexpr auto parse(std::basic_format_parse_context<char> & parse_context) const {
+        return parse_context.begin();
+    }
+    template <typename FormatContext>
+    auto format(const narrow_only_leaf &, FormatContext & context) const {
+        return context.out();
+    }
+};
+// NOLINTEND(cert-dcl58-cpp)
 
 namespace tests::concepts::supported_char_type {
 
@@ -86,9 +106,17 @@ namespace tests::concepts::supported_char_type {
     static_assert(not std::formattable<view, char8_t>);
     static_assert(not std::formattable<view, char32_t>);
 
-    // Narrow-only leaves stay narrow-only.
+    // A single narrow-only leaf keeps the whole aggregate narrow-only.
+    static_assert(formatting::details::concepts::std_formattable<with_narrow_only_leaf, char>);
+    static_assert(not formatting::details::concepts::std_formattable<with_narrow_only_leaf, wchar_t>);
+
+    // std::string_view is such a leaf only where [format.formatter.spec]/4 is implemented (libc++ >= 19).
+    // Elsewhere the range formatter answers for it, so the aggregate is compared to its leaf rather than to false.
     static_assert(formatting::details::concepts::std_formattable<types::field_4_nested_range, char>);
-    static_assert(not formatting::details::concepts::std_formattable<types::field_4_nested_range, wchar_t>);
+    static_assert(
+        formatting::details::concepts::std_formattable<types::field_4_nested_range, wchar_t>
+        == std::formattable<std::string_view, wchar_t>
+    );
 }
 
 namespace {
