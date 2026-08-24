@@ -80,7 +80,7 @@ namespace csl::ag::formatting::details {
         os.write(buf.data(), static_cast<std::streamsize>(std::min(max_depth, depth) * style::indentation_width));
     }
 
-    /// \brief Write a narrow string to a possibly-wide stream.
+    /// \brief Write a narrow string to a possibly-wide stream, applying the widening policy.
     ///        Type names are narrow by construction, and basic_string_view<char> has no widening inserter -
     ///        unlike char, which [ostream.inserters.character] widens through os.widen().
     template <typename CharT, typename Traits>
@@ -88,8 +88,8 @@ namespace csl::ag::formatting::details {
         if constexpr (std::same_as<CharT, char>)
             os << value;
         else
-            for (char c : value)
-                os << c;
+            for (char character : value)
+                os << widening::widen<CharT>(character);
     }
 
     struct format_options_view {

@@ -69,14 +69,23 @@ namespace csl::typeinfo::details
 #endif
     }
 
-    /// \brief Widen a narrow name into a CharT array.
-    ///        The compiler-provided sources (__PRETTY_FUNCTION__, __FUNCSIG__) are narrow by construction, and have no wide counterpart.
-    ///        Per-character cast: valid for the basic execution character set.
+    /// \brief Narrow-to-CharT conversion policy: a per-character cast, valid for the basic execution character set.
+    template <typename CharT>
+    [[nodiscard]] constexpr static auto widen(char value) -> CharT {
+
+        if constexpr (std::is_same_v<CharT, char>)
+            return value;
+        else
+            return static_cast<CharT>(static_cast<unsigned char>(value));
+    }
+
+    /// \brief Widen a narrow name into a CharT array (owning).
+    ///        Reason/usage: the compiler-provided sources (__PRETTY_FUNCTION__, __FUNCSIG__, etc.) are narrow by construction, and have no wide counterpart.
     template <typename CharT, std::size_t N>
     [[nodiscard]] constexpr static auto widen(std::string_view value) -> std::array<CharT, N> {
         std::array<CharT, N> result{};
         for (std::size_t i = 0; i < N; ++i)
-            result[i] = static_cast<CharT>(static_cast<unsigned char>(value[i]));
+            result[i] = widen<CharT>(value[i]);
         return result;
     }
 }

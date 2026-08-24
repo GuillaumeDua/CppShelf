@@ -1374,8 +1374,17 @@ namespace csl::ag::formatting::concepts {
     ;
 }
 
-/// \brief Widens narrow string literals into any supported character type, at compile-time.
+/// \brief Narrow-to-CharT conversions, and compile-time storage for narrow string literals.
 namespace csl::ag::formatting::details::widening {
+
+    /// \brief The conversion policy every backend applies to narrow content: type names, presentation literals, char fields.
+    template <typename CharT>
+    [[nodiscard]] constexpr auto widen(char value) noexcept -> CharT {
+        if constexpr (std::same_as<CharT, char>)
+            return value;
+        else
+            return static_cast<CharT>(static_cast<unsigned char>(value));
+    }
 
     /// \brief Structural NTTP wrapper for a narrow string literal, null-terminator included.
     template <std::size_t N>
@@ -1384,8 +1393,12 @@ namespace csl::ag::formatting::details::widening {
 
         // NOLINTNEXTLINE(*-avoid-c-arrays,*-explicit-constructor,*-explicit-conversions)
         consteval fixed_string(const char (&literal)[N]) {
+            
+            if constexpr (N == 0)
+                throw std::invalid_argument{ "[csl::ag::formatting] fixed_string expects an input size > 0" };
             if (literal[N - 1] != '\0')
-                throw "[csl::ag::formatting] fixed_string expects a null-terminated string literal";
+                throw std::invalid_argument{ "[csl::ag::formatting] fixed_string expects a null-terminated string literal" };
+
             for (std::size_t i = 0; i < N; ++i)
                 value[i] = literal[i]; // NOLINT(*-pro-bounds-constant-array-index)
         }
@@ -1395,8 +1408,7 @@ namespace csl::ag::formatting::details::widening {
     template <typename CharT, fixed_string literal>
     constexpr static inline auto literal_storage = [] {
         std::array<CharT, literal.value.size()> result{};
-        for (std::size_t i = 0; i < result.size(); ++i)
-            result[i] = static_cast<CharT>(static_cast<unsigned char>(literal.value[i]));
+        std::ranges::transform(literal.value, result.begin(), widen<CharT>);
         return result;
     }();
 
@@ -1486,17 +1498,14 @@ namespace csl::ag::formatting::details {
         return ++out;
     }
 
-    /// \brief Write a narrow string into a CharT output, widening per character.
+    /// \brief Write a narrow string into a CharT output, applying the widening policy.
     ///        Used for type names: the compiler-provided sources (__PRETTY_FUNCTION__, std::type_index::name()) are narrow by construction
     template <typename CharT, typename OutputIt>
     [[nodiscard]] auto write_narrow(OutputIt out, std::string_view value) noexcept -> OutputIt {
         if constexpr (std::same_as<CharT, char>)
             return write<CharT>(out, value);
-        else {
-            for (char c : value)
-                *out++ = static_cast<CharT>(static_cast<unsigned char>(c));
-            return out;
-        }
+        else
+            return std::ranges::transform(value, out, widening::widen<CharT>).out;
     }
 
     /// \brief Maps a formatter_implementation (fmt::formatter or std::formatter) to its matching format-error exception type
@@ -1670,7 +1679,7 @@ namespace csl::ag::formatting::details {
             if constexpr (std::same_as<leaf_type, T>)
                 return (value);
             else
-                return static_cast<leaf_type>(static_cast<unsigned char>(value));
+                return widening::widen<leaf_type>(value);
         }
 
         formatter_implementation<leaf_type, CharT> value_formatter{};
