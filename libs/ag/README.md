@@ -857,7 +857,10 @@ static_assert(not std::formattable<formatted_view_t<point>, char8_t>);
 Two consequences worth knowing:
 
 - A field is only wide-formattable if *its own* formatter is.  
-  An aggregate holding a `std::string_view` is narrow-only, since the standard provides no `std::formatter<std::string_view, wchar_t>`.
+  An aggregate holding a `std::string_view` is narrow-only: [[format.formatter.spec]/4](https://eel.is/c++draft/format.formatter.spec#4)
+  disables `std::formatter<std::basic_string_view<char, traits>, wchar_t>`, along with its `char*` and `std::string` siblings.  
+  Standard libraries predating that resolution (libc++ < 19) reach `std::string_view` through the range formatter instead,
+  and report such an aggregate as wide-formattable.
 - `fmtlib` exposes wide formatting through `<fmt/xchar.h>` - include it alongside the backend header.  
   It also provides no `fmt::formatter<char, wchar_t>`, so a narrow `char` field is rendered as the output
   character type. `std::format` does the same, natively.
