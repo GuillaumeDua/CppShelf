@@ -27,7 +27,8 @@ var concepts =
         ] ],
         [ "formatting", null, [
           [ "concepts", null, [
-            [ "format_option", "conceptcsl_1_1ag_1_1formatting_1_1concepts_1_1format__option.html", null ]
+            [ "format_option", "conceptcsl_1_1ag_1_1formatting_1_1concepts_1_1format__option.html", null ],
+            [ "supported_char_type", "conceptcsl_1_1ag_1_1formatting_1_1concepts_1_1supported__char__type.html", null ]
           ] ]
         ] ]
       ] ]

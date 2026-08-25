@@ -27,7 +27,7 @@
 <polygon fill="white" stroke="#666666" points="312,-46.5 200,-46.5 200,-5.5 312,-5.5 312,-46.5"/>
 <text text-anchor="start" x="208" y="-34.5" font-family="Helvetica,sans-Serif" font-size="10.00">csl::ag::formatting</text>
 <text text-anchor="start" x="208" y="-23.5" font-family="Helvetica,sans-Serif" font-size="10.00">::fmt_formatter&lt; T,</text>
-<text text-anchor="middle" x="256" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00"> Char &gt;</text>
+<text text-anchor="middle" x="256" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00"> CharT &gt;</text>
 </a>
 </g>
 </g>

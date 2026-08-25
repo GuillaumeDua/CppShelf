@@ -5,6 +5,6 @@ var searchData=
   ['path_20for_20non_20default_5finitializable_20or_20when_20bitfield_20support_20is_20enabled_2',['Slow path - for non default_initializable&amp;lt;T&amp;gt; or when bitfield support is enabled',['../index.html#slow-path---for-non-default_initializablet-or-when-bitfield-support-is-enabled',1,'']]],
   ['plain_20download_3',['Plain download',['../index.html#plain-download',1,'']]],
   ['presentation_4',['Overall presentation',['../index.html#overall-presentation',1,'']]],
-  ['printing_5',['printing',['../index.html#formatting-and-printing',1,'Formatting and printing'],['../index.html#formatting-and-printing-1',1,'Formatting and printing']]],
+  ['printing_5',['Formatting and printing',['../index.html#formatting-and-printing',1,'']]],
   ['produced_6',['produced',['../conceptcsl_1_1ag_1_1concepts_1_1produced.html',1,'csl::ag::concepts']]]
 ];

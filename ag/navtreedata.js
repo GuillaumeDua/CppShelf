@@ -35,8 +35,8 @@ var NAVTREE =
         ] ],
         [ "Configuration", "index.html#configuration", [
           [ "Bitfields support", "index.html#bitfields-support", null ],
-          [ "Highier limit for aggregate field count", "index.html#highier-limit-for-aggregate-field-count", null ],
-          [ "Formatting and printing", "index.html#formatting-and-printing", null ]
+          [ "Higher limit for aggregate field count", "index.html#higher-limit-for-aggregate-field-count", null ],
+          [ "Formatting backends", "index.html#formatting-backends", null ]
         ] ]
       ] ],
       [ "Content", "index.html#content", [
@@ -65,7 +65,9 @@ var NAVTREE =
           [ "csl::ag::apply", "index.html#cslagapply", null ],
           [ "csl::ag::for_each", "index.html#cslagfor_each", null ]
         ] ],
-        [ "Formatting and printing", "index.html#formatting-and-printing-1", [
+        [ "Formatting and printing", "index.html#formatting-and-printing", [
+          [ "Options and syntaxes", "index.html#options-and-syntaxes", null ],
+          [ "Character types support", "index.html#character-types-support", null ],
           [ "using std::format", "index.html#using-stdformat", null ],
           [ "using fmt", "index.html#using-fmt", null ],
           [ "using std::ostream", "index.html#using-stdostream", null ]

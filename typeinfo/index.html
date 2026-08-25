@@ -136,19 +136,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('index.html',''
 </blockquote>
 <h1 class="doxsection"><a class="anchor" id="include"></a>
 Include</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;typeinfo/csl/typeinfo.hpp&gt;</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;csl/typeinfo.hpp&gt;</span></div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="type_name_vt"></a>
 type_name_v&lt;T&gt;</h1>
 <p>A <span class="tt">constexpr inline</span> variable template holding the name of <span class="tt">T</span> as a <span class="tt">std::string_view</span>, extracted from compiler-provided information at compile time - no RTTI, no allocation.</p>
 <div class="fragment"><div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_v&lt;int&gt;               == <span class="stringliteral">&quot;int&quot;</span>);</div>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_v&lt;float&gt;             == <span class="stringliteral">&quot;float&quot;</span>);</div>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_v&lt;std::vector&lt;int&gt;&gt;  == <span class="stringliteral">&quot;std::vector&lt;int&gt;&quot;</span>); <span class="comment">// GCC/Clang approximation</span></div>
-</div><!-- fragment --><p>A function form is also available for contexts where the variable template cannot be used:</p>
-<div class="fragment"><div class="line">std::string_view name = <a class="code hl_struct" href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name&lt;T&gt;</a>();</div>
-<div class="ttc" id="astructcsl_1_1typeinfo_1_1type__name_html"><div class="ttname"><a href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name</a></div><div class="ttdef"><b>Definition</b> typeinfo.hpp:98</div></div>
-</div><!-- fragment --><p><span class="tt">type_name</span> is also overloaded for non-type template parameters - <span class="tt">type_name&lt;value&gt;()</span> returns the type of <span class="tt">value</span>:</p>
-<div class="fragment"><div class="line"><span class="keyword">static_assert</span>(<a class="code hl_struct" href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name&lt;42&gt;</a>() == <span class="stringliteral">&quot;int&quot;</span>);</div>
-</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="known-limitations---type_name"></a>
+</div><!-- fragment --><p>The underlying trait is <span class="tt"><a class="el" href="structcsl_1_1typeinfo_1_1type__name.html">csl::typeinfo::type_name</a>&lt;T&gt;</span>, whose <span class="tt">::value</span> member holds the same <span class="tt">std::string_view</span>. For the type of a value, query <span class="tt">decltype</span>:</p>
+<div class="fragment"><div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_v&lt;<span class="keyword">decltype</span>(42)&gt; == <span class="stringliteral">&quot;int&quot;</span>);</div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="type_name_as_vt-chart"></a>
+type_name_as_v&lt;T, CharT&gt;</h2>
+<p>The compiler-provided sources (<span class="tt">__PRETTY_FUNCTION__</span>, <span class="tt">__FUNCSIG__</span>) are narrow by construction, and have no wide counterpart. <span class="tt">type_name_as_v&lt;T, CharT&gt;</span> is <span class="tt">type_name_v&lt;T&gt;</span> widened into <span class="tt">constexpr</span> per-<span class="tt">&lt;T, CharT&gt;</span> storage:</p>
+<div class="fragment"><div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_as_v&lt;int, wchar_t&gt;  == L<span class="stringliteral">&quot;int&quot;</span>);</div>
+<div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::type_name_as_v&lt;int, char16_t&gt; == u<span class="stringliteral">&quot;int&quot;</span>);</div>
+</div><!-- fragment --><p>Widening is a per-character cast, valid for the basic execution character set. <span class="tt">CharT = char</span> is a pass-through: no storage, no conversion - <span class="tt">type_name_as_v&lt;T, char&gt;</span> <em>is</em> <span class="tt">type_name_v&lt;T&gt;</span>.</p>
+<h2 class="doxsection"><a class="anchor" id="known-limitations---type_name"></a>
 Known limitations - type_name</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -167,9 +170,11 @@ value_name_v&lt;V&gt;</h1>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::value_name_v&lt;42&gt;          == <span class="stringliteral">&quot;42&quot;</span>);         <span class="comment">// GCC, Clang</span></div>
 <div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::value_name_v&lt;color::red&gt;  == <span class="stringliteral">&quot;color::red&quot;</span>); <span class="comment">// GCC, Clang</span></div>
-</div><!-- fragment --><p>A function form is also available:</p>
-<div class="fragment"><div class="line">std::string_view name = <a class="code hl_struct" href="structcsl_1_1typeinfo_1_1value__name.html">csl::typeinfo::value_name&lt;V&gt;</a>();</div>
-<div class="ttc" id="astructcsl_1_1typeinfo_1_1value__name_html"><div class="ttname"><a href="structcsl_1_1typeinfo_1_1value__name.html">csl::typeinfo::value_name</a></div><div class="ttdef"><b>Definition</b> typeinfo.hpp:106</div></div>
+</div><!-- fragment --><p>The underlying trait is <span class="tt"><a class="el" href="structcsl_1_1typeinfo_1_1value__name.html">csl::typeinfo::value_name</a>&lt;V&gt;</span>, whose <span class="tt">::value</span> member holds the same <span class="tt">std::string_view</span>.</p>
+<h2 class="doxsection"><a class="anchor" id="value_name_as_vv-chart"></a>
+value_name_as_v&lt;V, CharT&gt;</h2>
+<p>The widened counterpart, mirroring <span class="tt">type_name_as_v</span> - <span class="tt">CharT = char</span> likewise being a pass-through:</p>
+<div class="fragment"><div class="line"><span class="keyword">static_assert</span>(csl::typeinfo::value_name_as_v&lt;42, wchar_t&gt; == L<span class="stringliteral">&quot;42&quot;</span>); <span class="comment">// GCC, Clang</span></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="known-limitations---value_name"></a>
 Known limitations - value_name</h2>
 <table class="markdownTable">

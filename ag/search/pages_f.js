@@ -7,5 +7,6 @@ var searchData=
   ['tuple_20likes_4',['Homogeneity API with tuple-likes',['../index.html#homogeneity-api-with-tuple-likes',1,'']]],
   ['tuplelike_5',['tuplelike&amp;lt;T&amp;gt;',['../index.html#tupleliket',1,'']]],
   ['tuplelike_20interface_6',['tuplelike interface',['../index.html#tuplelike-interface',1,'']]],
-  ['type_20traits_7',['Type-traits',['../index.html#type-traits',1,'']]]
+  ['type_20traits_7',['Type-traits',['../index.html#type-traits',1,'']]],
+  ['types_20support_8',['Character types support',['../index.html#character-types-support',1,'']]]
 ];

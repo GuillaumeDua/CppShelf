@@ -263,9 +263,14 @@ Opt-in features</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><span class="tt">csl/ensure/formatting/backend/fmt.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">fmt::formatter</span> specialization  </td><td class="markdownTableBodyNone"><a href="https://github.com/fmtlib/fmt">fmtlib</a>, provided by the consumer  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">csl/ensure/formatting/backend/ostream.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">operator&lt;&lt;(std::ostream &amp;, ...)</span> in <span class="tt">csl::io</span>  </td><td class="markdownTableBodyNone">-  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">csl/ensure/formatting/backend/ostream.hpp</span>  </td><td class="markdownTableBodyNone"><span class="tt">operator&lt;&lt;(std::basic_ostream&lt;CharT, Traits&gt; &amp;, ...)</span> in <span class="tt">csl::io</span>  </td><td class="markdownTableBodyNone">-  </td></tr>
 </table>
 <p>Each delegates to the underlying type's formatter/stream operator - format-spec included - and only participates when the underlying type supports the operation.</p>
+<p>Delegation also carries the character type: a <span class="tt">strong_type&lt;T, tag&gt;</span> is formattable as whichever <span class="tt">CharT</span> the underlying <span class="tt">T</span> is formattable as, with no extra opt-in.</p>
+<div class="fragment"><div class="line">std::format( <span class="stringliteral">&quot;{:#x}&quot;</span>, meters{ 42 });    <span class="comment">//  &quot;0x2a&quot;</span></div>
+<div class="line">std::format(L<span class="stringliteral">&quot;{:#x}&quot;</span>, meters{ 42 });    <span class="comment">// L&quot;0x2a&quot;</span></div>
+<div class="line">std::wcout &lt;&lt; meters{ 42 };             <span class="comment">// wide streams too</span></div>
+</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>fmtlib exposes wide formatting through <span class="tt">&lt;fmt/xchar.h&gt;</span> - include it alongside the backend header.</dd></dl>
 <dl class="section important"><dt>Important</dt><dd>Like <span class="tt">&lt;fmt/ranges.h&gt;</span>, a feature header must be included <b>consistently across the whole program</b> (ODR).</dd></dl>
 <h2 class="doxsection"><a class="anchor" id="stdformat"></a>
 std::format</h2>

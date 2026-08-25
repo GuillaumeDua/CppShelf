@@ -17,5 +17,6 @@ var searchData=
   ['type_20traits_14',['Type-traits',['../index.html#type-traits',1,'']]],
   ['type_5fname_15',['type_name',['../structcsl_1_1ag_1_1formatting_1_1type__name.html',1,'csl::ag::formatting']]],
   ['type_5fname_3c_20t_20_3e_16',['type_name&lt; T &gt;',['../structcsl_1_1ag_1_1formatting_1_1type__name_3_01T_01_4.html',1,'csl::ag::formatting']]],
-  ['typenamed_5ft_17',['typenamed_t',['../structcsl_1_1ag_1_1formatting_1_1typenamed__t.html',1,'csl::ag::formatting']]]
+  ['typenamed_5ft_17',['typenamed_t',['../structcsl_1_1ag_1_1formatting_1_1typenamed__t.html',1,'csl::ag::formatting']]],
+  ['types_20support_18',['Character types support',['../index.html#character-types-support',1,'']]]
 ];

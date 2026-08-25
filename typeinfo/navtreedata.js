@@ -27,9 +27,11 @@ var NAVTREE =
   [ "csl::typeinfo", "index.html", [
     [ "Include", "index.html#include", null ],
     [ "type_name_v&lt;T&gt;", "index.html#type_name_vt", [
+      [ "type_name_as_v&lt;T, CharT&gt;", "index.html#type_name_as_vt-chart", null ],
       [ "Known limitations - type_name", "index.html#known-limitations---type_name", null ]
     ] ],
     [ "value_name_v&lt;V&gt;", "index.html#value_name_vv", [
+      [ "value_name_as_v&lt;V, CharT&gt;", "index.html#value_name_as_vv-chart", null ],
       [ "Known limitations - value_name", "index.html#known-limitations---value_name", null ]
     ] ],
     [ "Live demo", "index.html#live-demo", null ],
@@ -39,7 +41,8 @@ var NAVTREE =
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
-      [ "Class Index", "classes.html", null ]
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ]
     ] ]
   ] ]
 ];

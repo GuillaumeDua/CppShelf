@@ -46,6 +46,7 @@ var NAVTREEINDEX0 =
 "structcsl_1_1ensure_1_1type__traits_1_1underlying__type_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html":[2,0,0,0,0,7],
 "structcsl_1_1ensure_1_1type__traits_1_1unwrap__result__type.html":[2,0,0,0,0,10],
 "structcsl_1_1ensure_1_1type__traits_1_1unwrap__result__type_3_01T_01_4.html":[2,0,0,0,0,11],
-"structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html":[2,0,1,0],
-"structstd_1_1hash_3_01T_01_4.html":[2,0,1,1]
+"structfmt_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_00_01CharT_00_01std339c1f5f3aba449871f9937e64e027b9.html":[2,0,1,0],
+"structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_00_01CharT_01_4.html":[2,0,2,0],
+"structstd_1_1hash_3_01T_01_4.html":[2,0,2,1]
 };

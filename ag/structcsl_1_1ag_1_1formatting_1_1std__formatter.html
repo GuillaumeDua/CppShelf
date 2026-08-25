@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=9" />
     <meta name="generator" content="Doxygen 1.18.0" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>📦 csl::ag: csl::ag::formatting::std_formatter&lt; T, Char &gt; Struct Template Reference</title>
+    <title>📦 csl::ag: csl::ag::formatting::std_formatter&lt; T, CharT &gt; Struct Template Reference</title>
     <link href="tabs.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="dynsections.js"></script>
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structcsl_1_1a
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">csl::ag::formatting::std_formatter&lt; T, Char &gt; Struct Template Reference</div></div>
+  <div class="headertitle"><div class="title">csl::ag::formatting::std_formatter&lt; T, CharT &gt; Struct Template Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -134,19 +134,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structcsl_1_1a
 
 <p><code>#include &lt;csl/ag/formatting/backend/std_format.hpp&gt;</code></p>
 <div class="dynheader">
-Inheritance diagram for csl::ag::formatting::std_formatter&lt; T, Char &gt;:</div>
+Inheritance diagram for csl::ag::formatting::std_formatter&lt; T, CharT &gt;:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="structcsl_1_1ag_1_1formatting_1_1std__formatter__inherit__graph.svg" width="180" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
-Collaboration diagram for csl::ag::formatting::std_formatter&lt; T, Char &gt;:</div>
+Collaboration diagram for csl::ag::formatting::std_formatter&lt; T, CharT &gt;:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="structcsl_1_1ag_1_1formatting_1_1std__formatter__coll__graph.svg" width="180" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> T, typename Char = char&gt;<br />
-requires std::same_as&lt;Char, char&gt; and (not details::concepts::decorator&lt;T&gt;)<br />
-struct csl::ag::formatting::std_formatter&lt; T, Char &gt;</div><p>Opt-in base making T formattable directly by std::format. </p>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="conceptcsl_1_1ag_1_1concepts_1_1structured__bindable.html">csl::ag::concepts::structured_bindable</a> T, concepts::supported_char_type CharT = char&gt;<br />
+requires (not details::concepts::decorator&lt;T&gt;)<br />
+struct csl::ag::formatting::std_formatter&lt; T, CharT &gt;</div><p>Opt-in base making T formattable directly by std::format. </p>
 <pre class="fragment">  \code
   struct point { int x; int y; };
 
@@ -161,7 +161,7 @@ struct csl::ag::formatting::std_formatter&lt; T, Char &gt;</div><p>Opt-in base m
   without any opt-in.
 </pre><dl class="section note"><dt>Note</dt><dd>There is deliberately no blanket std::formatter for aggregates: [namespace.std]/2 requires an added declaration to depend on a program-defined <em>type</em>, and a concept is not one. A blanket would also claim standard aggregates (std::monostate, std::identity, std::plus&lt;&gt;, ...), and collide with any other library specializing std::formatter on its own concept. </dd>
 <dd>
-Known limitation: the formatting machinery is char-based - <a class="el" href="structcsl_1_1ag_1_1formatting_1_1type__name.html" title="Customization point (type-trait) providing the type name written by the typenamed formatting option.">csl::ag::formatting::type_name</a> and details::style::opening_bracket both yield std::string_view - so Char is restricted to char. </dd></dl>
+CharT is char or wchar_t (<a class="el" href="conceptcsl_1_1ag_1_1formatting_1_1concepts_1_1supported__char__type.html" title="Supported formatting character types.">csl::ag::formatting::concepts::supported_char_type</a>). [format.formatter.spec] provides standard formatter specializations for those two only, so char8_t/char16_t/char32_t have no leaf formatter to delegate to. </dd></dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">

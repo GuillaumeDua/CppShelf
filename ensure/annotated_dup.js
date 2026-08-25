@@ -22,8 +22,11 @@ var annotated_dup =
         [ "strong_type_compare_three_way", "structcsl_1_1ensure_1_1strong__type__compare__three__way.html", null ]
       ] ]
     ] ],
+    [ "fmt", null, [
+      [ "formatter&lt; csl::ensure::strong_type&lt; T, tag &gt;, CharT, std::enable_if_t&lt; fmt::is_formattable&lt; T, CharT &gt;::value &gt; &gt;", "structfmt_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_00_01CharT_00_01std339c1f5f3aba449871f9937e64e027b9.html", null ]
+    ] ],
     [ "std", null, [
-      [ "formatter&lt; csl::ensure::strong_type&lt; T, tag &gt; &gt;", "structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_01_4.html", null ],
+      [ "formatter&lt; csl::ensure::strong_type&lt; T, tag &gt;, CharT &gt;", "structstd_1_1formatter_3_01csl_1_1ensure_1_1strong__type_3_01T_00_01tag_01_4_00_01CharT_01_4.html", null ],
       [ "hash&lt; T &gt;", "structstd_1_1hash_3_01T_01_4.html", null ]
     ] ]
 ];

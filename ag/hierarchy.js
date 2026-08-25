@@ -1,10 +1,10 @@
 var hierarchy =
 [
     [ "csl::ag::formatting::details::ag_formatter_base&lt; details::fmt_formatter_adapter, T, char &gt;", null, [
-      [ "csl::ag::formatting::fmt_formatter< T, Char >", "structcsl_1_1ag_1_1formatting_1_1fmt__formatter.html", null ]
+      [ "csl::ag::formatting::fmt_formatter< T, CharT >", "structcsl_1_1ag_1_1formatting_1_1fmt__formatter.html", null ]
     ] ],
     [ "csl::ag::formatting::details::ag_formatter_base&lt; std::formatter, T, char &gt;", null, [
-      [ "csl::ag::formatting::std_formatter< T, Char >", "structcsl_1_1ag_1_1formatting_1_1std__formatter.html", null ]
+      [ "csl::ag::formatting::std_formatter< T, CharT >", "structcsl_1_1ag_1_1formatting_1_1std__formatter.html", null ]
     ] ],
     [ "csl::ag::all_view_tag", "structcsl_1_1ag_1_1all__view__tag.html", null ],
     [ "std::bool_constant", null, [
