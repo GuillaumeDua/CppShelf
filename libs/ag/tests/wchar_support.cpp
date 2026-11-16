@@ -242,8 +242,6 @@ TEMPLATE_TEST_CASE("typenamed - wchar_t" + name_suffix() + "", "[ag][wchar_t][ty
     using f = fixture<TestType>;
     using namespace csl::ag::formatting;
 
-    // The narrow->wide widening of type names is the chokepoint #389 is about:
-    // every type-name source (csl::typeinfo, std::type_index::name(), user specializations) is narrow.
     CHECK(std::format(L"{:t}",   f::value) == widen(f::typenamed_expected));
     CHECK(fmt::format(L"{:t}",   f::value) == widen(f::typenamed_expected));
     CHECK(std::format(L"{:ixt}", f::value) == widen(f::indented_indexed_typenamed_expected));

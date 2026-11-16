@@ -171,4 +171,4 @@ SpacesInParentheses                           : false
 SpacesInSquareBrackets                        : false
 
 # --- Comments ---
-ReflowComments                                : true
+ReflowComments                                : IndentOnly
