@@ -3,6 +3,11 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
+# --- pinned tool versions ---
+# Release tags, matched by name from renovate.json; renaming them silently stops updates.
+DOXYGEN_RELEASE_TAG=Release_1_18_0
+DOXYGEN_AWESOME_CSS_RELEASE_TAG=v2.5.0
+
 # --- argument parsing ---
 DOXYGEN_VERSION=
 DOXYGEN_AWESOME_CSS_VERSION=
@@ -19,32 +24,14 @@ done
 DOXYGEN_VERSION="${DOXYGEN_VERSION#v}"
 DOXYGEN_AWESOME_CSS_VERSION="${DOXYGEN_AWESOME_CSS_VERSION#v}"
 
-# --- helpers ---
-http_get() {
-    if command -v curl &>/dev/null; then
-        curl -fsSL "$1"
-    else
-        wget -qO- "$1"
-    fi
-}
-
-github_latest_tag() {
-    http_get "https://api.github.com/repos/$1/releases/latest" \
-        | grep '"tag_name"' | head -1 \
-        | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/'
-}
-
-# --- Defaults -> latest GitHub releases ---
-# ex: Release_1_13_2 -> 1.13.2
+# --- defaults -> pinned releases ---
 if [[ -z "${DOXYGEN_VERSION}" ]]; then
-    tag=$(github_latest_tag "doxygen/doxygen")
-    DOXYGEN_VERSION="${tag#Release_}"
+    DOXYGEN_VERSION="${DOXYGEN_RELEASE_TAG#Release_}"
     DOXYGEN_VERSION="${DOXYGEN_VERSION//_/.}"
 fi
 
 if [[ -z "${DOXYGEN_AWESOME_CSS_VERSION}" ]]; then
-    tag=$(github_latest_tag "jothepro/doxygen-awesome-css")
-    DOXYGEN_AWESOME_CSS_VERSION="${tag#v}"
+    DOXYGEN_AWESOME_CSS_VERSION="${DOXYGEN_AWESOME_CSS_RELEASE_TAG#v}"
 fi
 
 echo "doxygen ${DOXYGEN_VERSION} / doxygen-awesome-css ${DOXYGEN_AWESOME_CSS_VERSION}"
