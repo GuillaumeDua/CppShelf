@@ -33,6 +33,31 @@
     },
     {
       "customType": "regex",
+      "description": "doxygen release tag pinned for the documentation build",
+      "managerFilePatterns": [
+        "/^doc/scripts/generate_doc\\.sh$/"
+      ],
+      "matchStrings": [
+        "DOXYGEN_RELEASE_TAG=(?<currentValue>Release_\\d+_\\d+_\\d+)"
+      ],
+      "depNameTemplate": "doxygen/doxygen",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "regex:^Release_(?<major>\\d+)_(?<minor>\\d+)_(?<patch>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "doxygen-awesome-css release tag pinned for the documentation build",
+      "managerFilePatterns": [
+        "/^doc/scripts/generate_doc\\.sh$/"
+      ],
+      "matchStrings": [
+        "DOXYGEN_AWESOME_CSS_RELEASE_TAG=(?<currentValue>v\\d\\S*)"
+      ],
+      "depNameTemplate": "jothepro/doxygen-awesome-css",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
       "description": "zsh-in-docker release URL in Dockerfile",
       "managerFilePatterns": [
         "/^\\.devcontainer/Dockerfile$/"
