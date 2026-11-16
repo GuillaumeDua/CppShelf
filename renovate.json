@@ -21,6 +21,18 @@
     },
     {
       "customType": "regex",
+      "description": "CPMAddPackage() GitHub dependencies; Renovate has no CMake/CPM manager",
+      "managerFilePatterns": [
+        "/(^|/)CMakeLists\\.txt$/"
+      ],
+      "matchStrings": [
+        "CPMAddPackage\\([^)]*?GITHUB_REPOSITORY\\s+(?<depName>[^\\s)]+)[^)]*?(?:GIT_TAG|VERSION)\\s+(?<currentValue>[^\\s)]+)"
+      ],
+      "datasourceTemplate": "github-tags",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
       "description": "zsh-in-docker release URL in Dockerfile",
       "managerFilePatterns": [
         "/^\\.devcontainer/Dockerfile$/"
@@ -40,13 +52,11 @@
       "minimumReleaseAge": "3 days"
     },
     {
-      "matchManagers": ["cmake"],
-      "matchPackageNames": ["fmtlib/fmt"],
+      "matchDepNames": ["fmtlib/fmt"],
       "groupName": "fmt (CPM)"
     },
     {
-      "matchManagers": ["cmake"],
-      "matchPackageNames": ["catchorg/Catch2"],
+      "matchDepNames": ["catchorg/Catch2"],
       "groupName": "Catch2 (CPM)"
     },
     {
