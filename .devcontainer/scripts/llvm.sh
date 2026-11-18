@@ -236,26 +236,62 @@ fi
 
 log "LLVM version(s) to be installed: [${llvm_versions}]"
 
+# --- installations ---
+
+codename=$(lsb_release -cs)
+
+# apt.llvm.org installs these with `all`; libc++ is what the clang-libcxx preset links against.
+distro_packages(){
+    local version="$1"
+    local packages="clang-${version} libc++-${version}-dev libc++abi-${version}-dev"
+    if [[ ${arg_minimalistic} == 0 ]]; then
+        packages="${packages} clang-format-${version} clang-tidy-${version} clang-tools-${version} clangd-${version} lldb-${version} llvm-${version}"
+    fi
+    echo "${packages}"
+}
+
+apt_candidate(){
+    apt-cache policy "$1" 2>/dev/null | sed -n 's/^  Candidate: //p' | grep -vFx '(none)'
+}
+
+llvm_apt_org_serves(){
+    wget -q --spider "https://apt.llvm.org/${codename}/dists/llvm-toolchain-${codename}-$1/Release"
+}
+
+# Buffering keeps a successful install quiet without losing the diagnostic from a failing one.
+run_quietly(){
+    local failure_message="$1"
+    shift
+    local output_file
+    output_file=$(mktemp)
+    if "$@" > "${output_file}" 2>&1; then
+        rm -f "${output_file}"
+        return 0
+    fi
+    cat "${output_file}" >&2
+    rm -f "${output_file}"
+    error "${failure_message}"
+}
+
+# apt.llvm.org carries only the most recent LLVM versions for each Ubuntu release, while the
+# distribution archive keeps older ones: resolute (26.04) has no llvm-toolchain-resolute-18 yet packages clang-18.
+# Resolving before --cleanup purges anything keeps an unavailable version from leaving the system with no clang.
+mapfile -t llvm_versions_to_install < <(echo ${llvm_versions} | tr ' ' '\n')
+declare -A install_source
+for version in "${llvm_versions_to_install[@]}"; do
+    if [ -n "$(apt_candidate "clang-${version}")" ]; then
+        install_source["${version}"]="${codename} archive"
+    elif llvm_apt_org_serves "${version}"; then
+        install_source["${version}"]="${external_script_url}"
+    else
+        error "LLVM ${version} is packaged neither in the ${codename} archive nor at ${external_script_url}"
+    fi
+    log "LLVM ${version}: installing from [${install_source[${version}]}]"
+done
+
 # --- clean update-alternatives ---
 sudo rm -rf /etc/alternatives/clang* /etc/alternatives/llvm-symbolizer /etc/alternatives/lldb
 sudo rm -rf /var/lib/dpkg/alternatives/clang* /var/lib/dpkg/alternatives/llvm-symbolizer /var/lib/dpkg/alternatives/lldb
-
-# --- installations ---
-
-# for version in "${llvm_versions_to_install[@]}"; do
-#     add-apt-repository -y \
-#         "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${version}" main   \
-#         > /dev/null                                         \
-#     || error "adding apt-repository for [${version}] failed"
-# done
-# apt update -qqy
-
-# quick-fix: Ubuntu-24.04-noble not fully supported yet, switching to Ubuntu-22.04-jammy
-codename=$(lsb_release -cs)
-# if [ "${codename}" = "noble" ]; then
-#     warning "codename=[${codename}] is not supported yet, switching to [jammy]"
-#     codename="jammy"
-# fi
 
 if [[ ${arg_cleanup} == 1 ]]; then
     sudo apt-get remove -y "llvm-*"
@@ -264,24 +300,17 @@ if [[ ${arg_cleanup} == 1 ]]; then
     sudo apt-get remove -y "python3-lldb-*"
 fi
 
-mapfile -t llvm_versions_to_install < <(echo -n "$llvm_versions")
 for version in "${llvm_versions_to_install[@]}"; do
 
-    # fix potential conflicts:
-    #   sudo apt-get purge --auto-remove llvm python3-lldb-14 llvm-14 -y; \
+    if [ "${install_source[${version}]}" = "${external_script_url}" ]; then
+        run_quietly "running [${external_script_url} ${version} all] failed" \
+            "./${internal_script_path}" "${version}" all -n "${codename}"
+    else
+        # apt allows one lldb installation at a time, so this cannot use --no-remove.
+        run_quietly "installing LLVM ${version} from the ${codename} archive failed" \
+            apt-get install -qq -y --no-install-recommends $(distro_packages "${version}")
+    fi
 
-    # yes '' |
-    ./${internal_script_path} ${version} all -n ${codename} > /dev/null 2>&1 \
-    || error "running [${external_script_url} ${version} all] failed"
-
-    # Warning: only one installation of `lldb` is allowed by `apt` at a time. Cannot use `--no-remove` here
-    # apt install -qq -y --no-install-recommends \
-    #     clang-format-${version} \
-    #     clang-tidy-${version}   \
-    #     lldb-${version}         \
-    # || error "installation of [${version}] (tools) failed"
-    # clang and clang-tools
-    
     # Latest stable always has the highest priority
     update_alternative_priority=$([[ "${version}" = "${llvm_latest_stable}" ]] && echo "100" || echo "${version}")
 
