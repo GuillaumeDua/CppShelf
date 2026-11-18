@@ -240,10 +240,11 @@ log "LLVM version(s) to be installed: [${llvm_versions}]"
 
 codename=$(lsb_release -cs)
 
-# apt.llvm.org installs these with `all`; libc++ is what the clang-libcxx preset links against.
+# apt.llvm.org installs these with `all`. The clang-libcxx preset links against libc++, whose
+# libc++.so is the linker script INPUT(libc++.so.1 -lc++abi -lunwind): hence the other two.
 distro_packages(){
     local version="$1"
-    local packages="clang-${version} libc++-${version}-dev libc++abi-${version}-dev"
+    local packages="clang-${version} libc++-${version}-dev libc++abi-${version}-dev libunwind-${version}-dev"
     if [[ ${arg_minimalistic} == 0 ]]; then
         packages="${packages} clang-format-${version} clang-tidy-${version} clang-tools-${version} clangd-${version} lldb-${version} llvm-${version}"
     fi
