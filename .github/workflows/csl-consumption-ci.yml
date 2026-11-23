@@ -6,6 +6,9 @@ on:
   workflow_run:
     workflows: ["csl CI"]
     types: [completed]
+    # branches matches the triggering run's branch: without it a PR-branch "csl CI" run starts
+    # a run here whose jobs all skip, which in turn starts a skipped documentation run.
+    branches: [main]
   workflow_call: # callable as a release gate (see csl-release.yml)
   workflow_dispatch:
 
@@ -23,8 +26,8 @@ jobs:
   consumption_test:
 
     name: Consumption ${{ matrix.mode }} (${{ matrix.configuration.CMAKE_C_COMPILER }}-${{ matrix.configuration.version }})
-    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
 
     strategy:
@@ -74,8 +77,8 @@ jobs:
   consumption_passed:
     name: Consumption passed
     needs: consumption_test
-    if: always() && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
-    runs-on: ubuntu-latest
+    if: always() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-26.04
     steps:
       - name: Check result
         run: |

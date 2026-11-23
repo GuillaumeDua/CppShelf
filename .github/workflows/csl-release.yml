@@ -33,7 +33,7 @@ jobs:
   package:
     name: Package & release
     needs: [ci, consumption] # only runs if both gates succeeded
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     permissions:
       contents: write # required to create a GitHub release

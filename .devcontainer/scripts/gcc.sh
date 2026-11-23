@@ -24,7 +24,7 @@ help(){
         [ -v | --versions ]     : Versions to install.                                  String: all|latest|latest-stable|>=(number)|(space-separated-numbers...) -> default is [latest-stable]
             - [all]             : all versions availables                                   Ex: 'all'
             - [latest]          : only the latest        version available                  Ex: 'latest'
-            - [latest-stable]   : only the latest-stable version available                  Ex: 'latest-stable'
+            - [latest-stable]   : only the latest        released version (no snapshot)     Ex: 'latest-stable'
             - [>=(number)]      : all versions greater or equal to <number>.                Ex: '>=42'
             - [numbers...]      : only listed versions.                                     Ex: '13 25 42' (space-separated)
         [ -s | --silent ]       : Run in silent mod.                                    Boolean -> default is [1]
@@ -134,14 +134,24 @@ log "arguments - silent:   [${arg_silent}]"
 log "arguments - alias:    [${arg_alias}]"
 log "arguments - list:     [${arg_list}]"
 
-# --- use ppa:ubuntu-toolchain-r/test
+# --- apt sources ---
 
+# The distribution archive is the source of truth: ubuntu-toolchain-r/test is a fallback for the versions it does not carry.
+# The PPA publishes no gcc for recent Ubuntu releases (nothing but llvm-toolchain-21 for resolute/26.04),
+# so adding it upfront costs an "apt update" for nothing.
+#
+# NOTE: Such a repo may lag or skips some versions.
+#       For instance now (11/23/2026) GCC-16.2 is supported by Ubuntu Jammy, Focal, Bionic,
+#       but NOT by Resolute (26.04 LTS) yet.
 ubuntu_toolchain_r_ppa="ubuntu-toolchain-r/test"
-is_ubuntu_toolchain_r_ppa_added=$(grep -r "${ubuntu_toolchain_r_ppa}" /etc/apt/sources.list.d/ >/dev/null 2>&1 && echo true || echo false)
-if [ "${is_ubuntu_toolchain_r_ppa_added}" = false ]; then
+add_ubuntu_toolchain_r_ppa(){
+    if grep -r "${ubuntu_toolchain_r_ppa}" /etc/apt/sources.list.d/ >/dev/null 2>&1; then
+        return 0
+    fi
     log "adding ppa: [${ubuntu_toolchain_r_ppa}] ..."
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt update -qqy
-fi
+    sudo add-apt-repository -y "ppa:${ubuntu_toolchain_r_ppa}" && apt update -qqy \
+        || error "adding ppa [${ubuntu_toolchain_r_ppa}] failed"
+}
 
 # --- list versions ---
 
@@ -150,28 +160,67 @@ list_installed_gcc_versions(){
     dpkg -l | grep ^ii |  awk '{print $2}' | grep -oP $gcc_version_regex | uniq | sort -n
     # apt list --installed | grep -oP $gcc_version_regex | uniq | sort -n | xargs
 }
+list_available_gcc_versions(){
+    apt list --all-versions 2>/dev/null | grep -oP $gcc_version_regex | sort -n | uniq
+}
+apt_candidate(){
+    apt-cache policy "$1" 2>/dev/null | sed -n 's/^  Candidate: //p' | grep -vFx '(none)'
+}
+
+# A released GCC is versioned MAJOR.MINOR.PATCH, a snapshot taken before that release MAJOR-YYYYMMDD:
+# noble carries gcc-14 at 14-20240412, resolute gcc-16 at 16-20260322.
+is_stable_gcc_version(){
+    [[ "$(apt_candidate "gcc-$1")" =~ ^$1\.[0-9] ]]
+}
 
 # --- which versions ---
 
-all_gcc_versions_available=$(apt list --all-versions 2>/dev/null  | grep -oP $gcc_version_regex | sort -n | uniq)
-if [ "$arg_versions" = 'all' ]; then
-    gcc_versions=$all_gcc_versions_available
-elif [ "$arg_versions" = 'latest' ] || [ "$arg_versions" = 'latest-stable' ]; then
-    gcc_versions=$(echo ${all_gcc_versions_available} | tr " " "\n" | tail -1)
-elif [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
+from_version=''
+if [[ "$arg_versions" =~  ^\>=[0-9]+$ ]]; then
     from_version=$(echo "${arg_versions}" | grep -oP '^>=\K([0-9])+$')
     log "using user-provided rule: >=[$from_version]"
     if [ -z "$from_version" ]; then
         error "invalid version='>=[0-9]+' value"
-        exit 1
     fi
-    gcc_versions=$(echo "$all_gcc_versions_available" | awk "\$1 >= ${from_version}")
 elif [[ "$arg_versions" =~  ^[0-9]+( [0-9]+)*$ ]]; then
     log "using user-provided version(s) list: [${arg_versions}]"
-    gcc_versions="${arg_versions}"
-elif [ ! -z "$arg_versions" ]; then
+elif [ "$arg_versions" != 'all' ] && [ "$arg_versions" != 'latest' ] && [ "$arg_versions" != 'latest-stable' ]; then
     error "invalid value for argument version [${arg_versions}]"
-    exit 1
+fi
+
+# Resolution runs against whichever apt sources are configured, so a request the distribution archive
+# cannot answer is retried once the PPA is added. An explicit list resolves to nothing while any of
+# its versions is unknown to apt, so a missing one reaches the PPA instead of failing at install time.
+resolve_requested_versions(){
+    local version
+    if [ "$arg_versions" = 'all' ]; then
+        echo "${all_gcc_versions_available}"
+    elif [ "$arg_versions" = 'latest' ]; then
+        echo "${all_gcc_versions_available}" | tail -1
+    elif [ "$arg_versions" = 'latest-stable' ]; then
+        for version in $(echo "${all_gcc_versions_available}" | sort -rn); do
+            if is_stable_gcc_version "${version}"; then
+                echo "${version}"
+                return 0
+            fi
+        done
+    elif [ -n "${from_version}" ]; then
+        echo "${all_gcc_versions_available}" | awk "\$1 >= ${from_version}"
+    else
+        for version in ${arg_versions}; do
+            grep -qxF "${version}" <<< "${all_gcc_versions_available}" || return 0
+        done
+        echo "${arg_versions}" | tr " " "\n"
+    fi
+}
+
+all_gcc_versions_available=$(list_available_gcc_versions)
+gcc_versions=$(resolve_requested_versions)
+
+if [ -z "${gcc_versions}" ]; then
+    add_ubuntu_toolchain_r_ppa
+    all_gcc_versions_available=$(list_available_gcc_versions)
+    gcc_versions=$(resolve_requested_versions)
 fi
 
 if [ -z "$gcc_versions" ]; then

@@ -24,8 +24,10 @@ jobs:
 
     name: ${{ format('{0} ({1}, {2})', matrix.CSL_component, matrix.configuration.preset, matrix.configuration.version) }}
 
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-26.04
+    # Jobs finish in under 10 minutes. The margin absorbs a degraded Ubuntu mirror on the compiler
+    # install: a timeout here is recorded as a cancelled run, not a failure.
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -124,7 +126,7 @@ jobs:
     name: CI passed
     needs: build_and_test
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Check matrix result
         run: |

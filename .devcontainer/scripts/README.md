@@ -11,7 +11,7 @@ Both require root privileges. Used by the [devcontainer](../Dockerfile) and the 
 sudo ./gcc.sh [options]
 ```
 
-Installs one or more GCC versions from the `ubuntu-toolchain-r/test` PPA (added automatically if missing), sets up `update-alternatives` for `gcc`/`g++`/`gcov`, and best-effort installs the matching `-multilib` packages.
+Installs one or more GCC versions from the distribution archive, falling back to the `ubuntu-toolchain-r/test` PPA (added automatically) for versions the archive does not carry, sets up `update-alternatives` for `gcc`/`g++`/`gcov`, and best-effort installs the matching `-multilib` packages.
 
 | Option             | Type    | Default         | Description                                                                                              |
 | ------------------ | ------- | --------------- | -------------------------------------------------------------------------------------------------------- |
@@ -21,7 +21,8 @@ Installs one or more GCC versions from the `ubuntu-toolchain-r/test` PPA (added 
 | `-a`, `--alias`    | boolean | `0`             | Append the resulting `gcc_versions` variable to `/etc/bash.bashrc` and `/etc/zsh/zshrc`                  |
 | `-h`, `--help`     | —       | —               | Display usage                                                                                            |
 
-Boolean values accept `y|yes|1|true` / `n|no|0|false` (case-insensitive).
+Boolean values accept `y|yes|1|true` / `n|no|0|false` (case-insensitive).  
+`latest-stable` resolves to the newest version apt offers as an upstream release, skipping a pre-release snapshot (one versioned `MAJOR-YYYYMMDD` rather than `MAJOR.MINOR.PATCH`); `latest` does not. A major whose only package is a snapshot is therefore passed over even once that major has been released upstream.
 
 **Example**: install the two latest available versions:
 
