@@ -1,5 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,224,75"/>
-<area shape="rect" id="Node000001" href="$structcsl_1_1ag_1_1formatting_1_1fmt__formatter.html" title="Opt&#45;in base making T formattable directly by fmt::format." alt="" coords="272,13,421,67"/>
-<area shape="poly" id="edge4_Node000000_Node000001" title=" " alt="" coords="238,37,272,37,272,43,238,43"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,224,84"/>
+<area shape="rect" id="Node000001" href="$structcsl_1_1ag_1_1formatting_1_1fmt__formatter.html" title="Opt&#45;in base making T formattable directly by fmt::format." alt="" coords="272,14,420,76"/>
+<area shape="poly" id="edge4_Node000000_Node000001" title=" " alt="" coords="239,42,274,44,269,45,240,47"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="csl::mp::type_traits::is_homogeneous&lt; T &gt;" name="csl::mp::type_traits::is_homogeneous&lt; T &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="297,47,476,87"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="68,5,187,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,29,298,48,297,53,200,34"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="71,55,183,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,65,297,65,297,70,197,70"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,105,249,262"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="261,121,339,85,342,90,263,126"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="297,49,474,94"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="68,5,186,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,31,299,52,294,55,201,37"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="71,57,183,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,69,298,70,294,73,199,74"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,109,249,290"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="261,130,341,93,336,95,264,134"/>
 </map>
