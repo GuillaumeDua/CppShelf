@@ -176,10 +176,8 @@ external_script_url='https://apt.llvm.org/llvm.sh'
 # wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 # wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 # NO_PUBKEY 1A127079A92F09ED
-# REFACTO: remove gpg key -> already added by ${external_script_url}
 wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --batch --yes -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg \
-    && wget -qO ${internal_script_path} ${external_script_url} \
-    && chmod +x "${internal_script_path}"
+    && wget -qO ${internal_script_path} ${external_script_url}
 if [ $? != 0 ] || [ ! -f "${internal_script_path}" ]; then
     error "fetching [${external_script_url}] failed"
 fi
@@ -242,13 +240,28 @@ codename=$(lsb_release -cs)
 
 # apt.llvm.org installs these with `all`. The clang-libcxx preset links against libc++, whose
 # libc++.so is the linker script INPUT(libc++.so.1 -lc++abi -lunwind): hence the other two.
-distro_packages(){
+llvm_packages(){
     local version="$1"
     local packages="clang-${version} libc++-${version}-dev libc++abi-${version}-dev libunwind-${version}-dev"
     if [[ ${arg_minimalistic} == 0 ]]; then
-        packages="${packages} clang-format-${version} clang-tidy-${version} clang-tools-${version} clangd-${version} lldb-${version} llvm-${version}"
+        packages="${packages} clang-format-${version} clang-tidy-${version} clang-tools-${version} clangd-${version} llvm-${version}"
     fi
     echo "${packages}"
+}
+
+# Debian's LLVM packaging lets a single python3-lldb-x.y exist at a time, so a second version's
+# lldb cannot sit next to the first. Keeping it out of the main transaction leaves the rest of the
+# toolchain installable on a machine that already carries one.
+install_lldb(){
+    local version="$1" output_file
+    if [[ ${arg_minimalistic} == 1 ]]; then
+        return 0
+    fi
+    output_file=$(mktemp)
+    if ! apt-get install -qq -y --no-install-recommends "lldb-${version}" > "${output_file}" 2>&1; then
+        warning "lldb-${version} not installed [$(grep -m1 '^E:' "${output_file}" || echo 'no apt error line')]. Only one python3-lldb-x.y can be installed at a time."
+    fi
+    rm -f "${output_file}"
 }
 
 apt_candidate(){
@@ -257,6 +270,35 @@ apt_candidate(){
 
 llvm_apt_org_serves(){
     wget -q --spider "https://apt.llvm.org/${codename}/dists/llvm-toolchain-${codename}-$1/Release"
+}
+
+# apt.llvm.org retires a suite once its LLVM version ages out, and apt then fails every update
+# with "does not have a Release file". An entry added by an earlier run outlives the suite it
+# points at, so this runs before anything else touches apt.
+prune_retired_apt_llvm_org_sources(){
+    local file version suite
+    for file in /etc/apt/sources.list.d/*.list; do
+        if [ ! -e "${file}" ] || ! grep -qF 'apt.llvm.org' "${file}"; then
+            continue
+        fi
+        for version in $(grep -oE "llvm-toolchain-${codename}-[0-9]+" "${file}" | grep -oE '[0-9]+$' | sort -nu); do
+            if llvm_apt_org_serves "${version}"; then
+                continue
+            fi
+            suite="llvm-toolchain-${codename}-${version}"
+            warning "dropping retired apt.llvm.org suite [${suite}] from [${file}]"
+            sed -i -E "/(^|[[:space:]])${suite}([[:space:]]|$)/d" "${file}"
+        done
+    done
+}
+
+# The upstream installer adds this same repository, then installs a package list that always
+# carries lldb-N. Adding it here keeps every version on one apt install, so --minimalistic
+# applies and lldb stays best-effort.
+add_apt_llvm_org_repository(){
+    local version="$1"
+    run_quietly "adding the apt.llvm.org repository for LLVM ${version} failed" \
+        add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-${version} main"
 }
 
 # Buffering keeps a successful install quiet without losing the diagnostic from a failing one.
@@ -274,18 +316,21 @@ run_quietly(){
     error "${failure_message}"
 }
 
-# apt.llvm.org carries only the most recent LLVM versions for each Ubuntu release, while the
-# distribution archive keeps older ones: resolute (26.04) has no llvm-toolchain-resolute-18 yet packages clang-18.
+prune_retired_apt_llvm_org_sources
+
+# The distribution archive matters because it keeps versions apt.llvm.org drops: resolute/26.04
+# packages clang-18, which apt.llvm.org does not serve. A version apt cannot see yet needs its
+# apt.llvm.org source added, after which apt installs it like any other.
 # Resolving before --cleanup purges anything keeps an unavailable version from leaving the system with no clang.
 mapfile -t llvm_versions_to_install < <(echo ${llvm_versions} | tr ' ' '\n')
 declare -A install_source
 for version in "${llvm_versions_to_install[@]}"; do
     if [ -n "$(apt_candidate "clang-${version}")" ]; then
-        install_source["${version}"]="${codename} archive"
+        install_source["${version}"]="apt"
     elif llvm_apt_org_serves "${version}"; then
-        install_source["${version}"]="${external_script_url}"
+        install_source["${version}"]="apt.llvm.org"
     else
-        error "LLVM ${version} is packaged neither in the ${codename} archive nor at ${external_script_url}"
+        error "LLVM ${version} is offered neither by apt nor by apt.llvm.org"
     fi
     log "LLVM ${version}: installing from [${install_source[${version}]}]"
 done
@@ -303,14 +348,12 @@ fi
 
 for version in "${llvm_versions_to_install[@]}"; do
 
-    if [ "${install_source[${version}]}" = "${external_script_url}" ]; then
-        run_quietly "running [${external_script_url} ${version} all] failed" \
-            "./${internal_script_path}" "${version}" all -n "${codename}"
-    else
-        # apt allows one lldb installation at a time, so this cannot use --no-remove.
-        run_quietly "installing LLVM ${version} from the ${codename} archive failed" \
-            apt-get install -qq -y --no-install-recommends $(distro_packages "${version}")
+    if [ "${install_source[${version}]}" = "apt.llvm.org" ]; then
+        add_apt_llvm_org_repository "${version}"
     fi
+    run_quietly "installing LLVM ${version} with apt failed" \
+        apt-get install -qq -y --no-install-recommends $(llvm_packages "${version}")
+    install_lldb "${version}"
 
     # Latest stable always has the highest priority
     update_alternative_priority=$([[ "${version}" = "${llvm_latest_stable}" ]] && echo "100" || echo "${version}")

@@ -38,12 +38,12 @@ sudo ./gcc.sh --versions="$(sudo ./gcc.sh --list --versions='all' | tail -2)"
 sudo ./llvm.sh [options]
 ```
 
-Wraps the upstream [`apt.llvm.org/llvm.sh`](https://apt.llvm.org/llvm.sh) installer:
+Installs one or more LLVM/Clang versions with apt, and sets up `update-alternatives` for `clang`/`clang++` and (unless `--minimalistic`) the rest of the toolchain (`clang-format`, `clang-tidy`, `clangd`, ...):
 
-- fetches it (and the LLVM apt signing key) into a temporary `impl.sh`
-- resolves the requested version(s)
-- installs them
-- then sets up `update-alternatives` for `clang`/`clang++` and (unless `--minimalistic`) the full toolchain (`clang-format`, `clang-tidy`, `clangd`, `lldb`, `scan-build`, ...)
+- fetches the LLVM apt signing key, and upstream [`apt.llvm.org/llvm.sh`](https://apt.llvm.org/llvm.sh) into a temporary `impl.sh`, read for its version table and `CURRENT_LLVM_STABLE`
+- resolves the requested version(s), then installs each one with apt, adding its `apt.llvm.org` repository first when the distribution archive does not carry it
+- drops `apt.llvm.org` sources whose suite the server has retired, which otherwise make every `apt update` fail
+- installs `lldb` on its own, best-effort: Debian's LLVM packaging allows a single `python3-lldb` at a time, so only one installed version can carry it
 - *The temporary `impl.sh` is removed before exit*
 
 | Option                 | Type    | Default         | Description                                                                                              |
